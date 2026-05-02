@@ -3,17 +3,20 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy everything needed for build
-COPY package.json package-lock.json* ./
+# Copy all source files needed for build
+COPY package.json package-lock.json ./
 COPY src ./src
 COPY public ./public
 COPY index.html vite.config.js ./
 
-# Install all dependencies (including devDependencies)
-RUN npm install
+# Install dependencies
+RUN npm ci
 
-# Build React app with Vite
-RUN npm run build
+# Debug: verify files exist
+RUN ls -la && echo "---" && ls -la src/ && echo "---" && ls -la public/
+
+# Build React app
+RUN npm run build && ls -la dist/
 
 # Stage 2: Production runtime
 FROM node:18-alpine
