@@ -349,6 +349,191 @@ const VETERAN_BUSINESSES = {
   ],
 };
 
+const INSTALLATION_COORDS = {
+  "Fort Liberty":          { lat: 35.1390, lng: -79.0064, zoom: 14 },
+  "Fort Bliss":            { lat: 31.8120, lng: -106.4145, zoom: 13 },
+  "Fort Campbell":         { lat: 36.6614, lng: -87.4817,  zoom: 13 },
+  "Fort Carson":           { lat: 38.7268, lng: -104.7896, zoom: 13 },
+  "Fort Drum":             { lat: 44.0568, lng: -75.7717,  zoom: 13 },
+  "Naval Station Norfolk": { lat: 36.9376, lng: -76.2944,  zoom: 13 },
+  "Naval Base San Diego":  { lat: 32.6826, lng: -117.1342, zoom: 13 },
+  "Camp Pendleton":        { lat: 33.3767, lng: -117.5638, zoom: 12 },
+  "Camp Lejeune":          { lat: 34.6815, lng: -77.3398,  zoom: 12 },
+  "Lackland AFB":          { lat: 29.3843, lng: -98.6201,  zoom: 14 },
+  "Nellis AFB":            { lat: 36.2361, lng: -115.0343, zoom: 13 },
+};
+
+const BASE_POI_CATEGORIES = {
+  medical:    { icon: "🏥", color: "#C62828", label: "Medical"        },
+  exchange:   { icon: "🛒", color: "#1565C0", label: "Exchange (PX/BX)" },
+  commissary: { icon: "🥩", color: "#2E7D32", label: "Commissary"     },
+  admin:      { icon: "🏛️", color: "#6A1B9A", label: "Headquarters"   },
+  gate:       { icon: "🚗", color: "#37474F", label: "Gate"           },
+  chapel:     { icon: "⛪", color: "#E65100", label: "Chapel"         },
+  housing:    { icon: "🏠", color: "#00838F", label: "Housing Office" },
+  education:  { icon: "🎓", color: "#558B2F", label: "Education Center" },
+  fitness:    { icon: "🏋️", color: "#00796B", label: "Fitness Center" },
+  finance:    { icon: "🏦", color: "#4527A0", label: "Finance Office" },
+  dining:     { icon: "🍽️", color: "#F57F17", label: "Dining Facility" },
+  childcare:  { icon: "👶", color: "#AD1457", label: "Child Development" },
+};
+
+const BASE_LOCATIONS = {
+  "Fort Liberty": [
+    { name: "Womack Army Medical Center", cat: "medical",    lat: 35.1383, lng: -79.0036 },
+    { name: "Fort Liberty Exchange (PX)", cat: "exchange",   lat: 35.1453, lng: -79.0116 },
+    { name: "Commissary",                 cat: "commissary", lat: 35.1465, lng: -79.0133 },
+    { name: "XVIII Airborne Corps HQ",    cat: "admin",      lat: 35.1390, lng: -79.0064 },
+    { name: "Main Gate (Reilly Rd)",      cat: "gate",       lat: 35.1560, lng: -79.0140 },
+    { name: "All American Chapel",        cat: "chapel",     lat: 35.1395, lng: -79.0070 },
+    { name: "Army Housing Office",        cat: "housing",    lat: 35.1470, lng: -79.0050 },
+    { name: "Education Center",           cat: "education",  lat: 35.1430, lng: -79.0085 },
+    { name: "Finance Office",             cat: "finance",    lat: 35.1402, lng: -79.0073 },
+    { name: "Soldier Support Center",     cat: "admin",      lat: 35.1385, lng: -79.0080 },
+    { name: "Airborne & Special Ops Museum", cat: "admin",   lat: 35.0524, lng: -78.8772 },
+    { name: "CDC / Child Development Center", cat: "childcare", lat: 35.1460, lng: -79.0095 },
+  ],
+  "Fort Bliss": [
+    { name: "William Beaumont Army Medical Center", cat: "medical",    lat: 31.8092, lng: -106.4012 },
+    { name: "Fort Bliss Exchange",                  cat: "exchange",   lat: 31.8145, lng: -106.4120 },
+    { name: "Commissary",                           cat: "commissary", lat: 31.8160, lng: -106.4135 },
+    { name: "1st Armored Division HQ",              cat: "admin",      lat: 31.8120, lng: -106.4145 },
+    { name: "Marshall Road Gate (Main Gate)",       cat: "gate",       lat: 31.8280, lng: -106.4155 },
+    { name: "Chapel",                               cat: "chapel",     lat: 31.8130, lng: -106.4100 },
+    { name: "Housing Office",                       cat: "housing",    lat: 31.8090, lng: -106.4145 },
+    { name: "Education Center",                     cat: "education",  lat: 31.8140, lng: -106.4090 },
+    { name: "Finance Office",                       cat: "finance",    lat: 31.8125, lng: -106.4138 },
+    { name: "Dining Facility (DFAC)",               cat: "dining",     lat: 31.8108, lng: -106.4120 },
+    { name: "Soldier and Family Readiness Center",  cat: "admin",      lat: 31.8135, lng: -106.4128 },
+    { name: "Child Development Center",             cat: "childcare",  lat: 31.8155, lng: -106.4110 },
+  ],
+  "Fort Campbell": [
+    { name: "Blanchfield Army Community Hospital", cat: "medical",    lat: 36.6550, lng: -87.4700 },
+    { name: "Fort Campbell Exchange",              cat: "exchange",   lat: 36.6680, lng: -87.4820 },
+    { name: "Commissary",                          cat: "commissary", lat: 36.6690, lng: -87.4835 },
+    { name: "101st Airborne HQ",                   cat: "admin",      lat: 36.6614, lng: -87.4817 },
+    { name: "Main Gate (Gate 1)",                  cat: "gate",       lat: 36.6750, lng: -87.4850 },
+    { name: "Campbell Army Airfield",              cat: "admin",      lat: 36.6480, lng: -87.4600 },
+    { name: "Chapel",                              cat: "chapel",     lat: 36.6620, lng: -87.4810 },
+    { name: "Housing Office",                      cat: "housing",    lat: 36.6660, lng: -87.4830 },
+    { name: "Education Center",                    cat: "education",  lat: 36.6635, lng: -87.4795 },
+    { name: "Finance Office",                      cat: "finance",    lat: 36.6618, lng: -87.4820 },
+    { name: "Soldier Support Center",              cat: "admin",      lat: 36.6600, lng: -87.4808 },
+    { name: "Child Development Center",            cat: "childcare",  lat: 36.6670, lng: -87.4800 },
+  ],
+  "Fort Carson": [
+    { name: "Evans Army Community Hospital",  cat: "medical",    lat: 38.7220, lng: -104.7900 },
+    { name: "Fort Carson Exchange",           cat: "exchange",   lat: 38.7290, lng: -104.7880 },
+    { name: "Commissary",                     cat: "commissary", lat: 38.7300, lng: -104.7895 },
+    { name: "4th Infantry Division HQ",       cat: "admin",      lat: 38.7268, lng: -104.7896 },
+    { name: "South Gate (Gate 1)",            cat: "gate",       lat: 38.7080, lng: -104.7940 },
+    { name: "Chapel",                         cat: "chapel",     lat: 38.7275, lng: -104.7885 },
+    { name: "Housing Office",                 cat: "housing",    lat: 38.7310, lng: -104.7870 },
+    { name: "Education Center",               cat: "education",  lat: 38.7260, lng: -104.7870 },
+    { name: "Finance Office",                 cat: "finance",    lat: 38.7270, lng: -104.7898 },
+    { name: "Mountain Post Fitness Center",   cat: "fitness",    lat: 38.7285, lng: -104.7875 },
+    { name: "Dining Facility (DFAC)",         cat: "dining",     lat: 38.7255, lng: -104.7905 },
+    { name: "Child Development Center",       cat: "childcare",  lat: 38.7295, lng: -104.7888 },
+  ],
+  "Fort Drum": [
+    { name: "Guthrie Army Health Clinic",     cat: "medical",    lat: 44.0530, lng: -75.7750 },
+    { name: "Fort Drum Exchange",             cat: "exchange",   lat: 44.0590, lng: -75.7700 },
+    { name: "Commissary",                     cat: "commissary", lat: 44.0600, lng: -75.7720 },
+    { name: "10th Mountain Division HQ",      cat: "admin",      lat: 44.0568, lng: -75.7717 },
+    { name: "Wheeler-Sack Gate",              cat: "gate",       lat: 44.0670, lng: -75.7620 },
+    { name: "Chapel",                         cat: "chapel",     lat: 44.0575, lng: -75.7710 },
+    { name: "Housing Office",                 cat: "housing",    lat: 44.0610, lng: -75.7730 },
+    { name: "Education Center",               cat: "education",  lat: 44.0580, lng: -75.7695 },
+    { name: "Finance Office",                 cat: "finance",    lat: 44.0570, lng: -75.7720 },
+    { name: "Magrath Sports Complex",         cat: "fitness",    lat: 44.0555, lng: -75.7680 },
+    { name: "Dining Facility",                cat: "dining",     lat: 44.0562, lng: -75.7725 },
+  ],
+  "Naval Station Norfolk": [
+    { name: "Naval Medical Center Portsmouth", cat: "medical",    lat: 36.8358, lng: -76.3085 },
+    { name: "Norfolk Exchange (NEX)",          cat: "exchange",   lat: 36.9415, lng: -76.2920 },
+    { name: "Commissary",                      cat: "commissary", lat: 36.9420, lng: -76.2940 },
+    { name: "Fleet Forces Command HQ",         cat: "admin",      lat: 36.9376, lng: -76.2944 },
+    { name: "Main Gate",                       cat: "gate",       lat: 36.9290, lng: -76.3010 },
+    { name: "Chapel",                          cat: "chapel",     lat: 36.9385, lng: -76.2950 },
+    { name: "Housing Office",                  cat: "housing",    lat: 36.9430, lng: -76.2930 },
+    { name: "Navy College Afloat",             cat: "education",  lat: 36.9395, lng: -76.2935 },
+    { name: "Finance Office (DFAS)",           cat: "finance",    lat: 36.9380, lng: -76.2948 },
+    { name: "Recreation Center",               cat: "fitness",    lat: 36.9400, lng: -76.2925 },
+    { name: "Galley (Dining Facility)",        cat: "dining",     lat: 36.9388, lng: -76.2955 },
+    { name: "CDC / Child Development Center",  cat: "childcare",  lat: 36.9408, lng: -76.2938 },
+  ],
+  "Naval Base San Diego": [
+    { name: "Naval Medical Center San Diego",  cat: "medical",    lat: 32.7200, lng: -117.1580 },
+    { name: "NEX (Main Exchange)",             cat: "exchange",   lat: 32.6860, lng: -117.1320 },
+    { name: "Commissary",                      cat: "commissary", lat: 32.6870, lng: -117.1340 },
+    { name: "Navy Region Southwest HQ",        cat: "admin",      lat: 32.6826, lng: -117.1342 },
+    { name: "Main Gate (Gate 4)",              cat: "gate",       lat: 32.6780, lng: -117.1420 },
+    { name: "Chapel",                          cat: "chapel",     lat: 32.6830, lng: -117.1335 },
+    { name: "Housing Office",                  cat: "housing",    lat: 32.6880, lng: -117.1310 },
+    { name: "Navy College Office",             cat: "education",  lat: 32.6840, lng: -117.1330 },
+    { name: "Finance Office",                  cat: "finance",    lat: 32.6828, lng: -117.1345 },
+    { name: "Navy Gateway Fitness Center",     cat: "fitness",    lat: 32.6850, lng: -117.1325 },
+    { name: "Galley",                          cat: "dining",     lat: 32.6822, lng: -117.1348 },
+    { name: "Child Development Center",        cat: "childcare",  lat: 32.6865, lng: -117.1318 },
+  ],
+  "Camp Pendleton": [
+    { name: "Naval Hospital Camp Pendleton",   cat: "medical",    lat: 33.3760, lng: -117.4680 },
+    { name: "MCX Main Exchange",               cat: "exchange",   lat: 33.3780, lng: -117.5590 },
+    { name: "Commissary",                      cat: "commissary", lat: 33.3790, lng: -117.5610 },
+    { name: "I MEF HQ",                        cat: "admin",      lat: 33.3767, lng: -117.5638 },
+    { name: "Main Gate (Gate 1)",              cat: "gate",       lat: 33.3850, lng: -117.5680 },
+    { name: "Chapel",                          cat: "chapel",     lat: 33.3775, lng: -117.5630 },
+    { name: "Housing Office",                  cat: "housing",    lat: 33.3800, lng: -117.5580 },
+    { name: "Education Center",                cat: "education",  lat: 33.3760, lng: -117.5600 },
+    { name: "Finance Office",                  cat: "finance",    lat: 33.3770, lng: -117.5640 },
+    { name: "Semper Fit Center",               cat: "fitness",    lat: 33.3785, lng: -117.5595 },
+    { name: "Mess Hall / Dining Facility",     cat: "dining",     lat: 33.3755, lng: -117.5620 },
+    { name: "Child Development Center",        cat: "childcare",  lat: 33.3795, lng: -117.5570 },
+  ],
+  "Camp Lejeune": [
+    { name: "Naval Hospital Camp Lejeune",     cat: "medical",    lat: 34.6780, lng: -77.3480 },
+    { name: "MCX (Marine Corps Exchange)",     cat: "exchange",   lat: 34.6850, lng: -77.3380 },
+    { name: "Commissary",                      cat: "commissary", lat: 34.6860, lng: -77.3400 },
+    { name: "II MEF HQ",                       cat: "admin",      lat: 34.6815, lng: -77.3398 },
+    { name: "Wallace Creek Gate",              cat: "gate",       lat: 34.6700, lng: -77.3500 },
+    { name: "Main Side Chapel",               cat: "chapel",     lat: 34.6820, lng: -77.3390 },
+    { name: "Housing Office",                  cat: "housing",    lat: 34.6870, lng: -77.3370 },
+    { name: "Education Center",                cat: "education",  lat: 34.6835, lng: -77.3370 },
+    { name: "Finance Office",                  cat: "finance",    lat: 34.6818, lng: -77.3400 },
+    { name: "Tarawa Terrace Community Center", cat: "fitness",    lat: 34.6840, lng: -77.3360 },
+    { name: "Dining Facility",                 cat: "dining",     lat: 34.6808, lng: -77.3410 },
+    { name: "Child Development Center",        cat: "childcare",  lat: 34.6858, lng: -77.3375 },
+  ],
+  "Lackland AFB": [
+    { name: "Wilford Hall Ambulatory Surgical Center", cat: "medical",    lat: 29.3862, lng: -98.6180 },
+    { name: "BX (Base Exchange)",                      cat: "exchange",   lat: 29.3870, lng: -98.6210 },
+    { name: "Commissary",                              cat: "commissary", lat: 29.3880, lng: -98.6230 },
+    { name: "AETC Headquarters",                       cat: "admin",      lat: 29.3843, lng: -98.6201 },
+    { name: "Billy Mitchell Blvd Main Gate",           cat: "gate",       lat: 29.3780, lng: -98.6250 },
+    { name: "Chapel",                                  cat: "chapel",     lat: 29.3850, lng: -98.6195 },
+    { name: "Housing Office",                          cat: "housing",    lat: 29.3890, lng: -98.6190 },
+    { name: "Education & Training Center",             cat: "education",  lat: 29.3860, lng: -98.6205 },
+    { name: "Finance Office",                          cat: "finance",    lat: 29.3845, lng: -98.6205 },
+    { name: "Fitness Center",                          cat: "fitness",    lat: 29.3868, lng: -98.6198 },
+    { name: "Dining Facility",                         cat: "dining",     lat: 29.3840, lng: -98.6215 },
+    { name: "Child Development Center",                cat: "childcare",  lat: 29.3885, lng: -98.6185 },
+  ],
+  "Nellis AFB": [
+    { name: "Mike O'Callaghan Federal Medical Center", cat: "medical",    lat: 36.0800, lng: -115.0800 },
+    { name: "Nellis BX (Base Exchange)",               cat: "exchange",   lat: 36.2400, lng: -115.0330 },
+    { name: "Commissary",                              cat: "commissary", lat: 36.2410, lng: -115.0350 },
+    { name: "57th Wing Headquarters",                  cat: "admin",      lat: 36.2361, lng: -115.0343 },
+    { name: "Main Gate (Las Vegas Blvd N)",            cat: "gate",       lat: 36.2500, lng: -115.0390 },
+    { name: "Chapel",                                  cat: "chapel",     lat: 36.2368, lng: -115.0337 },
+    { name: "Housing Office",                          cat: "housing",    lat: 36.2420, lng: -115.0320 },
+    { name: "Education Center",                        cat: "education",  lat: 36.2375, lng: -115.0330 },
+    { name: "Finance Office",                          cat: "finance",    lat: 36.2363, lng: -115.0345 },
+    { name: "Fitness Center",                          cat: "fitness",    lat: 36.2385, lng: -115.0328 },
+    { name: "Dining Facility (DFAC)",                  cat: "dining",     lat: 36.2356, lng: -115.0350 },
+    { name: "Child Development Center",                cat: "childcare",  lat: 36.2415, lng: -115.0338 },
+  ],
+};
+
 const SUPPORTED_LANGUAGES = [
   { code: "en", name: "English", native: "English" },
   { code: "es", name: "Spanish", native: "Español" },
@@ -861,6 +1046,316 @@ function Onboarding({ onComplete }) {
   );
 }
 
+function NavigationMap({ profile, theme }) {
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const routeLayerRef = useRef(null);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [directions, setDirections] = useState([]);
+  const [routeInfo, setRouteInfo] = useState(null);
+  const [savedRoutes, setSavedRoutes] = useState(() => store.get("pcs_routes") || []);
+  const [savedName, setSavedName] = useState("");
+
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+    const L = window.L;
+    if (!L) return;
+    const map = L.map(mapContainerRef.current).setView([38.8, -96.8], 4);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 18,
+    }).addTo(map);
+    mapRef.current = map;
+    return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; } };
+  }, []);
+
+  async function geocode(address) {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+    const res = await fetch(url, { headers: { "Accept-Language": "en" } });
+    const data = await res.json();
+    if (!data.length) throw new Error(`Could not find: "${address}"`);
+    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), display: data[0].display_name };
+  }
+
+  async function handleRoute() {
+    if (!from.trim() || !to.trim()) { setError("Please enter both a starting point and destination."); return; }
+    setLoading(true); setError(""); setDirections([]); setRouteInfo(null);
+    const L = window.L;
+    try {
+      const [fromCoord, toCoord] = await Promise.all([geocode(from), geocode(to)]);
+      const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${fromCoord.lng},${fromCoord.lat};${toCoord.lng},${toCoord.lat}?overview=full&geometries=geojson&steps=true`;
+      const res = await fetch(osrmUrl);
+      const data = await res.json();
+      if (data.code !== "Ok" || !data.routes.length) throw new Error("No route found between these locations.");
+      const route = data.routes[0];
+      const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
+      if (routeLayerRef.current) mapRef.current.removeLayer(routeLayerRef.current);
+      const poly = L.polyline(coords, { color: theme.accent, weight: 5, opacity: 0.85 }).addTo(mapRef.current);
+      routeLayerRef.current = poly;
+      mapRef.current.fitBounds(poly.getBounds(), { padding: [40, 40] });
+      const steps = route.legs[0].steps.map(s => ({
+        instruction: s.maneuver.type + (s.name ? ` onto ${s.name}` : ""),
+        distance: s.distance > 1000 ? `${(s.distance / 1609.34).toFixed(1)} mi` : `${Math.round(s.distance)} m`,
+      }));
+      setDirections(steps);
+      setRouteInfo({
+        distance: `${(route.distance / 1609.34).toFixed(1)} miles`,
+        duration: `${Math.round(route.duration / 60)} min`,
+        fromDisplay: fromCoord.display.split(",").slice(0, 3).join(","),
+        toDisplay: toCoord.display.split(",").slice(0, 3).join(","),
+        coords,
+      });
+    } catch (e) {
+      setError(e.message || "Routing failed. Check addresses and try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleSave() {
+    if (!routeInfo) return;
+    const name = savedName.trim() || `${from} → ${to}`;
+    const newRoute = { id: Date.now(), name, from, to, routeInfo };
+    const updated = [newRoute, ...savedRoutes].slice(0, 10);
+    setSavedRoutes(updated);
+    store.set("pcs_routes", updated);
+    setSavedName("");
+  }
+
+  function handleLoadRoute(r) {
+    const L = window.L;
+    setFrom(r.from); setTo(r.to);
+    if (!L || !mapRef.current) return;
+    if (routeLayerRef.current) mapRef.current.removeLayer(routeLayerRef.current);
+    const poly = L.polyline(r.routeInfo.coords, { color: theme.accent, weight: 5, opacity: 0.85 }).addTo(mapRef.current);
+    routeLayerRef.current = poly;
+    mapRef.current.fitBounds(poly.getBounds(), { padding: [40, 40] });
+    setDirections([]);
+    setRouteInfo(r.routeInfo);
+    setError("");
+  }
+
+  function handleDeleteRoute(id) {
+    const updated = savedRoutes.filter(r => r.id !== id);
+    setSavedRoutes(updated);
+    store.set("pcs_routes", updated);
+  }
+
+  const inputSt = { width:"100%", padding:"12px 14px", fontSize:14, borderRadius:10, border:`1.5px solid ${theme.accent}40`, outline:"none", background:"#F9F9F9", color:"#1A1A1A" };
+
+  return (
+    <div>
+      <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Navigation</h1>
+      <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Get driving directions and save routes for offline reference</p>
+
+      <div style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, marginBottom:20, maxWidth:700 }}>
+        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          <div>
+            <label style={{ fontSize:12, fontWeight:700, color:theme.primary, display:"block", marginBottom:6 }}>STARTING POINT</label>
+            <input value={from} onChange={e=>setFrom(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleRoute()} placeholder="e.g. Fort Liberty, NC or your home address" style={inputSt} />
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:700, color:theme.primary, display:"block", marginBottom:6 }}>DESTINATION</label>
+            <input value={to} onChange={e=>setTo(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleRoute()} placeholder={`e.g. ${profile.gainingInstallation || "Fort Campbell, KY"}`} style={inputSt} />
+          </div>
+          <button onClick={handleRoute} disabled={loading} style={{ padding:"13px", borderRadius:10, background:loading?"#E0E0E0":theme.primary, color:loading?"#999":"#FFFFFF", border:"none", fontSize:15, fontWeight:700, cursor:loading?"not-allowed":"pointer" }}>
+            {loading ? "Finding Route…" : "🗺️ Get Directions"}
+          </button>
+        </div>
+
+        {error && <div style={{ marginTop:12, padding:"12px 14px", background:"#FEE", border:"1.5px solid #F88", borderRadius:10, color:"#C33", fontSize:14 }}>{error}</div>}
+
+        {routeInfo && (
+          <div style={{ marginTop:16, padding:"14px", background:theme.light, borderRadius:10, border:`1px solid ${theme.accent}30` }}>
+            <div style={{ display:"flex", gap:24, marginBottom:8 }}>
+              <span style={{ fontWeight:700, color:theme.primary }}>🚗 {routeInfo.distance}</span>
+              <span style={{ fontWeight:700, color:theme.primary }}>⏱ {routeInfo.duration}</span>
+            </div>
+            <div style={{ fontSize:12, color:theme.subtext, marginBottom:12 }}>
+              <div><strong>From:</strong> {routeInfo.fromDisplay}</div>
+              <div><strong>To:</strong> {routeInfo.toDisplay}</div>
+            </div>
+            <div style={{ display:"flex", gap:10 }}>
+              <input value={savedName} onChange={e=>setSavedName(e.target.value)} placeholder="Name this route (optional)" style={{ flex:1, padding:"8px 12px", fontSize:13, borderRadius:8, border:`1px solid ${theme.accent}40`, outline:"none", background:"#FFFFFF" }} />
+              <button onClick={handleSave} style={{ padding:"8px 16px", borderRadius:8, background:theme.accent, color:"#FFFFFF", border:"none", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>💾 Save</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ background:"#FFFFFF", borderRadius:14, border:`2px solid ${theme.accent}40`, overflow:"hidden", marginBottom:20, maxWidth:700 }}>
+        <div ref={mapContainerRef} style={{ height:380, width:"100%" }} />
+      </div>
+
+      {directions.length > 0 && (
+        <div style={{ background:"#FFFFFF", padding:"20px", borderRadius:14, border:`2px solid ${theme.accent}40`, marginBottom:20, maxWidth:700 }}>
+          <h3 style={{ fontSize:18, fontWeight:800, color:theme.primary, marginBottom:16 }}>Turn-by-Turn Directions</h3>
+          <div style={{ display:"flex", flexDirection:"column", gap:8, maxHeight:320, overflowY:"auto" }}>
+            {directions.map((step, i) => (
+              <div key={i} style={{ display:"flex", gap:12, padding:"10px 12px", background:theme.light, borderRadius:8 }}>
+                <span style={{ minWidth:26, height:26, borderRadius:"50%", background:theme.accent, color:"#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, flexShrink:0 }}>{i+1}</span>
+                <div>
+                  <div style={{ fontSize:14, color:theme.primary, fontWeight:500, textTransform:"capitalize" }}>{step.instruction}</div>
+                  <div style={{ fontSize:12, color:theme.subtext, marginTop:2 }}>{step.distance}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {savedRoutes.length > 0 && (
+        <div style={{ background:"#FFFFFF", padding:"20px", borderRadius:14, border:`2px solid ${theme.accent}40`, maxWidth:700 }}>
+          <h3 style={{ fontSize:18, fontWeight:800, color:theme.primary, marginBottom:16 }}>Saved Routes ({savedRoutes.length})</h3>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {savedRoutes.map(r => (
+              <div key={r.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 14px", background:theme.light, borderRadius:10, border:`1px solid ${theme.accent}20` }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:14, fontWeight:700, color:theme.primary }}>{r.name}</div>
+                  <div style={{ fontSize:12, color:theme.subtext }}>{r.routeInfo.distance} · {r.routeInfo.duration}</div>
+                </div>
+                <button onClick={()=>handleLoadRoute(r)} style={{ padding:"6px 12px", borderRadius:8, background:theme.primary, color:"#FFFFFF", border:"none", fontSize:12, fontWeight:700, cursor:"pointer" }}>Load</button>
+                <button onClick={()=>handleDeleteRoute(r.id)} style={{ padding:"6px 10px", borderRadius:8, background:"#FEE", color:"#C33", border:"1px solid #F88", fontSize:12, fontWeight:700, cursor:"pointer" }}>✕</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BaseMapView({ profile, theme }) {
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markersGroupRef = useRef(null);
+  const [installType, setInstallType] = useState("gaining");
+  const [activeCategory, setActiveCategory] = useState("all");
+
+  const installation = installType === "gaining" ? profile.gainingInstallation : profile.losingInstallation;
+
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+    const L = window.L;
+    if (!L) return;
+    const c = installation ? INSTALLATION_COORDS[installation] : null;
+    const center = c ? [c.lat, c.lng] : [38.8, -96.8];
+    const zoom = c ? c.zoom : 4;
+    const map = L.map(mapContainerRef.current).setView(center, zoom);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 18,
+    }).addTo(map);
+    mapRef.current = map;
+    markersGroupRef.current = L.layerGroup().addTo(map);
+    return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; markersGroupRef.current = null; } };
+  }, []);
+
+  useEffect(() => {
+    const L = window.L;
+    if (!L || !mapRef.current || !markersGroupRef.current) return;
+    const c = installation ? INSTALLATION_COORDS[installation] : null;
+    if (c) mapRef.current.setView([c.lat, c.lng], c.zoom);
+    markersGroupRef.current.clearLayers();
+    const pois = BASE_LOCATIONS[installation] || [];
+    const filtered = activeCategory === "all" ? pois : pois.filter(p => p.cat === activeCategory);
+    filtered.forEach(poi => {
+      const cat = BASE_POI_CATEGORIES[poi.cat];
+      if (!cat) return;
+      const icon = L.divIcon({
+        html: `<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5))">${cat.icon}</div>`,
+        className: "",
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+      L.marker([poi.lat, poi.lng], { icon })
+        .bindPopup(`<strong>${poi.name}</strong><br/><span style="color:${cat.color};font-weight:600">${cat.label}</span>`)
+        .addTo(markersGroupRef.current);
+    });
+  }, [installation, activeCategory]);
+
+  const pois = BASE_LOCATIONS[installation] || [];
+  const filteredPois = activeCategory === "all" ? pois : pois.filter(p => p.cat === activeCategory);
+  const presentCategories = [...new Set(pois.map(p => p.cat))];
+
+  return (
+    <div>
+      <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Base Map</h1>
+      <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Explore buildings and facilities at your installations</p>
+
+      <div style={{ display:"flex", gap:10, marginBottom:16, maxWidth:700 }}>
+        {[
+          { key:"gaining", label:`Gaining: ${profile.gainingInstallation || "Not set"}` },
+          { key:"losing",  label:`Losing: ${profile.losingInstallation  || "Not set"}` },
+        ].map(opt => (
+          <button key={opt.key} onClick={()=>{ setInstallType(opt.key); setActiveCategory("all"); }} style={{ flex:1, padding:"11px 14px", borderRadius:10, border:installType===opt.key?`2px solid ${theme.accent}`:`1px solid rgba(0,0,0,0.15)`, background:installType===opt.key?theme.primary:"#FFFFFF", color:installType===opt.key?"#FFFFFF":theme.primary, fontSize:13, fontWeight:700, cursor:"pointer" }}>
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      {installation && !INSTALLATION_COORDS[installation] && (
+        <div style={{ padding:"16px", background:"#FFF8E1", border:"1.5px solid #FFD54F", borderRadius:12, marginBottom:16, color:"#5D4037", fontSize:14, maxWidth:700 }}>
+          ⚠️ Detailed map data not available for "{installation}" yet.
+        </div>
+      )}
+
+      {!installation && (
+        <div style={{ padding:"16px", background:"#FFF8E1", border:"1.5px solid #FFD54F", borderRadius:12, marginBottom:16, color:"#5D4037", fontSize:14, maxWidth:700 }}>
+          ⚠️ No installation set for this selection. Update your profile to add an installation.
+        </div>
+      )}
+
+      {pois.length > 0 && (
+        <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:16, maxWidth:700 }}>
+          <button onClick={()=>setActiveCategory("all")} style={{ padding:"7px 14px", borderRadius:20, border:activeCategory==="all"?`2px solid ${theme.accent}`:`1px solid rgba(0,0,0,0.15)`, background:activeCategory==="all"?theme.primary:"#FFFFFF", color:activeCategory==="all"?"#FFFFFF":theme.primary, fontSize:13, fontWeight:600, cursor:"pointer" }}>
+            All ({pois.length})
+          </button>
+          {presentCategories.map(catKey => {
+            const cat = BASE_POI_CATEGORIES[catKey];
+            if (!cat) return null;
+            const count = pois.filter(p => p.cat === catKey).length;
+            return (
+              <button key={catKey} onClick={()=>setActiveCategory(catKey)} style={{ padding:"7px 14px", borderRadius:20, border:activeCategory===catKey?`2px solid ${cat.color}`:`1px solid rgba(0,0,0,0.15)`, background:activeCategory===catKey?cat.color:"#FFFFFF", color:activeCategory===catKey?"#FFFFFF":"#333", fontSize:13, fontWeight:600, cursor:"pointer" }}>
+                {cat.icon} {cat.label} ({count})
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <div style={{ background:"#FFFFFF", borderRadius:14, border:`2px solid ${theme.accent}40`, overflow:"hidden", marginBottom:20, maxWidth:700 }}>
+        <div ref={mapContainerRef} style={{ height:450, width:"100%" }} />
+      </div>
+
+      {filteredPois.length > 0 && (
+        <div style={{ background:"#FFFFFF", padding:"20px", borderRadius:14, border:`2px solid ${theme.accent}40`, maxWidth:700 }}>
+          <h3 style={{ fontSize:18, fontWeight:800, color:theme.primary, marginBottom:16 }}>
+            {installation} — {activeCategory === "all" ? "All Facilities" : (BASE_POI_CATEGORIES[activeCategory]?.label || activeCategory)}
+          </h3>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(260px, 1fr))", gap:10 }}>
+            {filteredPois.map((poi, i) => {
+              const cat = BASE_POI_CATEGORIES[poi.cat];
+              return (
+                <div key={i} style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 14px", background:theme.light, borderRadius:10, border:`1px solid ${theme.accent}20` }}>
+                  <span style={{ fontSize:22 }}>{cat?.icon || "📍"}</span>
+                  <div>
+                    <div style={{ fontSize:14, fontWeight:700, color:theme.primary }}>{poi.name}</div>
+                    <div style={{ fontSize:12, color:cat?.color || theme.subtext, fontWeight:600 }}>{cat?.label || poi.cat}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DesktopApp({ profile, onReset }) {
   const [screen, setScreen] = useState("dashboard");
   const [aiQuestion, setAiQuestion] = useState("");
@@ -1005,6 +1500,8 @@ function DesktopApp({ profile, onReset }) {
               { id:"education", icon:"🎓", label:"Education" },
               { id:"employment", icon:"💼", label:"Spouse Employment" },
               { id:"translation", icon:"🌐", label:"Translation" },
+              { id:"navigation", icon:"🗺️", label:"Navigation" },
+              { id:"basemap", icon:"🏛️", label:"Base Map" },
               { id:"ask", icon:"?", label:"Ask AI" },
             ].map(nav => (
               <button key={nav.id} onClick={() => setScreen(nav.id)} style={{ textAlign:"left", padding:"12px 14px", borderRadius:10, border:screen===nav.id?`2px solid ${theme.accent}`:"1px solid rgba(255,255,255,0.15)", background:screen===nav.id?theme.accent+"20":"rgba(255,255,255,0.05)", color:screen===nav.id?theme.accent:"rgba(255,255,255,0.7)", fontSize:14, fontWeight:screen===nav.id?700:500, cursor:"pointer", display:"flex", alignItems:"center", gap:10 }}>
@@ -2089,6 +2586,14 @@ function DesktopApp({ profile, onReset }) {
                 )}
               </div>
             </div>
+          )}
+
+          {screen === "navigation" && (
+            <NavigationMap profile={profile} theme={theme} />
+          )}
+
+          {screen === "basemap" && (
+            <BaseMapView profile={profile} theme={theme} />
           )}
         </div>
       </div>
