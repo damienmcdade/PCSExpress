@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-// Military bases list (same as before)
 const MILITARY_BASES = [
   { name: "Fort Liberty", state: "NC", branch: "Army", country: "USA" },
   { name: "Fort Bliss", state: "TX", branch: "Army", country: "USA" },
@@ -36,134 +35,134 @@ const BRANCH_CONTENT = {
 const BRANCH_RESOURCES = {
   "Army": {
     Housing: [
-      { name: "Army Housing Online", url: "https://housing.army.mil" },
-      { name: "BAH Calculator", url: "https://militarypay.defense.gov" },
-      { name: "Army Communities of Excellence", url: "https://www.arcoe.army.mil" },
+      { name: "Army Housing Online", url: "https://housing.army.mil", desc: "Official Army housing management system for on-post and BAH information" },
+      { name: "BAH Calculator", url: "https://militarypay.defense.gov", desc: "Calculate Basic Allowance for Housing based on rank and location" },
+      { name: "Army Communities of Excellence", url: "https://www.arcoe.army.mil", desc: "Army Family housing programs and relocation support" },
     ],
     Finance: [
-      { name: "Army Finance Office", url: "https://armypubs.army.mil" },
-      { name: "Military Pay Overview", url: "https://militarypay.defense.gov" },
-      { name: "Leave and Earnings Statement", url: "https://myarmybenefits.us.army.mil" },
+      { name: "Army Finance Office", url: "https://armypubs.army.mil", desc: "Pay statements, allowances, and financial forms for Army personnel" },
+      { name: "Military Pay Overview", url: "https://militarypay.defense.gov", desc: "DoD pay scales and allowance information for all ranks" },
+      { name: "Leave and Earnings Statement", url: "https://myarmybenefits.us.army.mil", desc: "Access your LES and manage Army benefits online" },
     ],
     "Family Services": [
-      { name: "Army Community Service", url: "https://www.armyonesource.mil" },
-      { name: "Military Family Readiness", url: "https://www.militaryonesource.mil" },
-      { name: "Spouse Employment Support", url: "https://www.seco.org" },
+      { name: "Army Community Service", url: "https://www.armyonesource.mil", desc: "Free counseling, financial planning, and family support services" },
+      { name: "Military Family Readiness", url: "https://www.militaryonesource.mil", desc: "24/7 support for military families including deployment assistance" },
+      { name: "Spouse Employment Support", url: "https://www.seco.org", desc: "Military Spouse Employment Partnership Program with major employers" },
     ],
     Medical: [
-      { name: "TRICARE", url: "https://www.tricare.mil" },
-      { name: "Army Medical Command", url: "https://www.army.mil/medcom" },
-      { name: "Find Military Hospitals", url: "https://www.tricare.mil/FindCare" },
+      { name: "TRICARE", url: "https://www.tricare.mil", desc: "Comprehensive health insurance for active duty and families" },
+      { name: "Army Medical Command", url: "https://www.army.mil/medcom", desc: "Army medical facilities and healthcare provider directory" },
+      { name: "Find Military Hospitals", url: "https://www.tricare.mil/FindCare", desc: "Locate MTF and civilian TRICARE providers" },
     ],
   },
   "Navy": {
     Housing: [
-      { name: "Navy Housing", url: "https://www.nahb-military.org" },
-      { name: "Fleet Housing", url: "https://www.nhousing.navy.mil" },
-      { name: "BAH/BAS Information", url: "https://www.dfas.mil" },
+      { name: "Navy Housing Office", url: "https://www.cnic.navy.mil/ffsc/family-readiness/housing.html", desc: "Naval Consolidated Command housing information and BAH rates" },
+      { name: "BAH/BAS Information", url: "https://www.dfas.mil", desc: "Basic Allowance Housing and Subsistence rates for Navy personnel" },
+      { name: "Navy Gateway Relocation Program", url: "https://www.navygateway.org", desc: "Comprehensive moving and housing relocation support" },
     ],
     Finance: [
-      { name: "Navy Finance", url: "https://www.dfas.mil" },
-      { name: "Military Pay", url: "https://militarypay.defense.gov" },
-      { name: "Navy Active Duty Pay", url: "https://www.navy.mil/Benefits" },
+      { name: "Navy Finance", url: "https://www.dfas.mil", desc: "Navy pay and entitlements administration" },
+      { name: "Military Pay", url: "https://militarypay.defense.gov", desc: "Pay scales, basic allowances, and compensation" },
+      { name: "Navy Benefits Portal", url: "https://www.navy.mil/Benefits", desc: "Complete Navy benefits package including PCS allowances" },
     ],
     "Family Services": [
-      { name: "Navy OneSource", url: "https://www.militaryonesource.mil" },
-      { name: "Navy Fleet and Family Support", url: "https://www.cnic.navy.mil/ffsc" },
-      { name: "Spouse Career Support", url: "https://www.seco.org" },
+      { name: "Navy OneSource", url: "https://www.militaryonesource.mil", desc: "Counseling, childcare referrals, and family support services" },
+      { name: "Fleet and Family Support Center", url: "https://www.cnic.navy.mil/ffsc", desc: "Navy family readiness programs and command sponsorship" },
+      { name: "Spouse Career Support", url: "https://www.seco.org", desc: "Employment assistance for military spouses" },
     ],
     Medical: [
-      { name: "TRICARE For Navy", url: "https://www.tricare.mil" },
-      { name: "Navy Medicine", url: "https://www.navy.mil/Medicine" },
-      { name: "Naval Medical Centers", url: "https://www.tricare.mil/FindCare" },
+      { name: "TRICARE For Navy", url: "https://www.tricare.mil", desc: "Navy-specific TRICARE health insurance and benefits" },
+      { name: "Navy Medicine", url: "https://www.navy.mil/Medicine", desc: "Naval hospitals and medical clinics worldwide" },
+      { name: "Find Military Care Providers", url: "https://www.tricare.mil/FindCare", desc: "Locate Navy Medical facilities and civilian providers" },
     ],
   },
   "Marine Corps": {
     Housing: [
-      { name: "Marine Corps Housing", url: "https://www.mcieast.marines.mil/Housing" },
-      { name: "BAH Information", url: "https://www.dfas.mil" },
-      { name: "Base Housing Directory", url: "https://www.marines.mil" },
+      { name: "Marine Corps Housing", url: "https://www.mcieast.marines.mil/Housing", desc: "On-post housing and Family Readiness programs" },
+      { name: "BAH Information", url: "https://www.dfas.mil", desc: "Marine Corps Basic Allowance for Housing rates by location" },
+      { name: "Base Housing Directory", url: "https://www.marines.mil", desc: "Marine Corps base housing and relocation resources" },
     ],
     Finance: [
-      { name: "Marine Corps Finance", url: "https://www.dfas.mil" },
-      { name: "Military Pay System", url: "https://militarypay.defense.gov" },
-      { name: "Pay and Allowances", url: "https://www.marines.mil/Benefits" },
+      { name: "Marine Corps Finance", url: "https://www.dfas.mil", desc: "Pay and allowances for Marine Corps personnel" },
+      { name: "Military Pay System", url: "https://militarypay.defense.gov", desc: "Marine Corps compensation and pay scales" },
+      { name: "Pay and Allowances", url: "https://www.marines.mil/Benefits", desc: "Complete guide to Marine Corps entitlements" },
     ],
     "Family Services": [
-      { name: "Marine OneSource", url: "https://www.militaryonesource.mil" },
-      { name: "Marine Corps Family Services", url: "https://www.mccs.marines.mil" },
-      { name: "Spouse Support Programs", url: "https://www.seco.org" },
+      { name: "Marine Corps OneSource", url: "https://www.militaryonesource.mil", desc: "Counseling and support services for Marine families" },
+      { name: "Marine Corps Family Services", url: "https://www.mccs.marines.mil", desc: "MWR programs and family support services" },
+      { name: "Spouse Support Programs", url: "https://www.seco.org", desc: "Military spouse employment and career development" },
     ],
     Medical: [
-      { name: "TRICARE", url: "https://www.tricare.mil" },
-      { name: "Naval Hospital Listings", url: "https://www.tricare.mil/FindCare" },
-      { name: "Marine Medicine", url: "https://www.marines.mil/Health" },
+      { name: "TRICARE", url: "https://www.tricare.mil", desc: "Healthcare for active duty Marines and families" },
+      { name: "Naval Hospital Listings", url: "https://www.tricare.mil/FindCare", desc: "Marine Corps and Navy medical facilities" },
+      { name: "Marine Medicine", url: "https://www.marines.mil/Health", desc: "Marine Corps medical services and clinics" },
     ],
   },
   "Air Force": {
     Housing: [
-      { name: "Air Force Housing", url: "https://www.housing.af.mil" },
-      { name: "BAH Calculator", url: "https://www.dfas.mil" },
-      { name: "Base Housing Directory", url: "https://www.af.mil" },
+      { name: "Air Force Housing", url: "https://www.af.mil/About-Us/Fact-Sheets/Display/Article/145845/air-force-housing", desc: "Official Air Force housing programs and BAH information" },
+      { name: "BAH Calculator", url: "https://www.dfas.mil", desc: "Calculate Basic Allowance for Housing by rank and duty station" },
+      { name: "Base Housing Directory", url: "https://www.af.mil", desc: "Air Force base housing and relocation support" },
     ],
     Finance: [
-      { name: "Air Force Finance", url: "https://www.dfas.mil" },
-      { name: "Military Pay Info", url: "https://militarypay.defense.gov" },
-      { name: "Air Force Benefits", url: "https://www.af.mil/Benefits" },
+      { name: "Air Force Finance", url: "https://www.dfas.mil", desc: "Air Force pay and financial services" },
+      { name: "Military Pay Info", url: "https://militarypay.defense.gov", desc: "Air Force compensation and allowances" },
+      { name: "Air Force Benefits", url: "https://www.af.mil/Benefits", desc: "Complete Air Force entitlements and benefits guide" },
     ],
     "Family Services": [
-      { name: "Air Force OneSource", url: "https://www.militaryonesource.mil" },
-      { name: "Air Force Family Readiness", url: "https://www.afcrossroads.com" },
-      { name: "Spouse Employment", url: "https://www.seco.org" },
+      { name: "Air Force OneSource", url: "https://www.militaryonesource.mil", desc: "Counseling and family support for Air Force families" },
+      { name: "Air Force Family Readiness", url: "https://www.afcrossroads.com", desc: "Air Force family programs and community resources" },
+      { name: "Spouse Employment", url: "https://www.seco.org", desc: "Military spouse job placement and career support" },
     ],
     Medical: [
-      { name: "TRICARE", url: "https://www.tricare.mil" },
-      { name: "Air Force Medical", url: "https://www.af.mil/Medical" },
-      { name: "Find Military Care", url: "https://www.tricare.mil/FindCare" },
+      { name: "TRICARE", url: "https://www.tricare.mil", desc: "Healthcare coverage for Air Force personnel and families" },
+      { name: "Air Force Medical", url: "https://www.af.mil/News/Article-Display/Article/145845", desc: "Air Force medical services and clinic information" },
+      { name: "Find Military Care", url: "https://www.tricare.mil/FindCare", desc: "Locate Air Force bases and TRICARE providers" },
     ],
   },
   "Space Force": {
     Housing: [
-      { name: "Space Force Housing", url: "https://www.spaceforce.mil" },
-      { name: "BAH Information", url: "https://www.dfas.mil" },
-      { name: "Base Directory", url: "https://www.spaceforce.mil/About-Us/Installations" },
+      { name: "Space Force Housing", url: "https://www.spaceforce.mil/About-Us/Fact-Sheets", desc: "Guardian housing programs and base information" },
+      { name: "BAH Information", url: "https://www.dfas.mil", desc: "Space Force Basic Allowance for Housing rates" },
+      { name: "Base Directory", url: "https://www.spaceforce.mil/About-Us/Installations", desc: "Space Force installations and housing locations" },
     ],
     Finance: [
-      { name: "Space Force Finance", url: "https://www.dfas.mil" },
-      { name: "Military Pay", url: "https://militarypay.defense.gov" },
-      { name: "Guardian Benefits", url: "https://www.spaceforce.mil/Benefits" },
+      { name: "Space Force Finance", url: "https://www.dfas.mil", desc: "Guardian pay and financial management" },
+      { name: "Military Pay", url: "https://militarypay.defense.gov", desc: "Space Force compensation and allowances" },
+      { name: "Guardian Benefits", url: "https://www.spaceforce.mil/Benefits", desc: "Complete Space Force benefits package" },
     ],
     "Family Services": [
-      { name: "Space Force OneSource", url: "https://www.militaryonesource.mil" },
-      { name: "Space Force Family Support", url: "https://www.spaceforce.mil" },
-      { name: "Career Resources", url: "https://www.seco.org" },
+      { name: "Space Force OneSource", url: "https://www.militaryonesource.mil", desc: "Family counseling and support for Guardians" },
+      { name: "Space Force Family Support", url: "https://www.spaceforce.mil", desc: "Guardian family programs and resources" },
+      { name: "Career Resources", url: "https://www.seco.org", desc: "Spouse employment and career development" },
     ],
     Medical: [
-      { name: "TRICARE", url: "https://www.tricare.mil" },
-      { name: "Space Force Medical", url: "https://www.spaceforce.mil" },
-      { name: "Care Providers", url: "https://www.tricare.mil/FindCare" },
+      { name: "TRICARE", url: "https://www.tricare.mil", desc: "Guardian healthcare and family coverage" },
+      { name: "Space Force Medical", url: "https://www.spaceforce.mil", desc: "Guardian medical services" },
+      { name: "Care Providers", url: "https://www.tricare.mil/FindCare", desc: "Find TRICARE and Space Force medical facilities" },
     ],
   },
   "Coast Guard": {
     Housing: [
-      { name: "Coast Guard Housing", url: "https://www.cg.mil/Our-Organization/District-Force-Readiness" },
-      { name: "BAH/BAS", url: "https://www.dfas.mil" },
-      { name: "Base Housing", url: "https://www.cg.mil" },
+      { name: "Coast Guard Housing", url: "https://www.cg.mil/Our-Organization/District-Force-Readiness/Personnel-And-Family-Readiness", desc: "Coast Guard housing programs and family relocation" },
+      { name: "BAH/BAS", url: "https://www.dfas.mil", desc: "Coast Guard Basic Allowance Housing and Subsistence" },
+      { name: "Base Housing", url: "https://www.cg.mil", desc: "Coast Guard base housing directory and information" },
     ],
     Finance: [
-      { name: "Coast Guard Finance", url: "https://www.dfas.mil" },
-      { name: "Military Pay", url: "https://militarypay.defense.gov" },
-      { name: "Benefits Overview", url: "https://www.cg.mil/Pay-and-Benefits" },
+      { name: "Coast Guard Finance", url: "https://www.dfas.mil", desc: "Coast Guard pay and entitlements" },
+      { name: "Military Pay", url: "https://militarypay.defense.gov", desc: "Coast Guard compensation structure" },
+      { name: "Benefits Overview", url: "https://www.cg.mil/Pay-and-Benefits", desc: "Complete Coast Guard benefits guide" },
     ],
     "Family Services": [
-      { name: "Coast Guard OneSource", url: "https://www.militaryonesource.mil" },
-      { name: "Family Support", url: "https://www.cg.mil/About-Us/Fact-Sheets" },
-      { name: "Spouse Programs", url: "https://www.seco.org" },
+      { name: "Coast Guard OneSource", url: "https://www.militaryonesource.mil", desc: "Family counseling and support services" },
+      { name: "Family Support", url: "https://www.cg.mil/Our-Organization/District-Force-Readiness/Personnel-And-Family-Readiness", desc: "Coast Guard family programs and readiness" },
+      { name: "Spouse Programs", url: "https://www.seco.org", desc: "Military spouse employment assistance" },
     ],
     Medical: [
-      { name: "TRICARE", url: "https://www.tricare.mil" },
-      { name: "Coast Guard Medicine", url: "https://www.cg.mil/Medical" },
-      { name: "Healthcare Facilities", url: "https://www.tricare.mil/FindCare" },
+      { name: "TRICARE", url: "https://www.tricare.mil", desc: "Coast Guard healthcare and family insurance" },
+      { name: "Coast Guard Medicine", url: "https://www.cg.mil/Our-Organization/District-Force-Readiness", desc: "Coast Guard medical services and clinics" },
+      { name: "Healthcare Facilities", url: "https://www.tricare.mil/FindCare", desc: "Find Coast Guard and TRICARE medical providers" },
     ],
   },
 };
@@ -181,16 +180,44 @@ const ALL_UNITS = [
 
 const COMPONENT_TYPES = ["Active Duty", "Reserve", "National Guard", "AGR", "FTNG"];
 
-const VETERAN_BUSINESSES = [
-  { name: "MYMOVE", services: "PCS Relocation & Moving", url: "https://www.mymove.com", icon: "📦" },
-  { name: "Military Bluestar", services: "Household Goods Moving", url: "https://www.militarybluestar.com", icon: "🚚" },
-  { name: "Hire Heroes USA", services: "Spouse Job Placement", url: "https://www.hireheroesusa.org", icon: "💼" },
-  { name: "VA Loans Center", services: "Mortgage & Housing Financing", url: "https://www.veteransunited.com", icon: "🏡" },
-  { name: "GI Bill Education", services: "Education & Training Benefits", url: "https://www.benefits.va.gov/gibill", icon: "📚" },
-  { name: "PatriotMobility", services: "Transportation Services", url: "https://www.patriot-mobility.com", icon: "🚗" },
-  { name: "Veteran Caregivers", services: "Family Support Services", url: "https://www.veterancaregiver.org", icon: "👨‍👩‍👧" },
-  { name: "Military Spouse Jobs", services: "Employment Resources", url: "https://militaryspouse.com", icon: "💻" },
-];
+const VETERAN_BUSINESSES = {
+  "Army": [
+    { name: "AAFES (Army Air Force Exchange)", services: "Tax-free shopping, relocation discounts, PCS moving benefits", url: "https://www.shopmyexchange.com", icon: "🛍️" },
+    { name: "Army OneSource", services: "Free counseling, financial planning, legal consultation for PCS", url: "https://www.armyonesource.mil", icon: "💼" },
+    { name: "Hire Heroes USA", services: "Resume writing, job placement, and career counseling", url: "https://www.hireheroesusa.org", icon: "🎯" },
+    { name: "Military Spouse Corporate Career Network", services: "Spouse employment and career development", url: "https://www.seco.org", icon: "👥" },
+  ],
+  "Navy": [
+    { name: "Navy Exchange Online", services: "Military discounts, moving services, shopping benefits", url: "https://www.mynavyexchange.com", icon: "🛍️" },
+    { name: "Fleet and Family Support Center", services: "Childcare, counseling, financial readiness for sailors", url: "https://www.cnic.navy.mil/ffsc", icon: "⚓" },
+    { name: "Hire Heroes USA", services: "Veteran and spouse job placement assistance", url: "https://www.hireheroesusa.org", icon: "🎯" },
+    { name: "Navy Gateway Relocation Services", services: "Comprehensive PCS planning and moving coordination", url: "https://www.navygateway.org", icon: "🏠" },
+  ],
+  "Marine Corps": [
+    { name: "Marine Corps Exchange", services: "Military retail, PCS shopping discounts, moving benefits", url: "https://www.shopmyexchange.com", icon: "🛍️" },
+    { name: "Marine Corps Community Services", services: "Family support, counseling, and PCS assistance", url: "https://www.mccs.marines.mil", icon: "🎖️" },
+    { name: "Hire Heroes USA", services: "Employment support for Marines and spouses", url: "https://www.hireheroesusa.org", icon: "🎯" },
+    { name: "Veterans Benefits Hotline", services: "Benefits counseling and resources", url: "https://www.va.gov", icon: "📞" },
+  ],
+  "Air Force": [
+    { name: "Air Force Exchange", services: "Military shopping, PCS discounts, moving benefits", url: "https://www.shopmyexchange.com", icon: "🛍️" },
+    { name: "Air Force Family Readiness", services: "Relocation assistance, counseling, family programs", url: "https://www.afcrossroads.com", icon: "✈️" },
+    { name: "Hire Heroes USA", services: "Career support and job placement for airmen", url: "https://www.hireheroesusa.org", icon: "🎯" },
+    { name: "Military Spouse Tactical Relocation", services: "Specialized PCS planning and housing assistance", url: "https://www.seco.org", icon: "🏡" },
+  ],
+  "Space Force": [
+    { name: "Air Force Exchange (AAFES)", services: "Military retail and moving benefits for Guardians", url: "https://www.shopmyexchange.com", icon: "🛍️" },
+    { name: "Space Force Family Support", services: "Guardian family programs and relocation assistance", url: "https://www.spaceforce.mil", icon: "🚀" },
+    { name: "Hire Heroes USA", services: "Employment assistance for Space Force members", url: "https://www.hireheroesusa.org", icon: "🎯" },
+    { name: "DoD Spouse Employment", services: "Spouse job placement across all military branches", url: "https://www.seco.org", icon: "💼" },
+  ],
+  "Coast Guard": [
+    { name: "Coast Guard Exchange", services: "Military discounts, PCS shopping, moving benefits", url: "https://www.shopmyexchange.com", icon: "🛍️" },
+    { name: "Coast Guard Family Support", services: "Counseling, relocation assistance, family programs", url: "https://www.cg.mil/Pay-and-Benefits", icon: "🌊" },
+    { name: "Hire Heroes USA", services: "Career support for Coast Guard members and families", url: "https://www.hireheroesusa.org", icon: "🎯" },
+    { name: "Military OneSource (24/7)", services: "Free counseling and support for all branches", url: "https://www.militaryonesource.mil", icon: "☎️" },
+  ],
+};
 
 const store = { get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }, set: (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
 
@@ -368,6 +395,7 @@ function DesktopApp({ profile, onReset }) {
   const [aiError, setAiError] = useState("");
   const theme = BRANCH_THEMES[profile.branch];
   const content = BRANCH_CONTENT[profile.branch];
+  const branchBusinesses = VETERAN_BUSINESSES[profile.branch] || [];
 
   const handleAiQuestion = async () => {
     if (!aiQuestion.trim()) return;
@@ -389,7 +417,6 @@ function DesktopApp({ profile, onReset }) {
     <div style={{ minHeight:"100dvh", background:"#F5F7FA", fontFamily:"system-ui,-apple-system,sans-serif", display:"flex", position:"relative" }}>
       <style>{`* {box-sizing:border-box}`}</style>
       
-      {/* Sidebar */}
       <div style={{ width:280, background:theme.secondary, color:"#FFFFFF", padding:"32px 24px", borderRight:`3px solid ${theme.accent}`, display:"flex", flexDirection:"column", position:"relative", backgroundImage:`url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><pattern id="insignia" patternUnits="userSpaceOnUse" width="400" height="400"><circle cx="200" cy="200" r="150" fill="none" stroke="${encodeURIComponent(theme.accent)}" stroke-width="2" opacity="0.08"/><path d="M200,100 L220,150 L270,150 L230,190 L250,240 L200,200 L150,240 L170,190 L130,150 L180,150Z" fill="none" stroke="${encodeURIComponent(theme.accent)}" stroke-width="2" opacity="0.08"/></pattern></defs><rect width="400" height="400" fill="url(%23insignia)"/></svg>')`, backgroundSize:"400px 400px" }}>
 
         <div style={{ position:"relative", zIndex:1 }}>
@@ -418,7 +445,7 @@ function DesktopApp({ profile, onReset }) {
               { id:"checklist", icon:"✓", label:"PCS Checklist" },
               { id:"schools", icon:"🎓", label:"Schools & Districts" },
               { id:"resources", icon:"◉", label:`${theme.name} Resources` },
-              { id:"veterans", icon:"⭐", label:"Veteran Businesses" },
+              { id:"veterans", icon:"⭐", label:"Veteran Services" },
               { id:"ask", icon:"?", label:"Ask AI" },
             ].map(nav => (
               <button key={nav.id} onClick={() => setScreen(nav.id)} style={{ textAlign:"left", padding:"12px 14px", borderRadius:10, border:screen===nav.id?`2px solid ${theme.accent}`:"1px solid rgba(255,255,255,0.15)", background:screen===nav.id?theme.accent+"20":"rgba(255,255,255,0.05)", color:screen===nav.id?theme.accent:"rgba(255,255,255,0.7)", fontSize:14, fontWeight:screen===nav.id?700:500, cursor:"pointer", display:"flex", alignItems:"center", gap:10 }}>
@@ -431,7 +458,6 @@ function DesktopApp({ profile, onReset }) {
         </div>
       </div>
 
-      {/* Main Content */}
       <div style={{ flex:1, padding:"40px", overflowY:"auto" }}>
         <div style={{ maxWidth:1000 }}>
           {screen === "dashboard" && (
@@ -476,7 +502,6 @@ function DesktopApp({ profile, onReset }) {
             <div>
               <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>PCS Checklist</h1>
               <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Your {theme.name}-specific pre- and post-move tasks</p>
-              
               <div style={{ background:"#FFFFFF", padding:"28px", borderRadius:14, border:`2px solid ${theme.accent}40` }}>
                 <p style={{ fontSize:14, color:theme.primary }}>📋 Checklist powered by your {theme.name} branch resources</p>
                 <p style={{ color:"#999", marginTop:12 }}>Tasks loading...</p>
@@ -488,7 +513,6 @@ function DesktopApp({ profile, onReset }) {
             <div>
               <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Schools & Districts</h1>
               <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Find schools at {profile.gainingInstallation}</p>
-              
               <div style={{ background:"#FFFFFF", padding:"28px", borderRadius:14, border:`2px solid ${theme.accent}40` }}>
                 {profile.childAges.length === 0 ? (
                   <p style={{ color:"#999" }}>No children ages entered. Update your profile to see school recommendations.</p>
@@ -506,7 +530,6 @@ function DesktopApp({ profile, onReset }) {
             <div>
               <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>{theme.name} Resources</h1>
               <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Branch-specific PCS and relocation support</p>
-              
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
                 {["Housing", "Finance", "Family Services", "Medical"].map((category) => {
                   const resources = BRANCH_RESOURCES[profile.branch][category] || [];
@@ -516,9 +539,10 @@ function DesktopApp({ profile, onReset }) {
                       <div style={{ fontSize:20, fontWeight:900, color:theme.primary, marginBottom:16 }}>{icons[category]} {category}</div>
                       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                         {resources.map((resource, idx) => (
-                          <a key={idx} href={resource.url} target="_blank" rel="noopener noreferrer" style={{ padding:"12px 14px", background:theme.light, border:`1px solid ${theme.accent}40`, borderRadius:10, color:theme.primary, fontSize:14, fontWeight:600, textDecoration:"none", transition:"all 0.2s", display:"block", cursor:"pointer" }} onMouseEnter={e=>e.target.style.background=theme.accent+"20"} onMouseLeave={e=>e.target.style.background=theme.light}>
-                            {resource.name} →
-                          </a>
+                          <div key={idx} style={{ padding:"12px 14px", background:theme.light, border:`1px solid ${theme.accent}40`, borderRadius:10, color:theme.primary, fontSize:13, transition:"all 0.2s" }}>
+                            <a href={resource.url} target="_blank" rel="noopener noreferrer" style={{ color:theme.primary, fontWeight:700, textDecoration:"none" }}>{resource.name}</a>
+                            <div style={{ fontSize:12, color:"#666", marginTop:4 }}>{resource.desc}</div>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -530,11 +554,10 @@ function DesktopApp({ profile, onReset }) {
 
           {screen === "veterans" && (
             <div>
-              <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Veteran Owned Businesses</h1>
-              <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>PCS & relocation services from veteran-owned companies</p>
-              
+              <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>{theme.name} Veteran Services</h1>
+              <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Branch-specific veteran support organizations and resources</p>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
-                {VETERAN_BUSINESSES.map((business, i) => (
+                {branchBusinesses.map((business, i) => (
                   <a key={i} href={business.url} target="_blank" rel="noopener noreferrer" style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, textDecoration:"none", cursor:"pointer", transition:"all 0.3s", display:"block" }} onMouseEnter={e=>e.target.style.transform="translateY(-4px)"} onMouseLeave={e=>e.target.style.transform="translateY(0)"}>
                     <div style={{ fontSize:28, marginBottom:12 }}>{business.icon}</div>
                     <div style={{ fontSize:18, fontWeight:900, color:theme.primary, marginBottom:8 }}>{business.name}</div>
@@ -549,7 +572,6 @@ function DesktopApp({ profile, onReset }) {
             <div>
               <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Ask PCS Express</h1>
               <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Ask AI questions about your {theme.name} PCS</p>
-              
               <div style={{ background:"#FFFFFF", padding:"28px", borderRadius:14, border:`2px solid ${theme.accent}40`, maxWidth:600 }}>
                 <input type="text" value={aiQuestion} onChange={e=>setAiQuestion(e.target.value)} onKeyPress={e=>e.key==="Enter"&&handleAiQuestion()} disabled={aiLoading} placeholder="Ask about housing, schools, finance, or military benefits..." style={{ width:"100%", padding:"14px 16px", fontSize:14, borderRadius:10, border:`1px solid #DDD`, marginBottom:12, opacity:aiLoading?0.6:1 }} />
                 <button onClick={handleAiQuestion} disabled={aiLoading} style={{ width:"100%", padding:"12px", background:aiLoading?"#CCC":theme.primary, color:"#FFFFFF", border:"none", borderRadius:10, fontSize:14, fontWeight:700, cursor:aiLoading?"not-allowed":"pointer" }}>{aiLoading?"Thinking...":"Send Question"}</button>
