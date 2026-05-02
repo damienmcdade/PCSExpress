@@ -118,9 +118,12 @@ app.post('/api/ai', strictLimiter, async (req, res) => {
 // ── Serve React app in production ─────────────────────────────────────────────
 if (IS_PROD) {
   const distPath = path.join(__dirname, '..', 'dist')
-  app.use(express.static(distPath))
+  console.log(`  Serving static files from: ${distPath}`)
+  app.use(express.static(distPath, { maxAge: '1d' }))
   app.get('*', (req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'))
+    const indexPath = path.join(distPath, 'index.html')
+    console.log(`  Serving fallback: ${indexPath}`)
+    res.sendFile(indexPath)
   })
 }
 
