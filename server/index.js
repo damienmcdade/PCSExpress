@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit'
 import fetch from 'node-fetch'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import fs from 'fs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -36,16 +37,16 @@ app.use(express.json({ limit: '10kb' }))
 
 // ── Rate limiting ──────────────────────────────────────────────────────────────
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 60,                   // 60 requests per window per IP
+  windowMs: 15 * 60 * 1000,
+  max: 60,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests — please wait a moment and try again.' }
 })
 
 const strictLimiter = rateLimit({
-  windowMs: 60 * 1000,       // 1 minute
-  max: 10,                   // 10 AI calls per minute per IP
+  windowMs: 60 * 1000,
+  max: 10,
   message: { error: 'Too many AI requests — please slow down.' }
 })
 
@@ -115,22 +116,27 @@ app.post('/api/ai', strictLimiter, async (req, res) => {
   }
 })
 
-// ── Serve React app in production ─────────────────────────────────────────────
-if (IS_PROD) {
-  const distPath = path.join(__dirname, '..', 'dist')
-  console.log(`  Serving static files from: ${distPath}`)
-  app.use(express.static(distPath, { maxAge: '1d' }))
+// ── Serve React app (always, not just production) ─────────────────────────────
+const distPath = path.join(__dirname, '..', 'dist')
+console.log(`Checking for dist at: ${distPath}`)
+
+if (fs.existsSync(distPath)) {
+  console.log('✓ Dist folder found, serving static files')
+  app.use(express.static(distPath, { maxAge: '1d', index: 'index.html' }))
   app.get('*', (req, res) => {
-    const indexPath = path.join(distPath, 'index.html')
-    console.log(`  Serving fallback: ${indexPath}`)
-    res.sendFile(indexPath)
+    res.sendFile(path.join(distPath, 'index.html'))
+  })
+} else {
+  console.warn('✗ WARNING: Dist folder not found at', distPath)
+  app.get('/', (req, res) => {
+    res.json({ message: 'PCS Express API is running but frontend build not found' })
   })
 }
 
 app.listen(PORT, () => {
   console.log(`\n✦ PCS Express API running on port ${PORT}`)
   console.log(`  Environment: ${IS_PROD ? 'production' : 'development'}`)
-  console.log(`  API key: ${process.env.ANTHROPIC_API_KEY ? '✓ loaded' : '✗ MISSING — set ANTHROPIC_API_KEY in .env'}`)
+  console.log(`  API key: ${process.env.ANTHROPIC_API_KEY ? '✓ loaded' : '✗ MISSING'}`)
   if (!IS_PROD) {
     console.log(`  React dev server: http://localhost:3000`)
     console.log(`  API proxy: http://localhost:3001/api`)
