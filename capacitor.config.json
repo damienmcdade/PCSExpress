@@ -3,17 +3,10 @@
   "appName": "PCS Express",
   "webDir": "dist",
   "server": {
-    "androidScheme": "https",
-    "iosScheme": "capacitor",
-    "loadingIndicator": {
-      "strategy": "time",
-      "showDuringLoad": true,
-      "time": 3000
-    }
+    "androidScheme": "https"
   },
   "ios": {
-    "contentInset": "automatic",
-    "scrollEnabled": true
+    "contentInsetAdjustmentBehavior": "automatic"
   },
   "plugins": {
     "SplashScreen": {
