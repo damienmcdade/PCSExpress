@@ -1,18 +1,18 @@
-# Stage 1: Build dependencies and React app
+# Stage 1: Build React app and install dependencies
 FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Copy everything needed for build
 COPY package.json package-lock.json* ./
+COPY src ./src
+COPY public ./public
+COPY index.html vite.config.js ./
 
-# Install all dependencies (including devDependencies for build)
+# Install all dependencies (including devDependencies)
 RUN npm install
 
-# Copy source code
-COPY . .
-
-# Build React app
+# Build React app with Vite
 RUN npm run build
 
 # Stage 2: Production runtime
@@ -23,7 +23,7 @@ WORKDIR /app
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
-# Copy package files from builder
+# Copy package files
 COPY package.json package-lock.json* ./
 
 # Install production dependencies only
