@@ -24,7 +24,7 @@ PCS Express is a mobile-first web application that gives service members a perso
 
 - Node.js 18 or higher (`node --version`)
 - npm 9 or higher (`npm --version`)
-- An [Anthropic API key](https://console.anthropic.com) with access to `claude-sonnet-4-20250514` and the `web_search_20250305` tool
+- An [Anthropic API key](https://console.anthropic.com) with access to Claude models
 
 ---
 
