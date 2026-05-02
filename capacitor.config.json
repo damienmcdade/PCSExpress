@@ -1,0 +1,23 @@
+{
+  "appId": "com.pcsexpress.app",
+  "appName": "PCS Express",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "iosScheme": "capacitor",
+    "loadingIndicator": {
+      "strategy": "time",
+      "showDuringLoad": true,
+      "time": 3000
+    }
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "scrollEnabled": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}
