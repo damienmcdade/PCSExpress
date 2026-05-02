@@ -461,10 +461,44 @@ function Onboarding({ onComplete }) {
               </div>
             ))}
 
+
             {p.hasChildren && (
               <div style={{ background:"rgba(255,255,255,0.05)", borderRadius:12, padding:"14px", marginBottom:16 }}>
-                <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>CHILDREN AGES</label>
-                <input value={p.childAges.join(",")} onChange={e=>upd("childAges",e.target.value.split(",").map(a=>parseInt(a)).filter(a=>!isNaN(a)))} placeholder="e.g. 5, 8, 12" style={inputSt} />
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+                  <label style={{ fontSize:12, fontWeight:700, color:theme.accent }}>CHILDREN AGES</label>
+                  <button
+                    onClick={() => upd("childAges", [...p.childAges, ""])}
+                    style={{ padding:"5px 12px", borderRadius:8, background:theme.accent, color:theme.secondary, border:"none", fontSize:12, fontWeight:800, cursor:"pointer" }}
+                  >+ Add Child</button>
+                </div>
+                {p.childAges.length === 0 && (
+                  <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)", textAlign:"center", padding:"8px 0" }}>
+                    No children added yet — click "Add Child" to begin
+                  </div>
+                )}
+                {p.childAges.map((age, idx) => (
+                  <div key={idx} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                    <div style={{ fontSize:13, color:"rgba(255,255,255,0.5)", minWidth:70 }}>Child {idx + 1}</div>
+                    <input
+                      type="number"
+                      min="0"
+                      max="25"
+                      value={age}
+                      onChange={e => {
+                        const updated = [...p.childAges];
+                        updated[idx] = e.target.value === "" ? "" : parseInt(e.target.value);
+                        upd("childAges", updated);
+                      }}
+                      placeholder="Age"
+                      style={{ ...inputSt, width:90, flexShrink:0 }}
+                    />
+                    <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)" }}>yrs old</div>
+                    <button
+                      onClick={() => upd("childAges", p.childAges.filter((_, i) => i !== idx))}
+                      style={{ marginLeft:"auto", padding:"5px 10px", borderRadius:8, background:"rgba(255,80,80,0.2)", border:"1px solid rgba(255,80,80,0.35)", color:"#FF8080", fontSize:12, fontWeight:700, cursor:"pointer" }}
+                    >✕</button>
+                  </div>
+                ))}
               </div>
             )}
 
@@ -477,7 +511,7 @@ function Onboarding({ onComplete }) {
 
             <div style={{ display:"flex", gap:12 }}>
               <button onClick={()=>setStep(1)} style={{ padding:"14px 20px", borderRadius:12, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", color:"rgba(255,255,255,0.6)", fontSize:16, fontWeight:700, cursor:"pointer" }}>← Back</button>
-              <button onClick={()=>onComplete(p)} style={{ flex:1, padding:"14px", borderRadius:12, background:theme.accent, color:theme.secondary, border:"none", fontSize:16, fontWeight:900, cursor:"pointer" }}>Build PCS Plan ✦</button>
+              <button onClick={()=>onComplete({ ...p, childAges: p.childAges.filter(a => a !== "" && !isNaN(Number(a))).map(Number) })} style={{ flex:1, padding:"14px", borderRadius:12, background:theme.accent, color:theme.secondary, border:"none", fontSize:16, fontWeight:900, cursor:"pointer" }}>Build PCS Plan ✦</button>
             </div>
           </>}
         </div>
@@ -519,9 +553,16 @@ function DesktopApp({ profile, onReset }) {
     store.set("pcs_report", reportForm);
     setReportSaved(true);
   };
-  const reportUnitsForGaining = reportForm.gainingInstallation && INSTALLATION_UNITS[reportForm.gainingInstallation]
+  const installationUnitsForBranch = reportForm.gainingInstallation && INSTALLATION_UNITS[reportForm.gainingInstallation]
     ? (INSTALLATION_UNITS[reportForm.gainingInstallation][profile.branch] || [])
     : [];
+  const branchUnitsFromAllInstallations = new Set(
+    Object.values(INSTALLATION_UNITS).flatMap(inst => inst[profile.branch] || [])
+  );
+  const allUnitsForBranch = ALL_UNITS.filter(u => branchUnitsFromAllInstallations.has(u));
+  const reportUnitsForGaining = Array.from(
+    new Set([...installationUnitsForBranch, ...allUnitsForBranch])
+  ).sort();
   const inputStLight = { width: "100%", fontSize: 15, padding: "12px 14px", borderRadius: 10, border: `1.5px solid ${theme.accent}40`, background: "#FFFFFF", color: "#1A1A1A", outline: "none", boxSizing: "border-box", fontFamily: "inherit" };
 
   const handleAiQuestion = async () => {
@@ -731,15 +772,24 @@ function DesktopApp({ profile, onReset }) {
                     <option value="">
                       {reportForm.gainingInstallation ? "— Select unit —" : "Select a gaining installation first"}
                     </option>
-                    {reportUnitsForGaining.length > 0
-                      ? reportUnitsForGaining.map(u => <option key={u} value={u}>{u}</option>)
-                      : reportForm.gainingInstallation && <option value="" disabled>No units listed for {profile.branch} at this installation</option>
-                    }
+                    {installationUnitsForBranch.length > 0 && (
+                      <optgroup label={`Units at ${reportForm.gainingInstallation}`}>
+                        {installationUnitsForBranch.map(u => <option key={u} value={u}>{u}</option>)}
+                      </optgroup>
+                    )}
+                    {allUnitsForBranch.filter(u => !installationUnitsForBranch.includes(u)).length > 0 && (
+                      <optgroup label={`All ${profile.branch} Units`}>
+                        {allUnitsForBranch.filter(u => !installationUnitsForBranch.includes(u)).sort().map(u => <option key={u} value={u}>{u}</option>)}
+                      </optgroup>
+                    )}
+                    {reportUnitsForGaining.length === 0 && reportForm.gainingInstallation && (
+                      <option value="" disabled>No units listed for {profile.branch}</option>
+                    )}
                     {reportForm.unit && !reportUnitsForGaining.includes(reportForm.unit) && reportForm.unit !== "" && (
                       <option value={reportForm.unit}>{reportForm.unit} (custom)</option>
                     )}
                   </select>
-                </div>
+
               </div>
 
               {/* Summary card */}
