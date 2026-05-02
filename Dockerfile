@@ -13,8 +13,11 @@ COPY index.html vite.config.js ./
 # Install all dependencies
 RUN npm ci
 
+# Verify files exist before build
+RUN echo "=== Files before build ===" && ls -la && echo "=== src/ ===" && ls -la src/ && echo "=== public/ ===" && ls -la public/
+
 # Build React app
-RUN npm run build
+RUN echo "=== Running build ===" && npm run build && echo "=== Build output ===" && ls -la dist/
 
 # Stage 2: Production runtime
 FROM node:18-alpine
@@ -33,6 +36,9 @@ RUN npm ci --only=production && npm cache clean --force
 # Copy built React app and server code
 COPY --from=builder /app/dist ./dist
 COPY server ./server
+
+# Verify dist was copied
+RUN echo "=== dist folder in final image ===" && ls -la dist/
 
 # Non-root user for security
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
