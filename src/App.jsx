@@ -496,6 +496,34 @@ function DesktopApp({ profile, onReset }) {
   const content = BRANCH_CONTENT[profile.branch];
   const branchBusinesses = VETERAN_BUSINESSES[profile.branch] || [];
 
+  // Reporting screen state
+  const branchBases = MILITARY_BASES.filter(b => b.branch === profile.branch);
+  const [reportAutofilled, setReportAutofilled] = useState(false);
+  const [reportSaved, setReportSaved] = useState(false);
+  const [reportForm, setReportForm] = useState(() => {
+    const saved = store.get("pcs_report");
+    return saved || { losingInstallation: "", gainingInstallation: "", reportingDate: "", unit: "" };
+  });
+  const updReport = (k, v) => { setReportSaved(false); setReportForm(prev => ({ ...prev, [k]: v })); };
+  const handleAutofill = () => {
+    setReportForm({
+      losingInstallation: profile.losingInstallation || "",
+      gainingInstallation: profile.gainingInstallation || "",
+      reportingDate: profile.departingDate || "",
+      unit: profile.unit || "",
+    });
+    setReportAutofilled(true);
+    setReportSaved(false);
+  };
+  const handleReportSave = () => {
+    store.set("pcs_report", reportForm);
+    setReportSaved(true);
+  };
+  const reportUnitsForGaining = reportForm.gainingInstallation && INSTALLATION_UNITS[reportForm.gainingInstallation]
+    ? (INSTALLATION_UNITS[reportForm.gainingInstallation][profile.branch] || [])
+    : [];
+  const inputStLight = { width: "100%", fontSize: 15, padding: "12px 14px", borderRadius: 10, border: `1.5px solid ${theme.accent}40`, background: "#FFFFFF", color: "#1A1A1A", outline: "none", boxSizing: "border-box", fontFamily: "inherit" };
+
   const handleAiQuestion = async () => {
     if (!aiQuestion.trim()) return;
     setAiLoading(true);
@@ -541,6 +569,7 @@ function DesktopApp({ profile, onReset }) {
           <nav style={{ display:"flex", flexDirection:"column", gap:8 }}>
             {[
               { id:"dashboard", icon:"◈", label:"Dashboard" },
+              { id:"reporting", icon:"📋", label:"Reporting" },
               { id:"checklist", icon:"✓", label:"PCS Checklist" },
               { id:"schools", icon:"🎓", label:"Schools & Districts" },
               { id:"resources", icon:"◉", label:`${theme.name} Resources` },
@@ -593,6 +622,160 @@ function DesktopApp({ profile, onReset }) {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {screen === "reporting" && (
+            <div>
+              <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Reporting</h1>
+              <p style={{ fontSize:16, color:"#666", marginBottom:28 }}>Enter your losing and gaining installation details for your PCS report</p>
+
+              {/* Autofill banner */}
+              <div style={{ background: reportAutofilled ? `${theme.accent}18` : theme.light, border: `2px solid ${reportAutofilled ? theme.accent : theme.accent + "50"}`, borderRadius:14, padding:"20px 24px", marginBottom:28, display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
+                <div>
+                  <div style={{ fontSize:15, fontWeight:800, color:theme.primary, marginBottom:4 }}>
+                    {reportAutofilled ? "✦ Autofilled from your profile" : "⚡ Autofill from Profile"}
+                  </div>
+                  <div style={{ fontSize:13, color:theme.subtext }}>
+                    {reportAutofilled
+                      ? `Populated from ${profile.firstName} ${profile.lastName}'s onboarding data — you can still edit any field below`
+                      : `Instantly populate all fields using the information you entered during onboarding`}
+                  </div>
+                </div>
+                <button
+                  onClick={handleAutofill}
+                  style={{ padding:"10px 22px", borderRadius:10, background:theme.accent, color:theme.secondary, border:"none", fontSize:14, fontWeight:800, cursor:"pointer", whiteSpace:"nowrap", flexShrink:0 }}
+                >
+                  {reportAutofilled ? "↺ Re-autofill" : "Autofill from Profile"}
+                </button>
+              </div>
+
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24, marginBottom:24 }}>
+                {/* Losing Installation */}
+                <div style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+                  <div style={{ fontSize:12, fontWeight:800, color:theme.subtext, letterSpacing:".1em", marginBottom:12 }}>LOSING INSTALLATION</div>
+                  <select
+                    value={reportForm.losingInstallation}
+                    onChange={e => updReport("losingInstallation", e.target.value)}
+                    style={inputStLight}
+                  >
+                    <option value="">— Select losing installation —</option>
+                    {branchBases.map(b => (
+                      <option key={b.name} value={b.name}>{b.name}, {b.state}</option>
+                    ))}
+                    {reportForm.losingInstallation && !branchBases.find(b => b.name === reportForm.losingInstallation) && (
+                      <option value={reportForm.losingInstallation}>{reportForm.losingInstallation} (custom)</option>
+                    )}
+                  </select>
+                  {reportForm.losingInstallation && (
+                    <div style={{ marginTop:10, fontSize:13, color:theme.subtext, display:"flex", alignItems:"center", gap:6 }}>
+                      <span style={{ color:theme.accent }}>✦</span>
+                      {branchBases.find(b => b.name === reportForm.losingInstallation)
+                        ? `${profile.branch} installation · ${branchBases.find(b => b.name === reportForm.losingInstallation).state}`
+                        : "Custom entry"}
+                    </div>
+                  )}
+                </div>
+
+                {/* Gaining Installation */}
+                <div style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+                  <div style={{ fontSize:12, fontWeight:800, color:theme.subtext, letterSpacing:".1em", marginBottom:12 }}>GAINING INSTALLATION</div>
+                  <select
+                    value={reportForm.gainingInstallation}
+                    onChange={e => { updReport("gainingInstallation", e.target.value); updReport("unit", ""); }}
+                    style={inputStLight}
+                  >
+                    <option value="">— Select gaining installation —</option>
+                    {branchBases.map(b => (
+                      <option key={b.name} value={b.name}>{b.name}, {b.state}</option>
+                    ))}
+                    {reportForm.gainingInstallation && !branchBases.find(b => b.name === reportForm.gainingInstallation) && (
+                      <option value={reportForm.gainingInstallation}>{reportForm.gainingInstallation} (custom)</option>
+                    )}
+                  </select>
+                  {reportForm.gainingInstallation && (
+                    <div style={{ marginTop:10, fontSize:13, color:theme.subtext, display:"flex", alignItems:"center", gap:6 }}>
+                      <span style={{ color:theme.accent }}>✦</span>
+                      {branchBases.find(b => b.name === reportForm.gainingInstallation)
+                        ? `${profile.branch} installation · ${branchBases.find(b => b.name === reportForm.gainingInstallation).state}`
+                        : "Custom entry"}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24, marginBottom:24 }}>
+                {/* Reporting Date */}
+                <div style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+                  <div style={{ fontSize:12, fontWeight:800, color:theme.subtext, letterSpacing:".1em", marginBottom:12 }}>REPORTING DATE</div>
+                  <input
+                    type="date"
+                    value={reportForm.reportingDate}
+                    onChange={e => updReport("reportingDate", e.target.value)}
+                    style={{ ...inputStLight, colorScheme:"light" }}
+                  />
+                </div>
+
+                {/* Unit */}
+                <div style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+                  <div style={{ fontSize:12, fontWeight:800, color:theme.subtext, letterSpacing:".1em", marginBottom:12 }}>
+                    UNIT AT {reportForm.gainingInstallation ? reportForm.gainingInstallation.toUpperCase() : "GAINING INSTALLATION"}
+                  </div>
+                  <select
+                    value={reportForm.unit}
+                    onChange={e => updReport("unit", e.target.value)}
+                    style={inputStLight}
+                    disabled={!reportForm.gainingInstallation}
+                  >
+                    <option value="">
+                      {reportForm.gainingInstallation ? "— Select unit —" : "Select a gaining installation first"}
+                    </option>
+                    {reportUnitsForGaining.length > 0
+                      ? reportUnitsForGaining.map(u => <option key={u} value={u}>{u}</option>)
+                      : reportForm.gainingInstallation && <option value="" disabled>No units listed for {profile.branch} at this installation</option>
+                    }
+                    {reportForm.unit && !reportUnitsForGaining.includes(reportForm.unit) && reportForm.unit !== "" && (
+                      <option value={reportForm.unit}>{reportForm.unit} (custom)</option>
+                    )}
+                  </select>
+                </div>
+              </div>
+
+              {/* Summary card */}
+              {(reportForm.losingInstallation || reportForm.gainingInstallation) && (
+                <div style={{ background: theme.light, border:`2px solid ${theme.accent}40`, borderRadius:14, padding:"20px 24px", marginBottom:24 }}>
+                  <div style={{ fontSize:14, fontWeight:800, color:theme.primary, marginBottom:14 }}>📋 Report Summary</div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12 }}>
+                    {[
+                      { label:"FROM", value: reportForm.losingInstallation || "—" },
+                      { label:"TO", value: reportForm.gainingInstallation || "—" },
+                      { label:"DATE", value: reportForm.reportingDate ? new Date(reportForm.reportingDate + "T00:00:00").toLocaleDateString() : "—" },
+                      { label:"UNIT", value: reportForm.unit || "—" },
+                    ].map((item, i) => (
+                      <div key={i} style={{ background:"#FFFFFF", padding:"12px 14px", borderRadius:10, border:`1px solid ${theme.accent}30` }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:theme.subtext, marginBottom:4 }}>{item.label}</div>
+                        <div style={{ fontSize:13, fontWeight:700, color:theme.primary, wordBreak:"break-word" }}>{item.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Save button */}
+              <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+                <button
+                  onClick={handleReportSave}
+                  disabled={!reportForm.losingInstallation || !reportForm.gainingInstallation || !reportForm.reportingDate}
+                  style={{ padding:"13px 32px", borderRadius:12, background: (!reportForm.losingInstallation || !reportForm.gainingInstallation || !reportForm.reportingDate) ? "#E0E0E0" : theme.primary, color: (!reportForm.losingInstallation || !reportForm.gainingInstallation || !reportForm.reportingDate) ? "#999" : "#FFFFFF", border:"none", fontSize:15, fontWeight:800, cursor: (!reportForm.losingInstallation || !reportForm.gainingInstallation || !reportForm.reportingDate) ? "not-allowed" : "pointer" }}
+                >
+                  Save Report
+                </button>
+                {reportSaved && (
+                  <div style={{ fontSize:14, fontWeight:700, color:"#2E7D32", display:"flex", alignItems:"center", gap:6 }}>
+                    <span>✓</span> Report saved successfully
+                  </div>
+                )}
               </div>
             </div>
           )}
