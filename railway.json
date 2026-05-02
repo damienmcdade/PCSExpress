@@ -9,7 +9,7 @@
     "restartPolicyType": "on_failure",
     "restartPolicyMaxRetries": 5,
     "healthCheck": {
-      "command": "wget --quiet --tries=1 --spider http://localhost:3001/api/health || exit 1",
+      "command": "wget --quiet --tries=1 --spider http://localhost:8080/api/health || exit 1",
       "interval": 30,
       "timeout": 3,
       "retries": 3,
