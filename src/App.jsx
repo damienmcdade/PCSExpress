@@ -332,7 +332,8 @@ function BranchInsignia({ branch, theme, size = 200 }) {
 
 function Onboarding({ onComplete }) {
   const [step, setStep] = useState(0);
-  const [search, setSearch] = useState("");
+  const [losingSearch, setLosingSearch] = useState("");
+  const [gainingSearch, setGainingSearch] = useState("");
   const [p, setP] = useState({
     firstName:"", lastName:"", branch:"Army", component:"Active Duty", paygrade:"E-5",
     losingInstallation:"", gainingInstallation:"", departingDate:"", unit:"",
@@ -340,8 +341,22 @@ function Onboarding({ onComplete }) {
   });
   
   const upd = (k, v) => setP(prev => ({ ...prev, [k]: v }));
+  // When branch changes, reset unit (and clear gaining search if the installation no longer has units for the new branch)
+  const updBranch = (branch) => setP(prev => ({ ...prev, branch, unit: "" }));
+  // When gaining installation changes, reset unit so stale selections don't persist
+  const updGainingInstallation = (installation) => {
+    setP(prev => ({ ...prev, gainingInstallation: installation, unit: "" }));
+  };
   const theme = BRANCH_THEMES[p.branch];
-  const baseSuggestions = search.length > 1 ? MILITARY_BASES.filter(b => b.name.toLowerCase().includes(search.toLowerCase()) && b.branch === p.branch).slice(0, 8) : [];
+  const losingSuggestions = losingSearch.length > 1
+    ? MILITARY_BASES.filter(b => b.name.toLowerCase().includes(losingSearch.toLowerCase())).slice(0, 8)
+    : [];
+  const gainingSuggestions = gainingSearch.length > 1
+    ? MILITARY_BASES.filter(b => b.name.toLowerCase().includes(gainingSearch.toLowerCase())).slice(0, 8)
+    : [];
+  const availableUnits = p.gainingInstallation && INSTALLATION_UNITS[p.gainingInstallation]
+    ? (INSTALLATION_UNITS[p.gainingInstallation][p.branch] || [])
+    : [];
   const inputSt = { width:"100%", fontSize:15, padding:"12px 14px", borderRadius:10, border:`1px solid rgba(255,255,255,0.15)`, background:"rgba(0,0,0,0.25)", color:"#FFFFFF", outline:"none", boxSizing:"border-box" };
   const canGo1 = p.firstName && p.branch && p.paygrade && p.component;
   const canGo2 = p.losingInstallation && p.gainingInstallation && p.departingDate;
@@ -369,7 +384,7 @@ function Onboarding({ onComplete }) {
                 const t = BRANCH_THEMES[b];
                 const active = p.branch === b;
                 return (
-                  <button key={b} onClick={() => upd("branch", b)} style={{ padding:"16px", borderRadius:12, border:`2px solid ${active ? t.accent : "rgba(255,255,255,0.15)"}`, background: active ? t.accent + "30" : "rgba(255,255,255,0.04)", color: active ? t.accent : "rgba(255,255,255,0.5)", fontSize:14, fontWeight:active?800:500, cursor:"pointer" }}>
+                  <button key={b} onClick={() => updBranch(b)} style={{ padding:"16px", borderRadius:12, border:`2px solid ${active ? t.accent : "rgba(255,255,255,0.15)"}`, background: active ? t.accent + "30" : "rgba(255,255,255,0.04)", color: active ? t.accent : "rgba(255,255,255,0.5)", fontSize:14, fontWeight:active?800:500, cursor:"pointer" }}>
                     {t.abbr}
                   </button>
                 );
@@ -404,11 +419,16 @@ function Onboarding({ onComplete }) {
 
               <div style={{ marginBottom:16 }}>
                 <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>DEPARTING FROM</label>
-                <input value={search||p.losingInstallation} onChange={e=>{setSearch(e.target.value);upd("losingInstallation",e.target.value);}} placeholder="Type base name..." style={inputSt} />
-                {baseSuggestions.length > 0 && (
+                <input
+                  value={losingSearch || p.losingInstallation}
+                  onChange={e => { setLosingSearch(e.target.value); upd("losingInstallation", e.target.value); }}
+                  placeholder="Type base name..."
+                  style={inputSt}
+                />
+                {losingSuggestions.length > 0 && (
                   <div style={{ marginTop:8, background:"rgba(0,0,0,0.2)", borderRadius:10, maxHeight:200, overflowY:"auto" }}>
-                    {baseSuggestions.map(b => (
-                      <div key={b.name} onClick={()=>{upd("losingInstallation",b.name);setSearch("");}} style={{ padding:"10px 14px", borderBottom:"1px solid rgba(255,255,255,0.1)", cursor:"pointer", fontSize:14, color:"rgba(255,255,255,0.8)" }}>
+                    {losingSuggestions.map(b => (
+                      <div key={b.name} onClick={() => { upd("losingInstallation", b.name); setLosingSearch(""); }} style={{ padding:"10px 14px", borderBottom:"1px solid rgba(255,255,255,0.1)", cursor:"pointer", fontSize:14, color:"rgba(255,255,255,0.8)" }}>
                         {b.name}, {b.state}
                       </div>
                     ))}
@@ -417,8 +437,22 @@ function Onboarding({ onComplete }) {
               </div>
 
               <div style={{ marginBottom:16 }}>
-                <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>REPORTING TO</label>
-                <input value={p.gainingInstallation} onChange={e=>upd("gainingInstallation",e.target.value)} placeholder="Type base name..." style={inputSt} />
+                <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>REPORTING TO (GAINING INSTALLATION)</label>
+                <input
+                  value={gainingSearch || p.gainingInstallation}
+                  onChange={e => { setGainingSearch(e.target.value); updGainingInstallation(e.target.value); }}
+                  placeholder="Type base name..."
+                  style={inputSt}
+                />
+                {gainingSuggestions.length > 0 && (
+                  <div style={{ marginTop:8, background:"rgba(0,0,0,0.2)", borderRadius:10, maxHeight:200, overflowY:"auto" }}>
+                    {gainingSuggestions.map(b => (
+                      <div key={b.name} onClick={() => { updGainingInstallation(b.name); setGainingSearch(""); }} style={{ padding:"10px 14px", borderBottom:"1px solid rgba(255,255,255,0.1)", cursor:"pointer", fontSize:14, color:"rgba(255,255,255,0.8)" }}>
+                        {b.name}, {b.state}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div style={{ marginBottom:20 }}>
@@ -427,19 +461,30 @@ function Onboarding({ onComplete }) {
               </div>
 
               <div style={{ marginBottom:20 }}>
-                <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>UNIT AT {p.gainingInstallation.toUpperCase()}</label>
-                <select value={p.unit} onChange={e=>upd("unit",e.target.value)} style={inputSt}>
-                  <option value="">Select unit at gaining installation...</option>
-                  {p.gainingInstallation && INSTALLATION_UNITS[p.gainingInstallation] ? (
-                    INSTALLATION_UNITS[p.gainingInstallation][p.branch]?.length > 0 ? (
-                      INSTALLATION_UNITS[p.gainingInstallation][p.branch].map(u=><option key={u} value={u}>{u}</option>)
-                    ) : (
-                      <option value="" disabled>No units available for this branch at this installation</option>
-                    )
-                  ) : (
-                    <option value="" disabled>Select a gaining installation first</option>
-                  )}
+                <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>
+                  UNIT{p.gainingInstallation ? ` AT ${p.gainingInstallation.toUpperCase()}` : ""}
+                </label>
+                <select
+                  value={p.unit}
+                  onChange={e => upd("unit", e.target.value)}
+                  style={inputSt}
+                  disabled={!p.gainingInstallation}
+                >
+                  <option value="">
+                    {p.gainingInstallation ? "Select unit at gaining installation..." : "Select a gaining installation first"}
+                  </option>
+                  {availableUnits.length > 0
+                    ? availableUnits.map(u => <option key={u} value={u}>{u}</option>)
+                    : p.gainingInstallation && (
+                        <option value="" disabled>No units listed for {p.branch} at this installation</option>
+                      )
+                  }
                 </select>
+                {p.gainingInstallation && availableUnits.length > 0 && (
+                  <div style={{ marginTop:6, fontSize:12, color:"rgba(255,255,255,0.45)" }}>
+                    {availableUnits.length} unit{availableUnits.length !== 1 ? "s" : ""} available for {p.branch}
+                  </div>
+                )}
               </div>
 
               <div style={{ display:"flex", gap:12 }}>
@@ -508,6 +553,8 @@ function DesktopApp({ profile, onReset }) {
   };
 
   // Reporting screen state
+  // Include all bases, not just branch-filtered, so profile installations always appear in dropdowns
+  const allBases = MILITARY_BASES;
   const branchBases = MILITARY_BASES.filter(b => b.branch === profile.branch);
   const [reportAutofilled, setReportAutofilled] = useState(false);
   const [reportSaved, setReportSaved] = useState(false);
@@ -516,12 +563,28 @@ function DesktopApp({ profile, onReset }) {
     return saved || { losingInstallation: "", gainingInstallation: "", reportingDate: "", unit: "" };
   });
   const updReport = (k, v) => { setReportSaved(false); setReportForm(prev => ({ ...prev, [k]: v })); };
+  // When gaining installation changes in the report form, reset unit so stale selections don't persist
+  const updReportGaining = (installation) => {
+    setReportSaved(false);
+    setReportForm(prev => ({ ...prev, gainingInstallation: installation, unit: "" }));
+  };
   const handleAutofill = () => {
+    const gainingInstallation = profile.gainingInstallation || "";
+    const profileUnit = profile.unit || "";
+    // Determine the units available for the profile's gaining installation + branch
+    const unitsAtGaining = gainingInstallation && INSTALLATION_UNITS[gainingInstallation]
+      ? (INSTALLATION_UNITS[gainingInstallation][profile.branch] || [])
+      : [];
+    // Only autofill the unit if it's actually in the list for that installation/branch,
+    // or if there are no listed units (custom/unlisted installation) — preserve whatever was set
+    const unit = unitsAtGaining.length === 0 || unitsAtGaining.includes(profileUnit)
+      ? profileUnit
+      : unitsAtGaining[0];
     setReportForm({
       losingInstallation: profile.losingInstallation || "",
-      gainingInstallation: profile.gainingInstallation || "",
+      gainingInstallation,
       reportingDate: profile.departingDate || "",
-      unit: profile.unit || "",
+      unit,
     });
     setReportAutofilled(true);
     setReportSaved(false);
@@ -733,19 +796,20 @@ function DesktopApp({ profile, onReset }) {
                     style={inputStLight}
                   >
                     <option value="">— Select losing installation —</option>
-                    {branchBases.map(b => (
-                      <option key={b.name} value={b.name}>{b.name}, {b.state}</option>
+                    {allBases.map(b => (
+                      <option key={b.name} value={b.name}>{b.name}, {b.state} ({b.branch})</option>
                     ))}
-                    {reportForm.losingInstallation && !branchBases.find(b => b.name === reportForm.losingInstallation) && (
+                    {reportForm.losingInstallation && !allBases.find(b => b.name === reportForm.losingInstallation) && (
                       <option value={reportForm.losingInstallation}>{reportForm.losingInstallation} (custom)</option>
                     )}
                   </select>
                   {reportForm.losingInstallation && (
                     <div style={{ marginTop:10, fontSize:13, color:theme.subtext, display:"flex", alignItems:"center", gap:6 }}>
                       <span style={{ color:theme.accent }}>✦</span>
-                      {branchBases.find(b => b.name === reportForm.losingInstallation)
-                        ? `${profile.branch} installation · ${branchBases.find(b => b.name === reportForm.losingInstallation).state}`
-                        : "Custom entry"}
+                      {(() => {
+                        const found = allBases.find(b => b.name === reportForm.losingInstallation);
+                        return found ? `${found.branch} installation · ${found.state}` : "Custom entry";
+                      })()}
                     </div>
                   )}
                 </div>
@@ -755,23 +819,24 @@ function DesktopApp({ profile, onReset }) {
                   <div style={{ fontSize:12, fontWeight:800, color:theme.subtext, letterSpacing:".1em", marginBottom:12 }}>GAINING INSTALLATION</div>
                   <select
                     value={reportForm.gainingInstallation}
-                    onChange={e => { updReport("gainingInstallation", e.target.value); updReport("unit", ""); }}
+                    onChange={e => updReportGaining(e.target.value)}
                     style={inputStLight}
                   >
                     <option value="">— Select gaining installation —</option>
-                    {branchBases.map(b => (
-                      <option key={b.name} value={b.name}>{b.name}, {b.state}</option>
+                    {allBases.map(b => (
+                      <option key={b.name} value={b.name}>{b.name}, {b.state} ({b.branch})</option>
                     ))}
-                    {reportForm.gainingInstallation && !branchBases.find(b => b.name === reportForm.gainingInstallation) && (
+                    {reportForm.gainingInstallation && !allBases.find(b => b.name === reportForm.gainingInstallation) && (
                       <option value={reportForm.gainingInstallation}>{reportForm.gainingInstallation} (custom)</option>
                     )}
                   </select>
                   {reportForm.gainingInstallation && (
                     <div style={{ marginTop:10, fontSize:13, color:theme.subtext, display:"flex", alignItems:"center", gap:6 }}>
                       <span style={{ color:theme.accent }}>✦</span>
-                      {branchBases.find(b => b.name === reportForm.gainingInstallation)
-                        ? `${profile.branch} installation · ${branchBases.find(b => b.name === reportForm.gainingInstallation).state}`
-                        : "Custom entry"}
+                      {(() => {
+                        const found = allBases.find(b => b.name === reportForm.gainingInstallation);
+                        return found ? `${found.branch} installation · ${found.state}` : "Custom entry";
+                      })()}
                     </div>
                   )}
                 </div>
