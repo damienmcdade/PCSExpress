@@ -15,7 +15,7 @@ const distPath = path.join(__dirname, '..', 'dist')
 // Middleware
 app.use(helmet())
 app.use(cors())
-app.use(express.json({ limit: '10kb' }))
+app.use(express.json({ limit: '10mb' }))
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -24,8 +24,8 @@ app.get('/api/health', (req, res) => {
 
 // AI API with web search
 app.post('/api/ai', async (req, res) => {
-  const { system, user } = req.body
-  
+  const { system, user, imageBase64, imageMediaType } = req.body
+
   if (!system || !user) {
     return res.status(400).json({ error: 'Missing system or user prompt' })
   }
@@ -46,7 +46,15 @@ app.post('/api/ai', async (req, res) => {
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 2000,
         system,
-        messages: [{ role: 'user', content: user }],
+        messages: [{
+          role: 'user',
+          content: imageBase64
+            ? [
+                { type: 'image', source: { type: 'base64', media_type: imageMediaType || 'image/jpeg', data: imageBase64 } },
+                { type: 'text', text: user },
+              ]
+            : user,
+        }],
       }),
     })
 

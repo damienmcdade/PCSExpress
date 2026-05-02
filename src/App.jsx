@@ -349,10 +349,282 @@ const VETERAN_BUSINESSES = {
   ],
 };
 
+const SUPPORTED_LANGUAGES = [
+  { code: "en", name: "English", native: "English" },
+  { code: "es", name: "Spanish", native: "Español" },
+  { code: "de", name: "German", native: "Deutsch" },
+  { code: "fr", name: "French", native: "Français" },
+  { code: "ko", name: "Korean", native: "한국어" },
+  { code: "ja", name: "Japanese", native: "日本語" },
+  { code: "tl", name: "Tagalog", native: "Tagalog" },
+  { code: "ar", name: "Arabic", native: "العربية" },
+  { code: "zh", name: "Chinese (Simplified)", native: "中文" },
+  { code: "it", name: "Italian", native: "Italiano" },
+  { code: "pt", name: "Portuguese", native: "Português" },
+  { code: "vi", name: "Vietnamese", native: "Tiếng Việt" },
+];
+
+const RELIGIOUS_PREFERENCES = [
+  "No Preference", "Protestant / Christian", "Catholic", "Orthodox Christian",
+  "Jewish", "Muslim / Islam", "Buddhist", "Hindu",
+  "Sikh", "LDS / Mormon", "Unitarian Universalist",
+  "Prefer not to say", "Other",
+];
+
+const RELIGIOUS_RESOURCES = {
+  chaplain: [
+    { name: "DoD Chaplain Program", url: "https://www.chapnet.army.mil", desc: "Military chaplains provide free, confidential spiritual care and counseling to all service members regardless of faith" },
+    { name: "Army Chaplain Corps", url: "https://www.chapnet.army.mil", desc: "Free spiritual care and religious support for all service members and families — bound by privileged communication" },
+    { name: "Military OneSource Spiritual Fitness", url: "https://www.militaryonesource.mil/confidential-help/spiritual-fitness/", desc: "Faith-neutral spiritual wellness resources and chaplain referrals for all service members" },
+  ],
+  protestant: [
+    { name: "Armed Forces Baptist Missions", url: "https://www.afbm.org", desc: "Baptist ministry support for military communities worldwide" },
+    { name: "Military Ministry (Cru)", url: "https://www.militaryministry.org", desc: "Protestant Christian ministry resources for service members and families" },
+    { name: "Chapel on Base", url: "https://www.militaryonesource.mil/confidential-help/spiritual-fitness/", desc: "Locate Protestant chapel services and worship times at your installation" },
+  ],
+  catholic: [
+    { name: "Archdiocese for Military Services", url: "https://www.milarch.org", desc: "Catholic chaplains and Mass services at military installations worldwide" },
+    { name: "Catholic Military Ministry", url: "https://www.catholicmilitary.org", desc: "Sacraments, chaplain directories, and faith formation for Catholic service members" },
+    { name: "Knights of Columbus Military", url: "https://www.kofc.org/en/what-we-do/faith-in-action/community/military-program.html", desc: "Catholic fraternal support and programs for military members and families" },
+  ],
+  jewish: [
+    { name: "JWB Jewish Chaplains Council", url: "https://www.jwb.org", desc: "Jewish chaplains and religious support for Jewish military personnel and families" },
+    { name: "Aleph Institute", url: "https://www.aleph-institute.org", desc: "Jewish outreach, religious materials, and support for service members" },
+    { name: "Jewish Community Centers (JCC)", url: "https://www.jcca.org", desc: "Find local JCC community support and programming near military installations" },
+  ],
+  muslim: [
+    { name: "Armed Forces Muslim Association", url: "https://www.afmamembers.org", desc: "Islamic faith resources and community support for Muslim service members" },
+    { name: "Muslim Chaplain Network", url: "https://www.militaryonesource.mil/confidential-help/spiritual-fitness/", desc: "Find Muslim chaplains and Islamic services at military installations" },
+    { name: "ISNA Military Outreach", url: "https://www.isna.net", desc: "Islamic Society of North America military and veteran outreach programs" },
+  ],
+  buddhist: [
+    { name: "Buddhist Military Sangha", url: "https://www.buddhistmilitarysangha.org", desc: "Buddhist chaplains and meditation resources for military members and their families" },
+    { name: "Mindfulness & Spiritual Fitness", url: "https://www.hprc-online.org/social-fitness/spiritual-fitness", desc: "Meditation, mindfulness, and resilience tools for service members" },
+  ],
+  general: [
+    { name: "Chapel Locator", url: "https://www.militaryonesource.mil", desc: "Find on-base chapels, prayer rooms, and multi-faith spaces at your gaining installation" },
+    { name: "Spiritual Fitness Program (HPRC)", url: "https://www.hprc-online.org/social-fitness/spiritual-fitness", desc: "Human Performance Resource Center spiritual wellness tools and resources" },
+    { name: "Command Chaplain Connect", url: "https://www.chapnet.army.mil", desc: "Contact your unit chaplain for confidential counseling, spiritual care, or community referrals" },
+  ],
+};
+
+const EDUCATION_RESOURCES = {
+  benefits: [
+    { name: "MyCAA Scholarship (Military Spouse)", url: "https://mycaa.militaryonesource.mil", desc: "Up to $4,000 for portable career education — spouses of active duty E-1 to E-5, W-1 to W-2, O-1 to O-2", type: "Benefit" },
+    { name: "Tuition Assistance (TA)", url: "https://www.military.com/education/money-for-school/tuition-assistance-ta-programs.html", desc: "DoD pays up to 100% tuition for active duty service members pursuing higher education", type: "Benefit" },
+    { name: "Post-9/11 GI Bill (Chapter 33)", url: "https://www.va.gov/education/about-gi-bill-benefits/post-9-11/", desc: "Full tuition, housing allowance, and books for eligible veterans — transferable to dependents", type: "Benefit" },
+    { name: "Montgomery GI Bill (Chapter 30)", url: "https://www.va.gov/education/about-gi-bill-benefits/montgomery-active-duty/", desc: "Monthly education stipend for active duty service members enrolled in approved programs", type: "Benefit" },
+    { name: "SECO Education Guidance (Military Spouses)", url: "https://myseco.militaryonesource.mil", desc: "Free career coaching, scholarship search, and education planning for military spouses", type: "Benefit" },
+    { name: "Federal Student Aid — Military", url: "https://studentaid.gov/military", desc: "FAFSA, military-specific grants, and special financial aid provisions for military families", type: "Benefit" },
+  ],
+  online: [
+    { name: "American Military University (AMU/APUS)", url: "https://www.amu.apus.edu", desc: "Military-focused online degrees — tuition discounts for active duty and spouses", type: "Online University" },
+    { name: "University of Maryland Global Campus", url: "https://www.umgc.edu", desc: "Affordable online university with a long history of serving military students worldwide", type: "Online University" },
+    { name: "Southern New Hampshire University (SNHU)", url: "https://www.snhu.edu/about/military", desc: "Highly affordable online degrees with a dedicated military support team", type: "Online University" },
+    { name: "Excelsior University", url: "https://www.excelsior.edu", desc: "Military-friendly online university that accepts ACE military credits and experience", type: "Online University" },
+    { name: "Troy University Global Campus", url: "https://www.troy.edu/global-campus/", desc: "Online and on-base programs available at many military installations worldwide", type: "Online University" },
+    { name: "Coursera for Military", url: "https://www.coursera.org/government/military", desc: "Certificates and courses from top universities — free and discounted access for military", type: "Online Courses" },
+    { name: "LinkedIn Learning (Military)", url: "https://opportunity.linkedin.com/en-us/military", desc: "Free LinkedIn Premium + Learning for transitioning service members and military spouses", type: "Online Courses" },
+  ],
+  byInstallation: {
+    "Fort Liberty": [
+      { name: "Fayetteville State University", url: "https://www.uncfsu.edu", desc: "4-year HBCU 7 miles from post — military partnership programs and veteran services", type: "4-Year University" },
+      { name: "Methodist University", url: "https://www.methodist.edu", desc: "Private liberal arts university with ROTC program and military-connected student services", type: "4-Year University" },
+      { name: "Fayetteville Technical Community College", url: "https://www.faytechcc.edu", desc: "Affordable 2-year degrees and vocational programs — on-post enrollment support available", type: "Community College" },
+      { name: "Campbell University", url: "https://www.campbell.edu", desc: "Private university with online/hybrid programs and military scholarship support", type: "4-Year University" },
+    ],
+    "Fort Bliss": [
+      { name: "UTEP (University of Texas at El Paso)", url: "https://www.utep.edu", desc: "Major research university with veteran services center and military tuition rates", type: "4-Year University" },
+      { name: "El Paso Community College", url: "https://www.epcc.edu", desc: "Affordable community college with veteran enrollment and career support", type: "Community College" },
+      { name: "New Mexico State University", url: "https://www.nmsu.edu", desc: "Research university 45 minutes from Fort Bliss with robust online programs", type: "4-Year University" },
+    ],
+    "Fort Campbell": [
+      { name: "Austin Peay State University", url: "https://www.apsu.edu", desc: "Adjacent to Fort Campbell — widely known as 'The Fort Campbell University' with military-first policies", type: "4-Year University" },
+      { name: "Hopkinsville Community College", url: "https://hopkinsville.kctcs.edu", desc: "Affordable 2-year programs with veteran services close to Fort Campbell", type: "Community College" },
+    ],
+    "Fort Carson": [
+      { name: "UCCS (Univ. of Colorado Colorado Springs)", url: "https://www.uccs.edu", desc: "Public research university with active veteran services office and military partnerships", type: "4-Year University" },
+      { name: "Colorado State University — Global", url: "https://csuglobal.edu", desc: "Online programs designed around military schedules and transfer credits", type: "Online University" },
+      { name: "Pikes Peak State College", url: "https://www.pikespeak.edu", desc: "Community college with military student services and affordable programs near Fort Carson", type: "Community College" },
+    ],
+    "Fort Drum": [
+      { name: "Jefferson Community College (SUNY)", url: "https://www.sunyjefferson.edu", desc: "SUNY community college adjacent to Fort Drum with full military credit recognition", type: "Community College" },
+      { name: "SUNY Potsdam", url: "https://www.potsdam.edu", desc: "State university with military-friendly enrollment and degree completion policies", type: "4-Year University" },
+    ],
+    "Naval Station Norfolk": [
+      { name: "Old Dominion University", url: "https://www.odu.edu", desc: "Research university with Navy education partnership programs and military scholarships", type: "4-Year University" },
+      { name: "Tidewater Community College", url: "https://www.tcc.edu", desc: "Leading military-connected community college serving the Hampton Roads region", type: "Community College" },
+      { name: "Regent University", url: "https://www.regent.edu", desc: "Christian university with military tuition benefits, online programs, and veteran center", type: "4-Year University" },
+    ],
+    "Naval Base San Diego": [
+      { name: "San Diego State University", url: "https://www.sdsu.edu", desc: "Major research university with well-resourced veteran services center", type: "4-Year University" },
+      { name: "University of San Diego", url: "https://www.sandiego.edu", desc: "Private university with military scholarships and veteran support office", type: "4-Year University" },
+      { name: "Grossmont College", url: "https://www.grossmont.edu", desc: "Community college with dedicated veteran services serving San Diego military families", type: "Community College" },
+    ],
+    "Camp Pendleton": [
+      { name: "CSU San Marcos", url: "https://www.csusm.edu", desc: "Public university near Camp Pendleton with military transfer programs and veteran center", type: "4-Year University" },
+      { name: "MiraCosta College", url: "https://www.miracosta.edu", desc: "Military-friendly community college near Pendleton with strong veteran services", type: "Community College" },
+    ],
+    "Camp Lejeune": [
+      { name: "Coastal Carolina Community College", url: "https://www.coastalcarolina.edu", desc: "Community college adjacent to Camp Lejeune with military-focused degree programs", type: "Community College" },
+      { name: "University of Mount Olive", url: "https://www.umo.edu", desc: "Private university with a campus near Camp Lejeune and military scholarships", type: "4-Year University" },
+    ],
+    "Lackland AFB": [
+      { name: "UTSA (Univ. of Texas at San Antonio)", url: "https://www.utsa.edu", desc: "Major research university near Lackland with veteran resource programs and GI Bill support", type: "4-Year University" },
+      { name: "St. Philip's College", url: "https://www.alamo.edu/spc/", desc: "Community college near Lackland with cybersecurity, healthcare, and trade programs", type: "Community College" },
+    ],
+    "Nellis AFB": [
+      { name: "UNLV (Univ. of Nevada Las Vegas)", url: "https://www.unlv.edu", desc: "Research university with veteran services and flexible evening programs near Nellis", type: "4-Year University" },
+      { name: "College of Southern Nevada", url: "https://www.csn.edu", desc: "Affordable community college with military student services near Nellis AFB", type: "Community College" },
+    ],
+  },
+};
+
+const EMPLOYMENT_RESOURCES = {
+  boards: [
+    { name: "USAJobs.gov", url: "https://www.usajobs.gov", desc: "Official federal job board — includes GS civilian positions on military installations. Use 'military spouse preference' filter.", icon: "🏛️", type: "federal" },
+    { name: "Military Spouse Employment Partnership", url: "https://myseco.militaryonesource.mil/portal/", desc: "Network of 700+ employers committed to hiring military spouses — priority placement listings", icon: "⭐", type: "military-spouse" },
+    { name: "Hire Heroes USA", url: "https://www.hireheroesusa.org", desc: "Free personalized job placement and career coaching for military spouses and veterans", icon: "🎯", type: "military-spouse" },
+    { name: "Blue Star Families Job Board", url: "https://bluestarfam.org/jobs/", desc: "Curated job listings from verified military-friendly employers nationwide", icon: "🌟", type: "military-spouse" },
+    { name: "SECO Career Portal", url: "https://myseco.militaryonesource.mil", desc: "Free career coaching, resume help, and job search assistance for military spouses", icon: "🎓", type: "military-spouse" },
+    { name: "Indeed", url: "https://www.indeed.com", desc: "Largest general job board — search by ZIP code, salary, and job type including remote", icon: "🔍", type: "civilian" },
+    { name: "LinkedIn Jobs", url: "https://www.linkedin.com/jobs", desc: "Professional networking + job listings with direct employer connections", icon: "💼", type: "civilian" },
+    { name: "Handshake (Military)", url: "https://joinhandshake.com/military/", desc: "Early-career and entry-level jobs for military-connected students and spouses", icon: "🤝", type: "civilian" },
+    { name: "Remote.co", url: "https://remote.co/remote-jobs/", desc: "Curated remote-only job listings across all industries and experience levels", icon: "🏠", type: "remote" },
+    { name: "FlexJobs", url: "https://www.flexjobs.com", desc: "Remote and flexible-schedule jobs — ideal for military spouses managing PCS moves", icon: "⏰", type: "remote" },
+    { name: "We Work Remotely", url: "https://weworkremotely.com", desc: "High-quality remote positions in tech, design, marketing, and customer support", icon: "💻", type: "remote" },
+    { name: "Virtual Vocations (Military Spouse)", url: "https://www.virtualvocations.com/jobs/telecommute-jobs-for-military-spouses/", desc: "Telecommute and remote jobs curated specifically for military spouses", icon: "📡", type: "remote" },
+  ],
+  federalTips: [
+    "Search USAJobs.gov with 'military spouse' to find Priority Placement Program (PPP) eligible positions",
+    "Military spouses of active duty O-1 to O-6 / E-1 to E-9 qualify for non-competitive federal hiring in certain locations",
+    "NAF (Non-Appropriated Fund) positions — MWR, commissary, clubs — hire locally and value military-connected applicants",
+    "AAFES, NEX, and MCX base exchange positions are available at most installations — apply via their respective websites",
+    "OCONUS installations often have fewer civilian applicants for GS positions — filter USAJobs by host country",
+  ],
+};
+
+const MENTAL_HEALTH_RESOURCES = {
+  crisis: [
+    { name: "Veterans Crisis Line", url: "https://www.veteranscrisisline.net", desc: "Call or text 988 then press 1 — confidential crisis support 24/7 for veterans and service members", phone: "988 → Press 1" },
+    { name: "Military Crisis Line (Chat)", url: "https://www.veteranscrisisline.net/get-help-now/chat/", desc: "Live online chat with crisis counselors — 24/7, confidential", phone: "Chat available 24/7" },
+    { name: "SAMHSA National Helpline", url: "https://www.samhsa.gov/find-help/national-helpline", desc: "Free, confidential 24/7 treatment referral and information service for mental health and substance use", phone: "1-800-662-4357" },
+  ],
+  tricare: [
+    { name: "TRICARE Mental Health Finder", url: "https://www.tricare.mil/FindCare", desc: "Find TRICARE-covered mental health and behavioral health providers near your installation" },
+    { name: "TRICARE Behavioral Health Coverage", url: "https://www.tricare.mil/CoveredServices/Mental", desc: "Full behavioral health coverage details — outpatient, inpatient, and specialty care" },
+    { name: "MHN Government Services", url: "https://www.mhngs.com", desc: "TRICARE behavioral health managed care — find in-network providers by ZIP code" },
+  ],
+  va: [
+    { name: "VA Mental Health Services", url: "https://www.mentalhealth.va.gov", desc: "Comprehensive VA mental health services — accepts VA health coverage for all eligible veterans" },
+    { name: "VA Vet Center Program", url: "https://www.vetcenter.va.gov", desc: "Free readjustment counseling at community Vet Centers — accepts all VA health coverage" },
+    { name: "VA Same-Day Mental Health Care", url: "https://www.va.gov/health-care/health-needs-conditions/mental-health/", desc: "Walk-in same-day mental health appointments at VA Medical Centers nationwide" },
+  ],
+  free: [
+    { name: "Give an Hour", url: "https://www.giveanhour.org", desc: "Free mental health care from licensed providers for military members and their families" },
+    { name: "Headstrong Project", url: "https://www.projectheadstrong.org", desc: "Completely free mental health treatment for post-9/11 veterans — no cost, no co-pay, ever" },
+    { name: "Cohen Veterans Network", url: "https://www.cohenveteransnetwork.org", desc: "Free or low-cost mental healthcare clinics for veterans and military families nationwide" },
+    { name: "Real Warriors Campaign", url: "https://www.realwarriors.net", desc: "DoD program promoting help-seeking behavior — find providers and peer support resources" },
+    { name: "Military Family Advisory Network", url: "https://www.mfan.org", desc: "Free peer support and mental health navigation for military families" },
+  ],
+  programs: [
+    { name: "Military OneSource Counseling", url: "https://www.militaryonesource.mil/health-wellness/mental-health/", desc: "12 free confidential counseling sessions for service members and families — no referral needed" },
+    { name: "FOCUS Resilience Program", url: "https://www.focusproject.org", desc: "Free resilience training for military families with children experiencing deployment stress" },
+    { name: "Strong Bonds", url: "https://www.strongbonds.org", desc: "Chaplain-led relationship and resilience retreats for couples and families — often free or subsidized" },
+  ],
+};
+
+const FAMILY_HEALTH_RESOURCES = {
+  tricare: [
+    { name: "TRICARE Family Coverage", url: "https://www.tricare.mil/Plans/HealthPlans/Prime", desc: "Comprehensive TRICARE Prime coverage for all enrolled family members" },
+    { name: "TRICARE Dental Program", url: "https://www.tricare.mil/TDP", desc: "Dental coverage for family members of active duty service members" },
+    { name: "TRICARE Find a Provider", url: "https://www.tricare.mil/FindCare", desc: "Locate TRICARE-covered family medicine, pediatric, OB/GYN, and specialist providers" },
+    { name: "TRICARE Pharmacy Benefits", url: "https://www.tricare.mil/CoveredServices/Pharmacy", desc: "Prescription coverage and military pharmacy locations for the whole family" },
+  ],
+  pediatric: [
+    { name: "TRICARE Pediatric Care", url: "https://www.tricare.mil/FindCare", desc: "Find pediatric primary and specialty care providers covered by TRICARE" },
+    { name: "Military Child Mental Health", url: "https://www.militaryonesource.mil/health-wellness/mental-health/children-and-teens/", desc: "Mental and behavioral health resources specifically for military children experiencing family stress" },
+    { name: "Military Child Education Coalition", url: "https://www.militarychild.org", desc: "Education and health resources supporting military-connected children through transitions" },
+  ],
+  women: [
+    { name: "TRICARE Women's Health", url: "https://www.tricare.mil/CoveredServices/WomensHealth", desc: "OB/GYN, maternity care, and preventive services for military women and family members" },
+    { name: "TRICARE Maternity Coverage", url: "https://www.tricare.mil/maternity", desc: "Full prenatal, labor/delivery, and postpartum care coverage for military families" },
+  ],
+  free: [
+    { name: "Fisher House Foundation", url: "https://www.fisherhouse.org", desc: "Free lodging for military families while a loved one receives medical care — nationwide locations" },
+    { name: "Operation Homefront", url: "https://www.operationhomefront.org", desc: "Financial assistance, housing, and health-related support for military families in need" },
+    { name: "VA Caregiver Support", url: "https://www.caregiver.va.gov", desc: "Support programs and services for family caregivers of veterans" },
+  ],
+};
+
+const SPOUSE_RESOURCES = {
+  mentalHealth: [
+    { name: "Military OneSource Counseling", url: "https://www.militaryonesource.mil/health-wellness/mental-health/", desc: "12 free confidential counseling sessions for spouses — during and after deployment" },
+    { name: "Give an Hour", url: "https://www.giveanhour.org", desc: "Free mental health care from licensed therapists for military spouses and families" },
+    { name: "TRICARE Spouse Mental Health", url: "https://www.tricare.mil/CoveredServices/Mental", desc: "Full behavioral health and counseling coverage for military spouses through TRICARE" },
+    { name: "Sesame Street for Military Families", url: "https://sesamestreetformilitaryfamilies.org", desc: "Age-appropriate resources helping young children and families cope with deployment" },
+  ],
+  socialGroups: [
+    { name: "Family Readiness Group (FRG)", url: "https://www.army.mil/info/institution/support/frg/", desc: "Unit-level family support network — join before deployment for ongoing updates and community" },
+    { name: "Blue Star Families", url: "https://bluestarfam.org", desc: "Events, programs, and community connecting military spouses and families nationwide" },
+    { name: "National Military Family Association", url: "https://www.militaryfamily.org", desc: "Advocacy, programs, scholarships, and community for military families" },
+    { name: "Military Spouse JD Network", url: "https://www.msjdn.org", desc: "Community and career support for military spouse professionals" },
+    { name: "SpouseLink — Military OneSource", url: "https://www.militaryonesource.mil/family-relationships/spouse-and-partner/", desc: "Peer support, connections, and community resources for military spouses" },
+  ],
+  onBase: [
+    { name: "Army Community Service (ACS)", url: "https://www.armyonesource.mil", desc: "On-base counseling, financial planning, deployment support, and emergency assistance" },
+    { name: "Fleet & Family Support Center", url: "https://www.cnic.navy.mil/ffsc", desc: "Navy installation family support — workshops, counseling, and deployment resources" },
+    { name: "Marine Corps Family Services", url: "https://www.mccs.marines.mil", desc: "On-base family programs, child development, and deployment support services" },
+    { name: "Airman & Family Readiness Center", url: "https://www.afcrossroads.com", desc: "Air Force family readiness, employment assistance, and deployment support" },
+    { name: "Installation Chaplain Services", url: "https://www.chapnet.army.mil", desc: "Free, confidential counseling and spiritual support for spouses on any installation" },
+  ],
+  familyAwareness: [
+    { name: "Deployment Family Readiness", url: "https://www.militaryonesource.mil/deployment/", desc: "Complete deployment preparation guide including communication planning and financial management" },
+    { name: "FOCUS Resilience Training", url: "https://www.focusproject.org", desc: "Free resilience program for military families — helps children and spouses navigate deployment stress" },
+    { name: "MilKids Education & Health", url: "https://www.militarychild.org", desc: "Resources for children experiencing school changes and social transitions during deployment" },
+    { name: "During Deployment Support", url: "https://www.militaryonesource.mil/deployment/during-deployment/", desc: "Communication tips, self-care guidance, and financial resources for the deployment period" },
+  ],
+};
+
+const POWER_OF_ATTORNEY_CHECKLIST = [
+  "Contact your installation's Legal Assistance Office (JAG) — POA appointments are free for service members",
+  "Decide the type: General POA (broad authority) or Special/Limited POA (specific transactions only)",
+  "List the exact powers to grant: banking, vehicle sales, housing lease, tax filing, medical decisions",
+  "Gather required documents: service member's military ID, spouse's government-issued ID, any relevant financial documents",
+  "Attend the JAG appointment — service member signature must be witnessed and notarized by a JAG attorney",
+  "Request multiple certified copies — banks, landlords, and agencies often require originals or certified copies",
+  "Deliver copies to: bank/credit union, housing office, and any relevant financial institution",
+  "Set up joint bank account or add spouse as authorized user on all accounts",
+  "Update DEERS (Defense Enrollment Eligibility Reporting System) to ensure spouse has full TRICARE access",
+  "Confirm spouse has a current, non-expiring military dependent ID card (DEERS-issued)",
+  "Provide spouse with all account numbers, passwords, PIN codes, and emergency financial contacts",
+  "Enroll in automatic bill pay for rent/mortgage, utilities, and insurance",
+];
+
+const PRE_DEPLOYMENT_SPOUSE_CHECKLIST = [
+  "Create a laminated family emergency contact list — unit POC, FRG leader, chaplain, and local support contacts",
+  "Gather and organize all critical documents: wills, SGLI, birth certificates, marriage certificate, Social Security cards, passports",
+  "Update or create a legal will for the service member — JAG provides this free of charge",
+  "Confirm and update SGLI (Servicemembers' Group Life Insurance) beneficiaries",
+  "Review TRICARE enrollment — know your PCM, nearest MTF, and how to find emergency care",
+  "Complete the Power of Attorney steps above",
+  "Set a household budget for the full deployment period with an emergency fund",
+  "Agree on a communication plan: frequency, preferred app (WhatsApp, Skype, Signal), and backup method",
+  "Join the unit Family Readiness Group (FRG) before departure",
+  "Brief children in an age-appropriate way about the deployment timeline and what to expect",
+  "Identify a trusted local emergency contact who can assist while service member is deployed",
+  "Ensure vehicle registration, inspection sticker, and insurance are current and won't expire during deployment",
+  "Photograph all high-value household items for insurance records",
+  "Download the branch family app and save the unit's deployment support officer contact",
+  "Schedule a pre-deployment counseling session through Military OneSource or the installation chaplain",
+];
+
 const store = { get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }, set: (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
 
-async function aiCall(system, user) {
-  const res = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ system, user }) });
+async function aiCall(system, user, imageBase64 = null, imageMediaType = null) {
+  const body = { system, user };
+  if (imageBase64) { body.imageBase64 = imageBase64; body.imageMediaType = imageMediaType || "image/jpeg"; }
+  const res = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Request failed");
   return data.text;
@@ -379,6 +651,7 @@ function Onboarding({ onComplete }) {
     firstName:"", lastName:"", branch:"Army", component:"Active Duty", paygrade:"E-5",
     losingInstallation:"", gainingInstallation:"", departingDate:"", unit:"",
     isOverseas:false, hasDependents:false, hasChildren:false, childAges:[], bedrooms:"3",
+    language:"en", religion:"No Preference",
   });
   
   const upd = (k, v) => setP(prev => ({ ...prev, [k]: v }));
@@ -449,6 +722,14 @@ function Onboarding({ onComplete }) {
               <select value={p.paygrade} onChange={e=>upd("paygrade",e.target.value)} style={inputSt}>
                 {["E-1","E-2","E-3","E-4","E-5","E-6","E-7","E-8","E-9","W-1","W-2","O-1","O-2","O-3","O-4","O-5","O-6"].map(g=><option key={g}>{g}</option>)}
               </select>
+            </div>
+
+            <div style={{ marginBottom:20 }}>
+              <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>PREFERRED LANGUAGE</label>
+              <select value={p.language} onChange={e=>upd("language",e.target.value)} style={inputSt}>
+                {SUPPORTED_LANGUAGES.map(l=><option key={l.code} value={l.code}>{l.native} — {l.name}</option>)}
+              </select>
+              <div style={{ marginTop:6, fontSize:11, color:"rgba(255,255,255,0.45)" }}>Used for translation services and language-specific resources</div>
             </div>
 
             <button onClick={()=>setStep(1)} disabled={!canGo1} style={{ width:"100%", padding:"14px", borderRadius:12, background:canGo1?theme.accent:"rgba(255,255,255,0.1)", color:canGo1?theme.secondary:"rgba(255,255,255,0.3)", border:"none", fontSize:16, fontWeight:900, cursor:canGo1?"pointer":"not-allowed" }}>Continue →</button>
@@ -555,6 +836,14 @@ function Onboarding({ onComplete }) {
             )}
 
             <div style={{ marginBottom:20 }}>
+              <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>RELIGIOUS PREFERENCE <span style={{ fontWeight:400, opacity:0.6, fontSize:11 }}>(for chaplain & community services)</span></label>
+              <select value={p.religion} onChange={e=>upd("religion",e.target.value)} style={inputSt}>
+                {RELIGIOUS_PREFERENCES.map(r=><option key={r}>{r}</option>)}
+              </select>
+              <div style={{ marginTop:6, fontSize:11, color:"rgba(255,255,255,0.45)" }}>Helps us surface relevant chaplain resources — optional, stored locally only</div>
+            </div>
+
+            <div style={{ marginBottom:20 }}>
               <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>BEDROOMS</label>
               <select value={p.bedrooms} onChange={e=>upd("bedrooms",e.target.value)} style={inputSt}>
                 {["1","2","3","4","5+"].map(b=><option key={b}>{b}</option>)}
@@ -581,6 +870,26 @@ function DesktopApp({ profile, onReset }) {
   const [dashboardCollapsed, setDashboardCollapsed] = useState(() => {
     try { return JSON.parse(localStorage.getItem("pcs_dashboard_collapsed")) === true; } catch { return false; }
   });
+  const [progress, setProgress] = useState(() => { try { return Number(localStorage.getItem("pcs_progress")) || 0; } catch { return 0; } });
+  const [poaList, setPoaList] = useState(() => store.get("pcs_poa") || POWER_OF_ATTORNEY_CHECKLIST.map(t => ({ task: t, done: false })));
+  const [preDeployList, setPreDeployList] = useState(() => store.get("pcs_predeploy") || PRE_DEPLOYMENT_SPOUSE_CHECKLIST.map(t => ({ task: t, done: false })));
+  const [transText, setTransText] = useState("");
+  const [transResult, setTransResult] = useState("");
+  const [transLoading, setTransLoading] = useState(false);
+  const [transError, setTransError] = useState("");
+  const [transHistory, setTransHistory] = useState(() => store.get("pcs_translations") || []);
+  const [transImagePreview, setTransImagePreview] = useState("");
+  const [transImageBase64, setTransImageBase64] = useState("");
+  const [transImageMediaType, setTransImageMediaType] = useState("image/jpeg");
+  const [transMode, setTransMode] = useState("text");
+  const [eduFilter, setEduFilter] = useState("all");
+  const [empPosition, setEmpPosition] = useState("");
+  const [empSkills, setEmpSkills] = useState([]);
+  const [empSkillInput, setEmpSkillInput] = useState("");
+  const [empCategory, setEmpCategory] = useState("all");
+  const [empAiResults, setEmpAiResults] = useState("");
+  const [empAiLoading, setEmpAiLoading] = useState(false);
+  const [empAiError, setEmpAiError] = useState("");
   const theme = BRANCH_THEMES[profile.branch];
   const content = BRANCH_CONTENT[profile.branch];
   const branchBusinesses = VETERAN_BUSINESSES[profile.branch] || [];
@@ -689,6 +998,13 @@ function DesktopApp({ profile, onReset }) {
               { id:"schools", icon:"🎓", label:"Schools & Districts" },
               { id:"resources", icon:"◉", label:`${theme.name} Resources` },
               { id:"veterans", icon:"⭐", label:"Veteran Services" },
+              { id:"religious", icon:"⛪", label:"Religious Services" },
+              { id:"mental", icon:"🧠", label:"Mental Health" },
+              { id:"familyhealth", icon:"❤️", label:"Family Health" },
+              { id:"spouse", icon:"💑", label:"Spouse Guide" },
+              { id:"education", icon:"🎓", label:"Education" },
+              { id:"employment", icon:"💼", label:"Spouse Employment" },
+              { id:"translation", icon:"🌐", label:"Translation" },
               { id:"ask", icon:"?", label:"Ask AI" },
             ].map(nav => (
               <button key={nav.id} onClick={() => setScreen(nav.id)} style={{ textAlign:"left", padding:"12px 14px", borderRadius:10, border:screen===nav.id?`2px solid ${theme.accent}`:"1px solid rgba(255,255,255,0.15)", background:screen===nav.id?theme.accent+"20":"rgba(255,255,255,0.05)", color:screen===nav.id?theme.accent:"rgba(255,255,255,0.7)", fontSize:14, fontWeight:screen===nav.id?700:500, cursor:"pointer", display:"flex", alignItems:"center", gap:10 }}>
@@ -703,6 +1019,29 @@ function DesktopApp({ profile, onReset }) {
 
       <div style={{ flex:1, padding:"40px", overflowY:"auto" }}>
         <div style={{ maxWidth:1000 }}>
+
+          {/* ── Interactive PCS Progress Bar ── */}
+          <div style={{ background:"#FFFFFF", border:`2px solid ${theme.accent}40`, borderRadius:14, padding:"16px 22px", marginBottom:28, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+              <div style={{ fontSize:14, fontWeight:800, color:theme.primary }}>PCS Progress</div>
+              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                <span style={{ fontSize:13, color:"#888" }}>Drag or click to update</span>
+                <span style={{ fontSize:18, fontWeight:900, color: progress === 100 ? "#2E7D32" : theme.accent }}>{progress}%</span>
+                {progress === 100 && <span style={{ fontSize:12, fontWeight:700, background:"#2E7D32", color:"#FFF", borderRadius:6, padding:"2px 8px" }}>COMPLETE ✓</span>}
+              </div>
+            </div>
+            <input
+              type="range" min="0" max="100" value={progress}
+              onChange={e => { const v = Number(e.target.value); setProgress(v); localStorage.setItem("pcs_progress", v); }}
+              style={{ width:"100%", cursor:"pointer", accentColor:theme.accent, height:6 }}
+            />
+            <div style={{ display:"flex", justifyContent:"space-between", marginTop:6, fontSize:11, color:"#BBB" }}>
+              <span>0% — Not started</span>
+              <span>50% — In progress</span>
+              <span>100% — Complete</span>
+            </div>
+          </div>
+
           {screen === "dashboard" && (
             <div>
               <style>{`
@@ -1061,6 +1400,590 @@ function DesktopApp({ profile, onReset }) {
                     <div style={{ fontSize:14, color:"#666" }}>{business.services}</div>
                   </a>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {screen === "mental" && (
+            <div>
+              <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Mental Health Services</h1>
+              <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Crisis resources, TRICARE providers, VA services, and free mental health support</p>
+
+              {/* Crisis line — always first and prominent */}
+              <div style={{ background:"#B71C1C", borderRadius:14, padding:"20px 24px", marginBottom:24, display:"flex", alignItems:"flex-start", gap:16 }}>
+                <div style={{ fontSize:32, flexShrink:0 }}>🆘</div>
+                <div>
+                  <div style={{ fontSize:16, fontWeight:900, color:"#FFF", marginBottom:6 }}>In Crisis? Get Help Now</div>
+                  {MENTAL_HEALTH_RESOURCES.crisis.map((r, i) => (
+                    <div key={i} style={{ marginBottom:i < MENTAL_HEALTH_RESOURCES.crisis.length - 1 ? 10 : 0 }}>
+                      <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ color:"#FFCDD2", fontWeight:700, fontSize:14 }}>{r.name}</a>
+                      <span style={{ color:"#FFCDD2", fontSize:14 }}> — {r.phone}</span>
+                      <div style={{ fontSize:12, color:"rgba(255,255,255,0.7)", marginTop:2 }}>{r.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {[
+                { key:"tricare", label:"TRICARE Mental Health", icon:"⚕️", desc:"Find TRICARE-covered behavioral health providers near your installation" },
+                { key:"va", label:"VA Mental Health Services", icon:"🎖️", desc:"VA health coverage accepted — walk-in and scheduled care" },
+                { key:"free", label:"Free Mental Health Services", icon:"💙", desc:"No cost, no insurance required" },
+                { key:"programs", label:"Military Programs & Counseling", icon:"🤝", desc:"DoD-sponsored programs for service members and families" },
+              ].map(({ key, label, icon, desc }) => (
+                <div key={key} style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, marginBottom:20, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+                  <div style={{ fontSize:18, fontWeight:900, color:theme.primary, marginBottom:4, display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ fontSize:22 }}>{icon}</span>{label}
+                  </div>
+                  <div style={{ fontSize:13, color:"#777", marginBottom:14 }}>{desc}</div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                    {MENTAL_HEALTH_RESOURCES[key].map((r, i) => (
+                      <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" style={{ padding:"12px 14px", background:theme.light, border:`1px solid ${theme.accent}30`, borderRadius:10, textDecoration:"none", display:"block" }}>
+                        <div style={{ fontWeight:700, color:theme.primary, fontSize:14, marginBottom:3 }}>{r.name}</div>
+                        <div style={{ fontSize:12, color:"#666" }}>{r.desc}</div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {screen === "familyhealth" && (
+            <div>
+              <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Family Health Services</h1>
+              <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>TRICARE family coverage, pediatric care, women's health, and free family assistance</p>
+
+              {[
+                { key:"tricare", label:"TRICARE Family Coverage", icon:"⚕️", desc:"Coverage for your enrolled spouse, children, and dependents" },
+                { key:"pediatric", label:"Pediatric & Child Health", icon:"👶", desc:"Primary care, mental health, and specialty services for military children" },
+                { key:"women", label:"Women's Health & Maternity", icon:"🌸", desc:"OB/GYN, prenatal, and women's preventive care" },
+                { key:"free", label:"Free & Assistance Programs", icon:"💙", desc:"No-cost family support, lodging, and emergency assistance" },
+              ].map(({ key, label, icon, desc }) => (
+                <div key={key} style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, marginBottom:20, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+                  <div style={{ fontSize:18, fontWeight:900, color:theme.primary, marginBottom:4, display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ fontSize:22 }}>{icon}</span>{label}
+                  </div>
+                  <div style={{ fontSize:13, color:"#777", marginBottom:14 }}>{desc}</div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                    {FAMILY_HEALTH_RESOURCES[key].map((r, i) => (
+                      <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" style={{ padding:"12px 14px", background:theme.light, border:`1px solid ${theme.accent}30`, borderRadius:10, textDecoration:"none", display:"block" }}>
+                        <div style={{ fontWeight:700, color:theme.primary, fontSize:14, marginBottom:3 }}>{r.name}</div>
+                        <div style={{ fontSize:12, color:"#666" }}>{r.desc}</div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {screen === "spouse" && (() => {
+            const poaDone = poaList.filter(i => i.done).length;
+            const preDeployDone = preDeployList.filter(i => i.done).length;
+            const togglePoa = (idx) => {
+              const updated = poaList.map((item, i) => i === idx ? { ...item, done: !item.done } : item);
+              setPoaList(updated);
+              store.set("pcs_poa", updated);
+            };
+            const togglePreDeploy = (idx) => {
+              const updated = preDeployList.map((item, i) => i === idx ? { ...item, done: !item.done } : item);
+              setPreDeployList(updated);
+              store.set("pcs_predeploy", updated);
+            };
+            return (
+              <div>
+                <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Spouse Deployment Guide</h1>
+                <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Comprehensive support for military spouses — before, during, and after deployment</p>
+
+                {/* Deployment coping banner */}
+                <div style={{ background:theme.light, border:`2px solid ${theme.accent}50`, borderRadius:14, padding:"20px 24px", marginBottom:28, display:"flex", alignItems:"flex-start", gap:16 }}>
+                  <div style={{ fontSize:36, flexShrink:0 }}>💑</div>
+                  <div>
+                    <div style={{ fontSize:16, fontWeight:800, color:theme.primary, marginBottom:6 }}>You Are Not Alone</div>
+                    <div style={{ fontSize:14, color:"#555", lineHeight:1.7 }}>Deployment is challenging — but thousands of military spouses navigate it every year with the right support network. This guide provides mental health resources, social connections, on-base services, and every checklist you need to prepare before your service member departs.</div>
+                  </div>
+                </div>
+
+                {/* Sections: mental health, social, on-base, family */}
+                {[
+                  { key:"mentalHealth", label:"Mental Health for Spouses", icon:"🧠", desc:"Free counseling, therapy, and peer support designed for military spouses" },
+                  { key:"socialGroups", label:"Social Groups & FRG", icon:"🤝", desc:"Family Readiness Groups, spouse clubs, and national military spouse communities" },
+                  { key:"onBase", label:"On-Base Support Services", icon:"🏛️", desc:"Installation resources available to military spouses 24/7" },
+                  { key:"familyAwareness", label:"Family Awareness & Coping", icon:"👨‍👩‍👧", desc:"Resources for children, communication tips, and family resilience during deployment" },
+                ].map(({ key, label, icon, desc }) => (
+                  <div key={key} style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, marginBottom:20, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+                    <div style={{ fontSize:18, fontWeight:900, color:theme.primary, marginBottom:4, display:"flex", alignItems:"center", gap:8 }}>
+                      <span style={{ fontSize:22 }}>{icon}</span>{label}
+                    </div>
+                    <div style={{ fontSize:13, color:"#777", marginBottom:14 }}>{desc}</div>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                      {SPOUSE_RESOURCES[key].map((r, i) => (
+                        <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" style={{ padding:"12px 14px", background:theme.light, border:`1px solid ${theme.accent}30`, borderRadius:10, textDecoration:"none", display:"block" }}>
+                          <div style={{ fontWeight:700, color:theme.primary, fontSize:13, marginBottom:3 }}>{r.name}</div>
+                          <div style={{ fontSize:11, color:"#666" }}>{r.desc}</div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Power of Attorney Checklist */}
+                <div style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, marginBottom:20, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+                    <div style={{ fontSize:18, fontWeight:900, color:theme.primary, display:"flex", alignItems:"center", gap:8 }}>
+                      <span style={{ fontSize:22 }}>📜</span> Power of Attorney Checklist
+                    </div>
+                    <div style={{ fontSize:13, fontWeight:700, color: poaDone === poaList.length ? "#2E7D32" : theme.subtext }}>
+                      {poaDone}/{poaList.length} complete
+                    </div>
+                  </div>
+                  <div style={{ height:6, background:"#F0F0F0", borderRadius:6, marginBottom:16, overflow:"hidden" }}>
+                    <div style={{ height:"100%", width:`${(poaDone/poaList.length)*100}%`, background:`linear-gradient(90deg, ${theme.primary}, ${theme.accent})`, borderRadius:6, transition:"width 0.3s" }} />
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                    {poaList.map((item, idx) => (
+                      <div key={idx} onClick={() => togglePoa(idx)} style={{ display:"flex", alignItems:"flex-start", gap:12, padding:"12px 14px", borderRadius:10, background: item.done ? `${theme.accent}12` : "#FAFAFA", border:`1px solid ${item.done ? theme.accent+"50" : "#E8E8E8"}`, cursor:"pointer" }}>
+                        <div style={{ width:20, height:20, borderRadius:5, border:`2px solid ${item.done ? theme.accent : "#CCC"}`, background: item.done ? theme.accent : "transparent", flexShrink:0, marginTop:1, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          {item.done && <svg width="10" height="8" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1" stroke="#FFF" strokeWidth="2" fill="none" strokeLinecap="round"/></svg>}
+                        </div>
+                        <div style={{ fontSize:13, color: item.done ? "#666" : "#222", textDecoration: item.done ? "line-through" : "none", lineHeight:1.5 }}>{item.task}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pre-Deployment Spouse Checklist */}
+                <div style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+                    <div style={{ fontSize:18, fontWeight:900, color:theme.primary, display:"flex", alignItems:"center", gap:8 }}>
+                      <span style={{ fontSize:22 }}>✈️</span> Pre-Deployment Checklist
+                    </div>
+                    <div style={{ fontSize:13, fontWeight:700, color: preDeployDone === preDeployList.length ? "#2E7D32" : theme.subtext }}>
+                      {preDeployDone}/{preDeployList.length} complete
+                    </div>
+                  </div>
+                  <div style={{ height:6, background:"#F0F0F0", borderRadius:6, marginBottom:16, overflow:"hidden" }}>
+                    <div style={{ height:"100%", width:`${(preDeployDone/preDeployList.length)*100}%`, background:`linear-gradient(90deg, ${theme.primary}, ${theme.accent})`, borderRadius:6, transition:"width 0.3s" }} />
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                    {preDeployList.map((item, idx) => (
+                      <div key={idx} onClick={() => togglePreDeploy(idx)} style={{ display:"flex", alignItems:"flex-start", gap:12, padding:"12px 14px", borderRadius:10, background: item.done ? `${theme.accent}12` : "#FAFAFA", border:`1px solid ${item.done ? theme.accent+"50" : "#E8E8E8"}`, cursor:"pointer" }}>
+                        <div style={{ width:20, height:20, borderRadius:5, border:`2px solid ${item.done ? theme.accent : "#CCC"}`, background: item.done ? theme.accent : "transparent", flexShrink:0, marginTop:1, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          {item.done && <svg width="10" height="8" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1" stroke="#FFF" strokeWidth="2" fill="none" strokeLinecap="round"/></svg>}
+                        </div>
+                        <div style={{ fontSize:13, color: item.done ? "#666" : "#222", textDecoration: item.done ? "line-through" : "none", lineHeight:1.5 }}>{item.task}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {screen === "education" && (() => {
+            const localSchools = EDUCATION_RESOURCES.byInstallation[profile.gainingInstallation] || [];
+            const typeFilters = ["all","4-Year University","Community College","Online University","Online Courses","Benefit"];
+            const allItems = [
+              ...EDUCATION_RESOURCES.benefits,
+              ...EDUCATION_RESOURCES.online,
+              ...localSchools,
+            ];
+            const filtered = eduFilter === "all" ? allItems : allItems.filter(i => i.type === eduFilter);
+            return (
+              <div>
+                <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Education</h1>
+                <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>
+                  Local institutions near {profile.gainingInstallation || "your installation"}, online programs, and military education benefits
+                </p>
+
+                {/* Filter tabs */}
+                <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:24 }}>
+                  {typeFilters.map(f => (
+                    <button key={f} onClick={() => setEduFilter(f)} style={{ padding:"8px 16px", borderRadius:20, border:`1.5px solid ${eduFilter===f?theme.accent:theme.accent+"40"}`, background: eduFilter===f ? theme.accent+"22" : "transparent", color: eduFilter===f ? theme.primary : "#888", fontSize:13, fontWeight:700, cursor:"pointer" }}>
+                      {f === "all" ? "All Resources" : f}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Local schools callout */}
+                {localSchools.length > 0 && (eduFilter === "all" || eduFilter === "4-Year University" || eduFilter === "Community College") && (
+                  <div style={{ background:theme.light, border:`2px solid ${theme.accent}50`, borderRadius:14, padding:"14px 20px", marginBottom:20, display:"flex", alignItems:"center", gap:12 }}>
+                    <span style={{ fontSize:24 }}>📍</span>
+                    <div>
+                      <div style={{ fontSize:14, fontWeight:800, color:theme.primary }}>
+                        {localSchools.length} institution{localSchools.length !== 1 ? "s" : ""} near {profile.gainingInstallation}
+                      </div>
+                      <div style={{ fontSize:12, color:"#777" }}>Showing local schools plus all online and benefit programs</div>
+                    </div>
+                  </div>
+                )}
+
+                {localSchools.length === 0 && (eduFilter === "all" || eduFilter === "4-Year University" || eduFilter === "Community College") && (
+                  <div style={{ background:"#FFF8E1", border:"1.5px solid #FFD54F", borderRadius:12, padding:"12px 18px", marginBottom:20, fontSize:13, color:"#5D4037" }}>
+                    📍 No local institutions on file for <strong>{profile.gainingInstallation || "your installation"}</strong> — showing online and benefit programs below.
+                  </div>
+                )}
+
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+                  {filtered.map((item, i) => (
+                    <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" style={{ background:"#FFFFFF", padding:"20px", borderRadius:14, border:`2px solid ${theme.accent}40`, textDecoration:"none", display:"block", boxShadow:"0 2px 8px rgba(0,0,0,0.05)", transition:"transform 0.15s" }} onMouseEnter={e=>e.currentTarget.style.transform="translateY(-3px)"} onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
+                        <div style={{ fontSize:15, fontWeight:800, color:theme.primary, lineHeight:1.3 }}>{item.name}</div>
+                        <span style={{ fontSize:10, fontWeight:700, background: item.type === "Benefit" ? "#2E7D32" : item.type?.includes("Online") ? theme.primary : theme.accent+"30", color: item.type === "Benefit" ? "#FFF" : item.type?.includes("Online") ? "#FFF" : theme.primary, borderRadius:6, padding:"2px 7px", whiteSpace:"nowrap", marginLeft:8, flexShrink:0 }}>
+                          {item.type}
+                        </span>
+                      </div>
+                      <div style={{ fontSize:12, color:"#666", lineHeight:1.6 }}>{item.desc}</div>
+                    </a>
+                  ))}
+                </div>
+
+                {filtered.length === 0 && (
+                  <div style={{ textAlign:"center", padding:"48px 20px", color:"#AAA" }}>
+                    <div style={{ fontSize:40, marginBottom:12 }}>🎓</div>
+                    <div style={{ fontSize:15, fontWeight:700 }}>No results for this filter</div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {screen === "employment" && (() => {
+            const categoryFilters = [
+              { id:"all", label:"All Jobs" },
+              { id:"military-spouse", label:"Military Spouse" },
+              { id:"federal", label:"Federal & Base" },
+              { id:"remote", label:"Remote" },
+              { id:"civilian", label:"Civilian" },
+            ];
+            const filteredBoards = empCategory === "all"
+              ? EMPLOYMENT_RESOURCES.boards
+              : EMPLOYMENT_RESOURCES.boards.filter(b => b.type === empCategory);
+
+            const handleEmpSearch = async () => {
+              if (!empPosition.trim() && empSkills.length === 0) return;
+              setEmpAiLoading(true); setEmpAiResults(""); setEmpAiError("");
+              try {
+                const sys = `You are a military spouse career counselor. The service member is stationed at ${profile.gainingInstallation || "a military installation"} (${profile.branch}). Provide 6 specific, actionable job recommendations for their spouse based on the desired position and skills. For each recommendation include: Job Title, Why It Fits (1-2 sentences), Where to Apply (specific job board or employer site), and Type (Remote / Local / Federal). Format with clear headers. End with 2 quick resume tips tailored to military spouses.`;
+                const userMsg = `Desired position: ${empPosition || "open to suggestions"}\nSkills: ${empSkills.length > 0 ? empSkills.join(", ") : "not specified"}\nInstallation: ${profile.gainingInstallation || "not specified"}`;
+                const result = await aiCall(sys, userMsg);
+                setEmpAiResults(result);
+              } catch (err) {
+                setEmpAiError(err.message || "Search failed");
+              } finally {
+                setEmpAiLoading(false);
+              }
+            };
+
+            return (
+              <div>
+                <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Spouse Employment</h1>
+                <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>
+                  AI job recommendations, active listings, federal positions, and remote opportunities near {profile.gainingInstallation || "your installation"}
+                </p>
+
+                {/* AI Search Panel */}
+                <div style={{ background:"#FFFFFF", padding:"28px", borderRadius:14, border:`2px solid ${theme.accent}40`, marginBottom:24, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+                  <div style={{ fontSize:17, fontWeight:900, color:theme.primary, marginBottom:18 }}>🤖 AI Job Recommendations</div>
+
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+                    <div>
+                      <label style={{ fontSize:12, fontWeight:800, color:theme.subtext, display:"block", marginBottom:6, letterSpacing:".08em" }}>DESIRED POSITION / JOB TITLE</label>
+                      <input
+                        value={empPosition}
+                        onChange={e => setEmpPosition(e.target.value)}
+                        placeholder="e.g. Registered Nurse, Software Developer, Teacher…"
+                        style={{ width:"100%", fontSize:14, padding:"11px 14px", borderRadius:10, border:`1.5px solid ${theme.accent}40`, outline:"none", fontFamily:"inherit", boxSizing:"border-box", color:"#1A1A1A" }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize:12, fontWeight:800, color:theme.subtext, display:"block", marginBottom:6, letterSpacing:".08em" }}>ADD SKILLS (press Enter or comma)</label>
+                      <input
+                        value={empSkillInput}
+                        onChange={e => setEmpSkillInput(e.target.value)}
+                        onKeyDown={e => {
+                          if ((e.key === "Enter" || e.key === ",") && empSkillInput.trim()) {
+                            e.preventDefault();
+                            const skill = empSkillInput.trim().replace(/,$/, "");
+                            if (skill && !empSkills.includes(skill)) setEmpSkills(prev => [...prev, skill]);
+                            setEmpSkillInput("");
+                          }
+                        }}
+                        placeholder="e.g. Python, Project Management, EMT…"
+                        style={{ width:"100%", fontSize:14, padding:"11px 14px", borderRadius:10, border:`1.5px solid ${theme.accent}40`, outline:"none", fontFamily:"inherit", boxSizing:"border-box", color:"#1A1A1A" }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Skills tags */}
+                  {empSkills.length > 0 && (
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:16 }}>
+                      {empSkills.map((skill, i) => (
+                        <span key={i} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"5px 12px", borderRadius:20, background:theme.accent+"22", border:`1px solid ${theme.accent}50`, fontSize:13, fontWeight:700, color:theme.primary }}>
+                          {skill}
+                          <button onClick={() => setEmpSkills(prev => prev.filter((_,j) => j !== i))} style={{ background:"none", border:"none", color:theme.primary, cursor:"pointer", fontSize:14, lineHeight:1, padding:0 }}>×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleEmpSearch}
+                    disabled={empAiLoading || (!empPosition.trim() && empSkills.length === 0)}
+                    style={{ padding:"12px 28px", borderRadius:10, background: empAiLoading || (!empPosition.trim() && empSkills.length === 0) ? "#E0E0E0" : theme.primary, color: empAiLoading || (!empPosition.trim() && empSkills.length === 0) ? "#999" : "#FFF", border:"none", fontSize:14, fontWeight:800, cursor:"pointer" }}
+                  >
+                    {empAiLoading ? "Searching…" : "Get AI Job Recommendations"}
+                  </button>
+
+                  {empAiError && (
+                    <div style={{ marginTop:14, padding:"12px 16px", background:"#FEE", border:"1.5px solid #F88", borderRadius:10, color:"#C33", fontSize:13 }}>⚠️ {empAiError}</div>
+                  )}
+                  {empAiResults && (
+                    <div style={{ marginTop:16, padding:"20px", background:theme.light, border:`1.5px solid ${theme.accent}40`, borderRadius:10, fontSize:14, color:theme.primary, lineHeight:1.85, whiteSpace:"pre-wrap" }}>
+                      {empAiResults}
+                    </div>
+                  )}
+                </div>
+
+                {/* Category filter */}
+                <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
+                  {categoryFilters.map(f => (
+                    <button key={f.id} onClick={() => setEmpCategory(f.id)} style={{ padding:"8px 18px", borderRadius:20, border:`1.5px solid ${empCategory===f.id?theme.accent:theme.accent+"40"}`, background: empCategory===f.id ? theme.accent+"22" : "transparent", color: empCategory===f.id ? theme.primary : "#888", fontSize:13, fontWeight:700, cursor:"pointer" }}>
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Job board cards */}
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:28 }}>
+                  {filteredBoards.map((board, i) => (
+                    <a key={i} href={board.url} target="_blank" rel="noopener noreferrer" style={{ background:"#FFFFFF", padding:"20px", borderRadius:14, border:`2px solid ${theme.accent}40`, textDecoration:"none", display:"block", boxShadow:"0 2px 8px rgba(0,0,0,0.05)", transition:"transform 0.15s" }} onMouseEnter={e=>e.currentTarget.style.transform="translateY(-3px)"} onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                          <span style={{ fontSize:22 }}>{board.icon}</span>
+                          <div style={{ fontSize:15, fontWeight:800, color:theme.primary }}>{board.name}</div>
+                        </div>
+                        <span style={{ fontSize:10, fontWeight:700, background: board.type === "remote" ? "#1565C0" : board.type === "federal" ? "#2E7D32" : board.type === "military-spouse" ? theme.accent+"40" : "#EEE", color: board.type === "remote" ? "#FFF" : board.type === "federal" ? "#FFF" : theme.primary, borderRadius:6, padding:"2px 8px", whiteSpace:"nowrap", marginLeft:8, flexShrink:0 }}>
+                          {board.type === "military-spouse" ? "MIL SPOUSE" : board.type.toUpperCase()}
+                        </span>
+                      </div>
+                      <div style={{ fontSize:12, color:"#666", lineHeight:1.6 }}>{board.desc}</div>
+                    </a>
+                  ))}
+                </div>
+
+                {/* Federal hiring tips */}
+                <div style={{ background:theme.light, border:`1.5px solid ${theme.accent}40`, borderRadius:14, padding:"20px 24px" }}>
+                  <div style={{ fontSize:15, fontWeight:800, color:theme.primary, marginBottom:12 }}>🏛️ Federal & Base Hiring Tips for Military Spouses</div>
+                  <ul style={{ margin:0, paddingLeft:20, fontSize:13, color:"#444", lineHeight:1.95 }}>
+                    {EMPLOYMENT_RESOURCES.federalTips.map((tip, i) => <li key={i}>{tip}</li>)}
+                  </ul>
+                </div>
+              </div>
+            );
+          })()}
+
+          {screen === "translation" && (
+            <div>
+              <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Translation Services</h1>
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:24 }}>
+                <span style={{ fontSize:13, fontWeight:700, background:theme.accent, color:theme.secondary, borderRadius:6, padding:"3px 10px" }}>OCONUS</span>
+                <p style={{ fontSize:16, color:"#666", margin:0 }}>Translate text or photos from any language into English</p>
+              </div>
+
+              {/* Mode tabs */}
+              <div style={{ display:"flex", gap:10, marginBottom:20 }}>
+                {[["text","✏️ Text Input"],["photo","📷 Photo / Image"]].map(([mode, label]) => (
+                  <button key={mode} onClick={() => { setTransMode(mode); setTransResult(""); setTransError(""); }} style={{ padding:"10px 20px", borderRadius:10, border:`2px solid ${transMode===mode?theme.accent:theme.accent+"40"}`, background: transMode===mode?theme.accent+"20":"transparent", color: transMode===mode?theme.primary:"#888", fontWeight:700, fontSize:14, cursor:"pointer" }}>{label}</button>
+                ))}
+              </div>
+
+              <div style={{ background:"#FFFFFF", padding:"28px", borderRadius:14, border:`2px solid ${theme.accent}40`, marginBottom:24, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+                {transMode === "text" ? (
+                  <>
+                    <label style={{ fontSize:12, fontWeight:800, color:theme.subtext, display:"block", marginBottom:8, letterSpacing:".08em" }}>ENTER TEXT TO TRANSLATE</label>
+                    <textarea
+                      value={transText}
+                      onChange={e => setTransText(e.target.value)}
+                      placeholder="Paste or type text in any language…"
+                      rows={5}
+                      style={{ width:"100%", fontSize:15, padding:"12px 14px", borderRadius:10, border:`1.5px solid ${theme.accent}40`, outline:"none", resize:"vertical", fontFamily:"inherit", color:"#1A1A1A", boxSizing:"border-box" }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <label style={{ fontSize:12, fontWeight:800, color:theme.subtext, display:"block", marginBottom:8, letterSpacing:".08em" }}>SELECT OR CAPTURE A PHOTO</label>
+                    <input
+                      type="file" accept="image/*" capture="environment"
+                      onChange={e => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = ev => {
+                          setTransImagePreview(ev.target.result);
+                          setTransImageBase64(ev.target.result.split(",")[1]);
+                          setTransImageMediaType(file.type || "image/jpeg");
+                          setTransResult(""); setTransError("");
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                      style={{ marginBottom:14 }}
+                    />
+                    {transImagePreview && (
+                      <img src={transImagePreview} alt="preview" style={{ maxWidth:"100%", maxHeight:260, borderRadius:10, objectFit:"contain", border:`1.5px solid ${theme.accent}30`, display:"block", marginBottom:8 }} />
+                    )}
+                  </>
+                )}
+
+                <button
+                  onClick={async () => {
+                    if (transMode === "text" && !transText.trim()) return;
+                    if (transMode === "photo" && !transImageBase64) return;
+                    setTransLoading(true); setTransResult(""); setTransError("");
+                    try {
+                      const sys = "You are a professional military translator. Your job is to extract all readable text from the input and provide an accurate English translation. If text is a sign, document, or form, preserve the structure. Output only the translated English text followed by a brief note on the source language detected.";
+                      const userMsg = transMode === "text"
+                        ? `Translate the following text to English:\n\n${transText}`
+                        : "Extract and translate all text visible in this image to English.";
+                      const result = await aiCall(sys, userMsg, transMode === "photo" ? transImageBase64 : null, transMode === "photo" ? transImageMediaType : null);
+                      setTransResult(result);
+                      const entry = { date: new Date().toLocaleString(), mode: transMode, input: transMode === "text" ? transText.slice(0, 80) : "[Photo]", result };
+                      const updated = [entry, ...transHistory].slice(0, 20);
+                      setTransHistory(updated);
+                      store.set("pcs_translations", updated);
+                    } catch (err) {
+                      setTransError(err.message || "Translation failed");
+                    } finally {
+                      setTransLoading(false);
+                    }
+                  }}
+                  disabled={transLoading || (transMode === "text" ? !transText.trim() : !transImageBase64)}
+                  style={{ marginTop:14, padding:"12px 28px", borderRadius:10, background: transLoading || (transMode === "text" ? !transText.trim() : !transImageBase64) ? "#E0E0E0" : theme.primary, color: transLoading || (transMode === "text" ? !transText.trim() : !transImageBase64) ? "#999" : "#FFF", border:"none", fontSize:14, fontWeight:800, cursor:"pointer" }}
+                >
+                  {transLoading ? "Translating…" : "Translate to English"}
+                </button>
+
+                {transError && (
+                  <div style={{ marginTop:14, padding:"12px 16px", background:"#FEE", border:"1.5px solid #F88", borderRadius:10, color:"#C33", fontSize:13 }}>⚠️ {transError}</div>
+                )}
+                {transResult && (
+                  <div style={{ marginTop:14, padding:"18px", background:theme.light, border:`1.5px solid ${theme.accent}40`, borderRadius:10 }}>
+                    <div style={{ fontSize:12, fontWeight:800, color:theme.subtext, marginBottom:8, letterSpacing:".08em" }}>ENGLISH TRANSLATION</div>
+                    <div style={{ fontSize:14, color:theme.primary, lineHeight:1.8, whiteSpace:"pre-wrap" }}>{transResult}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Translation history */}
+              {transHistory.length > 0 && (
+                <div style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+                    <div style={{ fontSize:16, fontWeight:900, color:theme.primary }}>📁 Translation History</div>
+                    <button onClick={() => { setTransHistory([]); store.set("pcs_translations", []); }} style={{ fontSize:12, color:"#999", background:"none", border:"none", cursor:"pointer" }}>Clear</button>
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:10, maxHeight:360, overflowY:"auto" }}>
+                    {transHistory.map((entry, i) => (
+                      <div key={i} style={{ padding:"12px 14px", background:"#FAFAFA", border:"1px solid #EEE", borderRadius:10 }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                          <span style={{ fontSize:11, fontWeight:700, color:theme.accent }}>{entry.mode === "photo" ? "📷 Photo" : "✏️ Text"}</span>
+                          <span style={{ fontSize:11, color:"#AAA" }}>{entry.date}</span>
+                        </div>
+                        <div style={{ fontSize:12, color:"#888", marginBottom:4 }}>Input: {entry.input}</div>
+                        <div style={{ fontSize:13, color:"#333", lineHeight:1.6 }}>{entry.result.slice(0, 200)}{entry.result.length > 200 ? "…" : ""}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {screen === "religious" && (
+            <div>
+              <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Religious Services</h1>
+              <p style={{ fontSize:16, color:"#666", marginBottom:28 }}>Unit chaplain support and community faith accommodations for all beliefs</p>
+
+              {/* Chaplain confidentiality banner */}
+              <div style={{ background:theme.light, border:`2px solid ${theme.accent}50`, borderRadius:14, padding:"20px 24px", marginBottom:28, display:"flex", alignItems:"flex-start", gap:16 }}>
+                <div style={{ fontSize:36, flexShrink:0 }}>⛪</div>
+                <div>
+                  <div style={{ fontSize:16, fontWeight:800, color:theme.primary, marginBottom:6 }}>Military Chaplains — Confidential & Always Free</div>
+                  <div style={{ fontSize:14, color:"#555", lineHeight:1.7 }}>Your unit chaplain provides free, confidential spiritual care and counseling to <strong>all service members regardless of faith or belief</strong>. Chaplains are bound by privileged communication — what you share stays with them. Contact your command chaplain anytime, no appointment needed.</div>
+                </div>
+              </div>
+
+              {/* User faith preference highlight */}
+              {profile.religion && profile.religion !== "No Preference" && profile.religion !== "Prefer not to say" && (
+                <div style={{ background:"#FFFFFF", border:`2px solid ${theme.accent}`, borderRadius:14, padding:"16px 22px", marginBottom:24, display:"flex", alignItems:"center", gap:14, boxShadow:`0 4px 14px ${theme.accent}22` }}>
+                  <div style={{ fontSize:28 }}>🙏</div>
+                  <div>
+                    <div style={{ fontSize:15, fontWeight:800, color:theme.primary, marginBottom:2 }}>Your Faith Preference: {profile.religion}</div>
+                    <div style={{ fontSize:13, color:"#666" }}>Your preferred-faith resources are highlighted below with a gold border.</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Unit & Installation Chaplain Resources */}
+              <div style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, marginBottom:20, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+                <div style={{ fontSize:20, fontWeight:900, color:theme.primary, marginBottom:16 }}>✦ Unit & Installation Chaplain Services</div>
+                <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                  {RELIGIOUS_RESOURCES.chaplain.map((r, i) => (
+                    <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" style={{ padding:"14px 16px", background:theme.light, border:`1px solid ${theme.accent}40`, borderRadius:10, textDecoration:"none", display:"block" }}>
+                      <div style={{ fontWeight:700, color:theme.primary, marginBottom:4 }}>{r.name}</div>
+                      <div style={{ fontSize:12, color:"#666" }}>{r.desc}</div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Faith-specific resources grid */}
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:20 }}>
+                {[
+                  { key:"protestant", label:"Protestant / Christian", icon:"✝️" },
+                  { key:"catholic", label:"Catholic", icon:"⛪" },
+                  { key:"jewish", label:"Jewish", icon:"✡️" },
+                  { key:"muslim", label:"Muslim / Islam", icon:"☪️" },
+                  { key:"buddhist", label:"Buddhist", icon:"☸️" },
+                  { key:"general", label:"Multi-Faith & General", icon:"🕊️" },
+                ].map(({ key, label, icon }) => {
+                  const isPreferred = profile.religion && (
+                    (key === "protestant" && profile.religion.includes("Protestant")) ||
+                    (key === "catholic" && profile.religion.includes("Catholic")) ||
+                    (key === "jewish" && profile.religion.includes("Jewish")) ||
+                    (key === "muslim" && profile.religion.includes("Muslim")) ||
+                    (key === "buddhist" && profile.religion.includes("Buddhist"))
+                  );
+                  return (
+                    <div key={key} style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${isPreferred ? theme.accent : theme.accent+"40"}`, boxShadow: isPreferred ? `0 4px 14px ${theme.accent}28` : "0 2px 8px rgba(0,0,0,0.06)" }}>
+                      <div style={{ fontSize:18, fontWeight:900, color:theme.primary, marginBottom:16, display:"flex", alignItems:"center", gap:8 }}>
+                        <span style={{ fontSize:22 }}>{icon}</span>
+                        <span style={{ flex:1 }}>{label}</span>
+                        {isPreferred && <span style={{ fontSize:10, fontWeight:800, background:theme.accent, color:theme.secondary, borderRadius:6, padding:"3px 8px" }}>YOUR FAITH</span>}
+                      </div>
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        {RELIGIOUS_RESOURCES[key].map((r, i) => (
+                          <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" style={{ padding:"10px 12px", background:theme.light, border:`1px solid ${theme.accent}30`, borderRadius:8, textDecoration:"none", display:"block" }}>
+                            <div style={{ fontWeight:700, color:theme.primary, fontSize:13, marginBottom:3 }}>{r.name}</div>
+                            <div style={{ fontSize:11, color:"#666" }}>{r.desc}</div>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Community accommodations */}
+              <div style={{ background:theme.light, border:`1.5px solid ${theme.accent}40`, borderRadius:14, padding:"20px 24px" }}>
+                <div style={{ fontSize:16, fontWeight:800, color:theme.primary, marginBottom:12 }}>🏛️ Community Religious Accommodations</div>
+                <ul style={{ margin:0, paddingLeft:20, fontSize:14, color:"#444", lineHeight:1.9 }}>
+                  <li>Request religious accommodation through your chain of command per <strong>DoD Instruction 1300.17</strong></li>
+                  <li>Chaplains can assist with dietary requirements, designated worship space, and religious leave requests</li>
+                  <li>Off-base religious communities can be located through your installation chaplain's community liaison</li>
+                  <li>Contact your gaining installation's Chapel Office <em>before arrival</em> to arrange worship services and scheduling</li>
+                  <li>TRICARE covers mental health referrals — ask your chaplain if you need additional support services</li>
+                  <li>Language-specific services and translated materials may be available through your unit chaplain</li>
+                </ul>
               </div>
             </div>
           )}
