@@ -1,4 +1,45 @@
-const INSTALLATION_UNITS = {
+const PCS_CHECKLIST = {
+  "pre-move": [
+    "Notify current command of PCS move",
+    "Contact gaining installation's in-processing office",
+    "Schedule household goods pickup",
+    "Set up utilities at new location",
+    "Update address with USPS",
+    "Arrange temporary lodging if needed",
+    "Transfer medical records",
+    "Schedule vehicle inspection and registration",
+    "Update insurance policies",
+    "Notify banks and creditors of address change",
+  ],
+  "during-move": [
+    "Ensure all household goods are packed correctly",
+    "Take photos of high-value items",
+    "Keep important documents with you",
+    "Track shipment status",
+    "Verify all boxes are labeled and inventoried",
+    "Check vehicle before departure",
+  ],
+  "post-move": [
+    "Report to gaining installation",
+    "Complete in-processing checklist",
+    "Register vehicle at new location",
+    "Establish new medical care providers",
+    "Enroll children in new schools",
+    "Update military ID address",
+    "File final move report",
+    "Request itemized household goods inventory",
+    "Update address with benefits providers",
+  ],
+};
+
+const SCHOOL_RESOURCES = {
+  "general": [
+    { name: "Military Child Education Coalition", url: "https://www.militarychild.org", desc: "Education support for military-connected children" },
+    { name: "State Departments of Education", url: "https://www2.ed.gov/about/contacts/state/", desc: "Find state education offices" },
+    { name: "Great Schools", url: "https://www.greatschools.org", desc: "School ratings and information" },
+    { name: "Military OneSource Education", url: "https://www.militaryonesource.mil", desc: "Educational resources for military families" },
+  ],
+};const INSTALLATION_UNITS = {
   "Fort Liberty": {
     "Army": ["XVIII Airborne Corps", "1st Special Forces Command", "525th Expeditionary Military Intelligence Brigade", "101st Airborne Division"],
     "Navy": [],
@@ -271,40 +312,40 @@ const COMPONENT_TYPES = ["Active Duty", "Reserve", "National Guard", "AGR", "FTN
 
 const VETERAN_BUSINESSES = {
   "Army": [
-    { name: "AAFES (Army Air Force Exchange)", services: "Tax-free shopping, relocation discounts, PCS moving benefits", url: "https://www.shopmyexchange.com", icon: "🛍️" },
-    { name: "Army OneSource", services: "Free counseling, financial planning, legal consultation for PCS", url: "https://www.armyonesource.mil", icon: "💼" },
-    { name: "Hire Heroes USA", services: "Resume writing, job placement, and career counseling", url: "https://www.hireheroesusa.org", icon: "🎯" },
-    { name: "Military Spouse Corporate Career Network", services: "Spouse employment and career development", url: "https://www.seco.org", icon: "👥" },
+    { name: "AAFES (Army Air Force Exchange)", services: "Tax-free shopping, PCS discounts, military gear", url: "https://www.shopmyexchange.com", icon: "🛍️" },
+    { name: "VetFran - IFA", services: "Veteran franchise opportunities and support", url: "https://www.franchisee.com/veteran-franchises/", icon: "🤝" },
+    { name: "Hire Heroes USA", services: "Job placement and career coaching for veterans", url: "https://www.hireheroesusa.org", icon: "🎯" },
+    { name: "Operation Homefront", services: "Emergency financial assistance and housing", url: "https://www.operationhomefront.org", icon: "🏠" },
   ],
   "Navy": [
-    { name: "Navy Exchange Online", services: "Military discounts, moving services, shopping benefits", url: "https://www.mynavyexchange.com", icon: "🛍️" },
-    { name: "Fleet and Family Support Center", services: "Childcare, counseling, financial readiness for sailors", url: "https://www.cnic.navy.mil/ffsc", icon: "⚓" },
-    { name: "Hire Heroes USA", services: "Veteran and spouse job placement assistance", url: "https://www.hireheroesusa.org", icon: "🎯" },
-    { name: "Navy Gateway Relocation Services", services: "Comprehensive PCS planning and moving coordination", url: "https://www.navygateway.org", icon: "🏠" },
+    { name: "Navy Exchange", services: "Military retail and shopping benefits", url: "https://www.mynavyexchange.com", icon: "🛍️" },
+    { name: "The Sailor's Child Foundation", services: "Educational support for Navy families", url: "https://www.sailorschildfoundation.org", icon: "📚" },
+    { name: "Hire Heroes USA", services: "Career placement for military members", url: "https://www.hireheroesusa.org", icon: "🎯" },
+    { name: "Team Red White & Blue", services: "Veteran wellness and community programs", url: "https://www.teamrwb.org", icon: "💪" },
   ],
   "Marine Corps": [
-    { name: "Marine Corps Exchange", services: "Military retail, PCS shopping discounts, moving benefits", url: "https://www.shopmyexchange.com", icon: "🛍️" },
-    { name: "Marine Corps Community Services", services: "Family support, counseling, and PCS assistance", url: "https://www.mccs.marines.mil", icon: "🎖️" },
-    { name: "Hire Heroes USA", services: "Employment support for Marines and spouses", url: "https://www.hireheroesusa.org", icon: "🎯" },
-    { name: "Veterans Benefits Hotline", services: "Benefits counseling and resources", url: "https://www.va.gov", icon: "📞" },
+    { name: "Marine Corps Exchange", services: "Military shopping and PCS discounts", url: "https://www.shopmyexchange.com", icon: "🛍️" },
+    { name: "Semper Fi Fund", services: "Financial assistance for Marines and families", url: "https://www.semperfifund.org", icon: "💰" },
+    { name: "Hire Heroes USA", services: "Employment support for veterans", url: "https://www.hireheroesusa.org", icon: "🎯" },
+    { name: "Wounded Warrior Project", services: "Support and programs for wounded warriors", url: "https://www.woundedwarriorproject.org", icon: "🎖️" },
   ],
   "Air Force": [
-    { name: "Air Force Exchange", services: "Military shopping, PCS discounts, moving benefits", url: "https://www.shopmyexchange.com", icon: "🛍️" },
-    { name: "Air Force Family Readiness", services: "Relocation assistance, counseling, family programs", url: "https://www.afcrossroads.com", icon: "✈️" },
-    { name: "Hire Heroes USA", services: "Career support and job placement for airmen", url: "https://www.hireheroesusa.org", icon: "🎯" },
-    { name: "Military Spouse Tactical Relocation", services: "Specialized PCS planning and housing assistance", url: "https://www.seco.org", icon: "🏡" },
+    { name: "Air Force Exchange", services: "Military retail benefits and discounts", url: "https://www.shopmyexchange.com", icon: "🛍️" },
+    { name: "Fisher House Foundation", services: "Housing for military families during medical care", url: "https://www.fisherhouse.org", icon: "🏡" },
+    { name: "Hire Heroes USA", services: "Job coaching and placement services", url: "https://www.hireheroesusa.org", icon: "🎯" },
+    { name: "Air Force Aid Society", services: "Emergency assistance for Air Force families", url: "https://www.afas.org", icon: "🆘" },
   ],
   "Space Force": [
-    { name: "Air Force Exchange (AAFES)", services: "Military retail and moving benefits for Guardians", url: "https://www.shopmyexchange.com", icon: "🛍️" },
-    { name: "Space Force Family Support", services: "Guardian family programs and relocation assistance", url: "https://www.spaceforce.mil", icon: "🚀" },
-    { name: "Hire Heroes USA", services: "Employment assistance for Space Force members", url: "https://www.hireheroesusa.org", icon: "🎯" },
-    { name: "DoD Spouse Employment", services: "Spouse job placement across all military branches", url: "https://www.seco.org", icon: "💼" },
+    { name: "Air Force Exchange (AAFES)", services: "Military shopping and discounts", url: "https://www.shopmyexchange.com", icon: "🛍️" },
+    { name: "Hire Heroes USA", services: "Career transition support for Space Force", url: "https://www.hireheroesusa.org", icon: "🎯" },
+    { name: "Veterans Community Living Centers", services: "Housing and community for veterans", url: "https://www.va.gov/housing-support/", icon: "🏘️" },
+    { name: "Give an Hour", services: "Free mental health services for veterans", url: "https://www.giveanhour.org", icon: "💙" },
   ],
   "Coast Guard": [
-    { name: "Coast Guard Exchange", services: "Military discounts, PCS shopping, moving benefits", url: "https://www.shopmyexchange.com", icon: "🛍️" },
-    { name: "Coast Guard Family Support", services: "Counseling, relocation assistance, family programs", url: "https://www.cg.mil/Pay-and-Benefits", icon: "🌊" },
-    { name: "Hire Heroes USA", services: "Career support for Coast Guard members and families", url: "https://www.hireheroesusa.org", icon: "🎯" },
-    { name: "Military OneSource (24/7)", services: "Free counseling and support for all branches", url: "https://www.militaryonesource.mil", icon: "☎️" },
+    { name: "Coast Guard Exchange", services: "Military retail and PCS benefits", url: "https://www.shopmyexchange.com", icon: "🛍️" },
+    { name: "Coast Guard Mutual Assistance", services: "Financial aid for Coast Guard members", url: "https://www.cgmahq.org", icon: "🤝" },
+    { name: "Hire Heroes USA", services: "Employment assistance for veterans", url: "https://www.hireheroesusa.org", icon: "🎯" },
+    { name: "American Legion", services: "Veteran benefits, advocacy, and community", url: "https://www.legion.org", icon: "🎖️" },
   ],
 };
 
@@ -920,10 +961,26 @@ function DesktopApp({ profile, onReset }) {
           {screen === "checklist" && (
             <div>
               <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>PCS Checklist</h1>
-              <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Your {theme.name}-specific pre- and post-move tasks</p>
-              <div style={{ background:"#FFFFFF", padding:"28px", borderRadius:14, border:`2px solid ${theme.accent}40` }}>
-                <p style={{ fontSize:14, color:theme.primary }}>📋 Checklist powered by your {theme.name} branch resources</p>
-                <p style={{ color:"#999", marginTop:12 }}>Tasks loading...</p>
+              <p style={{ fontSize:16, color:"#666", marginBottom:28 }}>Your {theme.name}-specific pre- and post-move tasks</p>
+              
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:20 }}>
+                {["pre-move", "during-move", "post-move"].map((phase) => {
+                  const phaseNames = { "pre-move": "Before Move", "during-move": "During Move", "post-move": "After Move" };
+                  const phaseIcons = { "pre-move": "📋", "during-move": "📦", "post-move": "✓" };
+                  return (
+                    <div key={phase} style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+                      <div style={{ fontSize:18, fontWeight:900, color:theme.primary, marginBottom:16, display:"flex", alignItems:"center", gap:8 }}>
+                        <span style={{ fontSize:24 }}>{phaseIcons[phase]}</span>
+                        {phaseNames[phase]}
+                      </div>
+                      <ul style={{ margin:0, paddingLeft:20, display:"flex", flexDirection:"column", gap:10 }}>
+                        {PCS_CHECKLIST[phase].map((task, i) => (
+                          <li key={i} style={{ fontSize:13, color:"#333", lineHeight:1.5 }}>{task}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -931,14 +988,35 @@ function DesktopApp({ profile, onReset }) {
           {screen === "schools" && (
             <div>
               <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Schools & Districts</h1>
-              <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Find schools at {profile.gainingInstallation}</p>
-              <div style={{ background:"#FFFFFF", padding:"28px", borderRadius:14, border:`2px solid ${theme.accent}40` }}>
+              <p style={{ fontSize:16, color:"#666", marginBottom:28 }}>Find schools and educational resources at {profile.gainingInstallation}</p>
+              
+              <div style={{ background:"#FFFFFF", padding:"28px", borderRadius:14, border:`2px solid ${theme.accent}40`, marginBottom:24 }}>
                 {profile.childAges.length === 0 ? (
-                  <p style={{ color:"#999" }}>No children ages entered. Update your profile to see school recommendations.</p>
+                  <div style={{ textAlign:"center", padding:"40px 20px" }}>
+                    <div style={{ fontSize:48, marginBottom:16 }}>🎓</div>
+                    <div style={{ fontSize:16, fontWeight:700, color:theme.primary, marginBottom:8 }}>No children ages entered</div>
+                    <div style={{ fontSize:14, color:"#666" }}>Update your profile to see school recommendations for your children</div>
+                  </div>
                 ) : (
                   <div>
-                    <p style={{ fontSize:14, color:theme.primary, marginBottom:16 }}>📚 Districts for ages: {profile.childAges.join(", ")}</p>
-                    <p style={{ color:"#999" }}>School data loading...</p>
+                    <div style={{ fontSize:16, fontWeight:700, color:theme.primary, marginBottom:20 }}>📚 School Search for Ages: {profile.childAges.join(", ")}</div>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:24 }}>
+                      {SCHOOL_RESOURCES.general.map((resource, i) => (
+                        <a key={i} href={resource.url} target="_blank" rel="noopener noreferrer" style={{ padding:"16px", background:theme.light, border:`1.5px solid ${theme.accent}40`, borderRadius:10, textDecoration:"none", color:theme.primary, transition:"all 0.2s", display:"block" }} onMouseEnter={e=>e.target.style.background=theme.accent+"20"} onMouseLeave={e=>e.target.style.background=theme.light}>
+                          <div style={{ fontWeight:700, marginBottom:4 }}>{resource.name}</div>
+                          <div style={{ fontSize:12, color:"#666" }}>{resource.desc}</div>
+                        </a>
+                      ))}
+                    </div>
+                    <div style={{ background:theme.light, border:`1.5px solid ${theme.accent}40`, borderRadius:10, padding:"16px" }}>
+                      <div style={{ fontSize:13, fontWeight:700, color:theme.primary, marginBottom:8 }}>💡 Tips for Military Families:</div>
+                      <ul style={{ margin:0, paddingLeft:20, fontSize:13, color:"#333", lineHeight:1.8 }}>
+                        <li>Ask about military family support programs at the school</li>
+                        <li>Look for schools with strong counseling services for military transitions</li>
+                        <li>Check if the district has military student liaisons</li>
+                        <li>Inquire about enrollment requirements and transcript transfers</li>
+                      </ul>
+                    </div>
                   </div>
                 )}
               </div>
