@@ -116,20 +116,31 @@ app.post('/api/ai', strictLimiter, async (req, res) => {
   }
 })
 
-// ── Serve React app (always, not just production) ─────────────────────────────
+// ── Serve React app (BEFORE catch-all) ─────────────────────────────────────────
 const distPath = path.join(__dirname, '..', 'dist')
 console.log(`Checking for dist at: ${distPath}`)
 
 if (fs.existsSync(distPath)) {
   console.log('✓ Dist folder found, serving static files')
-  app.use(express.static(distPath, { maxAge: '1d', index: 'index.html' }))
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'))
+  app.use(express.static(distPath, { 
+    maxAge: '1d', 
+    index: false  // Don't auto-serve index.html
+  }))
+  
+  // Serve index.html for all non-API routes
+  app.get(/^\/(?!api\/).*/, (req, res) => {
+    const indexPath = path.join(distPath, 'index.html')
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        console.error('Error sending index.html:', err.message)
+        res.status(404).send('Page not found')
+      }
+    })
   })
 } else {
   console.warn('✗ WARNING: Dist folder not found at', distPath)
-  app.get('/', (req, res) => {
-    res.json({ message: 'PCS Express API is running but frontend build not found' })
+  app.get(/^\/(?!api\/).*/, (req, res) => {
+    res.status(503).json({ error: 'Frontend build not found' })
   })
 }
 
