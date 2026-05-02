@@ -1,0 +1,58 @@
+# Railway-optimized production Dockerfile
+# Single container with Nginx and Node.js in one image
+
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+# Final stage
+FROM node:18-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache dumb-init nginx
+
+# Copy built app and dependencies
+COPY package.json package-lock.json* ./
+RUN npm install --only=production && npm cache clean --force
+
+COPY --from=builder /app/dist ./dist
+COPY server ./server
+
+# Copy and configure Nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Non-root user
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+# Railway expects port from environment, default to 3000
+ENV PORT=3000
+ENV NODE_ENV=production
+
+# Startup script to run both Nginx and Node
+COPY --chown=nodejs:nodejs <<EOF /app/start.sh
+#!/bin/sh
+# Start Nginx in background
+nginx -g "daemon off;" &
+
+# Start Node.js on configured port
+exec node server/index.js
+EOF
+
+RUN chmod +x /app/start.sh
+
+USER nodejs
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:${PORT}/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["/app/start.sh"]
