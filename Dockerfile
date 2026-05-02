@@ -1,46 +1,38 @@
-# Stage 1: Build React and Node app
-FROM node:18-alpine AS builder
+# Build stage
+FROM node:18-alpine as builder
 
 WORKDIR /app
 
-# Copy all source files
+# Copy dependencies
 COPY package.json package-lock.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source
 COPY src src
 COPY public public
 COPY server server
 COPY index.html vite.config.js ./
 
-# Install all dependencies
-RUN npm ci
+# Build
+RUN npm run build && echo "Build complete" && ls -la dist/
 
-# Verify files exist before build
-RUN echo "=== Files before build ===" && ls -la && echo "=== src/ ===" && ls -la src/ && echo "=== public/ ===" && ls -la public/
-
-# Build React app
-RUN echo "=== Running build ===" && npm run build && echo "=== Build output ===" && ls -la dist/
-
-# Stage 2: Production runtime
+# Runtime stage
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Install dumb-init for signal handling
 RUN apk add --no-cache dumb-init
 
-# Copy package files
+# Copy dependencies
 COPY package.json package-lock.json ./
-
-# Install production dependencies only
 RUN npm ci --only=production && npm cache clean --force
 
-# Copy built React app and server code
-COPY --from=builder /app/dist ./dist
-COPY server ./server
+# Copy dist and server from builder
+COPY --from=builder /app/dist dist
+COPY --from=builder /app/server server
 
-# Verify dist was copied
-RUN echo "=== dist folder in final image ===" && ls -la dist/
-
-# Non-root user for security
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 USER nodejs
 
