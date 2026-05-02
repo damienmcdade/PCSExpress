@@ -26,3 +26,6 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "server/index.js"]
+
+# Force rebuild cache bust
+RUN echo "Build: $(date)"
