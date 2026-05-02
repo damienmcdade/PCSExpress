@@ -33,6 +33,141 @@ const BRANCH_CONTENT = {
   "Coast Guard": { s1: "Personnel Office", finance: "CG Finance Center", tmo: "Transportation", medical: "CG Medical", housing: "CG Housing" },
 };
 
+const BRANCH_RESOURCES = {
+  "Army": {
+    Housing: [
+      { name: "Army Housing Online", url: "https://housing.army.mil" },
+      { name: "BAH Calculator", url: "https://militarypay.defense.gov" },
+      { name: "Army Communities of Excellence", url: "https://www.arcoe.army.mil" },
+    ],
+    Finance: [
+      { name: "Army Finance Office", url: "https://armypubs.army.mil" },
+      { name: "Military Pay Overview", url: "https://militarypay.defense.gov" },
+      { name: "Leave and Earnings Statement", url: "https://myarmybenefits.us.army.mil" },
+    ],
+    "Family Services": [
+      { name: "Army Community Service", url: "https://www.armyonesource.mil" },
+      { name: "Military Family Readiness", url: "https://www.militaryonesource.mil" },
+      { name: "Spouse Employment Support", url: "https://www.seco.org" },
+    ],
+    Medical: [
+      { name: "TRICARE", url: "https://www.tricare.mil" },
+      { name: "Army Medical Command", url: "https://www.army.mil/medcom" },
+      { name: "Find Military Hospitals", url: "https://www.tricare.mil/FindCare" },
+    ],
+  },
+  "Navy": {
+    Housing: [
+      { name: "Navy Housing", url: "https://www.nahb-military.org" },
+      { name: "Fleet Housing", url: "https://www.nhousing.navy.mil" },
+      { name: "BAH/BAS Information", url: "https://www.dfas.mil" },
+    ],
+    Finance: [
+      { name: "Navy Finance", url: "https://www.dfas.mil" },
+      { name: "Military Pay", url: "https://militarypay.defense.gov" },
+      { name: "Navy Active Duty Pay", url: "https://www.navy.mil/Benefits" },
+    ],
+    "Family Services": [
+      { name: "Navy OneSource", url: "https://www.militaryonesource.mil" },
+      { name: "Navy Fleet and Family Support", url: "https://www.cnic.navy.mil/ffsc" },
+      { name: "Spouse Career Support", url: "https://www.seco.org" },
+    ],
+    Medical: [
+      { name: "TRICARE For Navy", url: "https://www.tricare.mil" },
+      { name: "Navy Medicine", url: "https://www.navy.mil/Medicine" },
+      { name: "Naval Medical Centers", url: "https://www.tricare.mil/FindCare" },
+    ],
+  },
+  "Marine Corps": {
+    Housing: [
+      { name: "Marine Corps Housing", url: "https://www.mcieast.marines.mil/Housing" },
+      { name: "BAH Information", url: "https://www.dfas.mil" },
+      { name: "Base Housing Directory", url: "https://www.marines.mil" },
+    ],
+    Finance: [
+      { name: "Marine Corps Finance", url: "https://www.dfas.mil" },
+      { name: "Military Pay System", url: "https://militarypay.defense.gov" },
+      { name: "Pay and Allowances", url: "https://www.marines.mil/Benefits" },
+    ],
+    "Family Services": [
+      { name: "Marine OneSource", url: "https://www.militaryonesource.mil" },
+      { name: "Marine Corps Family Services", url: "https://www.mccs.marines.mil" },
+      { name: "Spouse Support Programs", url: "https://www.seco.org" },
+    ],
+    Medical: [
+      { name: "TRICARE", url: "https://www.tricare.mil" },
+      { name: "Naval Hospital Listings", url: "https://www.tricare.mil/FindCare" },
+      { name: "Marine Medicine", url: "https://www.marines.mil/Health" },
+    ],
+  },
+  "Air Force": {
+    Housing: [
+      { name: "Air Force Housing", url: "https://www.housing.af.mil" },
+      { name: "BAH Calculator", url: "https://www.dfas.mil" },
+      { name: "Base Housing Directory", url: "https://www.af.mil" },
+    ],
+    Finance: [
+      { name: "Air Force Finance", url: "https://www.dfas.mil" },
+      { name: "Military Pay Info", url: "https://militarypay.defense.gov" },
+      { name: "Air Force Benefits", url: "https://www.af.mil/Benefits" },
+    ],
+    "Family Services": [
+      { name: "Air Force OneSource", url: "https://www.militaryonesource.mil" },
+      { name: "Air Force Family Readiness", url: "https://www.afcrossroads.com" },
+      { name: "Spouse Employment", url: "https://www.seco.org" },
+    ],
+    Medical: [
+      { name: "TRICARE", url: "https://www.tricare.mil" },
+      { name: "Air Force Medical", url: "https://www.af.mil/Medical" },
+      { name: "Find Military Care", url: "https://www.tricare.mil/FindCare" },
+    ],
+  },
+  "Space Force": {
+    Housing: [
+      { name: "Space Force Housing", url: "https://www.spaceforce.mil" },
+      { name: "BAH Information", url: "https://www.dfas.mil" },
+      { name: "Base Directory", url: "https://www.spaceforce.mil/About-Us/Installations" },
+    ],
+    Finance: [
+      { name: "Space Force Finance", url: "https://www.dfas.mil" },
+      { name: "Military Pay", url: "https://militarypay.defense.gov" },
+      { name: "Guardian Benefits", url: "https://www.spaceforce.mil/Benefits" },
+    ],
+    "Family Services": [
+      { name: "Space Force OneSource", url: "https://www.militaryonesource.mil" },
+      { name: "Space Force Family Support", url: "https://www.spaceforce.mil" },
+      { name: "Career Resources", url: "https://www.seco.org" },
+    ],
+    Medical: [
+      { name: "TRICARE", url: "https://www.tricare.mil" },
+      { name: "Space Force Medical", url: "https://www.spaceforce.mil" },
+      { name: "Care Providers", url: "https://www.tricare.mil/FindCare" },
+    ],
+  },
+  "Coast Guard": {
+    Housing: [
+      { name: "Coast Guard Housing", url: "https://www.cg.mil/Our-Organization/District-Force-Readiness" },
+      { name: "BAH/BAS", url: "https://www.dfas.mil" },
+      { name: "Base Housing", url: "https://www.cg.mil" },
+    ],
+    Finance: [
+      { name: "Coast Guard Finance", url: "https://www.dfas.mil" },
+      { name: "Military Pay", url: "https://militarypay.defense.gov" },
+      { name: "Benefits Overview", url: "https://www.cg.mil/Pay-and-Benefits" },
+    ],
+    "Family Services": [
+      { name: "Coast Guard OneSource", url: "https://www.militaryonesource.mil" },
+      { name: "Family Support", url: "https://www.cg.mil/About-Us/Fact-Sheets" },
+      { name: "Spouse Programs", url: "https://www.seco.org" },
+    ],
+    Medical: [
+      { name: "TRICARE", url: "https://www.tricare.mil" },
+      { name: "Coast Guard Medicine", url: "https://www.cg.mil/Medical" },
+      { name: "Healthcare Facilities", url: "https://www.tricare.mil/FindCare" },
+    ],
+  },
+};
+
 const ALL_UNITS = [
   "1st Infantry Division", "2nd Infantry Division", "3rd Infantry Division", "4th Infantry Division", "10th Mountain Division",
   "101st Airborne Division", "82nd Airborne Division", "25th Infantry Division", "24th Marine Expeditionary Unit",
@@ -45,6 +180,17 @@ const ALL_UNITS = [
 ].sort();
 
 const COMPONENT_TYPES = ["Active Duty", "Reserve", "National Guard", "AGR", "FTNG"];
+
+const VETERAN_BUSINESSES = [
+  { name: "MYMOVE", services: "PCS Relocation & Moving", url: "https://www.mymove.com", icon: "📦" },
+  { name: "Military Bluestar", services: "Household Goods Moving", url: "https://www.militarybluestar.com", icon: "🚚" },
+  { name: "Hire Heroes USA", services: "Spouse Job Placement", url: "https://www.hireheroesusa.org", icon: "💼" },
+  { name: "VA Loans Center", services: "Mortgage & Housing Financing", url: "https://www.veteransunited.com", icon: "🏡" },
+  { name: "GI Bill Education", services: "Education & Training Benefits", url: "https://www.benefits.va.gov/gibill", icon: "📚" },
+  { name: "PatriotMobility", services: "Transportation Services", url: "https://www.patriot-mobility.com", icon: "🚗" },
+  { name: "Veteran Caregivers", services: "Family Support Services", url: "https://www.veterancaregiver.org", icon: "👨‍👩‍👧" },
+  { name: "Military Spouse Jobs", services: "Employment Resources", url: "https://militaryspouse.com", icon: "💻" },
+];
 
 const store = { get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }, set: (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
 
@@ -85,8 +231,11 @@ function Onboarding({ onComplete }) {
   const canGo2 = p.losingInstallation && p.gainingInstallation && p.departingDate;
 
   return (
-    <div style={{ minHeight:"100dvh", background:theme.secondary, position:"relative", overflow:"hidden", display:"flex", flexDirection:"column", backgroundImage:`url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><pattern id="insignia" patternUnits="userSpaceOnUse" width="400" height="400"><circle cx="200" cy="200" r="150" fill="none" stroke="${encodeURIComponent(theme.accent)}" stroke-width="2" opacity="0.06"/><path d="M200,100 L220,150 L270,150 L230,190 L250,240 L200,200 L150,240 L170,190 L130,150 L180,150Z" fill="none" stroke="${encodeURIComponent(theme.accent)}" stroke-width="2" opacity="0.06"/></pattern></defs><rect width="400" height="400" fill="url(%23insignia)"/></svg>')`, backgroundSize:"400px 400px", backgroundAttachment:"fixed" }}>
-      <style>{`* {box-sizing:border-box}`}</style>
+    <div style={{ minHeight:"100dvh", background:theme.secondary, position:"relative", overflow:"hidden", display:"flex", flexDirection:"column" }}>
+      <style>{`* {box-sizing:border-box}
+        .onboarding-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600"><defs><pattern id="insignia-pattern" patternUnits="userSpaceOnUse" width="600" height="600"><circle cx="300" cy="300" r="200" fill="none" stroke="currentColor" stroke-width="3" opacity="0.12"/><path d="M300,100 L330,200 L450,200 L360,270 L400,370 L300,310 L200,370 L240,270 L150,200 L270,200Z" fill="none" stroke="currentColor" stroke-width="3" opacity="0.12"/></pattern></defs><rect width="600" height="600" fill="url(%23insignia-pattern)" style="color: ${theme.accent}"/></svg>'); background-size: 600px 600px; opacity: 0.15; pointer-events: none; z-index: 0; }
+      `}</style>
+      <div className="onboarding-bg"></div>
 
       <div style={{ padding:"40px 40px 20px", textAlign:"center", position:"relative", zIndex:1 }}>
         <div style={{ fontSize:12, letterSpacing:".2em", color:theme.accent, marginBottom:10, fontWeight:800 }}>✦ PCS EXPRESS · {theme.abbr} ✦</div>
@@ -269,6 +418,7 @@ function DesktopApp({ profile, onReset }) {
               { id:"checklist", icon:"✓", label:"PCS Checklist" },
               { id:"schools", icon:"🎓", label:"Schools & Districts" },
               { id:"resources", icon:"◉", label:`${theme.name} Resources` },
+              { id:"veterans", icon:"⭐", label:"Veteran Businesses" },
               { id:"ask", icon:"?", label:"Ask AI" },
             ].map(nav => (
               <button key={nav.id} onClick={() => setScreen(nav.id)} style={{ textAlign:"left", padding:"12px 14px", borderRadius:10, border:screen===nav.id?`2px solid ${theme.accent}`:"1px solid rgba(255,255,255,0.15)", background:screen===nav.id?theme.accent+"20":"rgba(255,255,255,0.05)", color:screen===nav.id?theme.accent:"rgba(255,255,255,0.7)", fontSize:14, fontWeight:screen===nav.id?700:500, cursor:"pointer", display:"flex", alignItems:"center", gap:10 }}>
@@ -358,17 +508,38 @@ function DesktopApp({ profile, onReset }) {
               <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Branch-specific PCS and relocation support</p>
               
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
-                {[
-                  { title:"Housing", desc: "On-post and off-post options", icon:"🏠" },
-                  { title:"Finance", desc: "BAH, BAS, TLE, and reimbursement", icon:"💰" },
-                  { title:"Family Services", desc: "Spouse and dependent support", icon:"👨‍👩‍👧‍👦" },
-                  { title:"Medical", desc: "Healthcare transitions", icon:"⚕️" },
-                ].map((item, i) => (
-                  <div key={i} style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, cursor:"pointer" }}>
-                    <div style={{ fontSize:24, marginBottom:12 }}>{item.icon}</div>
-                    <div style={{ fontSize:16, fontWeight:900, color:theme.primary, marginBottom:4 }}>{item.title}</div>
-                    <div style={{ fontSize:13, color:"#666" }}>{item.desc}</div>
-                  </div>
+                {["Housing", "Finance", "Family Services", "Medical"].map((category) => {
+                  const resources = BRANCH_RESOURCES[profile.branch][category] || [];
+                  const icons = { Housing: "🏠", Finance: "💰", "Family Services": "👨‍👩‍👧‍👦", Medical: "⚕️" };
+                  return (
+                    <div key={category} style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40` }}>
+                      <div style={{ fontSize:20, fontWeight:900, color:theme.primary, marginBottom:16 }}>{icons[category]} {category}</div>
+                      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                        {resources.map((resource, idx) => (
+                          <a key={idx} href={resource.url} target="_blank" rel="noopener noreferrer" style={{ padding:"12px 14px", background:theme.light, border:`1px solid ${theme.accent}40`, borderRadius:10, color:theme.primary, fontSize:14, fontWeight:600, textDecoration:"none", transition:"all 0.2s", display:"block", cursor:"pointer" }} onMouseEnter={e=>e.target.style.background=theme.accent+"20"} onMouseLeave={e=>e.target.style.background=theme.light}>
+                            {resource.name} →
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {screen === "veterans" && (
+            <div>
+              <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Veteran Owned Businesses</h1>
+              <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>PCS & relocation services from veteran-owned companies</p>
+              
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
+                {VETERAN_BUSINESSES.map((business, i) => (
+                  <a key={i} href={business.url} target="_blank" rel="noopener noreferrer" style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, textDecoration:"none", cursor:"pointer", transition:"all 0.3s", display:"block" }} onMouseEnter={e=>e.target.style.transform="translateY(-4px)"} onMouseLeave={e=>e.target.style.transform="translateY(0)"}>
+                    <div style={{ fontSize:28, marginBottom:12 }}>{business.icon}</div>
+                    <div style={{ fontSize:18, fontWeight:900, color:theme.primary, marginBottom:8 }}>{business.name}</div>
+                    <div style={{ fontSize:14, color:"#666" }}>{business.services}</div>
+                  </a>
                 ))}
               </div>
             </div>
