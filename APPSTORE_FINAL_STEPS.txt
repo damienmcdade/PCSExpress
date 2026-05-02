@@ -1,0 +1,113 @@
+================================================================================
+📱 PCS EXPRESS - FINAL STEPS TO APP STORE
+================================================================================
+
+Your iOS app is READY TO SUBMIT! Follow these 3 simple steps:
+
+================================================================================
+STEP 1: PREREQUISITES (5 minutes)
+================================================================================
+
+1. Sign up for Apple Developer ($99/year)
+   https://developer.apple.com/account
+
+2. Create app in App Store Connect
+   https://appstoreconnect.apple.com
+   
+   - Click "My Apps" → "+" → "New App"
+   - Platform: iOS
+   - Name: PCS Express
+   - Bundle ID: com.pcsexpress.app
+   - SKU: pcsexpress-v1
+
+3. Verify Xcode is installed on your Mac
+   xcodebuild -version
+
+================================================================================
+STEP 2: RUN AUTOMATED SUBMISSION (10 minutes)
+================================================================================
+
+On your Mac, run:
+
+   cd ~/path/to/pcs-express
+   bash submit-to-appstore.sh
+
+This script will:
+  ✓ Build your web app
+  ✓ Sync to iOS
+  ✓ Create archive
+  ✓ Validate app
+  ✓ Upload to App Store
+  ✓ Print success message
+
+When prompted: Enter your Apple ID (password NOT stored)
+
+================================================================================
+STEP 3: SUBMIT FOR REVIEW (15 minutes)
+================================================================================
+
+After upload completes:
+
+1. Go to https://appstoreconnect.apple.com
+2. Click "Your App" → "Builds"
+3. Wait for build to appear (5-10 min)
+4. Select your build
+5. Add metadata:
+   - Screenshots (2-5, size 1242x2208)
+   - Description
+   - Keywords: military, PCS, relocation, AI
+   - Support URL
+   - Privacy Policy URL
+   - Rating (Content Rating form)
+6. Click "Submit for Review" (blue button)
+
+================================================================================
+DONE! 
+================================================================================
+
+Your app is now:
+  ✅ In review at Apple (1-5 days)
+  ✅ Waiting for approval
+  ✅ On track to be in App Store
+
+Timeline to Live:
+  - Upload: Today (10 min)
+  - Review: 1-5 days (usually 1-2)
+  - Live: Within 48 hours
+
+================================================================================
+SECURE & SAFE
+================================================================================
+
+✓ Your Apple ID password is NOT stored
+✓ Xcode handles authentication securely
+✓ Uses macOS Keychain encryption
+✓ No credentials written to disk
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problem: "xcrun: command not found"
+Solution: xcode-select --install
+
+Problem: "Archive creation failed"
+Solution: rm -rf build && bash submit-to-appstore.sh
+
+Problem: "Signing certificate error"
+Solution: open ios/App/App.xcworkspace → General → Sign In
+
+For more help:
+  - Read SECURE_SUBMISSION.md
+  - Read IOS_APPSTORE_GUIDE.md
+  - Check GitHub: https://github.com/damienmcdade/PCSExpress
+
+================================================================================
+YOU'RE READY! 🚀
+================================================================================
+
+Next command:
+  bash submit-to-appstore.sh
+
+Questions? Check the guides or visit:
+  https://developer.apple.com/support/
