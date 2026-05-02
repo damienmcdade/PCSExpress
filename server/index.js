@@ -116,42 +116,29 @@ app.post('/api/ai', strictLimiter, async (req, res) => {
   }
 })
 
-// ── Serve React app (BEFORE catch-all) ─────────────────────────────────────────
+// ── Serve React frontend ─────────────────────────────────────────────────────
 const distPath = path.join(__dirname, '..', 'dist')
-console.log(`Checking for dist at: ${distPath}`)
+console.log(`\nServing frontend from: ${distPath}`)
+console.log(`Dist exists: ${fs.existsSync(distPath)}`)
 
 if (fs.existsSync(distPath)) {
-  console.log('✓ Dist folder found, serving static files')
-  app.use(express.static(distPath, { 
-    maxAge: '1d', 
-    index: false  // Don't auto-serve index.html
-  }))
-  
-  // Serve index.html for all non-API routes
-  app.get(/^\/(?!api\/).*/, (req, res) => {
-    const indexPath = path.join(distPath, 'index.html')
-    res.sendFile(indexPath, (err) => {
-      if (err) {
-        console.error('Error sending index.html:', err.message)
-        res.status(404).send('Page not found')
-      }
-    })
+  // Serve all static files
+  app.use(express.static(distPath))
+  // Fallback to index.html for client-side routing
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'))
   })
 } else {
-  console.warn('✗ WARNING: Dist folder not found at', distPath)
-  app.get(/^\/(?!api\/).*/, (req, res) => {
-    res.status(503).json({ error: 'Frontend build not found' })
+  console.error('ERROR: Dist folder not found!')
+  app.get('*', (req, res) => {
+    res.status(404).json({ error: 'Frontend not available' })
   })
 }
 
 app.listen(PORT, () => {
-  console.log(`\n✦ PCS Express API running on port ${PORT}`)
-  console.log(`  Environment: ${IS_PROD ? 'production' : 'development'}`)
-  console.log(`  API key: ${process.env.ANTHROPIC_API_KEY ? '✓ loaded' : '✗ MISSING'}`)
-  if (!IS_PROD) {
-    console.log(`  React dev server: http://localhost:3000`)
-    console.log(`  API proxy: http://localhost:3001/api`)
-  }
+  console.log(`\n✦ PCS Express running on port ${PORT}`)
+  console.log(`  Env: ${IS_PROD ? 'production' : 'development'}`)
+  console.log(`  API key: ${process.env.ANTHROPIC_API_KEY ? '✓' : '✗'}`)
 })
 
 export default app
