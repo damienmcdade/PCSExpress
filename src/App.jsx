@@ -492,9 +492,20 @@ function DesktopApp({ profile, onReset }) {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState("");
   const [aiError, setAiError] = useState("");
+  const [dashboardCollapsed, setDashboardCollapsed] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("pcs_dashboard_collapsed")) === true; } catch { return false; }
+  });
   const theme = BRANCH_THEMES[profile.branch];
   const content = BRANCH_CONTENT[profile.branch];
   const branchBusinesses = VETERAN_BUSINESSES[profile.branch] || [];
+
+  const toggleDashboard = () => {
+    setDashboardCollapsed(prev => {
+      const next = !prev;
+      try { localStorage.setItem("pcs_dashboard_collapsed", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
 
   // Reporting screen state
   const branchBases = MILITARY_BASES.filter(b => b.branch === profile.branch);
@@ -590,39 +601,100 @@ function DesktopApp({ profile, onReset }) {
         <div style={{ maxWidth:1000 }}>
           {screen === "dashboard" && (
             <div>
-              <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Welcome back, {profile.firstName}</h1>
-              <p style={{ fontSize:16, color:"#666", marginBottom:32 }}>Here's your {theme.name} PCS timeline and resources</p>
+              <style>{`
+                @keyframes pcs-collapse {
+                  from { opacity: 1; transform: translateY(0); max-height: 600px; }
+                  to   { opacity: 0; transform: translateY(-8px); max-height: 0; }
+                }
+                @keyframes pcs-expand {
+                  from { opacity: 0; transform: translateY(-8px); max-height: 0; }
+                  to   { opacity: 1; transform: translateY(0); max-height: 600px; }
+                }
+                .pcs-dashboard-body {
+                  overflow: hidden;
+                  animation-duration: 280ms;
+                  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+                  animation-fill-mode: both;
+                }
+                .pcs-dashboard-body.collapsed {
+                  animation-name: pcs-collapse;
+                  pointer-events: none;
+                }
+                .pcs-dashboard-body.expanded {
+                  animation-name: pcs-expand;
+                }
+                .pcs-collapse-btn:hover {
+                  background: ${theme.accent}30 !important;
+                }
+              `}</style>
 
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:20, marginBottom:40 }}>
-                {[
-                  { label:"Days to Departure", value: Math.ceil((new Date(profile.departingDate) - new Date()) / 86400000), icon:"📅" },
-                  { label:"Dependents", value: profile.hasDependents ? "Yes" : "No", icon:"👨‍👩‍👧" },
-                  { label:"Children", value: profile.childAges.length > 0 ? `${profile.childAges.length} kids` : "None", icon:"👶" },
-                ].map((card, i) => (
-                  <div key={i} style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, boxShadow:"0 4px 12px rgba(0,0,0,0.08)" }}>
-                    <div style={{ fontSize:24, marginBottom:12 }}>{card.icon}</div>
-                    <div style={{ fontSize:28, fontWeight:900, color:theme.primary, marginBottom:4 }}>{card.value}</div>
-                    <div style={{ fontSize:13, color:"#999" }}>{card.label}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ background:"#FFFFFF", padding:"28px", borderRadius:14, border:`2px solid ${theme.accent}40`, marginBottom:24 }}>
-                <h2 style={{ fontSize:18, fontWeight:900, color:theme.primary, marginBottom:16 }}>Branch-Specific Support</h2>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
-                  {[
-                    { label:"Personnel", value: content.s1 },
-                    { label:"Finance", value: content.finance },
-                    { label:"Transportation", value: content.tmo },
-                    { label:"Medical", value: content.medical },
-                  ].map((item, i) => (
-                    <div key={i} style={{ padding:"14px", background:theme.light, borderRadius:10, border:`1px solid ${theme.accent}40` }}>
-                      <div style={{ fontSize:12, color:theme.subtext, fontWeight:700, marginBottom:4 }}>{item.label}</div>
-                      <div style={{ fontSize:14, fontWeight:600, color:theme.primary }}>{item.value}</div>
-                    </div>
-                  ))}
+              {/* Dashboard header with collapse toggle */}
+              <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom: dashboardCollapsed ? 0 : 32 }}>
+                <div>
+                  <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Welcome back, {profile.firstName}</h1>
+                  {!dashboardCollapsed && (
+                    <p style={{ fontSize:16, color:"#666", margin:0 }}>Here's your {theme.name} PCS timeline and resources</p>
+                  )}
                 </div>
+                <button
+                  className="pcs-collapse-btn"
+                  onClick={toggleDashboard}
+                  title={dashboardCollapsed ? "Expand dashboard" : "Collapse dashboard"}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    padding: "8px 14px", borderRadius: 10,
+                    border: `1.5px solid ${theme.accent}50`,
+                    background: dashboardCollapsed ? `${theme.accent}18` : "rgba(0,0,0,0.04)",
+                    color: theme.primary, fontSize: 13, fontWeight: 700,
+                    cursor: "pointer", flexShrink: 0, marginTop: 4,
+                    transition: "background 0.2s",
+                  }}
+                >
+                  <svg
+                    width="14" height="14" viewBox="0 0 14 14" fill="none"
+                    style={{ transition: "transform 280ms cubic-bezier(0.4,0,0.2,1)", transform: dashboardCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }}
+                  >
+                    <polyline points="2,4.5 7,9.5 12,4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  {dashboardCollapsed ? "Show Dashboard" : "Hide Dashboard"}
+                </button>
               </div>
+
+              {/* Collapsible dashboard body */}
+              {!dashboardCollapsed && (
+                <div className={`pcs-dashboard-body expanded`}>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:20, marginBottom:40 }}>
+                    {[
+                      { label:"Days to Departure", value: Math.ceil((new Date(profile.departingDate) - new Date()) / 86400000), icon:"📅" },
+                      { label:"Dependents", value: profile.hasDependents ? "Yes" : "No", icon:"👨‍👩‍👧" },
+                      { label:"Children", value: profile.childAges.length > 0 ? `${profile.childAges.length} kids` : "None", icon:"👶" },
+                    ].map((card, i) => (
+                      <div key={i} style={{ background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, boxShadow:"0 4px 12px rgba(0,0,0,0.08)" }}>
+                        <div style={{ fontSize:24, marginBottom:12 }}>{card.icon}</div>
+                        <div style={{ fontSize:28, fontWeight:900, color:theme.primary, marginBottom:4 }}>{card.value}</div>
+                        <div style={{ fontSize:13, color:"#999" }}>{card.label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ background:"#FFFFFF", padding:"28px", borderRadius:14, border:`2px solid ${theme.accent}40`, marginBottom:24 }}>
+                    <h2 style={{ fontSize:18, fontWeight:900, color:theme.primary, marginBottom:16 }}>Branch-Specific Support</h2>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+                      {[
+                        { label:"Personnel", value: content.s1 },
+                        { label:"Finance", value: content.finance },
+                        { label:"Transportation", value: content.tmo },
+                        { label:"Medical", value: content.medical },
+                      ].map((item, i) => (
+                        <div key={i} style={{ padding:"14px", background:theme.light, borderRadius:10, border:`1px solid ${theme.accent}40` }}>
+                          <div style={{ fontSize:12, color:theme.subtext, fontWeight:700, marginBottom:4 }}>{item.label}</div>
+                          <div style={{ fontSize:14, fontWeight:600, color:theme.primary }}>{item.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
