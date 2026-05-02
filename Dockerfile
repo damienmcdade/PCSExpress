@@ -1,41 +1,37 @@
-# Stage 1: Build React app and install dependencies
+# Stage 1: Build React and Node app
 FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy all source files needed for build
+# Copy all source files
 COPY package.json package-lock.json ./
-COPY src ./src
-COPY public ./public
+COPY src src
+COPY public public
+COPY server server
 COPY index.html vite.config.js ./
 
-# Install dependencies
+# Install all dependencies
 RUN npm ci
 
-# Debug: verify files exist
-RUN ls -la && echo "---" && ls -la src/ && echo "---" && ls -la public/
-
 # Build React app
-RUN npm run build && ls -la dist/
+RUN npm run build
 
 # Stage 2: Production runtime
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Install dumb-init for proper signal handling
+# Install dumb-init for signal handling
 RUN apk add --no-cache dumb-init
 
 # Copy package files
-COPY package.json package-lock.json* ./
+COPY package.json package-lock.json ./
 
 # Install production dependencies only
-RUN npm install --only=production && npm cache clean --force
+RUN npm ci --only=production && npm cache clean --force
 
-# Copy built React app from builder
+# Copy built React app and server code
 COPY --from=builder /app/dist ./dist
-
-# Copy server code
 COPY server ./server
 
 # Non-root user for security
@@ -44,8 +40,8 @@ USER nodejs
 
 EXPOSE 3001
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3001/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})" || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "server/index.js"]
