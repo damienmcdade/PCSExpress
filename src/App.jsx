@@ -1,4 +1,93 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+const INSTALLATION_UNITS = {
+  "Fort Liberty": {
+    "Army": ["XVIII Airborne Corps", "1st Special Forces Command", "525th Expeditionary Military Intelligence Brigade", "101st Airborne Division"],
+    "Navy": [],
+    "Marine Corps": [],
+    "Air Force": [],
+    "Space Force": [],
+    "Coast Guard": [],
+  },
+  "Fort Bliss": {
+    "Army": ["1st Armored Division", "32nd Army Air and Missile Defense Command", "46th Military Police Command"],
+    "Navy": [],
+    "Marine Corps": [],
+    "Air Force": ["Air Defense Artillery Center of Excellence"],
+    "Space Force": [],
+    "Coast Guard": [],
+  },
+  "Fort Campbell": {
+    "Army": ["101st Airborne Division (Air Assault)", "Special Operations Command Central"],
+    "Navy": [],
+    "Marine Corps": [],
+    "Air Force": [],
+    "Space Force": [],
+    "Coast Guard": [],
+  },
+  "Fort Carson": {
+    "Army": ["United States Army Space and Missile Defense Command", "4th Infantry Division", "garrison units"],
+    "Navy": [],
+    "Marine Corps": [],
+    "Air Force": [],
+    "Space Force": [],
+    "Coast Guard": [],
+  },
+  "Fort Drum": {
+    "Army": ["10th Mountain Division", "Fort Drum Garrison"],
+    "Navy": [],
+    "Marine Corps": [],
+    "Air Force": [],
+    "Space Force": [],
+    "Coast Guard": [],
+  },
+  "Naval Station Norfolk": {
+    "Army": [],
+    "Navy": ["U.S. Fleet Forces Command", "Naval Station Norfolk Commander", "Carrier Strike Groups", "Naval Air Force Atlantic"],
+    "Marine Corps": ["2nd Marine Aircraft Wing"],
+    "Air Force": [],
+    "Space Force": [],
+    "Coast Guard": [],
+  },
+  "Naval Base San Diego": {
+    "Army": [],
+    "Navy": ["Navy Region Southwest", "Third Fleet", "Carrier Strike Groups", "Submarine Forces"],
+    "Marine Corps": ["1st Marine Division", "3rd Marine Expeditionary Force"],
+    "Air Force": [],
+    "Space Force": [],
+    "Coast Guard": [],
+  },
+  "Camp Pendleton": {
+    "Army": [],
+    "Navy": [],
+    "Marine Corps": ["1st Marine Division", "I Marine Expeditionary Force", "Marine Aircraft Group 16"],
+    "Air Force": [],
+    "Space Force": [],
+    "Coast Guard": [],
+  },
+  "Camp Lejeune": {
+    "Army": [],
+    "Navy": [],
+    "Marine Corps": ["2nd Marine Division", "II Marine Expeditionary Force", "Marine Expeditionary Force Training Command"],
+    "Air Force": [],
+    "Space Force": [],
+    "Coast Guard": [],
+  },
+  "Lackland AFB": {
+    "Army": [],
+    "Navy": [],
+    "Marine Corps": [],
+    "Air Force": ["37th Training Wing", "Air Education and Training Command"],
+    "Space Force": [],
+    "Coast Guard": [],
+  },
+  "Nellis AFB": {
+    "Army": [],
+    "Navy": [],
+    "Marine Corps": [],
+    "Air Force": ["57th Wing", "U.S. Air Force Warfare Center", "99th Air Base Wing"],
+    "Space Force": [],
+    "Coast Guard": [],
+  },
+};import { useState, useEffect, useCallback, useRef } from "react";
 
 const MILITARY_BASES = [
   { name: "Fort Liberty", state: "NC", branch: "Army", country: "USA" },
@@ -309,46 +398,56 @@ function Onboarding({ onComplete }) {
             <button onClick={()=>setStep(1)} disabled={!canGo1} style={{ width:"100%", padding:"14px", borderRadius:12, background:canGo1?theme.accent:"rgba(255,255,255,0.1)", color:canGo1?theme.secondary:"rgba(255,255,255,0.3)", border:"none", fontSize:16, fontWeight:900, cursor:canGo1?"pointer":"not-allowed" }}>Continue →</button>
           </>}
 
-          {step === 1 && <>
-            <div style={{ fontSize:24, fontWeight:900, color:"#FFFFFF", marginBottom:20 }}>Your Bases</div>
+          {step === 1 && (
+            <>
+              <div style={{ fontSize:24, fontWeight:900, color:"#FFFFFF", marginBottom:20 }}>Your Bases</div>
 
-            <div style={{ marginBottom:16 }}>
-              <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>DEPARTING FROM</label>
-              <input value={search||p.losingInstallation} onChange={e=>{setSearch(e.target.value);upd("losingInstallation",e.target.value);}} placeholder="Type base name..." style={inputSt} />
-              {baseSuggestions.length > 0 && (
-                <div style={{ marginTop:8, background:"rgba(0,0,0,0.2)", borderRadius:10, maxHeight:200, overflowY:"auto" }}>
-                  {baseSuggestions.map(b => (
-                    <div key={b.name} onClick={()=>{upd("losingInstallation",b.name);setSearch("");}} style={{ padding:"10px 14px", borderBottom:"1px solid rgba(255,255,255,0.1)", cursor:"pointer", fontSize:14, color:"rgba(255,255,255,0.8)" }}>
-                      {b.name}, {b.state}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+              <div style={{ marginBottom:16 }}>
+                <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>DEPARTING FROM</label>
+                <input value={search||p.losingInstallation} onChange={e=>{setSearch(e.target.value);upd("losingInstallation",e.target.value);}} placeholder="Type base name..." style={inputSt} />
+                {baseSuggestions.length > 0 && (
+                  <div style={{ marginTop:8, background:"rgba(0,0,0,0.2)", borderRadius:10, maxHeight:200, overflowY:"auto" }}>
+                    {baseSuggestions.map(b => (
+                      <div key={b.name} onClick={()=>{upd("losingInstallation",b.name);setSearch("");}} style={{ padding:"10px 14px", borderBottom:"1px solid rgba(255,255,255,0.1)", cursor:"pointer", fontSize:14, color:"rgba(255,255,255,0.8)" }}>
+                        {b.name}, {b.state}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            <div style={{ marginBottom:16 }}>
-              <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>REPORTING TO</label>
-              <input value={p.gainingInstallation} onChange={e=>upd("gainingInstallation",e.target.value)} placeholder="Type base name..." style={inputSt} />
-            </div>
+              <div style={{ marginBottom:16 }}>
+                <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>REPORTING TO</label>
+                <input value={p.gainingInstallation} onChange={e=>upd("gainingInstallation",e.target.value)} placeholder="Type base name..." style={inputSt} />
+              </div>
 
-            <div style={{ marginBottom:20 }}>
-              <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>DEPARTING</label>
-              <input type="date" value={p.departingDate} onChange={e=>upd("departingDate",e.target.value)} style={{...inputSt, colorScheme:"dark"}} />
-            </div>
+              <div style={{ marginBottom:20 }}>
+                <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>DEPARTING</label>
+                <input type="date" value={p.departingDate} onChange={e=>upd("departingDate",e.target.value)} style={{...inputSt, colorScheme:"dark"}} />
+              </div>
 
-            <div style={{ marginBottom:20 }}>
-              <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>UNIT</label>
-              <select value={p.unit} onChange={e=>upd("unit",e.target.value)} style={inputSt}>
-                <option value="">Select a known unit...</option>
-                {ALL_UNITS.map(u=><option key={u} value={u}>{u}</option>)}
-              </select>
-            </div>
+              <div style={{ marginBottom:20 }}>
+                <label style={{ fontSize:12, fontWeight:700, color:theme.accent, display:"block", marginBottom:8 }}>UNIT AT {p.gainingInstallation.toUpperCase()}</label>
+                <select value={p.unit} onChange={e=>upd("unit",e.target.value)} style={inputSt}>
+                  <option value="">Select unit at gaining installation...</option>
+                  {p.gainingInstallation && INSTALLATION_UNITS[p.gainingInstallation] ? (
+                    INSTALLATION_UNITS[p.gainingInstallation][p.branch]?.length > 0 ? (
+                      INSTALLATION_UNITS[p.gainingInstallation][p.branch].map(u=><option key={u} value={u}>{u}</option>)
+                    ) : (
+                      <option value="" disabled>No units available for this branch at this installation</option>
+                    )
+                  ) : (
+                    <option value="" disabled>Select a gaining installation first</option>
+                  )}
+                </select>
+              </div>
 
-            <div style={{ display:"flex", gap:12 }}>
-              <button onClick={()=>setStep(0)} style={{ padding:"14px 20px", borderRadius:12, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", color:"rgba(255,255,255,0.6)", fontSize:16, fontWeight:700, cursor:"pointer" }}>← Back</button>
-              <button onClick={()=>setStep(2)} disabled={!canGo2} style={{ flex:1, padding:"14px", borderRadius:12, background:canGo2?theme.accent:"rgba(255,255,255,0.1)", color:canGo2?theme.secondary:"rgba(255,255,255,0.3)", border:"none", fontSize:16, fontWeight:900, cursor:canGo2?"pointer":"not-allowed" }}>Continue →</button>
-            </div>
-          </>}
+              <div style={{ display:"flex", gap:12 }}>
+                <button onClick={()=>setStep(0)} style={{ padding:"14px 20px", borderRadius:12, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", color:"rgba(255,255,255,0.6)", fontSize:16, fontWeight:700, cursor:"pointer" }}>← Back</button>
+                <button onClick={()=>setStep(2)} disabled={!canGo2} style={{ flex:1, padding:"14px", borderRadius:12, background:canGo2?theme.accent:"rgba(255,255,255,0.1)", color:canGo2?theme.secondary:"rgba(255,255,255,0.3)", border:"none", fontSize:16, fontWeight:900, cursor:canGo2?"pointer":"not-allowed" }}>Continue →</button>
+              </div>
+            </>
+          )}
 
           {step === 2 && <>
             <div style={{ fontSize:24, fontWeight:900, color:"#FFFFFF", marginBottom:20 }}>Family & Move</div>
