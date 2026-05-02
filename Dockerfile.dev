@@ -1,0 +1,23 @@
+# Development Dockerfile with hot reload and dev tools
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install development tools
+RUN apk add --no-cache dumb-init wget
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install all dependencies (including devDependencies)
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+EXPOSE 3000 3001
+
+ENTRYPOINT ["dumb-init", "--"]
+
+# Run concurrently: Vite dev server + Express with nodemon
+CMD ["npm", "run", "dev"]

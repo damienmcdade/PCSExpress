@@ -1,0 +1,91 @@
+# Production-ready Docker Compose with Nginx reverse proxy
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pcs-express-app
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN:-http://localhost}
+    expose:
+      - "3001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - pcs-network
+    volumes:
+      - pcs-dist:/app/dist
+    labels:
+      com.pcs-express.description: "PCS Express Backend API"
+
+  nginx:
+    image: nginx:alpine
+    container_name: pcs-express-web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - pcs-dist:/usr/share/nginx/html:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - pcs-network
+    labels:
+      com.pcs-express.description: "PCS Express Web Server"
+
+  # Development service with hot reload (comment out in production)
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: pcs-express-dev
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+    volumes:
+      - .:/app
+      - /app/node_modules
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+        - action: sync
+          path: ./server
+          target: /app/server
+        - action: rebuild
+          path: package.json
+    restart: unless-stopped
+    profiles:
+      - dev
+    networks:
+      - pcs-network
+
+networks:
+  pcs-network:
+    driver: bridge
+
+volumes:
+  pcs-dist:
