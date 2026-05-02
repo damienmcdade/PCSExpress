@@ -991,11 +991,101 @@ function DesktopApp({ profile, onReset }) {
             <div>
               <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Ask PCS Express</h1>
               <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Ask AI questions about your {theme.name} PCS</p>
-              <div style={{ background:"#FFFFFF", padding:"28px", borderRadius:14, border:`2px solid ${theme.accent}40`, maxWidth:600 }}>
-                <input type="text" value={aiQuestion} onChange={e=>setAiQuestion(e.target.value)} onKeyPress={e=>e.key==="Enter"&&handleAiQuestion()} disabled={aiLoading} placeholder="Ask about housing, schools, finance, or military benefits..." style={{ width:"100%", padding:"14px 16px", fontSize:14, borderRadius:10, border:`1px solid #DDD`, marginBottom:12, opacity:aiLoading?0.6:1 }} />
-                <button onClick={handleAiQuestion} disabled={aiLoading} style={{ width:"100%", padding:"12px", background:aiLoading?"#CCC":theme.primary, color:"#FFFFFF", border:"none", borderRadius:10, fontSize:14, fontWeight:700, cursor:aiLoading?"not-allowed":"pointer" }}>{aiLoading?"Thinking...":"Send Question"}</button>
-                {aiError && <div style={{ marginTop:16, padding:"12px", background:"#fee", border:"1px solid #f88", borderRadius:10, color:"#c33", fontSize:14 }}>Error: {aiError}</div>}
-                {aiResponse && <div style={{ marginTop:16, padding:"16px", background:theme.light, border:`1px solid ${theme.accent}40`, borderRadius:10, color:theme.primary, fontSize:14, lineHeight:1.6, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{aiResponse}</div>}
+              <div style={{ background:"#FFFFFF", padding:"28px", borderRadius:14, border:`2px solid ${theme.accent}40`, maxWidth:700 }}>
+                <div style={{ display:"flex", gap:12, marginBottom:16 }}>
+                  <input
+                    type="text"
+                    value={aiQuestion}
+                    onChange={e => setAiQuestion(e.target.value)}
+                    onKeyPress={e => e.key === "Enter" && handleAiQuestion()}
+                    disabled={aiLoading}
+                    placeholder="Ask about housing, schools, finance, moving, benefits, or military life..."
+                    style={{
+                      flex:1,
+                      padding:"14px 16px",
+                      fontSize:14,
+                      borderRadius:10,
+                      border:`1.5px solid ${theme.accent}40`,
+                      background:"#F9F9F9",
+                      color:"#1A1A1A",
+                      outline:"none",
+                      opacity:aiLoading ? 0.6 : 1,
+                      transition:"all 0.2s",
+                    }}
+                  />
+                  <button
+                    onClick={handleAiQuestion}
+                    disabled={aiLoading || !aiQuestion.trim()}
+                    style={{
+                      padding:"14px 28px",
+                      borderRadius:10,
+                      background:aiLoading || !aiQuestion.trim() ? "#E0E0E0" : theme.primary,
+                      color:aiLoading || !aiQuestion.trim() ? "#999" : "#FFFFFF",
+                      border:"none",
+                      fontSize:14,
+                      fontWeight:700,
+                      cursor:aiLoading || !aiQuestion.trim() ? "not-allowed" : "pointer",
+                      whiteSpace:"nowrap",
+                      transition:"all 0.2s",
+                    }}
+                  >
+                    {aiLoading ? "Thinking..." : "Ask"}
+                  </button>
+                </div>
+
+                {aiError && (
+                  <div style={{
+                    padding:"14px 16px",
+                    background:"#FEE",
+                    border:`1.5px solid #F88`,
+                    borderRadius:10,
+                    color:"#C33",
+                    fontSize:14,
+                    marginBottom:16,
+                    display:"flex",
+                    alignItems:"center",
+                    gap:8,
+                  }}>
+                    <span style={{ fontSize:16 }}>⚠️</span>
+                    {aiError}
+                  </div>
+                )}
+
+                {aiResponse && (
+                  <div style={{
+                    padding:"20px",
+                    background:theme.light,
+                    border:`1.5px solid ${theme.accent}40`,
+                    borderRadius:10,
+                    color:theme.primary,
+                    fontSize:14,
+                    lineHeight:1.8,
+                    whiteSpace:"pre-wrap",
+                    wordBreak:"break-word",
+                  }}>
+                    {aiResponse}
+                  </div>
+                )}
+
+                {!aiResponse && !aiError && !aiLoading && (
+                  <div style={{
+                    padding:"24px",
+                    background:theme.light,
+                    borderRadius:10,
+                    color:theme.subtext,
+                    fontSize:13,
+                    lineHeight:1.6,
+                  }}>
+                    <div style={{ fontWeight:700, color:theme.primary, marginBottom:8 }}>💡 Example questions:</div>
+                    <ul style={{ margin:0, paddingLeft:20 }}>
+                      <li>What are the best schools near {profile.gainingInstallation}?</li>
+                      <li>What is the BAH rate for my rank at {profile.gainingInstallation}?</li>
+                      <li>What are the PCS entitlements for {profile.paygrade}?</li>
+                      <li>Tell me about moving with dependents in the {theme.name}</li>
+                      <li>What should I do before reporting to {profile.gainingInstallation}?</li>
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           )}
