@@ -213,8 +213,28 @@ function Onboarding({ onComplete }) {
 
 function DesktopApp({ profile, onReset }) {
   const [screen, setScreen] = useState("dashboard");
+  const [aiQuestion, setAiQuestion] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResponse, setAiResponse] = useState("");
+  const [aiError, setAiError] = useState("");
   const theme = BRANCH_THEMES[profile.branch];
   const content = BRANCH_CONTENT[profile.branch];
+
+  const handleAiQuestion = async () => {
+    if (!aiQuestion.trim()) return;
+    setAiLoading(true);
+    setAiError("");
+    setAiResponse("");
+    try {
+      const system = `You are a helpful PCS (Permanent Change of Station) assistant for ${theme.name} service members. Provide accurate, branch-specific guidance about military moves, housing, schools, finance, and relocation. User is ${profile.firstName} ${profile.lastName}, rank ${profile.paygrade}, moving from ${profile.losingInstallation} to ${profile.gainingInstallation}.`;
+      const response = await aiCall(system, aiQuestion);
+      setAiResponse(response);
+    } catch (err) {
+      setAiError(err.message || "Failed to get response");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   return (
     <div style={{ minHeight:"100dvh", background:"#F5F7FA", fontFamily:"system-ui,-apple-system,sans-serif", display:"flex", position:"relative" }}>
@@ -360,8 +380,10 @@ function DesktopApp({ profile, onReset }) {
               <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Ask AI questions about your {theme.name} PCS</p>
               
               <div style={{ background:"#FFFFFF", padding:"28px", borderRadius:14, border:`2px solid ${theme.accent}40`, maxWidth:600 }}>
-                <input type="text" placeholder="Ask about housing, schools, finance, or military benefits..." style={{ width:"100%", padding:"14px 16px", fontSize:14, borderRadius:10, border:`1px solid #DDD`, marginBottom:12 }} />
-                <button style={{ width:"100%", padding:"12px", background:theme.primary, color:"#FFFFFF", border:"none", borderRadius:10, fontSize:14, fontWeight:700, cursor:"pointer" }}>Send Question</button>
+                <input type="text" value={aiQuestion} onChange={e=>setAiQuestion(e.target.value)} onKeyPress={e=>e.key==="Enter"&&handleAiQuestion()} disabled={aiLoading} placeholder="Ask about housing, schools, finance, or military benefits..." style={{ width:"100%", padding:"14px 16px", fontSize:14, borderRadius:10, border:`1px solid #DDD`, marginBottom:12, opacity:aiLoading?0.6:1 }} />
+                <button onClick={handleAiQuestion} disabled={aiLoading} style={{ width:"100%", padding:"12px", background:aiLoading?"#CCC":theme.primary, color:"#FFFFFF", border:"none", borderRadius:10, fontSize:14, fontWeight:700, cursor:aiLoading?"not-allowed":"pointer" }}>{aiLoading?"Thinking...":"Send Question"}</button>
+                {aiError && <div style={{ marginTop:16, padding:"12px", background:"#fee", border:"1px solid #f88", borderRadius:10, color:"#c33", fontSize:14 }}>Error: {aiError}</div>}
+                {aiResponse && <div style={{ marginTop:16, padding:"16px", background:theme.light, border:`1px solid ${theme.accent}40`, borderRadius:10, color:theme.primary, fontSize:14, lineHeight:1.6, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{aiResponse}</div>}
               </div>
             </div>
           )}
