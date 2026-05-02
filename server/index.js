@@ -1,7 +1,5 @@
 import 'dotenv/config'
 import express from 'express'
-import cors from 'cors'
-import helmet from 'helmet'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs'
@@ -11,22 +9,12 @@ const app = express()
 const PORT = process.env.PORT || 3001
 const distPath = path.join(__dirname, '..', 'dist')
 
-app.use(helmet())
-app.use(cors())
 app.use(express.json({ limit: '10kb' }))
 
-// DEBUG: Log all requests
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`)
-  next()
-})
-
-// Health
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' })
+  res.json({ status: 'ok', service: 'PCS Express', version: '1.0.0' })
 })
 
-// AI
 app.post('/api/ai', async (req, res) => {
   const { system, user } = req.body
   if (!system || !user) return res.status(400).json({ error: 'Missing' })
@@ -49,7 +37,6 @@ app.post('/api/ai', async (req, res) => {
     })
 
     if (!response.ok) {
-      const err = await response.json().catch(() => ({}))
       return res.status(response.status).json({ error: 'API error' })
     }
 
@@ -61,32 +48,14 @@ app.post('/api/ai', async (req, res) => {
   }
 })
 
-// Serve static
-console.log(`\nStartup checks:`)
-console.log(`  Dist path: ${distPath}`)
-console.log(`  Dist exists: ${fs.existsSync(distPath)}`)
+// Serve React
+app.use(express.static(distPath))
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'))
+})
 
-if (fs.existsSync(distPath)) {
-  console.log(`  ✓ Serving static files`)
-  app.use(express.static(distPath))
-  app.get('*', (req, res) => {
-    console.log(`  → Fallback to index.html for ${req.path}`)
-    res.sendFile(path.join(distPath, 'index.html'), (err) => {
-      if (err) {
-        console.error(`  ✗ Error sending file: ${err.message}`)
-        res.status(500).send('Error')
-      }
-    })
-  })
-} else {
-  console.log(`  ✗ Dist not found!`)
-  app.get('*', (req, res) => {
-    res.status(404).json({ error: 'Frontend not found' })
-  })
-}
-
-const server = app.listen(PORT, () => {
-  console.log(`✦ PCS Express on port ${PORT}\n`)
+app.listen(PORT, () => {
+  console.log(`PCS Express on ${PORT}`)
 })
 
 export default app
