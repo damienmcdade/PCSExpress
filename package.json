@@ -17,8 +17,11 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "debug": "^4.4.3",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "postcss": "^8.5.13",
+    "rollup": "^4.60.2"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.3.1",

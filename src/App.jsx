@@ -22,6 +22,158 @@ const BRANCH_THEMES = {
   "Coast Guard":  { primary: "#005A8E", secondary: "#003D6A", accent: "#FF6B00", motto: "SEMPER PARATUS", tagline: "Always Ready",                 insignia: "USCG", abbr: "USCG" },
 };
 
+const BRANCH_RANKS = {
+  'Army': [
+    { grade: 'E-1',  title: 'Private',                             abbr: 'PVT'        },
+    { grade: 'E-2',  title: 'Private Second Class',                abbr: 'PV2'        },
+    { grade: 'E-3',  title: 'Private First Class',                 abbr: 'PFC'        },
+    { grade: 'E-4',  title: 'Specialist / Corporal',               abbr: 'SPC/CPL'    },
+    { grade: 'E-5',  title: 'Sergeant',                            abbr: 'SGT'        },
+    { grade: 'E-6',  title: 'Staff Sergeant',                      abbr: 'SSG'        },
+    { grade: 'E-7',  title: 'Sergeant First Class',                abbr: 'SFC'        },
+    { grade: 'E-8',  title: 'Master Sergeant / First Sergeant',    abbr: 'MSG/1SG'    },
+    { grade: 'E-9',  title: 'Sergeant Major / CSM / SMA',          abbr: 'SGM/CSM'    },
+    { grade: 'W-1',  title: 'Warrant Officer 1',                   abbr: 'WO1'        },
+    { grade: 'W-2',  title: 'Chief Warrant Officer 2',             abbr: 'CW2'        },
+    { grade: 'W-3',  title: 'Chief Warrant Officer 3',             abbr: 'CW3'        },
+    { grade: 'W-4',  title: 'Chief Warrant Officer 4',             abbr: 'CW4'        },
+    { grade: 'W-5',  title: 'Chief Warrant Officer 5',             abbr: 'CW5'        },
+    { grade: 'O-1',  title: 'Second Lieutenant',                   abbr: '2LT'        },
+    { grade: 'O-2',  title: 'First Lieutenant',                    abbr: '1LT'        },
+    { grade: 'O-3',  title: 'Captain',                             abbr: 'CPT'        },
+    { grade: 'O-4',  title: 'Major',                               abbr: 'MAJ'        },
+    { grade: 'O-5',  title: 'Lieutenant Colonel',                  abbr: 'LTC'        },
+    { grade: 'O-6',  title: 'Colonel',                             abbr: 'COL'        },
+    { grade: 'O-7',  title: 'Brigadier General',                   abbr: 'BG'         },
+    { grade: 'O-8',  title: 'Major General',                       abbr: 'MG'         },
+    { grade: 'O-9',  title: 'Lieutenant General',                  abbr: 'LTG'        },
+    { grade: 'O-10', title: 'General',                             abbr: 'GEN'        },
+  ],
+  'Navy': [
+    { grade: 'E-1',  title: 'Seaman Recruit',                      abbr: 'SR'         },
+    { grade: 'E-2',  title: 'Seaman Apprentice',                   abbr: 'SA'         },
+    { grade: 'E-3',  title: 'Seaman',                              abbr: 'SN'         },
+    { grade: 'E-4',  title: 'Petty Officer Third Class',           abbr: 'PO3'        },
+    { grade: 'E-5',  title: 'Petty Officer Second Class',          abbr: 'PO2'        },
+    { grade: 'E-6',  title: 'Petty Officer First Class',           abbr: 'PO1'        },
+    { grade: 'E-7',  title: 'Chief Petty Officer',                 abbr: 'CPO'        },
+    { grade: 'E-8',  title: 'Senior Chief Petty Officer',          abbr: 'SCPO'       },
+    { grade: 'E-9',  title: 'Master Chief Petty Officer',          abbr: 'MCPO'       },
+    { grade: 'W-1',  title: 'Warrant Officer 1',                   abbr: 'WO1'        },
+    { grade: 'W-2',  title: 'Chief Warrant Officer 2',             abbr: 'CWO2'       },
+    { grade: 'W-3',  title: 'Chief Warrant Officer 3',             abbr: 'CWO3'       },
+    { grade: 'W-4',  title: 'Chief Warrant Officer 4',             abbr: 'CWO4'       },
+    { grade: 'O-1',  title: 'Ensign',                              abbr: 'ENS'        },
+    { grade: 'O-2',  title: 'Lieutenant Junior Grade',             abbr: 'LTJG'       },
+    { grade: 'O-3',  title: 'Lieutenant',                          abbr: 'LT'         },
+    { grade: 'O-4',  title: 'Lieutenant Commander',                abbr: 'LCDR'       },
+    { grade: 'O-5',  title: 'Commander',                           abbr: 'CDR'        },
+    { grade: 'O-6',  title: 'Captain',                             abbr: 'CAPT'       },
+    { grade: 'O-7',  title: 'Rear Admiral Lower Half',             abbr: 'RDML'       },
+    { grade: 'O-8',  title: 'Rear Admiral',                        abbr: 'RADM'       },
+    { grade: 'O-9',  title: 'Vice Admiral',                        abbr: 'VADM'       },
+    { grade: 'O-10', title: 'Admiral',                             abbr: 'ADM'        },
+  ],
+  'Marine Corps': [
+    { grade: 'E-1',  title: 'Private',                             abbr: 'Pvt'        },
+    { grade: 'E-2',  title: 'Private First Class',                 abbr: 'PFC'        },
+    { grade: 'E-3',  title: 'Lance Corporal',                      abbr: 'LCpl'       },
+    { grade: 'E-4',  title: 'Corporal',                            abbr: 'Cpl'        },
+    { grade: 'E-5',  title: 'Sergeant',                            abbr: 'Sgt'        },
+    { grade: 'E-6',  title: 'Staff Sergeant',                      abbr: 'SSgt'       },
+    { grade: 'E-7',  title: 'Gunnery Sergeant',                    abbr: 'GySgt'      },
+    { grade: 'E-8',  title: 'Master Sergeant / First Sergeant',    abbr: 'MSgt/1stSgt'},
+    { grade: 'E-9',  title: 'Master Gunnery Sergeant / Sgt Major', abbr: 'MGySgt/SgtMaj' },
+    { grade: 'W-1',  title: 'Warrant Officer 1',                   abbr: 'WO1'        },
+    { grade: 'W-2',  title: 'Chief Warrant Officer 2',             abbr: 'CWO2'       },
+    { grade: 'W-3',  title: 'Chief Warrant Officer 3',             abbr: 'CWO3'       },
+    { grade: 'W-4',  title: 'Chief Warrant Officer 4',             abbr: 'CWO4'       },
+    { grade: 'W-5',  title: 'Chief Warrant Officer 5',             abbr: 'CWO5'       },
+    { grade: 'O-1',  title: 'Second Lieutenant',                   abbr: '2ndLt'      },
+    { grade: 'O-2',  title: 'First Lieutenant',                    abbr: '1stLt'      },
+    { grade: 'O-3',  title: 'Captain',                             abbr: 'Capt'       },
+    { grade: 'O-4',  title: 'Major',                               abbr: 'Maj'        },
+    { grade: 'O-5',  title: 'Lieutenant Colonel',                  abbr: 'LtCol'      },
+    { grade: 'O-6',  title: 'Colonel',                             abbr: 'Col'        },
+    { grade: 'O-7',  title: 'Brigadier General',                   abbr: 'BGen'       },
+    { grade: 'O-8',  title: 'Major General',                       abbr: 'MajGen'     },
+    { grade: 'O-9',  title: 'Lieutenant General',                  abbr: 'LtGen'      },
+    { grade: 'O-10', title: 'General',                             abbr: 'Gen'        },
+  ],
+  'Air Force': [
+    { grade: 'E-1',  title: 'Airman Basic',                        abbr: 'AB'         },
+    { grade: 'E-2',  title: 'Airman',                              abbr: 'Amn'        },
+    { grade: 'E-3',  title: 'Airman First Class',                  abbr: 'A1C'        },
+    { grade: 'E-4',  title: 'Senior Airman',                       abbr: 'SrA'        },
+    { grade: 'E-5',  title: 'Staff Sergeant',                      abbr: 'SSgt'       },
+    { grade: 'E-6',  title: 'Technical Sergeant',                  abbr: 'TSgt'       },
+    { grade: 'E-7',  title: 'Master Sergeant',                     abbr: 'MSgt'       },
+    { grade: 'E-8',  title: 'Senior Master Sergeant',              abbr: 'SMSgt'      },
+    { grade: 'E-9',  title: 'Chief Master Sergeant',               abbr: 'CMSgt'      },
+    { grade: 'O-1',  title: 'Second Lieutenant',                   abbr: '2d Lt'      },
+    { grade: 'O-2',  title: 'First Lieutenant',                    abbr: '1st Lt'     },
+    { grade: 'O-3',  title: 'Captain',                             abbr: 'Capt'       },
+    { grade: 'O-4',  title: 'Major',                               abbr: 'Maj'        },
+    { grade: 'O-5',  title: 'Lieutenant Colonel',                  abbr: 'Lt Col'     },
+    { grade: 'O-6',  title: 'Colonel',                             abbr: 'Col'        },
+    { grade: 'O-7',  title: 'Brigadier General',                   abbr: 'Brig Gen'   },
+    { grade: 'O-8',  title: 'Major General',                       abbr: 'Maj Gen'    },
+    { grade: 'O-9',  title: 'Lieutenant General',                  abbr: 'Lt Gen'     },
+    { grade: 'O-10', title: 'General',                             abbr: 'Gen'        },
+  ],
+  'Space Force': [
+    { grade: 'E-1',  title: 'Specialist 1',                        abbr: 'Spc1'       },
+    { grade: 'E-2',  title: 'Specialist 2',                        abbr: 'Spc2'       },
+    { grade: 'E-3',  title: 'Specialist 3',                        abbr: 'Spc3'       },
+    { grade: 'E-4',  title: 'Specialist 4',                        abbr: 'Spc4'       },
+    { grade: 'E-5',  title: 'Sergeant',                            abbr: 'Sgt'        },
+    { grade: 'E-6',  title: 'Technical Sergeant',                  abbr: 'TSgt'       },
+    { grade: 'E-7',  title: 'Master Sergeant',                     abbr: 'MSgt'       },
+    { grade: 'E-8',  title: 'Senior Master Sergeant',              abbr: 'SMSgt'      },
+    { grade: 'E-9',  title: 'Chief Master Sergeant',               abbr: 'CMSgt'      },
+    { grade: 'O-1',  title: 'Second Lieutenant',                   abbr: '2d Lt'      },
+    { grade: 'O-2',  title: 'First Lieutenant',                    abbr: '1st Lt'     },
+    { grade: 'O-3',  title: 'Captain',                             abbr: 'Capt'       },
+    { grade: 'O-4',  title: 'Major',                               abbr: 'Maj'        },
+    { grade: 'O-5',  title: 'Lieutenant Colonel',                  abbr: 'Lt Col'     },
+    { grade: 'O-6',  title: 'Colonel',                             abbr: 'Col'        },
+    { grade: 'O-7',  title: 'Brigadier General',                   abbr: 'Brig Gen'   },
+    { grade: 'O-8',  title: 'Major General',                       abbr: 'Maj Gen'    },
+    { grade: 'O-9',  title: 'Lieutenant General',                  abbr: 'Lt Gen'     },
+    { grade: 'O-10', title: 'General',                             abbr: 'Gen'        },
+  ],
+  'Coast Guard': [
+    { grade: 'E-1',  title: 'Seaman Recruit',                      abbr: 'SR'         },
+    { grade: 'E-2',  title: 'Seaman Apprentice',                   abbr: 'SA'         },
+    { grade: 'E-3',  title: 'Seaman',                              abbr: 'SN'         },
+    { grade: 'E-4',  title: 'Petty Officer Third Class',           abbr: 'PO3'        },
+    { grade: 'E-5',  title: 'Petty Officer Second Class',          abbr: 'PO2'        },
+    { grade: 'E-6',  title: 'Petty Officer First Class',           abbr: 'PO1'        },
+    { grade: 'E-7',  title: 'Chief Petty Officer',                 abbr: 'CPO'        },
+    { grade: 'E-8',  title: 'Senior Chief Petty Officer',          abbr: 'SCPO'       },
+    { grade: 'E-9',  title: 'Master Chief Petty Officer',          abbr: 'MCPO'       },
+    { grade: 'W-2',  title: 'Chief Warrant Officer 2',             abbr: 'CWO2'       },
+    { grade: 'W-3',  title: 'Chief Warrant Officer 3',             abbr: 'CWO3'       },
+    { grade: 'W-4',  title: 'Chief Warrant Officer 4',             abbr: 'CWO4'       },
+    { grade: 'O-1',  title: 'Ensign',                              abbr: 'ENS'        },
+    { grade: 'O-2',  title: 'Lieutenant Junior Grade',             abbr: 'LTJG'       },
+    { grade: 'O-3',  title: 'Lieutenant',                          abbr: 'LT'         },
+    { grade: 'O-4',  title: 'Lieutenant Commander',                abbr: 'LCDR'       },
+    { grade: 'O-5',  title: 'Commander',                           abbr: 'CDR'        },
+    { grade: 'O-6',  title: 'Captain',                             abbr: 'CAPT'       },
+    { grade: 'O-7',  title: 'Rear Admiral Lower Half',             abbr: 'RDML'       },
+    { grade: 'O-8',  title: 'Rear Admiral',                        abbr: 'RADM'       },
+    { grade: 'O-9',  title: 'Vice Admiral',                        abbr: 'VADM'       },
+    { grade: 'O-10', title: 'Admiral',                             abbr: 'ADM'        },
+  ],
+};
+
+const getRankDisplay = (branch, paygrade) => {
+  const ranks = BRANCH_RANKS[branch] || BRANCH_RANKS['Army'];
+  const rank = ranks.find(r => r.grade === paygrade);
+  return rank ? rank.abbr : paygrade;
+};
+
 // Use the comprehensive base list from BaseMapModule (100+ installations, CONUS + OCONUS)
 const MILITARY_DUTY_STATIONS = ALL_BASES.map(b => ({
   name: b.name,
@@ -1127,6 +1279,129 @@ const INSTALLATION_COLLEGES = {
     { name: 'Central Texas College Overseas', type: 'Public', degree: '2-Year College', rating: 4.0, desc: 'Associate degree and certificate programs at NSA Bahrain. TA accepted.', applyUrl: 'https://www.ctcd.edu/admissions/how-to-apply/', siteUrl: 'https://www.ctcd.edu/locations/overseas' },
     { name: 'American Military University', type: 'Private', degree: '4-Year University', rating: 3.7, desc: 'Fully online university designed for military. Intelligence, security, and emergency management programs. GI Bill accepted.', applyUrl: 'https://www.amu.apus.edu/enrollment/', siteUrl: 'https://www.amu.apus.edu' },
   ],
+  // ── Space Force ──────────────────────────────────────────────────────────────
+  'Cape Canaveral Space Force Station': [
+    { name: 'Florida Institute of Technology', type: 'Private', degree: '4-Year University', rating: 4.2, desc: 'STEM-focused private university in Melbourne, FL. Aerospace, engineering, and computer science. Strong ties to space industry and CCSFS. Yellow Ribbon.', applyUrl: 'https://www.fit.edu/admissions/undergraduate/', siteUrl: 'https://www.fit.edu' },
+    { name: 'Eastern Florida State College', type: 'Public', degree: '2-Year College', rating: 4.0, desc: 'Affordable community college near CCSFS. Engineering technology, business, and healthcare. TA and GI Bill accepted.', applyUrl: 'https://www.easternflorida.edu/admissions/', siteUrl: 'https://www.easternflorida.edu' },
+    { name: 'University of Central Florida', type: 'Public', degree: '4-Year University', rating: 4.1, desc: 'Large public research university in Orlando. Aerospace engineering, computer science, and business. Strong veteran services.', applyUrl: 'https://www.ucf.edu/admissions/', siteUrl: 'https://www.ucf.edu' },
+    { name: 'Embry-Riddle Aeronautical University', type: 'Private', degree: '4-Year University', rating: 4.3, desc: 'Top aviation and aerospace university in Daytona Beach, 50 miles from CCSFS. Aviation science, aerospace engineering. Yellow Ribbon participant.', applyUrl: 'https://daytonabeach.erau.edu/admissions/', siteUrl: 'https://daytonabeach.erau.edu' },
+  ],
+  'Los Angeles AFB': [
+    { name: 'University of Southern California', type: 'Private', degree: '4-Year University', rating: 4.5, desc: 'Top private research university. Engineering, business, and aerospace. Yellow Ribbon participant. Strong industry connections to space industry.', applyUrl: 'https://admission.usc.edu/', siteUrl: 'https://www.usc.edu' },
+    { name: 'UCLA', type: 'Public', degree: '4-Year University', rating: 4.5, desc: 'Top-ranked UC campus in Westwood. Engineering, business, and sciences. Yellow Ribbon certified.', applyUrl: 'https://admission.ucla.edu/', siteUrl: 'https://www.ucla.edu' },
+    { name: 'El Camino College', type: 'Public', degree: '2-Year College', rating: 3.9, desc: 'Community college in Torrance. Engineering technology, computer science, and business. TA-eligible. Transfer pathway to CSU/UC.', applyUrl: 'https://www.elcamino.edu/admissions/', siteUrl: 'https://www.elcamino.edu' },
+    { name: 'California State University Dominguez Hills', type: 'Public', degree: '4-Year University', rating: 3.8, desc: 'CSU campus in Carson near LA AFB. Business, nursing, and technology. Military-friendly with veteran resource center.', applyUrl: 'https://www.csudh.edu/admissions/', siteUrl: 'https://www.csudh.edu' },
+  ],
+  'Cheyenne Mountain SFS': [
+    { name: 'University of Colorado Colorado Springs', type: 'Public', degree: '4-Year University', rating: 3.9, desc: 'CU campus adjacent to the Colorado Springs military community. Engineering, nursing, and business. Active veteran services.', applyUrl: 'https://www.uccs.edu/admissions/apply', siteUrl: 'https://www.uccs.edu' },
+    { name: 'Pikes Peak State College', type: 'Public', degree: '2-Year College', rating: 3.9, desc: 'Career and transfer programs in Colorado Springs. Technology, business, and automotive. TA accepted.', applyUrl: 'https://www.ppsc.edu/admissions/apply/', siteUrl: 'https://www.ppsc.edu' },
+    { name: 'Colorado College', type: 'Private', degree: '4-Year University', rating: 4.5, desc: 'Highly selective private liberal arts college. Unique block plan. Yellow Ribbon participant.', applyUrl: 'https://www.coloradocollege.edu/admission/', siteUrl: 'https://www.coloradocollege.edu' },
+  ],
+  'Cavalier Space Force Station': [
+    { name: 'Minot State University', type: 'Public', degree: '4-Year University', rating: 3.7, desc: 'Regional university in Minot, ND. Business, education, and nursing programs. TA and GI Bill accepted.', applyUrl: 'https://www.minotstateu.edu/admissions/', siteUrl: 'https://www.minotstateu.edu' },
+    { name: 'University of North Dakota', type: 'Public', degree: '4-Year University', rating: 4.0, desc: 'Flagship state university with strong aviation and aerospace programs. 2 hours from Cavalier. Yellow Ribbon participant.', applyUrl: 'https://und.edu/admissions/', siteUrl: 'https://und.edu' },
+    { name: 'Dakota College at Bottineau', type: 'Public', degree: '2-Year College', rating: 3.6, desc: 'Affordable two-year college near the Canadian border region. Natural resources and business programs. TA-eligible.', applyUrl: 'https://www.dakotacollege.edu/admissions/', siteUrl: 'https://www.dakotacollege.edu' },
+  ],
+  'Clear Space Force Station': [
+    { name: 'University of Alaska Fairbanks', type: 'Public', degree: '4-Year University', rating: 3.8, desc: 'Major Alaskan research university. Engineering, natural science, and liberal arts. Strong veteran services. 100 miles from Clear SFS.', applyUrl: 'https://www.uaf.edu/admissions/', siteUrl: 'https://www.uaf.edu' },
+    { name: 'UAF Community & Technical College', type: 'Public', degree: '2-Year College', rating: 3.9, desc: 'Vocational and associate degree programs in Fairbanks. TA-eligible. IT, business, and health programs.', applyUrl: 'https://www.uaf.edu/ctc/admissions/', siteUrl: 'https://www.uaf.edu/ctc/' },
+    { name: 'University of Maryland Global Campus', type: 'Public', degree: '4-Year University', rating: 3.9, desc: 'Leading online university for military members. Available remotely at Clear SFS. TA and GI Bill accepted.', applyUrl: 'https://www.umgc.edu/admission/steps-to-enroll/', siteUrl: 'https://www.umgc.edu' },
+  ],
+  // ── Coast Guard ───────────────────────────────────────────────────────────────
+  'USCG Training Center Cape May': [
+    { name: 'Stockton University', type: 'Public', degree: '4-Year University', rating: 4.0, desc: 'Public liberal arts university 30 miles from Cape May. Business, nursing, and social work. Veteran services office and TA accepted.', applyUrl: 'https://www.stockton.edu/admissions/', siteUrl: 'https://www.stockton.edu' },
+    { name: 'Cape May County Community College', type: 'Public', degree: '2-Year College', rating: 3.7, desc: 'Local community college with flexible scheduling for military. Business, healthcare, and criminal justice. TA-eligible.', applyUrl: 'https://www.capemaytech.com/', siteUrl: 'https://www.capemaytech.com' },
+    { name: 'Rowan University', type: 'Public', degree: '4-Year University', rating: 4.1, desc: 'Growing public research university in Glassboro, NJ. Engineering, business, and health sciences. Yellow Ribbon participant.', applyUrl: 'https://admissions.rowan.edu/', siteUrl: 'https://www.rowan.edu' },
+  ],
+  'USCG Base Kodiak': [
+    { name: 'Kodiak College (UAF)', type: 'Public', degree: '2-Year College', rating: 3.8, desc: 'University of Alaska Fairbanks community campus in Kodiak. Associate degrees and certificates. TA accepted. Career and technical programs.', applyUrl: 'https://www.uaf.edu/kodiak/admissions/', siteUrl: 'https://www.uaf.edu/kodiak/' },
+    { name: 'University of Alaska Fairbanks', type: 'Public', degree: '4-Year University', rating: 3.8, desc: 'Flagship Alaskan university available via distance learning. Engineering, science, and liberal arts. GI Bill and TA accepted.', applyUrl: 'https://www.uaf.edu/admissions/', siteUrl: 'https://www.uaf.edu' },
+    { name: 'American Military University', type: 'Private', degree: '4-Year University', rating: 3.7, desc: 'Fully online university for military. Intelligence, emergency management, and security studies. TA and GI Bill accepted.', applyUrl: 'https://www.amu.apus.edu/enrollment/', siteUrl: 'https://www.amu.apus.edu' },
+  ],
+  'USCG Base Honolulu': [
+    { name: 'University of Hawaii at Manoa', type: 'Public', degree: '4-Year University', rating: 4.0, desc: 'Hawaii flagship research university. Business, engineering, and marine sciences. Strong veteran services. TA and GI Bill accepted.', applyUrl: 'https://manoa.hawaii.edu/admissions/', siteUrl: 'https://manoa.hawaii.edu' },
+    { name: 'Hawaii Pacific University', type: 'Private', degree: '4-Year University', rating: 3.7, desc: 'Private university with campuses in Honolulu. Business, nursing, and social sciences. Yellow Ribbon participant.', applyUrl: 'https://www.hpu.edu/admissions/apply/', siteUrl: 'https://www.hpu.edu' },
+    { name: 'Honolulu Community College', type: 'Public', degree: '2-Year College', rating: 3.8, desc: 'Vocational and transfer programs in Honolulu. Automotive, electronics, and healthcare. TA-eligible.', applyUrl: 'https://honolulu.hawaii.edu/admissions', siteUrl: 'https://honolulu.hawaii.edu' },
+  ],
+  'USCG Base Elizabeth City': [
+    { name: 'College of the Albemarle', type: 'Public', degree: '2-Year College', rating: 3.9, desc: 'Community college in Elizabeth City. Nursing, IT, and business programs. TA accepted. Flexible scheduling for shift workers.', applyUrl: 'https://www.albemarle.edu/admissions/', siteUrl: 'https://www.albemarle.edu' },
+    { name: 'Elizabeth City State University', type: 'Public', degree: '4-Year University', rating: 3.7, desc: 'HBCU with strong STEM programs, including aviation. Affordable tuition with veteran services. GI Bill and TA accepted.', applyUrl: 'https://www.ecsu.edu/admissions/index.html', siteUrl: 'https://www.ecsu.edu' },
+    { name: 'East Carolina University', type: 'Public', degree: '4-Year University', rating: 3.9, desc: 'Major public university in Greenville, NC. Nursing, business, and engineering. 1 hour from Elizabeth City. Yellow Ribbon.', applyUrl: 'https://admissions.ecu.edu/', siteUrl: 'https://www.ecu.edu' },
+  ],
+  'USCG ISC Portsmouth': [
+    { name: 'Old Dominion University', type: 'Public', degree: '4-Year University', rating: 3.9, desc: 'Top choice for military in Hampton Roads. Monarch Military Center. Engineering, business, and education. TA and GI Bill accepted.', applyUrl: 'https://www.odu.edu/apply', siteUrl: 'https://www.odu.edu' },
+    { name: 'Tidewater Community College', type: 'Public', degree: '2-Year College', rating: 4.0, desc: 'Five campuses across Hampton Roads. Nursing, IT, and business. Strong military family enrollment. TA-eligible.', applyUrl: 'https://www.tcc.edu/admissions/apply/', siteUrl: 'https://www.tcc.edu' },
+    { name: 'Norfolk State University', type: 'Public', degree: '4-Year University', rating: 3.5, desc: 'HBCU near Portsmouth. Mass communications, technology, and social work. Veteran-friendly campus.', applyUrl: 'https://www.nsu.edu/admissions/apply', siteUrl: 'https://www.nsu.edu' },
+  ],
+  'Coast Guard Island Alameda': [
+    { name: 'California State University East Bay', type: 'Public', degree: '4-Year University', rating: 3.8, desc: 'CSU campus in Hayward across the bay. Business, nursing, and computer science. Military-friendly with veteran resource center.', applyUrl: 'https://www20.csueastbay.edu/admissions/', siteUrl: 'https://www.csueastbay.edu' },
+    { name: 'College of Alameda', type: 'Public', degree: '2-Year College', rating: 3.9, desc: 'Peralta community college on Alameda Island. Aviation maintenance, business, and IT. TA-eligible. Very close to Coast Guard Island.', applyUrl: 'https://alameda.peralta.edu/enrollment-services/admissions/', siteUrl: 'https://alameda.peralta.edu' },
+    { name: 'UC Berkeley', type: 'Public', degree: '4-Year University', rating: 4.5, desc: 'World-renowned public university across the bay. Engineering, business, and law. Yellow Ribbon certified.', applyUrl: 'https://admissions.berkeley.edu/', siteUrl: 'https://www.berkeley.edu' },
+    { name: 'Saint Mary\'s College of California', type: 'Private', degree: '4-Year University', rating: 4.1, desc: 'Private Catholic liberal arts college. Business, nursing, and education. Yellow Ribbon participant. 20 minutes from CG Island.', applyUrl: 'https://www.stmarys-ca.edu/admission', siteUrl: 'https://www.stmarys-ca.edu' },
+  ],
+  'USCG Training Center Petaluma': [
+    { name: 'Santa Rosa Junior College', type: 'Public', degree: '2-Year College', rating: 4.1, desc: 'One of California\'s top community colleges. Business, nursing, and culinary arts. TA accepted. Transfer pathway to CSU/UC.', applyUrl: 'https://admissions.santarosa.edu/', siteUrl: 'https://www.santarosa.edu' },
+    { name: 'Sonoma State University', type: 'Public', degree: '4-Year University', rating: 3.9, desc: 'CSU campus in Rohnert Park, 8 miles from TRACEN. Business, nursing, and liberal arts. Veteran-friendly campus.', applyUrl: 'https://www.sonoma.edu/admissions/', siteUrl: 'https://www.sonoma.edu' },
+    { name: 'Touro University California', type: 'Private', degree: '4-Year University', rating: 3.8, desc: 'Health sciences university in Vallejo. Physician assistant, pharmacy, and nursing programs. Military-friendly.', applyUrl: 'https://www.tu.edu/admissions/', siteUrl: 'https://www.tu.edu' },
+  ],
+  'USCG Sector New York': [
+    { name: 'College of Staten Island (CUNY)', type: 'Public', degree: '4-Year University', rating: 3.9, desc: 'CUNY campus on Staten Island near USCG Sector NY. Nursing, business, and social work. Affordable tuition and TA-eligible.', applyUrl: 'https://www.csi.cuny.edu/admissions', siteUrl: 'https://www.csi.cuny.edu' },
+    { name: 'New York University', type: 'Private', degree: '4-Year University', rating: 4.5, desc: 'World-class private university in NYC. Law, business, and engineering. Yellow Ribbon participant. Military-friendly.', applyUrl: 'https://www.nyu.edu/admissions/undergraduate-admissions.html', siteUrl: 'https://www.nyu.edu' },
+    { name: 'St. John\'s University', type: 'Private', degree: '4-Year University', rating: 4.0, desc: 'Catholic university in Queens. Law, pharmacy, and business. Yellow Ribbon and military tuition rates.', applyUrl: 'https://www.stjohns.edu/admission', siteUrl: 'https://www.stjohns.edu' },
+  ],
+  'USCG Sector Miami': [
+    { name: 'Florida International University', type: 'Public', degree: '4-Year University', rating: 4.1, desc: 'Large research university in Miami. Business, engineering, and law. Strong veteran support office. GI Bill and TA accepted.', applyUrl: 'https://admissions.fiu.edu/', siteUrl: 'https://www.fiu.edu' },
+    { name: 'Miami Dade College', type: 'Public', degree: '2-Year College', rating: 4.0, desc: 'Nation\'s largest community college system. Associate degrees and certificates. Very affordable. TA-eligible.', applyUrl: 'https://www.mdc.edu/admissions/', siteUrl: 'https://www.mdc.edu' },
+    { name: 'University of Miami', type: 'Private', degree: '4-Year University', rating: 4.4, desc: 'Private research university in Coral Gables. Marine science, business, and law. Yellow Ribbon participant.', applyUrl: 'https://welcome.miami.edu/apply/', siteUrl: 'https://www.miami.edu' },
+  ],
+  'USCG Sector New Orleans': [
+    { name: 'Tulane University', type: 'Private', degree: '4-Year University', rating: 4.4, desc: 'Top private research university. Public health, business, and law. Yellow Ribbon participant. Strong veteran support.', applyUrl: 'https://admission.tulane.edu/', siteUrl: 'https://www.tulane.edu' },
+    { name: 'University of New Orleans', type: 'Public', degree: '4-Year University', rating: 3.8, desc: 'Public urban university. Business, engineering, and film studies. Veteran-friendly with active veterans office.', applyUrl: 'https://www.uno.edu/admissions', siteUrl: 'https://www.uno.edu' },
+    { name: 'Delgado Community College', type: 'Public', degree: '2-Year College', rating: 3.9, desc: 'Louisiana\'s largest community college. Healthcare, culinary arts, and IT. TA-eligible. Multiple campuses in metro area.', applyUrl: 'https://www.dcc.edu/admissions/', siteUrl: 'https://www.dcc.edu' },
+  ],
+  'USCG Sector Houston-Galveston': [
+    { name: 'University of Houston', type: 'Public', degree: '4-Year University', rating: 4.1, desc: 'Large public research university. Business, engineering, and law. Active veteran services. GI Bill and TA accepted.', applyUrl: 'https://www.uh.edu/admissions/', siteUrl: 'https://www.uh.edu' },
+    { name: 'College of the Mainland', type: 'Public', degree: '2-Year College', rating: 3.9, desc: 'Community college in Texas City near Galveston. Nursing, welding, and business. TA-eligible.', applyUrl: 'https://www.com.edu/admissions/', siteUrl: 'https://www.com.edu' },
+    { name: 'University of Texas Medical Branch (UTMB)', type: 'Public', degree: '4-Year University', rating: 4.2, desc: 'Medical school and health sciences in Galveston. Nursing and allied health. Strong military connections.', applyUrl: 'https://www.utmb.edu/admissions', siteUrl: 'https://www.utmb.edu' },
+  ],
+  'USCG Sector San Diego': [
+    { name: 'San Diego State University', type: 'Public', degree: '4-Year University', rating: 4.1, desc: 'Large CSU campus. Business, engineering, and public health. Strong veteran support and military community.', applyUrl: 'https://admissions.sdsu.edu/', siteUrl: 'https://www.sdsu.edu' },
+    { name: 'San Diego City College', type: 'Public', degree: '2-Year College', rating: 3.8, desc: 'Downtown San Diego community college. Nursing, business, and IT. TA-eligible. Strong military enrollment.', applyUrl: 'https://www.sdcity.edu/CollegeServices/EnrollmentServices/Admissions/', siteUrl: 'https://www.sdcity.edu' },
+    { name: 'UC San Diego', type: 'Public', degree: '4-Year University', rating: 4.5, desc: 'Top-ranked research university. Engineering, marine biology, and computer science. Yellow Ribbon certified.', applyUrl: 'https://admissions.ucsd.edu/', siteUrl: 'https://www.ucsd.edu' },
+  ],
+  'USCG AIRSTA Traverse City': [
+    { name: 'Northwestern Michigan College', type: 'Public', degree: '2-Year College', rating: 4.0, desc: 'Community college in Traverse City. Aviation, maritime, and business programs. TA-eligible. Strong career focus.', applyUrl: 'https://www.nmc.edu/admissions/', siteUrl: 'https://www.nmc.edu' },
+    { name: 'Central Michigan University', type: 'Public', degree: '4-Year University', rating: 3.9, desc: 'Regional university with distance learning options. Business, health sciences, and education. Yellow Ribbon participant.', applyUrl: 'https://www.cmich.edu/admissions/', siteUrl: 'https://www.cmich.edu' },
+  ],
+  'USCG Sector Puget Sound': [
+    { name: 'University of Washington', type: 'Public', degree: '4-Year University', rating: 4.5, desc: 'Top-ranked public university in Seattle. Engineering, medicine, and business. Yellow Ribbon certified.', applyUrl: 'https://admit.washington.edu/', siteUrl: 'https://www.washington.edu' },
+    { name: 'Seattle Central College', type: 'Public', degree: '2-Year College', rating: 3.9, desc: 'Downtown Seattle community college. Culinary, nursing, and IT programs. TA-eligible. Transfer pathway to UW.', applyUrl: 'https://seattlecentral.edu/get-started/apply', siteUrl: 'https://seattlecentral.edu' },
+    { name: 'Seattle University', type: 'Private', degree: '4-Year University', rating: 4.2, desc: 'Jesuit university in Seattle. Law, nursing, and business. Yellow Ribbon participant. Military-friendly.', applyUrl: 'https://www.seattleu.edu/admissions/', siteUrl: 'https://www.seattleu.edu' },
+  ],
+  'USCG Sector Boston': [
+    { name: 'Massachusetts Maritime Academy', type: 'Public', degree: '4-Year University', rating: 4.1, desc: 'Only public maritime academy in New England. Marine transportation, marine engineering, and emergency management. Strong CG connections.', applyUrl: 'https://www.maritime.edu/admissions', siteUrl: 'https://www.maritime.edu' },
+    { name: 'Bunker Hill Community College', type: 'Public', degree: '2-Year College', rating: 3.8, desc: 'Community college in Boston. Business, healthcare, and liberal arts. TA-eligible. Transfer pathway to state universities.', applyUrl: 'https://www.bhcc.edu/admissions/', siteUrl: 'https://www.bhcc.edu' },
+    { name: 'Northeastern University', type: 'Private', degree: '4-Year University', rating: 4.5, desc: 'Top co-op university. Engineering, business, and cybersecurity. Yellow Ribbon participant. Excellent veteran support.', applyUrl: 'https://admissions.northeastern.edu/', siteUrl: 'https://www.northeastern.edu' },
+  ],
+  'USCG Sector Baltimore': [
+    { name: 'University of Maryland Baltimore County', type: 'Public', degree: '4-Year University', rating: 4.1, desc: 'Public research university near Baltimore. Cybersecurity, engineering, and health sciences. Strong veteran services.', applyUrl: 'https://admissions.umbc.edu/', siteUrl: 'https://www.umbc.edu' },
+    { name: 'Community College of Baltimore County', type: 'Public', degree: '2-Year College', rating: 3.9, desc: 'Multiple campuses in Baltimore area. Nursing, IT, and business. TA-eligible. Flexible scheduling.', applyUrl: 'https://www.ccbcmd.edu/Getting-Started/Apply-for-Admission.html', siteUrl: 'https://www.ccbcmd.edu' },
+    { name: 'Towson University', type: 'Public', degree: '4-Year University', rating: 4.0, desc: 'Public university near Baltimore. Business, nursing, and education programs. Veteran-friendly with active veterans services.', applyUrl: 'https://www.towson.edu/admissions/', siteUrl: 'https://www.towson.edu' },
+  ],
+  'USCG AIRSTA Sitka': [
+    { name: 'University of Alaska Southeast (Sitka)', type: 'Public', degree: '2-Year College', rating: 3.8, desc: 'UAS campus in Sitka. Associate degrees and certificates in business, health, and liberal arts. TA accepted.', applyUrl: 'https://www.uas.alaska.edu/admissions/', siteUrl: 'https://www.uas.alaska.edu' },
+    { name: 'University of Maryland Global Campus', type: 'Public', degree: '4-Year University', rating: 3.9, desc: 'Leading fully online military university. Available from remote Alaska assignments. TA and GI Bill accepted.', applyUrl: 'https://www.umgc.edu/admission/steps-to-enroll/', siteUrl: 'https://www.umgc.edu' },
+  ],
+  'USCG Sector Jacksonville': [
+    { name: 'University of North Florida', type: 'Public', degree: '4-Year University', rating: 4.0, desc: 'Public university in Jacksonville. Business, nursing, and computer science. Active veteran services and military tuition rates.', applyUrl: 'https://www.unf.edu/admissions/', siteUrl: 'https://www.unf.edu' },
+    { name: 'Florida State College at Jacksonville', type: 'Public', degree: '2-Year College', rating: 3.9, desc: 'Large community college system in Jacksonville. Nursing, IT, and business. TA-eligible. Multiple campuses.', applyUrl: 'https://www.fscj.edu/admissions', siteUrl: 'https://www.fscj.edu' },
+    { name: 'Jacksonville University', type: 'Private', degree: '4-Year University', rating: 3.8, desc: 'Private university with aviation, nursing, and business programs. Military-friendly. Yellow Ribbon participant.', applyUrl: 'https://www.ju.edu/admissions/', siteUrl: 'https://www.ju.edu' },
+  ],
+  'USCG Sector Charleston': [
+    { name: 'College of Charleston', type: 'Public', degree: '4-Year University', rating: 4.2, desc: 'Historic public liberal arts university. Business, marine biology, and education. Veteran-friendly campus. GI Bill accepted.', applyUrl: 'https://admissions.cofc.edu/', siteUrl: 'https://www.cofc.edu' },
+    { name: 'Trident Technical College', type: 'Public', degree: '2-Year College', rating: 4.0, desc: 'Large technical college in Charleston. Nursing, IT, and culinary arts. TA-eligible. High military enrollment.', applyUrl: 'https://www.tridenttech.edu/admissions/', siteUrl: 'https://www.tridenttech.edu' },
+    { name: 'The Citadel', type: 'Public', degree: '4-Year University', rating: 4.3, desc: 'Military college of South Carolina. Business, science, and engineering. Strong connection to armed services. Yellow Ribbon.', applyUrl: 'https://admissions.citadel.edu/', siteUrl: 'https://www.citadel.edu' },
+  ],
 };
 
 function EducationBenefitsTab({ theme, profile }) {
@@ -1828,7 +2103,11 @@ function Onboarding({ onComplete }) {
   });
 
   const upd = (k, v) => setP(prev => ({ ...prev, [k]: v }));
-  const updBranch = (branch) => setP(prev => ({ ...prev, branch, unit: '' }));
+  const updBranch = (branch) => {
+    const newRanks = BRANCH_RANKS[branch] || [];
+    const gradeValid = newRanks.some(r => r.grade === p.paygrade);
+    setP(prev => ({ ...prev, branch, unit: '', paygrade: gradeValid ? prev.paygrade : 'E-5' }));
+  };
   const updGaining = (name) => {
     const sel = MILITARY_DUTY_STATIONS.find(s => s.name === name);
     setP(prev => ({ ...prev, gainingInstallation: name, unit: '', isOverseas: sel?.country ? true : false }));
@@ -1950,9 +2229,11 @@ function Onboarding({ onComplete }) {
 
               {/* Pay grade */}
               <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>PAY GRADE</label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>PAY GRADE & RANK</label>
                 <select value={p.paygrade} onChange={e => upd('paygrade', e.target.value)} style={inputSt}>
-                  {['E-1','E-2','E-3','E-4','E-5','E-6','E-7','E-8','E-9','W-1','W-2','W-3','W-4','W-5','O-1','O-2','O-3','O-4','O-5','O-6','O-7','O-8','O-9','O-10'].map(g => <option key={g}>{g}</option>)}
+                  {(BRANCH_RANKS[p.branch] || BRANCH_RANKS['Army']).map(r => (
+                    <option key={r.grade} value={r.grade}>{r.grade} – {r.title} ({r.abbr})</option>
+                  ))}
                 </select>
               </div>
 
@@ -2204,7 +2485,7 @@ function App() {
             <div style={{ padding: '20px 16px 12px', borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
               <div style={{ fontSize: 9, letterSpacing: '.18em', color: theme.accent, fontWeight: 900, marginBottom: 2 }}>PCS EXPRESS</div>
               <div style={{ fontSize: 16, fontWeight: 900, color: theme.accent, letterSpacing: '-1px', lineHeight: 1 }}>{theme.insignia || theme.abbr}</div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>{profile.paygrade} {profile.firstName}</div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>{getRankDisplay(profile.branch, profile.paygrade)} {profile.firstName}</div>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
               {BOTTOM_NAV.map(item => (
@@ -2312,7 +2593,7 @@ function App() {
         {isDesktop && (
           <div style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', borderRight: `2px solid ${theme.accent}25`, flexShrink: 0, overflowY: 'auto' }}>
             <div style={{ padding: '14px 16px 10px', borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginBottom: 2 }}>{profile.paygrade} {profile.firstName} {profile.lastName}</div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginBottom: 2 }}>{getRankDisplay(profile.branch, profile.paygrade)} {profile.firstName} {profile.lastName}</div>
               {profile.gainingInstallation && <div style={{ fontSize: 10, color: theme.accent, fontWeight: 700 }}>{profile.gainingInstallation.split(',')[0]}</div>}
             </div>
             <div style={{ flex: 1, padding: '6px 0' }}>
@@ -2344,7 +2625,7 @@ function App() {
               <div style={{ fontSize: 10, color: `${theme.accent}CC`, fontStyle: 'italic', marginBottom: 12 }}>{theme.tagline}</div>
               {/* Soldier info */}
               <div style={{ fontSize: 13, fontWeight: 800, color: 'rgba(255,255,255,0.95)' }}>
-                {profile.paygrade} {profile.firstName} {profile.lastName}
+                {getRankDisplay(profile.branch, profile.paygrade)} {profile.firstName} {profile.lastName}
               </div>
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 2 }}>
                 {profile.gainingInstallation ? `Reporting to: ${profile.gainingInstallation}` : 'Set gaining installation in onboarding'}
@@ -2379,7 +2660,7 @@ function App() {
             <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, marginTop: 16, color: '#FFF' }}>
               <div style={{ fontSize: 11, fontWeight: 800, color: theme.accent, marginBottom: 8 }}>YOUR PROFILE</div>
               <div style={{ fontSize: 12, lineHeight: 1.8 }}>
-                <div>Branch: {profile.branch} · {profile.paygrade}</div>
+                <div>Branch: {profile.branch} · {getRankDisplay(profile.branch, profile.paygrade)} ({profile.paygrade})</div>
                 {profile.gainingInstallation && <div>Gaining: {profile.gainingInstallation}</div>}
                 {profile.departingDate && <div>Depart: {profile.departingDate}</div>}
                 {profile.religiousPreference && profile.religiousPreference !== 'Prefer not to say' && <div>Faith: {profile.religiousPreference}</div>}
