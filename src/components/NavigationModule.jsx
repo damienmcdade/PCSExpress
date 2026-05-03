@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import BaseMapModule from './BaseMapModule'
 
 function NavigationModule({ theme, profile }) {
   const [activeTab, setActiveTab] = useState('routes')
@@ -370,33 +371,8 @@ function NavigationModule({ theme, profile }) {
 
         {/* BASE MAP */}
         {activeTab === 'baseMap' && (
-          <div>
-            <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12, marginBottom: 14, textAlign: 'center', minHeight: '200px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#56697C', fontSize: 12 }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>📍</div>
-              <div style={{ fontWeight: 700, marginBottom: 4 }}>Interactive Base Map</div>
-              <div style={{ fontSize: 10, color: '#888' }}>
-                {profile?.gainingInstallation || 'Select your installation in onboarding'}
-              </div>
-            </div>
-
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 12 }}>KEY LOCATIONS</div>
-            {getBaseLocations().map((loc) => (
-              <div key={loc.id} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${loc.type === 'Gate' ? '#FF9800' : loc.type === 'Hospital' ? '#F44336' : loc.type === 'Store' ? '#2196F3' : loc.type === 'Dining' ? '#4CAF50' : loc.type === 'Daycare' ? '#E91E63' : theme.accent}`, borderRadius: 12, padding: '12px 14px', marginBottom: 10 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 4 }}>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0D1821' }}>{loc.name}</div>
-                    <div style={{ fontSize: 10, color: '#56697C', marginTop: 2 }}>{loc.building}</div>
-                  </div>
-                  <span style={{ fontSize: 9, background: '#F5F5F5', color: '#556', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>{loc.type}</span>
-                </div>
-                <div style={{ fontSize: 10, color: '#34495E', marginTop: 4 }}>Services: {loc.services.join(', ')}</div>
-              </div>
-            ))}
-            {getBaseLocations().length === 0 && (
-              <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12 }}>
-                Set your gaining installation to see base locations.
-              </div>
-            )}
+          <div style={{ margin: '-16px' }}>
+            <BaseMapModule theme={theme} profile={profile} />
           </div>
         )}
       </div>

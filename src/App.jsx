@@ -6,6 +6,7 @@ import EducationModule from './components/EducationModule'
 import TranslationModule from './components/TranslationModule'
 import ReligiousServicesModule from './components/ReligiousServicesModule'
 import SpouseDeploymentGuide from './components/SpouseDeploymentGuide'
+import { ALL_BASES } from './components/BaseMapModule'
 
 const store = {
   get: (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
@@ -21,32 +22,13 @@ const BRANCH_THEMES = {
   "Coast Guard": { primary: "#005A8E", secondary: "#003D6A", accent: "#FF6B00" },
 };
 
-const MILITARY_DUTY_STATIONS = [
-  { name: "Fort Liberty", state: "NC", branch: "Army" },
-  { name: "Fort Jackson", state: "SC", branch: "Army" },
-  { name: "Fort Hood", state: "TX", branch: "Army" },
-  { name: "Fort Campbell", state: "KY", branch: "Army" },
-  { name: "Fort Benning", state: "GA", branch: "Army" },
-  { name: "Fort Sam Houston", state: "TX", branch: "Army" },
-  { name: "Fort Bragg", state: "NC", branch: "Army" },
-  { name: "Schofield Barracks", state: "HI", branch: "Army" },
-  { name: "Fort Shafter", state: "HI", branch: "Army" },
-  { name: "Naval Station Norfolk", state: "VA", branch: "Navy" },
-  { name: "Joint Base Pearl Harbor-Hickam", state: "HI", branch: "Navy" },
-  { name: "Naval Station Rota", state: "Spain", branch: "Navy", country: "Spain" },
-  { name: "Camp Pendleton", state: "CA", branch: "Marine Corps" },
-  { name: "Marine Corps Base Camp Lejeune", state: "NC", branch: "Marine Corps" },
-  { name: "Camp Foster", state: "Japan", branch: "Marine Corps", country: "Japan" },
-  { name: "Joint Base Andrews", state: "MD", branch: "Air Force" },
-  { name: "Joint Base Lewis-McChord", state: "WA", branch: "Army" },
-  { name: "Ramstein Air Base", state: "Germany", branch: "Air Force", country: "Germany" },
-  { name: "Kadena Air Base", state: "Japan", branch: "Air Force", country: "Japan" },
-  { name: "Aviano Air Base", state: "Italy", branch: "Air Force", country: "Italy" },
-  { name: "Spangdahlem Air Base", state: "Germany", branch: "Air Force", country: "Germany" },
-  { name: "Andersen Air Force Base", state: "Guam", branch: "Air Force" },
-  { name: "Camp Humphreys", state: "South Korea", branch: "Army", country: "South Korea" },
-  { name: "Camp Lemonnier", state: "Djibouti", branch: "Navy", country: "Djibouti" },
-];
+// Use the comprehensive base list from BaseMapModule (100+ installations, CONUS + OCONUS)
+const MILITARY_DUTY_STATIONS = ALL_BASES.map(b => ({
+  name: b.name,
+  state: b.state,
+  branch: b.branch,
+  ...(b.country ? { country: b.country } : {}),
+}));
 
 const INSTALLATION_SCHOOLS = {
   "Fort Liberty": [
