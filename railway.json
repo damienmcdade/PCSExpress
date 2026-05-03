@@ -5,11 +5,11 @@
     "dockerfile": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "node server/manager.js",
+    "startCommand": "node server/index.js",
     "restartPolicyType": "on_failure",
     "restartPolicyMaxRetries": 1,
     "healthCheck": {
-      "command": "curl --fail --silent --show-error http://localhost:3001/health || exit 1",
+      "command": "curl --fail http://localhost:$PORT/health || exit 1",
       "interval": 30,
       "timeout": 5,
       "retries": 2,

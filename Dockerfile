@@ -14,7 +14,7 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-RUN apk add --no-cache dumb-init curl
+RUN apk add --no-cache curl
 
 COPY package.json package-lock.json ./
 RUN npm install --only=production
@@ -27,5 +27,4 @@ USER nodejs
 
 EXPOSE 3001
 
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "server/manager.js"]
+CMD ["node", "server/index.js"]
