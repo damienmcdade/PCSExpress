@@ -1601,19 +1601,27 @@ function ResourcesTab({ theme, profile }) {
 
   const SECTIONS = [
     { id: 'healthcare', label: 'Healthcare', icon: '🏥' },
-    { id: 'family', label: 'Family Support', icon: '👨‍👩‍👧' },
-    { id: 'financial', label: 'Financial', icon: '💰' },
-    { id: 'pcs', label: 'PCS & Housing', icon: '🏠' },
-    { id: 'education', label: 'Education', icon: '🎓' },
-    { id: 'careers', label: 'Careers', icon: '💼' },
+    { id: 'portals',    label: 'Military Portals', icon: '🖥️' },
+    { id: 'family',     label: 'Family Support', icon: '👨‍👩‍👧' },
+    { id: 'financial',  label: 'Financial', icon: '💰' },
+    { id: 'pcs',        label: 'PCS & Housing', icon: '🏠' },
+    { id: 'education',  label: 'Education', icon: '🎓' },
+    { id: 'careers',    label: 'Careers', icon: '💼' },
   ];
 
   const RESOURCES = {
     healthcare: [
       { name: 'TRICARE', desc: 'Military health insurance — find plans, providers, and enrollment info', url: 'https://www.tricare.mil', tag: 'All Branches' },
       { name: 'TRICARE Online', desc: 'Book appointments, view records, refill prescriptions', url: 'https://www.tricareonline.com', tag: 'All Branches' },
-      { name: 'Military OneSource Health', desc: 'Free health consultations and referrals', url: 'https://www.militaryonesource.mil/health-wellness', tag: 'All Branches' },
-      { name: 'MHS Genesis Patient Portal', desc: 'Military health records and appointments online', url: 'https://patient.mhsgenesis.health.mil', tag: 'All Branches' },
+      { name: 'TRICARE 4U', desc: 'TRICARE beneficiary portal — claims, EOBs, and coverage details', url: 'https://www.tricare4u.com', tag: 'All Branches' },
+      { name: 'TRICARE for Life (TFL)', desc: 'Medicare-wraparound coverage for retired service members via TRICARE4u', url: 'https://www.tricare4u.com', tag: 'Retirees' },
+      { name: 'TRICARE Dental Program (TDP)', desc: 'Dental benefits enrollment, find a provider, and submit claims', url: 'https://www.trdp.org', tag: 'All Branches' },
+      { name: 'TRICARE Overseas', desc: 'TRICARE coverage for beneficiaries stationed or living outside the U.S.', url: 'https://www.tricareoverseas.com', tag: 'OCONUS' },
+      { name: 'TRICARE Overseas Program (TOP)', desc: 'Managed care option for overseas military beneficiaries', url: 'https://www.tricareoverseas.com', tag: 'OCONUS' },
+      { name: 'TRICARE Pharmacy — ESI', desc: 'Prescription drug benefits managed by Express Scripts for TRICARE', url: 'https://tricare.mil/CoveredServices/Pharmacy', tag: 'All Branches' },
+      { name: 'Humana Military (HMS) — TRICARE', desc: 'TRICARE East Region managed care — find providers and manage benefits', url: 'https://www.humanamilitary.com', tag: 'All Branches' },
+      { name: 'My MHS GENESIS', desc: 'Military Health System patient portal — records, appointments, secure messaging', url: 'https://patient.mhsgenesis.health.mil', tag: 'All Branches' },
+      { name: 'Military OneSource Health', desc: 'Free health consultations and wellness referrals for service members', url: 'https://www.militaryonesource.mil/health-wellness', tag: 'All Branches' },
       { name: 'VA Health Care', desc: 'Veteran health benefits, eligibility, and enrollment', url: 'https://www.va.gov/health-care', tag: 'Veterans' },
     ],
     family: [
@@ -1649,8 +1657,19 @@ function ResourcesTab({ theme, profile }) {
       { name: 'USAJobs.gov', desc: 'Federal civilian jobs with veteran preference hiring', url: 'https://www.usajobs.gov', tag: 'Federal' },
       { name: 'Hire Heroes USA', desc: 'Free job placement and resume coaching for veterans and spouses', url: 'https://www.hireheroesusa.org', tag: 'Veteran-Focused' },
       { name: 'My Next Move for Veterans', desc: 'Translate your MOS to civilian career paths', url: 'https://www.mynextmove.org/vets', tag: 'MOS Translator' },
+      { name: 'MySECO — Spouse Education & Career Opportunities', desc: 'Military OneSource career coaching, scholarships, and employment tools for spouses', url: 'https://myseco.militaryonesource.mil', tag: 'Spouses' },
       { name: 'Military Spouse Employment Partnership', desc: 'Employer network committed to hiring military spouses', url: 'https://myseco.militaryonesource.mil/portal/', tag: 'Spouses' },
+      { name: 'MyCAA — Spouse Career Advancement Accounts', desc: 'Up to $4,000/year in scholarships for military spouses pursuing portable careers', url: 'https://aiportal.acc.af.mil/mycaa', tag: 'Spouses' },
       { name: 'Transition GPS (TAP)', desc: 'DoD Transition Assistance Program — mandatory pre-separation classes', url: 'https://www.dodtap.mil', tag: 'Transition' },
+    ],
+    portals: [
+      { name: 'ARBA Case Tracking System (ACTS)', desc: 'Army Review Boards Agency — track your Army Board for Correction of Records case', url: 'https://arba.army.pentagon.mil', tag: 'Army' },
+      { name: 'Army TAP Portal', desc: 'Army Transition Assistance Program — schedule TAP workshops and manage transition', url: 'https://tapevents.mil', tag: 'Army' },
+      { name: 'HRC — iPERMS', desc: 'U.S. Army Human Resources Command — view and manage your official military personnel records', url: 'https://iperms.hrc.army.mil', tag: 'Army' },
+      { name: 'U.S. Army HRC Portal', desc: 'Army Human Resources Command — assignments, promotions, evaluations, and career tools', url: 'https://www.hrc.army.mil', tag: 'Army' },
+      { name: 'IPPS-A', desc: 'Integrated Personnel and Pay System — Army: manage pay, personnel actions, and leave', url: 'https://ipps-a.army.mil', tag: 'Army' },
+      { name: 'Military Information Platform (MIP)', desc: 'Army knowledge management and information sharing platform', url: 'https://www.milsuite.mil', tag: 'Army' },
+      { name: 'milConnect (DMDC)', desc: 'Defense Manpower Data Center — view benefits, DEERS updates, and personnel data', url: 'https://www.milconnect.dmdc.osd.mil', tag: 'All Branches' },
     ],
   };
 
@@ -1966,7 +1985,7 @@ function OrdersTab({ theme, profile }) {
 }
 
 // ─── Onboarding constants ──────────────────────────────────────────────────
-const COMPONENT_TYPES = ['Active Duty', 'Reserve', 'National Guard', 'AGR', 'FTNG'];
+const COMPONENT_TYPES = ['Active Duty', 'Reserve', 'National Guard', 'AGR', 'FTNG', 'Spouse', 'Dependent'];
 
 const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English',              native: 'English'    },
@@ -2105,7 +2124,7 @@ function Onboarding({ onComplete }) {
   const upd = (k, v) => setP(prev => ({ ...prev, [k]: v }));
   const updBranch = (branch) => {
     const newRanks = BRANCH_RANKS[branch] || [];
-    const gradeValid = newRanks.some(r => r.grade === p.paygrade);
+    const gradeValid = p.paygrade === 'N/A' || newRanks.some(r => r.grade === p.paygrade);
     setP(prev => ({ ...prev, branch, unit: '', paygrade: gradeValid ? prev.paygrade : 'E-5' }));
   };
   const updGaining = (name) => {
@@ -2130,7 +2149,7 @@ function Onboarding({ onComplete }) {
     border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.25)',
     color: '#FFFFFF', outline: 'none', boxSizing: 'border-box',
   };
-  const canGo1 = p.firstName && p.branch && p.paygrade && p.component;
+  const canGo1 = p.firstName && p.branch && p.component;
   const canGo2 = p.gainingInstallation && p.departingDate;
 
   const SuggestionList = ({ items, onSelect }) => items.length === 0 ? null : (
@@ -2189,10 +2208,10 @@ function Onboarding({ onComplete }) {
             </>
           )}
 
-          {/* Step 0 — Branch & Profile */}
+          {/* Step 0 — Military Affiliation & Profile */}
           {step === 0 && (
             <>
-              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Branch & Profile</div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Military Affiliation & Profile</div>
 
               {/* Branch buttons */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
@@ -2219,23 +2238,39 @@ function Onboarding({ onComplete }) {
                 </div>
               </div>
 
-              {/* Component */}
+              {/* Military Affiliation */}
               <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>COMPONENT</label>
-                <select value={p.component} onChange={e => upd('component', e.target.value)} style={inputSt}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>MILITARY AFFILIATION</label>
+                <select value={p.component} onChange={e => {
+                  const comp = e.target.value;
+                  if (['Spouse', 'Dependent'].includes(comp)) {
+                    setP(prev => ({ ...prev, component: comp, paygrade: 'N/A' }));
+                  } else {
+                    setP(prev => ({ ...prev, component: comp, paygrade: prev.paygrade === 'N/A' ? 'E-5' : prev.paygrade }));
+                  }
+                }} style={inputSt}>
                   {COMPONENT_TYPES.map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
 
               {/* Pay grade */}
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>PAY GRADE & RANK</label>
-                <select value={p.paygrade} onChange={e => upd('paygrade', e.target.value)} style={inputSt}>
-                  {(BRANCH_RANKS[p.branch] || BRANCH_RANKS['Army']).map(r => (
-                    <option key={r.grade} value={r.grade}>{r.grade} – {r.title} ({r.abbr})</option>
-                  ))}
-                </select>
-              </div>
+              {['Spouse', 'Dependent'].includes(p.component) ? (
+                <div style={{ marginBottom: 12, padding: '11px 14px', borderRadius: 10, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>
+                  Pay Grade &amp; Rank — N/A ({p.component})
+                </div>
+              ) : (
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
+                    PAY GRADE &amp; RANK <span style={{ fontWeight: 400, opacity: 0.5, fontSize: 10 }}>(optional)</span>
+                  </label>
+                  <select value={p.paygrade} onChange={e => upd('paygrade', e.target.value)} style={inputSt}>
+                    <option value="N/A">N/A — Not Applicable</option>
+                    {(BRANCH_RANKS[p.branch] || BRANCH_RANKS['Army']).map(r => (
+                      <option key={r.grade} value={r.grade}>{r.grade} – {r.title} ({r.abbr})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* Language */}
               <div style={{ marginBottom: 16 }}>
@@ -2354,7 +2389,7 @@ function Onboarding({ onComplete }) {
               <div style={{ marginBottom: 12 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>BEDROOMS NEEDED</label>
                 <select value={p.bedrooms} onChange={e => upd('bedrooms', e.target.value)} style={inputSt}>
-                  {['1', '2', '3', '4', '5+'].map(b => <option key={b}>{b}</option>)}
+                  {['N/A', '1', '2', '3', '4', '5+'].map(b => <option key={b}>{b}</option>)}
                 </select>
               </div>
 
@@ -2448,7 +2483,6 @@ function App() {
   }
 
   const DEMO_TIPS = [
-    { tab: 'home',       title: 'Welcome to PCS Express!',      body: 'Your personalized PCS command center. Every tile links to a dedicated tool for your move. This demo walks you through each feature as SFC Thompson, an E-7 Army soldier moving OCONUS to Camp Humphreys, South Korea.' },
     { tab: 'orders',     title: 'Military Orders',              body: 'Upload your PCS orders PDF and AI automatically extracts your report date, gaining unit, and installation. Your departure countdown and phase timeline appear here — keeping you on track.' },
     { tab: 'checklist',  title: 'PCS Checklist',               body: 'Track every phase of your PCS — from Orders Received through In-Processing. Overdue tasks turn red with warnings. Progress saves automatically to your device.' },
     { tab: 'schools',    title: 'Schools & Childcare',          body: 'Find K-12 schools and child development centers near your gaining installation. Filter by grade level, sort by highest rating, or use the zip code search to find schools near off-post housing.' },
@@ -2457,7 +2491,7 @@ function App() {
     { tab: 'religion',   title: 'Faith & Spiritual Resources', body: 'Chapel services near your installation tailored to your faith preference from onboarding. Overseas assignments show host-nation chapel info. Counseling resources from ACS and Military OneSource are always one tap away.' },
     { tab: 'nav',        title: 'Navigation',                  body: 'Plan your PCS drive with real turn-by-turn directions via OSRM routing. Save directions independently in the Directions tab. The Base Map shows key facilities at your gaining installation.' },
     { tab: 'resources',  title: 'Military Resources Hub',      body: 'All official military websites in one place — TRICARE, MilitaryOneSource, VA benefits, move.mil, education portals, and career tools — filtered to your branch. TRICARE and MilitaryOneSource are always pinned at the top.' },
-    { tab: 'home',       title: 'Thank You for Your Service!', body: 'You\'ve completed the PCS Express tour. This app is here to support you and your family through every step of your move. Navigate to any section from the home screen or hamburger menu. Hooah!' },
+    { tab: 'resources',  title: 'Thank You for Your Service!', body: 'You\'ve completed the PCS Express tour. This app is here to support you and your family through every step of your move. Navigate to any section from the hamburger menu. Hooah!' },
   ];
 
   const BOTTOM_NAV = [
