@@ -335,6 +335,109 @@ const FACILITIES = {
     { type: 'visitor',    name: 'Visitor Control Center',          lat: 35.7420, lng: 139.3438 },
     { type: 'hq',         name: '374th Airlift Wing HQ',           lat: 35.7510, lng: 139.3414 },
   ],
+  'Fort Bliss': [
+    { type: 'gate',       name: 'Cassidy Gate (Main / Gateway Blvd)',  lat: 31.7855, lng: -106.3888 },
+    { type: 'gate',       name: 'Biggs Gate (Airport)',                lat: 31.8480, lng: -106.3800 },
+    { type: 'gate',       name: 'Montana Gate (West)',                 lat: 31.8200, lng: -106.4550 },
+    { type: 'medical',    name: 'William Beaumont Army Medical Center', lat: 31.8476, lng: -106.4124 },
+    { type: 'commissary', name: 'Fort Bliss Commissary',               lat: 31.8320, lng: -106.4160 },
+    { type: 'exchange',   name: 'Main Post Exchange (PX)',             lat: 31.8310, lng: -106.4148 },
+    { type: 'chapel',     name: 'Main Post Chapel',                    lat: 31.8340, lng: -106.4130 },
+    { type: 'gym',        name: 'Stout Physical Fitness Center',       lat: 31.8355, lng: -106.4118 },
+    { type: 'housing',    name: 'Housing Division Office',             lat: 31.8290, lng: -106.4175 },
+    { type: 'education',  name: 'Education Center',                    lat: 31.8365, lng: -106.4105 },
+    { type: 'finance',    name: 'Fort Bliss Federal Credit Union',     lat: 31.8300, lng: -106.4162 },
+    { type: 'visitor',    name: 'Visitor Control Center (Cassidy Gate)', lat: 31.7862, lng: -106.3895 },
+    { type: 'hq',         name: '1st Armored Division HQ',             lat: 31.8380, lng: -106.4090 },
+    { type: 'childcare',  name: 'Child Development Center',            lat: 31.8330, lng: -106.4145 },
+    { type: 'recreation', name: 'Sergeant Major of the Army Museum',   lat: 31.8140, lng: -106.4183 },
+  ],
+  'Fort Sam Houston': [
+    { type: 'gate',       name: 'New Braunfels Gate (Main)',           lat: 29.4412, lng: -98.4282 },
+    { type: 'gate',       name: 'MacArthur Gate (South)',              lat: 29.4325, lng: -98.4350 },
+    { type: 'medical',    name: 'Brooke Army Medical Center (BAMC)',   lat: 29.4990, lng: -98.4075 },
+    { type: 'commissary', name: 'Fort Sam Houston Commissary',         lat: 29.4490, lng: -98.4405 },
+    { type: 'exchange',   name: 'Army & Air Force Exchange (PX)',      lat: 29.4500, lng: -98.4390 },
+    { type: 'chapel',     name: 'Main Post Chapel',                    lat: 29.4510, lng: -98.4375 },
+    { type: 'gym',        name: 'MacArthur Physical Fitness Center',   lat: 29.4520, lng: -98.4360 },
+    { type: 'housing',    name: 'Housing Services Office',             lat: 29.4420, lng: -98.4415 },
+    { type: 'education',  name: 'Education Center (Bldg 2261)',        lat: 29.4530, lng: -98.4345 },
+    { type: 'visitor',    name: 'Visitor Control Center',              lat: 29.4418, lng: -98.4288 },
+    { type: 'hq',         name: 'U.S. Army North / JBSA HQ',          lat: 29.4545, lng: -98.4330 },
+    { type: 'childcare',  name: 'Child Development Center',            lat: 29.4475, lng: -98.4395 },
+    { type: 'legal',      name: 'Legal Assistance Office',             lat: 29.4535, lng: -98.4335 },
+  ],
+  'Fort Stewart': [
+    { type: 'gate',       name: 'Holbrook Gate (Main)',                lat: 31.8456, lng: -81.5907 },
+    { type: 'gate',       name: 'North Gate (US-84)',                  lat: 31.9200, lng: -81.6030 },
+    { type: 'medical',    name: 'Winn Army Community Hospital',        lat: 31.8690, lng: -81.6090 },
+    { type: 'commissary', name: 'Fort Stewart Commissary',             lat: 31.8670, lng: -81.6108 },
+    { type: 'exchange',   name: 'Main Post Exchange (PX)',             lat: 31.8680, lng: -81.6095 },
+    { type: 'chapel',     name: 'Post Chapel',                         lat: 31.8700, lng: -81.6080 },
+    { type: 'gym',        name: 'Fitness Center',                      lat: 31.8710, lng: -81.6068 },
+    { type: 'housing',    name: 'Housing Division Office',             lat: 31.8460, lng: -81.5915 },
+    { type: 'education',  name: 'Education Center',                    lat: 31.8720, lng: -81.6055 },
+    { type: 'visitor',    name: 'Visitor Control Center',              lat: 31.8462, lng: -81.5912 },
+    { type: 'hq',         name: '3rd Infantry Division HQ',            lat: 31.8730, lng: -81.6042 },
+    { type: 'childcare',  name: 'Child Development Center',            lat: 31.8660, lng: -81.6118 },
+  ],
+  'Fort Drum': [
+    { type: 'gate',       name: 'Wheeler-Sack Gate (Main)',            lat: 44.0315, lng: -75.7912 },
+    { type: 'gate',       name: 'North Gate (NY-11)',                  lat: 44.0870, lng: -75.7650 },
+    { type: 'medical',    name: 'Guthrie Army Health Clinic',          lat: 44.0530, lng: -75.7718 },
+    { type: 'commissary', name: 'Fort Drum Commissary',                lat: 44.0510, lng: -75.7730 },
+    { type: 'exchange',   name: 'Main Post Exchange (PX)',             lat: 44.0520, lng: -75.7722 },
+    { type: 'chapel',     name: 'Post Chapel',                         lat: 44.0535, lng: -75.7710 },
+    { type: 'gym',        name: 'Physical Fitness Center',             lat: 44.0545, lng: -75.7698 },
+    { type: 'housing',    name: 'Housing Services Office',             lat: 44.0325, lng: -75.7920 },
+    { type: 'education',  name: 'Education Center (McGill Hall)',      lat: 44.0555, lng: -75.7685 },
+    { type: 'visitor',    name: 'Visitor Control Center',              lat: 44.0320, lng: -75.7918 },
+    { type: 'hq',         name: '10th Mountain Division HQ',           lat: 44.0565, lng: -75.7672 },
+    { type: 'childcare',  name: 'Child Development Center',            lat: 44.0498, lng: -75.7742 },
+    { type: 'legal',      name: 'Legal Assistance Office',             lat: 44.0558, lng: -75.7679 },
+  ],
+  'Fort Sill': [
+    { type: 'gate',       name: 'Sheridan Gate (Main)',                lat: 34.6408, lng: -98.4120 },
+    { type: 'gate',       name: 'Key Gate (West / Cache Rd)',          lat: 34.6510, lng: -98.4240 },
+    { type: 'medical',    name: 'Reynolds Army Health Clinic',         lat: 34.6500, lng: -98.4040 },
+    { type: 'commissary', name: 'Fort Sill Commissary',                lat: 34.6480, lng: -98.4058 },
+    { type: 'exchange',   name: 'Main Post Exchange (PX)',             lat: 34.6490, lng: -98.4048 },
+    { type: 'chapel',     name: 'Post Chapel',                         lat: 34.6502, lng: -98.4035 },
+    { type: 'gym',        name: 'Fitness Center',                      lat: 34.6512, lng: -98.4022 },
+    { type: 'housing',    name: 'Housing Division',                    lat: 34.6415, lng: -98.4125 },
+    { type: 'education',  name: 'Education Center',                    lat: 34.6520, lng: -98.4010 },
+    { type: 'visitor',    name: 'Visitor Control Center',              lat: 34.6412, lng: -98.4128 },
+    { type: 'hq',         name: 'Field Artillery School HQ',           lat: 34.6530, lng: -98.3998 },
+    { type: 'childcare',  name: 'Child Development Center',            lat: 34.6470, lng: -98.4070 },
+  ],
+  'Naval Base San Diego': [
+    { type: 'gate',       name: 'Gate 1 (Main / Harbor Dr)',           lat: 32.6840, lng: -117.1980 },
+    { type: 'gate',       name: 'Gate 4 (Chollas Pkwy)',               lat: 32.7040, lng: -117.1810 },
+    { type: 'medical',    name: 'Naval Medical Center San Diego',       lat: 32.7197, lng: -117.1560 },
+    { type: 'commissary', name: 'Naval Base Commissary',               lat: 32.6960, lng: -117.2050 },
+    { type: 'exchange',   name: 'Navy Exchange (NEX)',                  lat: 32.6970, lng: -117.2040 },
+    { type: 'chapel',     name: 'Naval Station Chapel',                lat: 32.6980, lng: -117.2028 },
+    { type: 'gym',        name: 'Fitness Center',                      lat: 32.6990, lng: -117.2018 },
+    { type: 'housing',    name: 'Housing Services Office',             lat: 32.6950, lng: -117.2058 },
+    { type: 'education',  name: 'Navy College Office',                 lat: 32.7000, lng: -117.2008 },
+    { type: 'visitor',    name: 'Visitor Control Center',              lat: 32.6845, lng: -117.1988 },
+    { type: 'hq',         name: 'Commander, Naval Base San Diego',     lat: 32.7010, lng: -117.1998 },
+    { type: 'finance',    name: 'Navy Federal Credit Union',           lat: 32.6960, lng: -117.2062 },
+  ],
+  'Schofield Barracks': [
+    { type: 'gate',       name: 'Lyman Gate (Main)',                   lat: 21.4838, lng: -158.0640 },
+    { type: 'gate',       name: 'Foote Gate (South)',                  lat: 21.4680, lng: -158.0558 },
+    { type: 'medical',    name: 'Tripler Army Medical Center',         lat: 21.3620, lng: -157.9200 },
+    { type: 'commissary', name: 'Schofield Commissary',               lat: 21.4800, lng: -158.0600 },
+    { type: 'exchange',   name: 'Main Exchange (PX)',                  lat: 21.4810, lng: -158.0590 },
+    { type: 'chapel',     name: 'Schofield Barracks Chapel',          lat: 21.4820, lng: -158.0580 },
+    { type: 'gym',        name: 'Fitness Center',                      lat: 21.4830, lng: -158.0570 },
+    { type: 'housing',    name: 'Housing Division Office',             lat: 21.4790, lng: -158.0615 },
+    { type: 'education',  name: 'Education Center',                    lat: 21.4840, lng: -158.0560 },
+    { type: 'visitor',    name: 'Visitor Control Center',              lat: 21.4842, lng: -158.0648 },
+    { type: 'hq',         name: '25th Infantry Division HQ',           lat: 21.4850, lng: -158.0550 },
+    { type: 'childcare',  name: 'Child Development Center',            lat: 21.4796, lng: -158.0608 },
+  ],
   'USAG Stuttgart': [
     { type: 'gate',       name: 'Patch Barracks Main Gate',        lat: 48.7260, lng: 9.2190 },
     { type: 'gate',       name: 'Kelley Barracks Gate',            lat: 48.7190, lng: 9.2340 },
@@ -458,7 +561,7 @@ export default function BaseMapModule({ theme, profile }) {
     if (facilities.length === 0) {
       L.popup()
         .setLatLng([baseInfo.lat, baseInfo.lng])
-        .setContent(`<b>${baseInfo.name}</b><br>Tap facilities in the legend to toggle layers.<br><small>Detailed facility data for this installation coming soon.</small>`)
+        .setContent(`<b>${baseInfo.name}</b><br/>${baseInfo.branch} · ${baseInfo.state}<br/><small>For full installation maps and facility directories, visit:<br/><a href="https://www.militaryinstallations.dod.mil/" target="_blank">militaryinstallations.dod.mil</a></small>`)
         .openOn(map);
     }
 
@@ -529,10 +632,15 @@ export default function BaseMapModule({ theme, profile }) {
           </optgroup>
         </select>
         {baseInfo && (
-          <div style={{ marginTop: 6, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 10, background: theme.primary, color: '#FFF', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>{baseInfo.branch}</span>
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>{facilityCount > 0 ? `${facilityCount} facilities mapped` : 'Base location available'}</span>
-            {baseInfo.country && <span style={{ fontSize: 10, background: '#E74C3C', color: '#FFF', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>OCONUS</span>}
+          <div style={{ marginTop: 6 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
+              <span style={{ fontSize: 10, background: theme.primary, color: '#FFF', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>{baseInfo.branch}</span>
+              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>{facilityCount > 0 ? `${facilityCount} facilities mapped` : 'Base location only'}</span>
+              {baseInfo.country && <span style={{ fontSize: 10, background: '#E74C3C', color: '#FFF', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>OCONUS</span>}
+            </div>
+            <a href="https://www.militaryinstallations.dod.mil/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', fontSize: 10, color: theme.accent, fontWeight: 700, textDecoration: 'none', letterSpacing: '.04em' }}>
+              Official Installation Directory →
+            </a>
           </div>
         )}
       </div>
