@@ -222,7 +222,7 @@ function NavigationModule({ theme, profile }) {
 
   return (
     <div style={{ padding: 16 }}>
-      <h2 style={{ color: theme.primary, padding: '0 16px', marginTop: 16, marginBottom: 8 }}>Navigation & Base Maps</h2>
+      <h2 style={{ color: theme.primary, padding: '0 16px', marginTop: 16, marginBottom: 8 }}>Navigation</h2>
 
       {/* TABS */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', padding: '0 16px' }}>
