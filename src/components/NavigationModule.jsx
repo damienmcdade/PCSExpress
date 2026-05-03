@@ -13,6 +13,14 @@ function NavigationModule({ theme, profile }) {
   const [routeSteps, setRouteSteps] = useState([])
   const [routeInfo, setRouteInfo] = useState(null)
   const [routeError, setRouteError] = useState('')
+  const [savedDirections, setSavedDirections] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('pcs_saved_directions')) || []
+    } catch {
+      return []
+    }
+  })
+  const [expandedDirectionId, setExpandedDirectionId] = useState(null)
 
   // Mock base maps data
   const BASE_MAPS = {
@@ -70,6 +78,17 @@ function NavigationModule({ theme, profile }) {
     return `${mins} min`;
   };
 
+  // Save directions to localStorage
+  const saveDirectionsToStorage = (directions) => {
+    const updated = [directions, ...savedDirections].slice(0, 20);
+    setSavedDirections(updated);
+    try {
+      localStorage.setItem('pcs_saved_directions', JSON.stringify(updated));
+    } catch (e) {
+      // storage unavailable
+    }
+  };
+
   // Plan route using OSRM
   const planRoute = async () => {
     if (!freeFormFrom.trim() || !freeFormTo.trim()) {
@@ -93,7 +112,9 @@ function NavigationModule({ theme, profile }) {
       const route = data.routes[0];
       const miles = (route.distance / 1609.34).toFixed(1);
       const dur = formatDuration(route.duration);
-      setRouteInfo({ distance: miles, duration: dur, from: from.display?.split(',')[0] || freeFormFrom, to: to.display?.split(',')[0] || freeFormTo });
+      const fromLabel = from.display?.split(',')[0] || freeFormFrom;
+      const toLabel = to.display?.split(',')[0] || freeFormTo;
+      setRouteInfo({ distance: miles, duration: dur, from: fromLabel, to: toLabel });
 
       const steps = [];
       route.legs.forEach(leg => {
@@ -102,7 +123,8 @@ function NavigationModule({ theme, profile }) {
           if (instr && instr.trim()) steps.push(instr);
         });
       });
-      setRouteSteps(steps.length > 0 ? steps : ['Head toward destination', `Arrive at ${freeFormTo}`]);
+      const finalSteps = steps.length > 0 ? steps : ['Head toward destination', `Arrive at ${freeFormTo}`];
+      setRouteSteps(finalSteps);
 
       // Save to routes
       const newRoute = {
@@ -112,10 +134,22 @@ function NavigationModule({ theme, profile }) {
         distance: `${miles} mi`,
         duration: dur,
         type: 'Driving',
-        directions: steps,
+        directions: finalSteps,
         timestamp: new Date().toLocaleDateString(),
       };
       setSavedRoutes(prev => [newRoute, ...prev.slice(0, 9)]);
+
+      // Also save to directions
+      saveDirectionsToStorage({
+        id: Date.now() + 1,
+        name: `${fromLabel} → ${toLabel}`,
+        from: fromLabel,
+        to: toLabel,
+        distance: `${miles} mi`,
+        duration: dur,
+        steps: finalSteps,
+        timestamp: new Date().toLocaleDateString(),
+      });
     } catch (e) {
       setRouteError(e.message || 'Failed to plan route. Check your internet connection and try again.');
     }
@@ -151,6 +185,31 @@ function NavigationModule({ theme, profile }) {
     if (selectedRoute?.id === id) setSelectedRoute(null);
   };
 
+  const deleteDirection = (id) => {
+    const updated = savedDirections.filter(d => d.id !== id);
+    setSavedDirections(updated);
+    try {
+      localStorage.setItem('pcs_saved_directions', JSON.stringify(updated));
+    } catch (e) {
+      // storage unavailable
+    }
+    if (expandedDirectionId === id) setExpandedDirectionId(null);
+  };
+
+  const saveCurrentDirections = () => {
+    if (!routeInfo || routeSteps.length === 0) return;
+    saveDirectionsToStorage({
+      id: Date.now(),
+      name: `${routeInfo.from} → ${routeInfo.to}`,
+      from: routeInfo.from,
+      to: routeInfo.to,
+      distance: `${routeInfo.distance} mi`,
+      duration: routeInfo.duration,
+      steps: routeSteps,
+      timestamp: new Date().toLocaleDateString(),
+    });
+  };
+
   const getBaseLocations = () => {
     const baseKey = profile?.gainingInstallation?.split(',')[0] + ' ' + profile?.gainingInstallation?.split(',')[1];
     return BASE_MAPS[baseKey]?.locations || [];
@@ -162,13 +221,14 @@ function NavigationModule({ theme, profile }) {
   };
 
   return (
-    <div className="tab-content">
+    <div style={{ padding: 16 }}>
       <h2 style={{ color: theme.primary, padding: '0 16px', marginTop: 16, marginBottom: 8 }}>Navigation & Base Maps</h2>
 
       {/* TABS */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', padding: '0 16px' }}>
         {[
           { id: 'routes', label: 'Route Planner', icon: '🛣️' },
+          { id: 'directions', label: 'Directions', icon: '📋' },
           { id: 'saved', label: 'Saved Routes', icon: '💾' },
           { id: 'baseMap', label: 'Base Map', icon: '🗺️' },
         ].map((t) => (
@@ -249,6 +309,12 @@ function NavigationModule({ theme, profile }) {
                 <div style={{ fontSize: 11, color: '#555', marginBottom: 8 }}>
                   <strong>{routeInfo.from}</strong> → <strong>{routeInfo.to}</strong>
                 </div>
+                <button
+                  onClick={saveCurrentDirections}
+                  style={{ width: '100%', padding: '9px', borderRadius: 8, background: theme.accent || theme.primary, color: '#FFF', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 11, marginTop: 4 }}
+                >
+                  💾 Save Route
+                </button>
               </div>
             )}
 
@@ -331,6 +397,85 @@ function NavigationModule({ theme, profile }) {
                     <div key={idx} style={{ marginBottom: 4 }}>{idx + 1}. {dir}</div>
                   ))}
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* DIRECTIONS TAB */}
+        {activeTab === 'directions' && (
+          <div>
+            {/* Current active directions */}
+            {routeInfo && routeSteps.length > 0 ? (
+              <div style={{ background: `${theme.primary}15`, border: `1.5px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: theme.primary, marginBottom: 6 }}>CURRENT DIRECTIONS</div>
+                <div style={{ fontSize: 11, color: '#555', marginBottom: 10 }}>
+                  <strong>{routeInfo.from}</strong> → <strong>{routeInfo.to}</strong>
+                  <span style={{ marginLeft: 10, color: '#888' }}>{routeInfo.distance} mi • {routeInfo.duration}</span>
+                </div>
+                <div style={{ maxHeight: 220, overflowY: 'auto', marginBottom: 12 }}>
+                  {routeSteps.map((step, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: 10, marginBottom: 8, alignItems: 'flex-start' }}>
+                      <div style={{ width: 20, height: 20, borderRadius: '50%', background: theme.primary, color: '#FFF', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{idx + 1}</div>
+                      <div style={{ fontSize: 11, color: '#333', lineHeight: 1.4 }}>{step}</div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={saveCurrentDirections}
+                  style={{ width: '100%', padding: '10px', borderRadius: 8, background: theme.primary, color: '#FFF', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}
+                >
+                  💾 Save Current Directions
+                </button>
+              </div>
+            ) : (
+              <div style={{ background: '#F5F5F5', borderRadius: 12, padding: '18px 16px', marginBottom: 14, textAlign: 'center', color: '#666' }}>
+                <div style={{ fontSize: 13, marginBottom: 6 }}>📋</div>
+                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>No Active Directions</div>
+                <div style={{ fontSize: 11 }}>Plan a route to generate turn-by-turn directions. Saved directions appear here for offline use.</div>
+              </div>
+            )}
+
+            {/* Saved directions list */}
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#56697C', marginBottom: 10 }}>SAVED DIRECTIONS</div>
+            {savedDirections.length > 0 ? (
+              savedDirections.map((dir) => (
+                <div key={dir.id} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                    <div style={{ flex: 1, marginRight: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#0D1821' }}>{dir.name || `${dir.from} → ${dir.to}`}</div>
+                      <div style={{ fontSize: 10, color: '#56697C', marginTop: 2 }}>{dir.distance} • {dir.duration}</div>
+                      <div style={{ fontSize: 10, color: '#999', marginTop: 2 }}>Saved: {dir.timestamp}</div>
+                    </div>
+                    <button
+                      onClick={() => deleteDirection(dir.id)}
+                      style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 10, fontWeight: 700, flexShrink: 0 }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setExpandedDirectionId(expandedDirectionId === dir.id ? null : dir.id)}
+                    style={{ width: '100%', padding: '7px', borderRadius: 6, background: expandedDirectionId === dir.id ? theme.primary : '#F0F4F8', color: expandedDirectionId === dir.id ? '#FFF' : '#56697C', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 11 }}
+                  >
+                    {expandedDirectionId === dir.id ? 'Hide Steps' : 'Show Steps'}
+                  </button>
+                  {expandedDirectionId === dir.id && dir.steps && dir.steps.length > 0 && (
+                    <div style={{ marginTop: 10 }}>
+                      {dir.steps.map((step, idx) => (
+                        <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 6, alignItems: 'flex-start', borderTop: idx > 0 ? '1px solid #f0f0f0' : 'none', paddingTop: idx > 0 ? 6 : 0 }}>
+                          <div style={{ width: 18, height: 18, borderRadius: '50%', background: `${theme.primary}22`, color: theme.primary, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{idx + 1}</div>
+                          <div style={{ fontSize: 11, color: '#333', lineHeight: 1.4 }}>{step}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div style={{ background: '#F5F5F5', borderRadius: 12, padding: '20px', textAlign: 'center', color: '#666' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>No Saved Directions</div>
+                <div style={{ fontSize: 11 }}>Plan a route to generate turn-by-turn directions. Saved directions appear here for offline use.</div>
               </div>
             )}
           </div>

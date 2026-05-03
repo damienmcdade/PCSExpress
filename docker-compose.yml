@@ -1,7 +1,6 @@
-# Production-ready Docker Compose with Nginx reverse proxy
-version: '3.8'
-
 services:
+  # === EXPRESS BACKEND ===
+  # Runs on port 3001 (only accessible via Docker network in production)
   app:
     build:
       context: .
@@ -11,23 +10,28 @@ services:
       NODE_ENV: production
       PORT: 3001
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN:-http://localhost}
+      ALLOWED_ORIGIN: http://localhost
+    # IMPORTANT: Only expose to Docker network, NOT to host
     expose:
       - "3001"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      test: ["CMD", "curl", "-f", "-4", "http://127.0.0.1:3001/health"]
       interval: 30s
-      timeout: 3s
+      timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 15s
     networks:
       - pcs-network
     volumes:
       - pcs-dist:/app/dist
     labels:
-      com.pcs-express.description: "PCS Express Backend API"
+      service: "pcs-express-backend"
+      port: "3001"
 
+  # === NGINX REVERSE PROXY ===
+  # Runs on ports 80/443 (public facing)
+  # Proxies /api/* requests to Express :3001 via Docker network
   nginx:
     image: nginx:alpine
     container_name: pcs-express-web
@@ -39,49 +43,20 @@ services:
       - pcs-dist:/usr/share/nginx/html:ro
       - ./certs:/etc/nginx/certs:ro
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "curl", "-f", "-4", "http://127.0.0.1/health"]
       interval: 30s
-      timeout: 3s
+      timeout: 10s
       retries: 3
-      start_period: 5s
+      start_period: 15s
     networks:
       - pcs-network
     labels:
-      com.pcs-express.description: "PCS Express Web Server"
-
-  # Development service with hot reload (comment out in production)
-  dev:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: pcs-express-dev
-    ports:
-      - "3000:3000"
-      - "3001:3001"
-    environment:
-      NODE_ENV: development
-      PORT: 3001
-    volumes:
-      - .:/app
-      - /app/node_modules
-    develop:
-      watch:
-        - action: sync
-          path: ./src
-          target: /app/src
-        - action: sync
-          path: ./server
-          target: /app/server
-        - action: rebuild
-          path: package.json
-    restart: unless-stopped
-    profiles:
-      - dev
-    networks:
-      - pcs-network
+      service: "pcs-express-nginx"
+      ports: "80/443"
 
 networks:
   pcs-network:

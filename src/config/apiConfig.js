@@ -1,31 +1,35 @@
 /**
- * API Configuration for PCS Express Frontend
- * Properly configured for Docker production and development
+ * API Configuration for PCS Express
+ * 
+ * IMPORTANT: Always use relative paths in browser context.
+ * The frontend should never hardcode API URLs or ports.
+ * 
+ * Production: nginx proxies /api/* to Express backend
+ * Development: Vite proxies /api/* to Express backend
  */
 
-// Get the current hostname/origin
 const getApiUrl = () => {
-  // In Docker production: nginx serves both frontend and proxies /api to Express on port 3001
-  // The frontend should always use relative paths to /api for same-origin requests
-  
-  if (typeof window === 'undefined') {
-    // SSR/Node.js environment
-    return 'http://localhost:3001';
+  // Browser environment: use relative paths (works everywhere)
+  if (typeof window !== 'undefined') {
+    return ''
   }
 
-  // Browser environment - use relative path (works across all deployments)
-  return '';
-};
+  // Server-side rendering fallback (if applicable)
+  return 'http://localhost:3001'
+}
 
 export const API_CONFIG = {
-  // Always use relative paths when available (current origin)
+  // Base URL (empty string = current origin)
   apiUrl: getApiUrl(),
-  
-  // API endpoints
+
+  // Endpoint constants
   endpoints: {
     health: '/api/health',
-    ai: '/api/ai'
-  }
-};
+    ai: '/api/ai',
+  },
 
-export default API_CONFIG;
+  // Request timeout (ms)
+  timeout: 15000,
+}
+
+export default API_CONFIG

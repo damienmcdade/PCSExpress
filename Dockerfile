@@ -2,25 +2,31 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Install curl for healthchecks only
 RUN apk add --no-cache curl
 
-# Install dependencies
+# Copy dependency manifests
 COPY package.json package-lock.json ./
+
+# Install all dependencies (production + dev for build)
 RUN npm ci
 
-# Copy source and build frontend
+# Copy application code
 COPY . .
+
+# Build React frontend to /app/dist
 RUN npm run build
 
-# Prune production deps
+# Prune dev dependencies (production only)
 RUN npm prune --production
 
-# Expose correct port
-EXPOSE 3000
+# === PORT 3001 ===
+# Express backend server runs on port 3001 (inside container)
+EXPOSE 3001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
+# Healthcheck: verify Express server is responding
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -f -4 http://127.0.0.1:3001/health || exit 1
 
-# Start server
+# Start: run Express server
 CMD ["npm", "start"]

@@ -157,11 +157,13 @@ const PCS_CHECKLIST = {
     "Return keys, base decals, and library books",
     "Pick up cleared documents from unit",
     "Ensure pets have travel documentation",
+    "Verify TRICARE coverage is active and transferable",
+    "Transfer TRICARE enrollment to gaining region (tricare.mil)",
     "Check weather and route for travel day",
   ],
   "In-Processing": [
     "Report to gaining unit by report date",
-    "Complete in-processing checklist",
+    "Complete in-processing checklist at gaining unit S1",
     "Obtain new base access credentials/decal",
     "Set up bank account or update address at bank",
     "Register children in schools",
@@ -170,6 +172,8 @@ const PCS_CHECKLIST = {
     "Schedule household goods delivery",
     "Update ID cards if expiring",
     "Register with new installation medical (MTF)",
+    "Enroll family in TRICARE at gaining installation's MTF",
+    "Verify TRICARE Prime/Select enrollment and dependents' coverage",
   ],
 };
 
@@ -177,6 +181,31 @@ const SCHOOL_DISTRICTS = {
   'Fort Liberty NC': { name: 'Cumberland County Schools', ages: 'K-12', rating: 4.5 },
   'Naval Station Norfolk VA': { name: 'Norfolk Public Schools', ages: 'K-12', rating: 4.3 },
   'Camp Pendleton CA': { name: 'Oceanside Unified', ages: 'K-12', rating: 4.6 },
+};
+
+const DAYCARE_DATA = {
+  'Fort Liberty': [
+    { name: 'Fort Liberty CDC (Main Post)', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.8, desc: 'DoD Child Development Center — priority for active duty. Subsidized rates based on rank.', phone: '(910) 396-5607', waitlist: '2–4 weeks' },
+    { name: 'Fort Liberty School Age Services', type: 'School-Age / After-School', ages: '5–12 yrs', rating: 4.3, desc: 'Before/after school care on post. Background-checked staff.', phone: '(910) 396-8750', waitlist: '1–2 weeks' },
+    { name: 'YMCA Fort Liberty Area', type: 'Community CDC', ages: 'Infant – 12 yrs', rating: 4.2, desc: 'YMCA near post with military discount. Good backup option when CDC is full.', phone: '(910) 323-9622', waitlist: 'None typically' },
+  ],
+  'Fort Bragg': [
+    { name: 'Fort Bragg CDC (Main Post)', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.8, desc: 'DoD Child Development Center — priority for active duty. Subsidized rates based on rank.', phone: '(910) 396-5607', waitlist: '2–4 weeks' },
+  ],
+  'Camp Humphreys': [
+    { name: 'Humphreys CDC (CYSS)', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.6, desc: 'DoDEA/CYSS operated. Priority for dual military and single-parent families. Hourly drop-in also available.', phone: 'DSN 753-6540', waitlist: '1–3 weeks' },
+    { name: 'Humphreys School Age Services', type: 'School-Age / After-School', ages: '5–12 yrs', rating: 4.4, desc: 'On-post before/after school care. Summer programs available.', phone: 'DSN 753-6540', waitlist: 'None typically' },
+  ],
+  'Fort Campbell': [
+    { name: 'Fort Campbell CDC (Bldg 2200)', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.4, desc: 'Military CDC with subsidized rates. Strong demand — sign up early.', phone: '(270) 798-3290', waitlist: '2–6 weeks' },
+    { name: 'Clarksville YMCA', type: 'Community CDC', ages: 'Infant – 12 yrs', rating: 4.1, desc: 'YMCA in Clarksville with military family discount program.', phone: '(931) 647-2376', waitlist: 'None typically' },
+  ],
+  'Joint Base Lewis-McChord': [
+    { name: 'JBLM CDC (Pendleton)', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.5, desc: 'CYSS operated CDC at Lewis-McChord. Waitlist priority for active duty.', phone: '(253) 967-7325', waitlist: '3–5 weeks' },
+  ],
+  'Naval Station Norfolk': [
+    { name: 'NS Norfolk CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.4, desc: 'Navy CDC with subsidized rates. Contact CYP coordinator for availability.', phone: '(757) 444-7403', waitlist: '2–4 weeks' },
+  ],
 };
 
 function StarRating({ rating }) {
@@ -286,9 +315,19 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
 }
 
 function SchoolsTab({ theme, profile }) {
+  const [section, setSection] = useState('schools');
+  const [sortBy, setSortBy] = useState('rating');
+  const [showAll, setShowAll] = useState(false);
+  const [searchAge, setSearchAge] = useState('');
+  const [searchZip, setSearchZip] = useState('');
+
   const instName = (profile?.gainingInstallation || '').split(',')[0].trim();
   const schools = INSTALLATION_SCHOOLS[instName] || [];
-  const childAges = (profile?.childrenAges || '').split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+  const daycares = DAYCARE_DATA[instName] || [];
+
+  const agesFromProfile = profile?.childAges?.length > 0
+    ? profile.childAges.filter(a => !isNaN(Number(a))).map(Number)
+    : (profile?.childrenAges || '').split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
 
   const gradeForAge = age => {
     if (age < 5) return 'Pre-K';
@@ -297,54 +336,142 @@ function SchoolsTab({ theme, profile }) {
     return '9-12';
   };
 
-  const relevantGrades = new Set(childAges.map(gradeForAge));
-  const filtered = childAges.length > 0
-    ? schools.filter(s => [...relevantGrades].some(g => {
+  const relevantGrades = new Set(agesFromProfile.map(gradeForAge));
+  let filteredSchools = (showAll || agesFromProfile.length === 0)
+    ? schools
+    : schools.filter(s => [...relevantGrades].some(g => {
         if (g === 'Pre-K') return false;
         const [gStart] = g.split('-');
         return s.grades.includes(gStart) || s.grades === g;
-      }))
-    : schools;
+      }));
+  if (sortBy === 'rating') filteredSchools = [...filteredSchools].sort((a, b) => b.rating - a.rating);
+  else filteredSchools = [...filteredSchools].sort((a, b) => a.name.localeCompare(b.name));
+
+  const handleSearch = () => {
+    const grade = gradeForAge(parseInt(searchAge) || 10);
+    const url = searchZip
+      ? `https://www.greatschools.org/search/search.page?zip=${searchZip}`
+      : 'https://www.greatschools.org';
+    window.open(url, '_blank');
+  };
 
   return (
     <div style={{ padding: 16 }}>
-      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Schools & Districts</div>
-      {instName ? (
-        <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>
-          Near <strong>{instName}</strong>
-          {childAges.length > 0 && ` • Filtered for ages: ${childAges.join(', ')}`}
-        </div>
-      ) : (
-        <div style={{ fontSize: 12, color: '#888', marginBottom: 16 }}>Complete onboarding to see schools near your installation.</div>
+      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Schools & Childcare</div>
+      <div style={{ fontSize: 12, color: '#56697C', marginBottom: 14 }}>
+        {instName ? <>Near <strong>{instName}</strong>{agesFromProfile.length > 0 && <> · Child ages: {agesFromProfile.join(', ')}</>}</> : 'Complete onboarding to see local schools.'}
+      </div>
+
+      {/* Section tabs */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+        {[['schools', 'K–12 Schools'], ['daycare', 'Daycare & CDC'], ['search', 'Find Schools']].map(([id, label]) => (
+          <button key={id} onClick={() => setSection(id)} style={{ flex: 1, padding: '8px 4px', borderRadius: 20, border: `1.5px solid ${section === id ? theme.primary : '#E0E6EE'}`, background: section === id ? theme.primary : '#FFF', color: section === id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* K-12 Schools */}
+      {section === 'schools' && (
+        <>
+          {filteredSchools.length > 0 && (
+            <div style={{ display: 'flex', gap: 6, marginBottom: 12, alignItems: 'center' }}>
+              <span style={{ fontSize: 11, color: '#888' }}>Sort:</span>
+              {[['rating', 'Highest Rated'], ['name', 'A–Z']].map(([id, label]) => (
+                <button key={id} onClick={() => setSortBy(id)} style={{ padding: '5px 10px', borderRadius: 14, border: `1.5px solid ${sortBy === id ? theme.primary : '#E0E6EE'}`, background: sortBy === id ? theme.primary : '#FFF', color: sortBy === id ? '#FFF' : '#56697C', fontSize: 10, cursor: 'pointer', fontWeight: 700 }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+          {!instName && <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12 }}>Complete onboarding to see schools near your installation.</div>}
+          {instName && filteredSchools.length === 0 && <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12, marginBottom: 12 }}>No school data yet for this installation. Try "Find Schools" above.</div>}
+          {filteredSchools.map((school, idx) => (
+            <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', flex: 1, marginRight: 8 }}>{school.name}</div>
+                <span style={{ background: `${theme.primary}20`, color: theme.primary, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap' }}>Grades {school.grades}</span>
+              </div>
+              <div style={{ marginBottom: 6 }}><StarRating rating={school.rating} /></div>
+              <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 6 }}>{school.desc}</div>
+              <div style={{ fontSize: 11, color: '#888', marginBottom: 10 }}>📍 {school.city}</div>
+              <a href={school.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '9px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>Visit School Website</a>
+            </div>
+          ))}
+          {agesFromProfile.length > 0 && !showAll && schools.length > filteredSchools.length && (
+            <button onClick={() => setShowAll(true)} style={{ width: '100%', padding: 10, borderRadius: 8, border: `1px solid ${theme.accent}`, background: 'transparent', color: theme.primary, fontSize: 12, cursor: 'pointer', fontWeight: 600, marginTop: 4 }}>
+              Show all {schools.length} schools
+            </button>
+          )}
+        </>
       )}
 
-      {filtered.length === 0 && (
-        <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12 }}>
-          No school data available for this installation yet. Check back soon.
-        </div>
+      {/* Daycare & CDC */}
+      {section === 'daycare' && (
+        <>
+          <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 12, color: '#1D4ED8', lineHeight: 1.5 }}>
+            Child Development Centers (CDCs) on-post give priority to active duty families. Contact early — waitlists can be 2–8 weeks.
+          </div>
+          {daycares.length === 0 && (
+            <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12, marginBottom: 14 }}>
+              No CDC data for this installation. Call your installation's Child &amp; Youth Services (CYS) office directly.
+            </div>
+          )}
+          {daycares.map((dc, idx) => (
+            <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', flex: 1, marginRight: 8 }}>{dc.name}</div>
+                <span style={{ background: `${theme.primary}15`, color: theme.primary, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap' }}>{dc.type}</span>
+              </div>
+              <div style={{ marginBottom: 6 }}><StarRating rating={dc.rating} /></div>
+              <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 8 }}>{dc.desc}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8, fontSize: 11 }}>
+                <div style={{ color: '#666' }}>Ages: <strong style={{ color: '#0D1821' }}>{dc.ages}</strong></div>
+                <div style={{ color: '#666' }}>Phone: <strong style={{ color: '#0D1821' }}>{dc.phone}</strong></div>
+                <div style={{ color: '#666' }}>Waitlist: <strong style={{ color: dc.waitlist.includes('None') ? '#2E7D32' : '#E65100' }}>{dc.waitlist}</strong></div>
+              </div>
+            </div>
+          ))}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 4 }}>
+            <a href="https://usa.childcareaware.org/providers/military/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 10, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>ChildCare Aware Military</a>
+            <a href="https://childcare.gov" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 10, background: theme.secondary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>ChildCare.gov</a>
+          </div>
+        </>
       )}
 
-      {filtered.map((school, idx) => (
-        <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', flex: 1, marginRight: 8 }}>{school.name}</div>
-            <span style={{ background: `${theme.primary}20`, color: theme.primary, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>Grades {school.grades}</span>
+      {/* Find Schools online */}
+      {section === 'search' && (
+        <>
+          <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 12 }}>Search by Location</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.primary, display: 'block', marginBottom: 5 }}>STUDENT AGE</label>
+                <input type="number" min="4" max="18" value={searchAge} onChange={e => setSearchAge(e.target.value)} placeholder="e.g. 9" style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.primary, display: 'block', marginBottom: 5 }}>ZIP CODE</label>
+                <input type="text" value={searchZip} onChange={e => setSearchZip(e.target.value)} placeholder="e.g. 28310" style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, boxSizing: 'border-box' }} />
+              </div>
+            </div>
+            {searchAge && <div style={{ fontSize: 11, color: '#56697C', marginBottom: 10 }}>Grade level: <strong>{gradeForAge(parseInt(searchAge))}</strong></div>}
+            <button onClick={handleSearch} style={{ width: '100%', padding: '12px', borderRadius: 10, background: theme.primary, color: '#FFF', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>Search on GreatSchools →</button>
           </div>
-          <div style={{ marginBottom: 8 }}>
-            <StarRating rating={school.rating} />
-          </div>
-          <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 8 }}>{school.desc}</div>
-          <div style={{ fontSize: 11, color: '#888', marginBottom: 10 }}>📍 {school.city}</div>
-          <a href={school.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '9px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>
-            Visit School Website
-          </a>
-        </div>
-      ))}
-
-      {childAges.length > 0 && filtered.length < schools.length && (
-        <button onClick={() => {}} style={{ width: '100%', padding: 10, borderRadius: 8, border: `1px solid ${theme.accent}`, background: 'transparent', color: theme.primary, fontSize: 12, cursor: 'pointer', fontWeight: 600, marginTop: 4 }}>
-          Show all {schools.length} schools regardless of age
-        </button>
+          <div style={{ fontSize: 12, fontWeight: 800, color: '#56697C', marginBottom: 10 }}>SCHOOL FINDER RESOURCES</div>
+          {[
+            { name: 'GreatSchools', desc: 'Search by zip code — ratings, reviews, test scores', url: 'https://www.greatschools.org' },
+            { name: 'DoDEA School Finder', desc: 'Find DoDEA schools on military installations worldwide', url: 'https://www.dodea.edu/schools.cfm' },
+            { name: 'NCES School Finder', desc: 'National Center for Education Statistics school search', url: 'https://nces.ed.gov/ccd/schoolsearch/' },
+            { name: 'Military Child Education Coalition', desc: 'Education transition resources for military-connected children', url: 'https://www.militarychild.org' },
+            { name: 'School Liaison Officers (SLO)', desc: 'Find your installation SLO — free school transition support', url: 'https://www.dodea.edu/Partnership/schoolLiaisonOfficers.cfm' },
+          ].map((r, idx) => (
+            <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>{r.name}</div>
+              <div style={{ fontSize: 11, color: '#555', marginBottom: 8 }}>{r.desc}</div>
+              <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: theme.primary, fontWeight: 700, textDecoration: 'none' }}>Open →</a>
+            </div>
+          ))}
+        </>
       )}
     </div>
   );
@@ -471,11 +598,11 @@ function EducationBenefitsTab({ theme, profile }) {
 
   return (
     <div style={{ padding: 16 }}>
-      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Education Benefits</div>
-      <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>GI Bill guide for service members & veterans</div>
+      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Education</div>
+      <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>Education & scholarship resources for service members and spouses</div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {[{ id: 'gibill', label: 'GI Bill Chapters' }, { id: 'howto', label: 'How to Apply' }, { id: 'schools', label: 'Find Schools' }].map(t => (
+        {[{ id: 'gibill', label: 'GI Bill Chapters' }, { id: 'howto', label: 'How to Apply' }, { id: 'schools', label: 'Find Schools' }, { id: 'mycaa', label: 'MyCAA (Spouses)' }].map(t => (
           <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ padding: '7px 14px', borderRadius: 20, border: `1.5px solid ${activeTab === t.id ? theme.primary : '#E0E6EE'}`, background: activeTab === t.id ? theme.primary : '#FFF', color: activeTab === t.id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
             {t.label}
           </button>
@@ -540,6 +667,134 @@ function EducationBenefitsTab({ theme, profile }) {
           ))}
         </div>
       )}
+
+      {activeTab === 'mycaa' && (
+        <div>
+          <div style={{ background: '#E8F5E9', border: '1px solid #A5D6A7', borderRadius: 12, padding: 14, marginBottom: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#1B5E20', marginBottom: 6 }}>MyCAA — Military Spouse Career Advancement Accounts</div>
+            <div style={{ fontSize: 11, color: '#2E7D32', lineHeight: 1.6 }}>Up to $4,000/year (max $16,000 total) for military spouses to pursue education and portable career credentials.</div>
+          </div>
+          {[
+            { title: 'Eligibility', items: ['Spouse of active duty service member E-1 to O-2 (or W-1 to W-2)', 'Spouse must be 18+ years old', 'Enrolled in a degree or credential program', 'Not eligible if service member is on Title 10 orders for < 180 days'] },
+            { title: 'What It Covers', items: ['Associate degrees', 'Bachelor’s/Master’s degrees', 'Licenses and certifications (e.g., nursing, real estate, IT)', 'Vocational/technical training', 'Online and in-person programs at approved schools'] },
+            { title: 'How to Apply', items: ['1. Visit MyCAA portal at aiportal.acc.af.mil', '2. Create an account with your military ID info', '3. Complete career exploration and education plan', '4. Get Financial Assistance approved before enrolling', '5. School submits invoices directly to MyCAA'] },
+          ].map((section, idx) => (
+            <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#0D1821', marginBottom: 8 }}>{section.title}</div>
+              {section.items.map((item, i) => (
+                <div key={i} style={{ fontSize: 12, color: '#333', marginBottom: 4 }}>✓ {item}</div>
+              ))}
+            </div>
+          ))}
+          <a href="https://aiportal.acc.af.mil/mycaa" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 12, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Apply for MyCAA →</a>
+          <a href="https://www.militaryonesource.mil/education-employment/for-spouses/mycaa-scholarship-program/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 12, background: '#E8F5E9', color: '#2E7D32', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 12 }}>Learn More at MilitaryOneSource →</a>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ResourcesTab({ theme, profile }) {
+  const [activeSection, setActiveSection] = useState('healthcare');
+  const branch = profile?.branch || 'Army';
+
+  const SECTIONS = [
+    { id: 'healthcare', label: 'Healthcare', icon: '🏥' },
+    { id: 'family', label: 'Family Support', icon: '👨‍👩‍👧' },
+    { id: 'financial', label: 'Financial', icon: '💰' },
+    { id: 'pcs', label: 'PCS & Housing', icon: '🏠' },
+    { id: 'education', label: 'Education', icon: '🎓' },
+    { id: 'careers', label: 'Careers', icon: '💼' },
+  ];
+
+  const RESOURCES = {
+    healthcare: [
+      { name: 'TRICARE', desc: 'Military health insurance — find plans, providers, and enrollment info', url: 'https://www.tricare.mil', tag: 'All Branches' },
+      { name: 'TRICARE Online', desc: 'Book appointments, view records, refill prescriptions', url: 'https://www.tricareonline.com', tag: 'All Branches' },
+      { name: 'Military OneSource Health', desc: 'Free health consultations and referrals', url: 'https://www.militaryonesource.mil/health-wellness', tag: 'All Branches' },
+      { name: 'MHS Genesis Patient Portal', desc: 'Military health records and appointments online', url: 'https://patient.mhsgenesis.health.mil', tag: 'All Branches' },
+      { name: 'VA Health Care', desc: 'Veteran health benefits, eligibility, and enrollment', url: 'https://www.va.gov/health-care', tag: 'Veterans' },
+    ],
+    family: [
+      { name: 'Military OneSource', desc: '24/7 support for military families — counseling, legal, financial, relocation', url: 'https://www.militaryonesource.mil', tag: 'All Branches' },
+      { name: 'Military Child Education Coalition', desc: 'School transition resources for military children', url: 'https://www.militarychild.org', tag: 'Families' },
+      { name: 'Operation Homefront', desc: 'Emergency financial and housing assistance for military families', url: 'https://www.operationhomefront.org', tag: 'All Branches' },
+      { name: 'Blue Star Families', desc: 'Connection and community for military families nationwide', url: 'https://bluestarfam.org', tag: 'All Branches' },
+      { name: branch === 'Army' ? 'Army Community Service (ACS)' : branch === 'Navy' ? 'Fleet & Family Support (FFSC)' : branch.includes('Marine') ? 'Marine Corps Family Services' : 'Airman & Family Readiness Center', desc: 'Installation-based family support, financial counseling, employment help', url: branch === 'Army' ? 'https://www.armymwr.com/acs' : branch === 'Navy' ? 'https://www.cnic.navy.mil/ffsp' : 'https://www.militaryonesource.mil', tag: branch },
+    ],
+    financial: [
+      { name: 'myPay (DFAS)', desc: 'Access and manage your military pay, allotments, and W-2s', url: 'https://mypay.dfas.mil', tag: 'All Branches' },
+      { name: 'BAH Calculator', desc: 'Calculate your Basic Allowance for Housing by rank and zip code', url: 'https://www.defensetravel.dod.mil/site/bahCalc.cfm', tag: 'All Branches' },
+      { name: 'VA Benefits Explorer', desc: 'Explore all VA benefits you may be eligible for', url: 'https://www.benefits.va.gov', tag: 'Veterans' },
+      { name: 'Military Saves', desc: 'Financial readiness resources, savings plans, and debt reduction tools', url: 'https://militarysaves.org', tag: 'All Branches' },
+      { name: 'Blended Retirement System', desc: 'BRS calculator and TSP retirement planning tools', url: 'https://militarypay.defense.gov/BRS/', tag: 'All Branches' },
+      { name: 'SCRA (Service Members Civil Relief)', desc: 'Interest rate caps, lease termination rights, foreclosure protection', url: 'https://www.benefits.va.gov/homeloans/scra.asp', tag: 'All Branches' },
+    ],
+    pcs: [
+      { name: 'Move.mil (DPS)', desc: 'Schedule your household goods move, track shipment, file claims', url: 'https://www.move.mil', tag: 'All Branches' },
+      { name: 'Military Installations', desc: 'Find on-post housing, facilities, and services at any installation', url: 'https://www.militaryinstallations.dod.mil', tag: 'All Branches' },
+      { name: 'Housing Network', desc: 'Search on-post and nearby off-post housing options', url: 'https://www.housing.af.mil', tag: 'All Branches' },
+      { name: 'SCRA Lease Termination', desc: 'Break your lease when PCS orders arrive — federal protection', url: 'https://www.militaryonesource.mil/financial-legal/personal-finance/scra/', tag: 'PCS' },
+      { name: 'VA Home Loan', desc: 'Zero-down home loans for veterans and active duty service members', url: 'https://www.va.gov/housing-assistance/home-loans', tag: 'Housing' },
+    ],
+    education: [
+      { name: 'VA GI Bill', desc: 'Apply for GI Bill benefits and check remaining entitlement', url: 'https://www.va.gov/education', tag: 'Veterans' },
+      { name: 'MyCAA Scholarships', desc: 'Up to $4,000/year for military spouses pursuing portable careers', url: 'https://aiportal.acc.af.mil/mycaa', tag: 'Spouses' },
+      { name: 'Tuition Assistance (TA)', desc: `${branch === 'Army' ? 'GoArmyEd' : branch === 'Navy' ? 'Navy TA via NETPDTC' : 'Branch Tuition Assistance'} — up to $4,500/year for active duty`, url: branch === 'Army' ? 'https://www.goarmyed.com' : 'https://www.military.com/education/money-for-school/tuition-assistance-ta-program-overview.html', tag: branch },
+      { name: 'DANTES / DSST Exams', desc: 'Free college-level exams for service members — earn credits fast', url: 'https://www.dantes.mil', tag: 'All Branches' },
+      { name: 'DoDEA Schools', desc: 'Find DoD-operated schools for military families worldwide', url: 'https://www.dodea.edu', tag: 'Families' },
+    ],
+    careers: [
+      { name: 'USAJobs.gov', desc: 'Federal civilian jobs with veteran preference hiring', url: 'https://www.usajobs.gov', tag: 'Federal' },
+      { name: 'Hire Heroes USA', desc: 'Free job placement and resume coaching for veterans and spouses', url: 'https://www.hireheroesusa.org', tag: 'Veteran-Focused' },
+      { name: 'My Next Move for Veterans', desc: 'Translate your MOS to civilian career paths', url: 'https://www.mynextmove.org/vets', tag: 'MOS Translator' },
+      { name: 'Military Spouse Employment Partnership', desc: 'Employer network committed to hiring military spouses', url: 'https://myseco.militaryonesource.mil/portal/', tag: 'Spouses' },
+      { name: 'Transition GPS (TAP)', desc: 'DoD Transition Assistance Program — mandatory pre-separation classes', url: 'https://www.dodtap.mil', tag: 'Transition' },
+    ],
+  };
+
+  const tagColor = (tag) => {
+    if (tag === 'All Branches') return { bg: '#E3F2FD', color: '#1565C0' };
+    if (tag === 'Veterans') return { bg: '#FFF3E0', color: '#E65100' };
+    if (tag === 'Spouses') return { bg: '#FCE4EC', color: '#880E4F' };
+    if (tag === 'Families') return { bg: '#E8F5E9', color: '#1B5E20' };
+    return { bg: `${theme.primary}15`, color: theme.primary };
+  };
+
+  return (
+    <div style={{ padding: 16 }}>
+      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Military Resources</div>
+      <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>Official military & government resources, tailored to {branch}</div>
+
+      {/* Quick links */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+        <a href="https://www.tricare.mil" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 10, background: '#1565C0', color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 12 }}>TRICARE →</a>
+        <a href="https://www.militaryonesource.mil" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 10, background: '#2E7D32', color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 12 }}>MilitaryOneSource →</a>
+      </div>
+
+      {/* Section tabs */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
+        {SECTIONS.map(s => (
+          <button key={s.id} onClick={() => setActiveSection(s.id)} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${activeSection === s.id ? theme.primary : '#E0E6EE'}`, background: activeSection === s.id ? theme.primary : '#FFF', color: activeSection === s.id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
+            {s.icon} {s.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Resource cards */}
+      {(RESOURCES[activeSection] || []).map((r, idx) => {
+        const tc = tagColor(r.tag);
+        return (
+          <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', flex: 1, marginRight: 8 }}>{r.name}</div>
+              <span style={{ background: tc.bg, color: tc.color, fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 8, whiteSpace: 'nowrap' }}>{r.tag}</span>
+            </div>
+            <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 8 }}>{r.desc}</div>
+            <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '7px 14px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 11 }}>Open Resource →</a>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -1237,6 +1492,10 @@ function App() {
   const [checklistItems, setChecklistItems] = useState(() => {
     try { return JSON.parse(localStorage.getItem('pcs_checklist_checks')) || {}; } catch { return {}; }
   });
+  const [demoTip, setDemoTip] = useState(() => {
+    const p = store.get('pcs_profile');
+    return (p?.firstName === 'Marcus' && p?.lastName === 'Thompson') ? 0 : -1;
+  });
 
   const theme = profile ? BRANCH_THEMES[profile.branch] : BRANCH_THEMES.Army;
 
@@ -1267,21 +1526,39 @@ function App() {
   };
 
   if (!profile) {
-    return <Onboarding onComplete={(p) => { setProfile(p); store.set('pcs_profile', p); }} />;
+    return <Onboarding onComplete={(p) => {
+      setProfile(p);
+      store.set('pcs_profile', p);
+      if (p?.firstName === 'Marcus' && p?.lastName === 'Thompson') setDemoTip(0);
+    }} />;
   }
 
+  const DEMO_TIPS = [
+    { tab: 'home',       title: 'Welcome to PCS Express!',      body: 'Your personalized PCS command center. Every tile links to a dedicated tool for your move. This demo walks you through each feature as SFC Thompson, an E-7 Army soldier moving OCONUS to Camp Humphreys, South Korea.' },
+    { tab: 'orders',     title: 'Military Orders',              body: 'Upload your PCS orders PDF and AI automatically extracts your report date, gaining unit, and installation. Your departure countdown and phase timeline appear here — keeping you on track.' },
+    { tab: 'checklist',  title: 'PCS Checklist',               body: 'Track every phase of your PCS — from Orders Received through In-Processing. Overdue tasks turn red with warnings. Progress saves automatically to your device.' },
+    { tab: 'schools',    title: 'Schools & Childcare',          body: 'Find K-12 schools and child development centers near your gaining installation. Filter by grade level, sort by highest rating, or use the zip code search to find schools near off-post housing.' },
+    { tab: 'employment', title: 'Employment Center',            body: 'Upload your resume for AI-powered job matching. Translate your MOS to civilian careers using the Recommendations tab, then browse federal job boards and apply directly from the app.' },
+    { tab: 'education',  title: 'Education Benefits',          body: 'Explore your GI Bill options side by side, follow the step-by-step application guide, and apply directly to VA.gov. Military spouses can explore MyCAA — up to $4,000/year in scholarship funds.' },
+    { tab: 'religion',   title: 'Faith & Spiritual Resources', body: 'Chapel services near your installation tailored to your faith preference from onboarding. Overseas assignments show host-nation chapel info. Counseling resources from ACS and Military OneSource are always one tap away.' },
+    { tab: 'nav',        title: 'Navigation & Maps',           body: 'Plan your PCS drive with real turn-by-turn directions via OSRM routing. Save directions independently in the Directions tab. The Base Map shows key facilities at your gaining installation.' },
+    { tab: 'resources',  title: 'Military Resources Hub',      body: 'All official military websites in one place — TRICARE, MilitaryOneSource, VA benefits, move.mil, education portals, and career tools — filtered to your branch. TRICARE and MilitaryOneSource are always pinned at the top.' },
+    { tab: 'home',       title: 'Thank You for Your Service!', body: 'You\'ve completed the PCS Express tour. This app is here to support you and your family through every step of your move. Navigate to any section from the home screen or hamburger menu. Hooah!' },
+  ];
+
   const BOTTOM_NAV = [
-    { id: 'home',      label: 'Home',     icon: '🏠' },
-    { id: 'checklist', label: 'Checklist', icon: '✓' },
-    { id: 'orders',    label: 'Orders',   icon: '📋' },
-    { id: 'schools',   label: 'Schools',  icon: '🏫' },
-    { id: 'nav',       label: 'Map',      icon: '🗺️' },
-    { id: 'veterans',  label: 'Veterans', icon: '⭐' },
-    { id: 'employment',label: 'Work',     icon: '💼' },
-    { id: 'education', label: 'GI Bill',  icon: '🎓' },
-    { id: 'spouse',    label: 'Spouse',   icon: '💛' },
-    { id: 'religion',  label: 'Faith',    icon: '✝️' },
-    { id: 'translation',label: 'Translate',icon: '🌐' },
+    { id: 'home',        label: 'Home',        icon: '🏠' },
+    { id: 'checklist',   label: 'PCS Checklist', icon: '✓' },
+    { id: 'orders',      label: 'Orders',      icon: '📋' },
+    { id: 'schools',     label: 'Schools',     icon: '🏫' },
+    { id: 'nav',         label: 'Map',         icon: '🗺️' },
+    { id: 'veterans',    label: 'Veterans',    icon: '⭐' },
+    { id: 'employment',  label: 'Employment',  icon: '💼' },
+    { id: 'education',   label: 'Education',   icon: '🎓' },
+    { id: 'spouse',      label: 'Deployment',  icon: '💛' },
+    { id: 'religion',    label: 'Faith',       icon: '✝️' },
+    { id: 'translation', label: 'Translate',   icon: '🌐' },
+    { id: 'resources',   label: 'Resources',   icon: '🔗' },
   ];
 
   const currentLabel = BOTTOM_NAV.find(n => n.id === activeTab)?.label || 'Home';
@@ -1330,8 +1607,8 @@ function App() {
         <div style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: 0, right: 0, maxWidth: 480, margin: '0 auto', zIndex: 200, background: theme.secondary, borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0 }}>
             {BOTTOM_NAV.map(item => (
-              <button key={item.id} onClick={() => goTo(item.id)} style={{ padding: '12px 6px', background: activeTab === item.id ? `${theme.accent}30` : 'transparent', border: 'none', borderBottom: `1px solid rgba(255,255,255,0.08)`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.75)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: activeTab === item.id ? 800 : 500 }}>
-                <span style={{ fontSize: 18 }}>{item.icon}</span>
+              <button key={item.id} onClick={() => goTo(item.id)} style={{ padding: '14px 6px', background: activeTab === item.id ? `${theme.accent}30` : 'transparent', border: 'none', borderBottom: `1px solid rgba(255,255,255,0.08)`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.85)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: activeTab === item.id ? 800 : 500 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: activeTab === item.id ? `${theme.accent}40` : 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{item.icon}</div>
                 {item.label}
               </button>
             ))}
@@ -1374,23 +1651,29 @@ function App() {
       {/* CONTENT */}
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
         {activeTab === 'home' && (
-          <div style={{ padding: '16px' }}>
+          <div style={{ padding: '16px', position: 'relative' }}>
+            {/* Branch insignia watermark */}
+            <div style={{ position: 'absolute', top: 0, right: 16, fontSize: 120, opacity: 0.04, userSelect: 'none', pointerEvents: 'none', lineHeight: 1 }}>
+              {profile.branch === 'Army' ? '⭐' : profile.branch === 'Navy' ? '⚓' : profile.branch === 'Marine Corps' ? '🦅' : profile.branch === 'Air Force' ? '✈️' : profile.branch === 'Space Force' ? '🚀' : '⚓'}
+            </div>
             <div style={{ fontSize: 15, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Welcome, {profile.firstName}</div>
             <div style={{ fontSize: 11, color: '#888', marginBottom: 14 }}>{profile.gainingInstallation ? `Moving to ${profile.gainingInstallation}` : 'Set your gaining installation to personalize'}</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {[
-                { icon: '📝', label: 'Checklist', id: 'checklist' },
-                { icon: '📋', label: 'Orders', id: 'orders' },
-                { icon: '💼', label: 'Employment', id: 'employment' },
-                { icon: '🏫', label: 'Schools', id: 'schools' },
-                { icon: '⭐', label: 'Vet Businesses', id: 'veterans' },
-                { icon: '🎓', label: 'GI Bill', id: 'education' },
-                { icon: '✝️', label: 'Faith', id: 'religion' },
-                { icon: '💛', label: 'Spouse Guide', id: 'spouse' },
-                { icon: '🗺️', label: 'Navigation', id: 'nav' },
+                { icon: '✓', label: 'PCS Checklist', id: 'checklist', color: '#1565C0' },
+                { icon: '📋', label: 'Orders', id: 'orders', color: '#2E7D32' },
+                { icon: '💼', label: 'Employment', id: 'employment', color: '#4A5E2A' },
+                { icon: '🏫', label: 'Schools', id: 'schools', color: '#7B1FA2' },
+                { icon: '⭐', label: 'Vet Businesses', id: 'veterans', color: '#E65100' },
+                { icon: '🎓', label: 'Education', id: 'education', color: '#1565C0' },
+                { icon: '✝️', label: 'Faith', id: 'religion', color: '#37474F' },
+                { icon: '💛', label: 'Deployment Guide', id: 'spouse', color: '#F57F17' },
+                { icon: '🗺️', label: 'Navigation', id: 'nav', color: '#00695C' },
+                { icon: '🔗', label: 'Resources', id: 'resources', color: '#C62828' },
+                { icon: '🌐', label: 'Translate', id: 'translation', color: '#1976D2' },
               ].map((item) => (
-                <div key={item.id} onClick={() => goTo(item.id)} style={{ background: '#FFFFFF', border: `1px solid #E0E6EE`, borderRadius: 12, padding: '14px', cursor: 'pointer', textAlign: 'center' }}>
-                  <div style={{ fontSize: 22, marginBottom: 4 }}>{item.icon}</div>
+                <div key={item.id} onClick={() => goTo(item.id)} style={{ background: '#FFFFFF', border: `1px solid #E0E6EE`, borderRadius: 14, padding: '16px 12px', cursor: 'pointer', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 12, background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontSize: 20 }}>{item.icon}</div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#0D1821' }}>{item.label}</div>
                 </div>
               ))}
@@ -1418,6 +1701,7 @@ function App() {
         {activeTab === 'nav' && <NavigationModule theme={theme} profile={profile} />}
         {activeTab === 'spouse' && <SpouseDeploymentGuide theme={theme} profile={profile} />}
         {activeTab === 'religion' && <ReligiousServicesModuleWrapped theme={theme} profile={profile} />}
+        {activeTab === 'resources' && <ResourcesTab theme={theme} profile={profile} />}
       </div>
 
       {/* BOTTOM NAV — first 5 items */}
@@ -1429,6 +1713,44 @@ function App() {
           </button>
         ))}
       </div>
+
+      {/* INTERACTIVE DEMO TOUR OVERLAY */}
+      {demoTip >= 0 && demoTip < DEMO_TIPS.length && (
+        <div style={{ position: 'fixed', bottom: 'calc(72px + env(safe-area-inset-bottom))', left: 0, right: 0, maxWidth: 480, margin: '0 auto', padding: '0 12px', zIndex: 300 }}>
+          <div style={{ background: theme.secondary, borderRadius: 16, padding: '16px', border: `2px solid ${theme.accent}`, boxShadow: '0 -4px 30px rgba(0,0,0,0.4)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ background: theme.accent, borderRadius: 10, padding: '2px 10px', fontSize: 10, fontWeight: 900, color: theme.secondary }}>
+                  DEMO TOUR {demoTip + 1} / {DEMO_TIPS.length}
+                </div>
+              </div>
+              <button onClick={() => setDemoTip(-1)} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)', fontSize: 13, cursor: 'pointer', padding: '4px 10px', borderRadius: 8, fontWeight: 700 }}>Skip ✕</button>
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#FFF', marginBottom: 6 }}>{DEMO_TIPS[demoTip].title}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: 14 }}>{DEMO_TIPS[demoTip].body}</div>
+            {/* Step progress dots */}
+            <div style={{ display: 'flex', gap: 4, marginBottom: 12, justifyContent: 'center' }}>
+              {DEMO_TIPS.map((_, i) => (
+                <div key={i} onClick={() => { setDemoTip(i); goTo(DEMO_TIPS[i].tab); }} style={{ width: i === demoTip ? 20 : 6, height: 6, borderRadius: 3, background: i <= demoTip ? theme.accent : 'rgba(255,255,255,0.2)', cursor: 'pointer', transition: 'all .2s' }} />
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {demoTip > 0 && (
+                <button onClick={() => { const prev = demoTip - 1; setDemoTip(prev); goTo(DEMO_TIPS[prev].tab); }} style={{ flex: 1, padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>← Back</button>
+              )}
+              {demoTip < DEMO_TIPS.length - 1 ? (
+                <button onClick={() => { const next = demoTip + 1; setDemoTip(next); goTo(DEMO_TIPS[next].tab); }} style={{ flex: 2, padding: '10px', borderRadius: 10, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
+                  Next: {DEMO_TIPS[demoTip + 1].title.split('!')[0]} →
+                </button>
+              ) : (
+                <button onClick={() => setDemoTip(-1)} style={{ flex: 2, padding: '10px', borderRadius: 10, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>
+                  Thank You for Your Service! ✦
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

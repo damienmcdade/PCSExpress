@@ -232,8 +232,8 @@ function SpouseDeploymentGuide({ theme, profile }) {
   const completionPercent = Math.round((getCompletedTasks() / getTotalTasks()) * 100);
 
   return (
-    <div className="tab-content">
-      <h2 style={{ color: theme.primary }}>💛 Spouse Deployment Guide</h2>
+    <div style={{ padding: 16 }}>
+      <h2 style={{ color: theme.primary }}>Deployment Guide</h2>
 
       {/* PROGRESS BAR */}
       <div style={{

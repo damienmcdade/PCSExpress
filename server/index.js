@@ -8,35 +8,50 @@ import fs from 'fs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
+
+// === PORT CONFIGURATION ===
+// CRITICAL: Use PORT environment variable provided by Railway
+// Railway injects PORT automatically - must listen on 0.0.0.0
 const PORT = process.env.PORT || 3001
+const HOST = '0.0.0.0'
 const API_KEY = process.env.ANTHROPIC_API_KEY
 const distPath = path.join(__dirname, '..', 'dist')
 
-console.log('[INIT] Starting PCS Express')
-console.log(`[INIT] PORT=${PORT}`)
-console.log(`[INIT] DIST=${distPath}`)
-console.log(`[INIT] FRONTEND=${fs.existsSync(distPath) ? 'YES' : 'NO'}`)
+console.log('[SERVER] ════════════════════════════════════════════════════════')
+console.log('[SERVER] PCS Express - Node.js Backend Server')
+console.log('[SERVER] ════════════════════════════════════════════════════════')
+console.log(`[SERVER] HOST: ${HOST}`)
+console.log(`[SERVER] PORT: ${PORT}`)
+console.log(`[SERVER] NODE_ENV: ${process.env.NODE_ENV || 'development'}`)
+console.log(`[SERVER] DIST: ${distPath}`)
+console.log(`[SERVER] FRONTEND: ${fs.existsSync(distPath) ? 'BUILT' : 'MISSING'}`)
+console.log('[SERVER] ════════════════════════════════════════════════════════')
 
-// Middleware
+// === MIDDLEWARE ===
 app.use(cors())
 app.use(express.json({ limit: '1mb' }))
 
-// Health endpoint
+// === HEALTH ENDPOINTS ===
+// CRITICAL for Railway: Must respond with 200 OK
 app.get('/health', (req, res) => {
-  res.json({ ok: 1 })
+  res.status(200).json({ ok: 1, service: 'express', port: PORT })
 })
 
-// API health endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ ok: 1 })
+  res.status(200).json({ ok: 1, service: 'express-api', port: PORT })
 })
 
-// API routes BEFORE static/frontend serving
+// === API ROUTES (MUST BE BEFORE STATIC/FRONTEND) ===
 app.post('/api/ai', async (req, res) => {
   try {
     const { system, user } = req.body
-    if (!system || !user || !API_KEY) {
-      return res.status(400).json({ error: 'Missing params' })
+
+    if (!system || !user) {
+      return res.status(400).json({ error: 'Missing system or user parameter' })
+    }
+
+    if (!API_KEY) {
+      return res.status(500).json({ error: 'API key not configured' })
     }
 
     const signal = AbortSignal.timeout(15000)
@@ -53,36 +68,76 @@ app.post('/api/ai', async (req, res) => {
         system,
         messages: [{ role: 'user', content: user }],
       }),
-      signal
+      signal,
     })
 
     if (!response.ok) {
-      return res.status(500).json({ error: 'API error' })
+      console.error(`[API] Anthropic error: ${response.status}`)
+      return res.status(502).json({ error: 'Anthropic API error' })
     }
 
     const data = await response.json()
-    res.json({ text: data.content?.[0]?.text || 'No response' })
+    res.status(200).json({ text: data.content?.[0]?.text || 'No response' })
   } catch (err) {
-    res.status(503).json({ error: 'Service error' })
+    console.error(`[API] Error: ${err.message}`)
+    res.status(503).json({ error: 'Service unavailable' })
   }
 })
 
-// Frontend — AFTER all API routes
+// === FRONTEND SERVING (AFTER ALL API ROUTES) ===
 if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath))
+  // Serve static assets with caching
+  app.use(express.static(distPath, { maxAge: '1h' }))
+
+  // SPA fallback: serve index.html for all non-API routes
   app.get('*', (req, res) => {
     res.sendFile(path.join(distPath, 'index.html'))
   })
-  console.log('[INIT] Frontend ready')
+
+  console.log('[SERVER] Frontend: ENABLED')
 } else {
-  app.get('*', (req, res) => res.status(404).json({ error: 'Frontend not built' }))
-  console.log('[INIT] Frontend missing')
+  // Frontend not built
+  app.get('*', (req, res) => {
+    res.status(404).json({ error: 'Frontend not built' })
+  })
+
+  console.log('[SERVER] Frontend: MISSING (build not run)')
 }
 
-// Start
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[START] http://localhost:${PORT}`)
+// === START SERVER ===
+// CRITICAL: Listen on 0.0.0.0 for Railway
+const server = app.listen(PORT, HOST, () => {
+  console.log('[SERVER] ════════════════════════════════════════════════════════')
+  console.log(`[SERVER] ✓ Express server started`)
+  console.log(`[SERVER] ✓ Listening on http://${HOST}:${PORT}`)
+  console.log(`[SERVER] ✓ Ready to accept requests`)
+  console.log('[SERVER] ════════════════════════════════════════════════════════')
 })
 
-process.on('SIGTERM', () => process.exit(0))
-process.on('SIGINT', () => process.exit(0))
+// Set timeout for keeping alive
+server.keepAliveTimeout = 65000
+server.headersTimeout = 66000
+
+// === GRACEFUL SHUTDOWN ===
+process.on('SIGTERM', () => {
+  console.log('[SERVER] SIGTERM received, shutting down gracefully...')
+  server.close(() => {
+    console.log('[SERVER] Server closed')
+    process.exit(0)
+  })
+})
+
+process.on('SIGINT', () => {
+  console.log('[SERVER] SIGINT received, shutting down gracefully...')
+  server.close(() => {
+    console.log('[SERVER] Server closed')
+    process.exit(0)
+  })
+})
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[SERVER] Unhandled Rejection at:', promise, 'reason:', reason)
+})
+
+export default app
