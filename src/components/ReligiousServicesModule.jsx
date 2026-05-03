@@ -100,12 +100,21 @@ function ReligiousServicesModule({ theme, profile }) {
     return getServices().filter(s => s.denomination === denom);
   };
 
+  const filterDenom = profile?.filterDenomination;
+  const showAll = profile?.showAll !== false && !filterDenom;
+
+  const denominationsToShow = showAll
+    ? ['Catholic', 'Protestant', 'Jewish', 'Islamic', 'Multi-faith Community']
+    : filterDenom
+      ? [filterDenom, 'Multi-faith Community']
+      : ['Catholic', 'Protestant', 'Jewish', 'Islamic', 'Multi-faith Community'];
+
   return (
     <div className="tab-content">
-      <h2 style={{ color: theme.primary }}>✝️ Religious & Spiritual Services</h2>
+      <h2 style={{ color: theme.primary, padding: '0 16px', marginTop: 16, marginBottom: 8 }}>Chapel & Spiritual Services</h2>
 
       {/* TABS */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', padding: '0 16px' }}>
         {[
           { id: 'services', label: 'Services', icon: '⛪' },
           { id: 'counseling', label: 'Counseling', icon: '🤝' },
@@ -131,8 +140,8 @@ function ReligiousServicesModule({ theme, profile }) {
 
       {/* RELIGIOUS SERVICES */}
       {activeTab === 'services' && (
-        <div>
-          {['Catholic', 'Protestant', 'Jewish', 'Islamic', 'Multi-faith Community'].map((denom) => {
+        <div style={{ padding: '0 16px' }}>
+          {denominationsToShow.map((denom) => {
             const services = getServicesByDenomination(denom);
             if (services.length === 0) return null;
 
@@ -187,7 +196,7 @@ function ReligiousServicesModule({ theme, profile }) {
 
       {/* SPIRITUAL COUNSELING */}
       {activeTab === 'counseling' && (
-        <div>
+        <div style={{ padding: '0 16px' }}>
           {COUNSELING_RESOURCES.map((resource, idx) => (
             <div
               key={idx}
