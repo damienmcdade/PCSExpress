@@ -329,6 +329,8 @@ const DEMO_PROFILE = {
   religiousPreference: "Christian (Protestant)",
 };
 
+const COMPONENT_TYPES = ["Active Duty", "Reserve", "National Guard", "AGR", "FTNG"];
+
 const VETERAN_BUSINESSES = {
   "Army": [
     { name: "AAFES (Army Air Force Exchange)", services: "Tax-free shopping, PCS discounts, military gear", url: "https://www.shopmyexchange.com", icon: "🛍️" },
