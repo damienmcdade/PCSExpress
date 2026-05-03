@@ -1358,8 +1358,6 @@ function BaseMapView({ profile, theme }) {
 
 function DesktopApp({ profile, onReset }) {
   const [screen, setScreen] = useState("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
   const [aiQuestion, setAiQuestion] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState("");
@@ -1390,16 +1388,6 @@ function DesktopApp({ profile, onReset }) {
   const theme = BRANCH_THEMES[profile.branch];
   const content = BRANCH_CONTENT[profile.branch];
   const branchBusinesses = VETERAN_BUSINESSES[profile.branch] || [];
-
-  useEffect(() => {
-    const handleResize = () => {
-      const newIsMobile = window.innerWidth < 768;
-      setIsMobile(newIsMobile);
-      if (!newIsMobile) setSidebarOpen(true);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const toggleDashboard = () => {
     setDashboardCollapsed(prev => {
