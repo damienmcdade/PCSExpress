@@ -6,6 +6,7 @@ import EducationModule from './components/EducationModule'
 import TranslationModule from './components/TranslationModule'
 import ReligiousServicesModule from './components/ReligiousServicesModule'
 import SpouseDeploymentGuide from './components/SpouseDeploymentGuide'
+import PCSDocumentsModule from './components/PCSDocumentsModule'
 import { ALL_BASES } from './components/BaseMapModule'
 
 const store = {
@@ -2497,6 +2498,7 @@ function App() {
   const BOTTOM_NAV = [
     { id: 'home',        label: 'Home',          icon: 'HQ'  },
     { id: 'checklist',   label: 'PCS Checklist', icon: 'PCK' },
+    { id: 'documents',   label: 'PCS Documents', icon: 'DOC' },
     { id: 'orders',      label: 'Orders',        icon: 'ORD' },
     { id: 'schools',     label: 'Schools',       icon: 'SCH' },
     { id: 'nav',         label: 'Navigation',    icon: 'NAV' },
@@ -2704,6 +2706,7 @@ function App() {
         )}
 
         {activeTab === 'checklist' && <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />}
+        {activeTab === 'documents' && <PCSDocumentsModule theme={theme} profile={profile} />}
         {activeTab === 'orders' && <OrdersTab theme={theme} profile={profile} />}
         {activeTab === 'schools' && <SchoolsTab theme={theme} profile={profile} />}
         {activeTab === 'veterans' && <VeteranBusinessesTab theme={theme} profile={profile} />}

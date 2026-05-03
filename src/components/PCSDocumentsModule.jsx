@@ -1,0 +1,511 @@
+import { useState, useRef, useCallback, useEffect } from 'react';
+
+// ─── Secure storage helpers ──────────────────────────────────────────────────
+// Uses iOS Keychain via SecureDocumentPlugin (Capacitor native) or localStorage (web).
+
+const isNative = () => { try { return window.Capacitor?.isNativePlatform?.() || false; } catch { return false; } };
+
+const docFileStorage = {
+  save: (id, filename, docType, file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result;
+      const base64 = dataUrl.split(',')[1];
+      try {
+        if (isNative()) {
+          const { SecureDocumentPlugin } = window.Capacitor.Plugins;
+          await SecureDocumentPlugin.storeDocument({ id, filename, docType, dataBase64: base64 });
+        } else {
+          if (file.size > 5 * 1024 * 1024) { reject(new Error('File exceeds 5 MB limit. Please compress or scan at lower resolution.')); return; }
+          localStorage.setItem(`pcs_file_${id}`, JSON.stringify({ dataUrl, filename, mimeType: file.type, storedAt: new Date().toISOString() }));
+        }
+        resolve(true);
+      } catch (err) { reject(err); }
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  }),
+
+  get: async (id) => {
+    try {
+      if (isNative()) {
+        const { SecureDocumentPlugin } = window.Capacitor.Plugins;
+        const res = await SecureDocumentPlugin.retrieveDocument({ id });
+        return res?.dataBase64 ? { dataUrl: `data:application/octet-stream;base64,${res.dataBase64}`, filename: id } : null;
+      } else {
+        const raw = localStorage.getItem(`pcs_file_${id}`);
+        return raw ? JSON.parse(raw) : null;
+      }
+    } catch { return null; }
+  },
+
+  remove: async (id) => {
+    try {
+      if (isNative()) {
+        const { SecureDocumentPlugin } = window.Capacitor.Plugins;
+        await SecureDocumentPlugin.deleteDocument({ id });
+      } else {
+        localStorage.removeItem(`pcs_file_${id}`);
+      }
+    } catch {}
+  },
+};
+
+// ─── Document categories ─────────────────────────────────────────────────────
+
+const DOC_CATEGORIES = [
+  { id: 'orders',  label: 'Orders',           icon: '📋', color: '#1565C0' },
+  { id: 'travel',  label: 'Travel & Finance', icon: '💰', color: '#2E7D32' },
+  { id: 'hhg',     label: 'Household Goods',  icon: '📦', color: '#E65100' },
+  { id: 'housing', label: 'Housing',          icon: '🏠', color: '#6A1B9A' },
+  { id: 'medical', label: 'Medical',          icon: '🏥', color: '#B71C1C' },
+  { id: 'family',  label: 'Family & Admin',   icon: '👨‍👩‍👧', color: '#1B5E20' },
+  { id: 'oconus',  label: 'OCONUS',           icon: '🌏', color: '#4A148C' },
+];
+
+// ─── Universal document list (all branches) ──────────────────────────────────
+
+const BASE_DOCS = {
+  orders: [
+    { id: 'pcs_orders',          name: 'PCS Orders',                      form: 'Official Orders',         required: true,  desc: 'Official Permanent Change of Station orders from your branch headquarters' },
+    { id: 'orders_amendment',    name: 'Orders Amendment',                form: 'Amendment',               required: false, desc: 'Any amendments or modifications to original PCS orders — keep all copies' },
+    { id: 'reporting_endorsement', name: 'Reporting Endorsement',         form: 'Endorsement',             required: false, desc: 'Confirmation of in-processing signed at your gaining installation' },
+  ],
+  travel: [
+    { id: 'travel_voucher',      name: 'Travel Voucher',                  form: 'DD Form 1351-2',          required: true,  desc: 'Claim for PCS travel reimbursement — submit to finance within 5 days of arrival', formUrl: 'https://www.esd.whs.mil/Portals/54/Documents/DD/forms/dd/dd1351-2.pdf' },
+    { id: 'dla_advance',         name: 'Advance Pay / DLA Request',       form: 'DD Form 2560',            required: false, desc: 'Dislocation Allowance and advance pay request — submit to finance before departure' },
+    { id: 'lodging_receipts',    name: 'Lodging Receipts',                form: 'Receipts',                required: true,  desc: 'Hotel receipts for every night of PCS travel — keep all originals for voucher' },
+    { id: 'mileage_log',         name: 'Mileage / Per Diem Log',          form: 'Log / Receipts',          required: true,  desc: 'POV mileage documentation, fuel receipts, or rental car receipts during PCS travel' },
+    { id: 'dla_receipt',         name: 'DLA / Meal Receipts',             form: 'Receipts',                required: false, desc: 'Meal and incidental receipts during authorized PCS travel days' },
+  ],
+  hhg: [
+    { id: 'hhg_application',     name: 'HHG Shipment Application',        form: 'DD Form 1299',            required: true,  desc: 'Schedule household goods shipment via Defense Personal Property System (DPS)', formUrl: 'https://www.move.mil' },
+    { id: 'hhg_counseling',      name: 'HHG Transportation Counseling',   form: 'DD Form 1797',            required: true,  desc: 'Transportation counseling checklist — must be signed before TSP pickup date' },
+    { id: 'weight_ticket_empty', name: 'Empty Weight Ticket',             form: 'Weight Ticket',           required: true,  desc: 'Empty weight of moving vehicle before loading — required for full HHG reimbursement' },
+    { id: 'weight_ticket_full',  name: 'Full (Loaded) Weight Ticket',     form: 'Weight Ticket',           required: true,  desc: 'Loaded weight of moving vehicle with all household goods' },
+    { id: 'hhg_inventory',       name: 'HHG Inventory & Condition Report', form: 'DD Form 1840 / 1840R',  required: true,  desc: 'Note all pre-existing damage at PICKUP and again at DELIVERY — critical for claims' },
+    { id: 'pov_shipment',        name: 'POV Shipment Authorization',      form: 'DD Form 788',             required: false, desc: 'Authorization to ship privately owned vehicle — required for OCONUS, check for CONUS' },
+    { id: 'storage_auth',        name: 'Non-Temporary Storage Auth (NTS)', form: 'NTS Authorization',      required: false, desc: 'Long-term storage authorization if household goods cannot move to gaining installation' },
+    { id: 'pro_gear',            name: 'Pro-Gear Authorization List',     form: 'Pro-Gear List',           required: false, desc: 'Professional gear (books, instruments, tools of trade) exempt from weight allowance' },
+    { id: 'hhg_claim',           name: 'HHG Damage Claim (if needed)',    form: 'DD Form 1840R',           required: false, desc: 'File within 70 days of delivery for any damaged or missing household goods items' },
+  ],
+  housing: [
+    { id: 'bah_auth',            name: 'BAH Authorization',               form: 'Branch-Specific',         required: true,  desc: 'Basic Allowance for Housing — ensure rate is set for gaining installation zip code', formUrl: 'https://www.travel.dod.mil/Allowances/Basic-Allowance-for-Housing/BAH-Rate-Lookup/' },
+    { id: 'housing_application', name: 'On-Post Housing Application',     form: 'Installation Form',       required: false, desc: 'Application for government-owned or privatized quarters at gaining installation' },
+    { id: 'lease_termination',   name: 'Lease Termination Notice (SCRA)', form: 'SCRA Letter',             required: false, desc: 'PCS lease break letter — protected under Servicemembers Civil Relief Act (30-day notice)', formUrl: 'https://www.militaryonesource.mil/financial-legal/personal-finance/scra/' },
+    { id: 'new_lease',           name: 'New Rental / Lease Agreement',    form: 'Lease Agreement',         required: false, desc: 'Signed lease or rental agreement at or near gaining installation' },
+    { id: 'utility_transfers',   name: 'Utility Transfer Documents',      form: 'Utility Forms',           required: false, desc: 'Electricity, gas, water, and internet transfer or cancellation confirmations' },
+  ],
+  medical: [
+    { id: 'medical_records',     name: 'Medical Records Transfer',        form: 'SF 600',                  required: true,  desc: 'Request complete medical records transfer to gaining MTF or civilian provider before departure' },
+    { id: 'dental_records',      name: 'Dental Records Transfer',         form: 'SF 603',                  required: true,  desc: 'Request dental records transfer to gaining dental clinic — do not leave without them' },
+    { id: 'shot_records_mbr',    name: 'Immunization Records (Member)',   form: 'Immunization Record',     required: true,  desc: 'Current shot records — mandatory for OCONUS, strongly recommended for all PCS' },
+    { id: 'shot_records_fam',    name: 'Immunization Records (Family)',   form: 'Immunization Record',     required: false, desc: 'Current immunization records for all traveling family members — keep originals' },
+    { id: 'tricare_enrollment',  name: 'TRICARE Enrollment Update',       form: 'TRICARE Form',            required: true,  desc: 'Update TRICARE enrollment to gaining installation region at gaining MTF', formUrl: 'https://www.tricare.mil' },
+    { id: 'efmp_docs',           name: 'EFMP Documentation',              form: 'Branch EFMP Form',        required: false, desc: 'Exceptional Family Member Program screening/enrollment — required if dependents have special needs' },
+    { id: 'mental_health',       name: 'Mental Health Continuity Records', form: 'Medical Records',        required: false, desc: 'Continuity of care documentation for any ongoing behavioral health treatment' },
+    { id: 'pharmacy_transfer',   name: 'Pharmacy / Prescription Records', form: 'Pharmacy Records',        required: false, desc: 'Request 90-day supply and transfer ongoing prescriptions to gaining installation pharmacy' },
+  ],
+  family: [
+    { id: 'deers_update',        name: 'DEERS Enrollment Update',         form: 'DD Form 1172-2',          required: true,  desc: 'Update dependent information and address in DEERS at gaining installation ID card office' },
+    { id: 'id_cards',            name: 'ID Cards (CAC + Dependents)',     form: 'DD Form 1172',            required: true,  desc: 'Check all expiration dates — update CAC and dependent IDs before or at gaining installation' },
+    { id: 'birth_certificates',  name: 'Birth Certificates',              form: 'Certified Copies',        required: true,  desc: 'Certified copies for member and all dependents — required for DEERS, passports, and enrollment' },
+    { id: 'marriage_cert',       name: 'Marriage Certificate',            form: 'Certified Copy',          required: false, desc: 'Certified marriage certificate for BAH with dependents and family benefits' },
+    { id: 'school_records',      name: 'School Records & Transcripts',    form: 'Academic Records',        required: false, desc: 'Official transcripts, IEP, 504 plans — request sealed copies from current school counselor' },
+    { id: 'power_of_attorney',   name: 'Power of Attorney',               form: 'DD Form 2822',            required: false, desc: 'Grants spouse or designee legal authority during move — free from JAG / Legal Assistance office' },
+    { id: 'wills_legal',         name: 'Updated Will & Legal Documents',  form: 'Legal Documents',         required: false, desc: 'Update wills and beneficiaries before OCONUS or long-distance PCS — free from JAG' },
+    { id: 'pet_vet_records',     name: 'Pet Vaccination / Vet Records',   form: 'Vet Certificate',         required: false, desc: 'Rabies vaccination and current health certificate from USDA-APHIS-accredited vet (required OCONUS)' },
+    { id: 'vehicle_docs',        name: 'Vehicle Registration & Title',    form: 'DMV Documents',           required: false, desc: 'Current registration and title for all vehicles — update address in new state after arrival' },
+  ],
+  oconus: [
+    { id: 'official_passport_mbr', name: 'Official Passport (Member)',    form: 'DS-11 / DS-82',           required: true,  desc: 'Official (black cover) government passport — apply through installation passport office at least 3 months before PCS' },
+    { id: 'tourist_passport_mbr',  name: 'Tourist Passport (Member)',     form: 'DS-11 / DS-82',           required: false, desc: 'Personal blue-cover passport for off-duty travel in host country — highly recommended' },
+    { id: 'dependent_passports',   name: 'Dependent Passports (All)',     form: 'DS-11 / DS-82',           required: true,  desc: 'Official and tourist passports for all authorized traveling dependents' },
+    { id: 'sofa',                  name: 'SOFA Agreement Documentation',  form: 'SOFA',                    required: true,  desc: 'Status of Forces Agreement — defines your legal status and rights in the host country' },
+    { id: 'visa',                  name: 'Visa / Entry Documentation',    form: 'Host Nation Visa',        required: false, desc: 'Entry permit required by host nation — check with gaining installation S2/Security office' },
+    { id: 'pet_import',            name: 'Pet Import Documentation',      form: 'USDA APHIS 7001',         required: false, desc: 'Health certificate, microchip proof, and host-nation pet import requirements — research 6+ months early' },
+    { id: 'intl_driving',          name: 'International Driving Permit',  form: 'AAA IDP',                 required: false, desc: 'Required in most host nations — apply through AAA at least 30 days before departure' },
+    { id: 'country_clearance',     name: 'Country Clearance',             form: 'Country Clearance',       required: true,  desc: 'Host-nation country clearance approval — coordinate with gaining unit S2/Security 60+ days early' },
+    { id: 'command_sponsorship',   name: 'Command Sponsorship Orders',    form: 'Command Sponsorship',     required: false, desc: 'Required for dependents to receive government travel and OCONUS benefits — initiated by gaining command' },
+  ],
+};
+
+// ─── Branch-specific additional documents ────────────────────────────────────
+
+const BRANCH_EXTRA = {
+  Army: {
+    orders: [
+      { id: 'da31_leave',       name: 'Leave Form (DA 31)',                form: 'DA Form 31',              required: true,  desc: 'Request and Authority for Leave covering all authorized PCS travel days — signed by commander' },
+      { id: 'iperms_review',    name: 'iPERMS Records Verification',       form: 'iPERMS',                  required: true,  desc: 'Confirm all official documents (evals, awards, training) are uploaded before departure', formUrl: 'https://iperms.hrc.army.mil' },
+      { id: 'ncoer_oer',        name: 'NCOER / OER Completion',            form: 'DA 2166-9 / 67-10',      required: true,  desc: 'Ensure all evaluations are completed, signed, and filed in iPERMS before PCS departure' },
+      { id: 'da4187',           name: 'DA 4187 Personnel Actions',         form: 'DA Form 4187',            required: false, desc: 'Personnel action requests (address change, BAH updates, SGLI) submitted through S1' },
+    ],
+    family: [
+      { id: 'da137_clearance',  name: 'Installation Clearance Record',     form: 'DA Form 137-1/2',        required: true,  desc: 'Clear finance, housing, library, medical, and unit arms room at losing installation' },
+      { id: 'da5960_bah',       name: 'BAH Authorization (DA 5960)',       form: 'DA Form 5960',            required: true,  desc: 'Start/Stop/Change BAH — submit to S1 before or upon arrival at gaining installation' },
+      { id: 'da7695_efmp',      name: 'EFMP Screening (DA 7695)',          form: 'DA Form 7695',            required: false, desc: 'Army EFMP enrollment/screening through ACS or Medical — required if any dependent has special needs' },
+    ],
+  },
+  Navy: {
+    orders: [
+      { id: 'navpers_detach',   name: 'Report of Detachment',              form: 'NAVPERS 1300/16',        required: true,  desc: 'Official report of detachment from losing command — processed via MyNavy HR portal', formUrl: 'https://www.mynavyhr.navy.mil' },
+      { id: 'bupers_verify',    name: 'BUPERS Orders Verification',        form: 'MyNavy HR',               required: true,  desc: 'Confirm PCS orders and endorsements are accurate in MyNavy HR before proceeding' },
+    ],
+    family: [
+      { id: 'navy_checkout',    name: 'Command Check-Out Sheet',           form: 'Command Form',            required: true,  desc: 'Signed check-out sheet from all required losing command department heads' },
+      { id: 'eval_fitrep',      name: 'EVAL / FITREP Review',              form: 'EVAL / FITREP',           required: true,  desc: 'Ensure all evaluations are finalized and accessible in BUPERS before detachment date' },
+      { id: 'ffsc_brief',       name: 'Fleet & Family Relocation Brief',   form: 'FFSC Brief',              required: false, desc: 'Attend PCS relocation brief at Fleet & Family Support Center for transition resources' },
+    ],
+  },
+  'Marine Corps': {
+    orders: [
+      { id: 'cmc_orders',       name: 'CMC Orders (MCTFS)',                form: 'CMC Orders',              required: true,  desc: 'Official Marine Corps PCS orders — verify accuracy via Marine Corps Total Force System' },
+    ],
+    family: [
+      { id: 'mco_checkout',     name: 'Command Check-Out Checklist',       form: 'MCO 4600.39',             required: true,  desc: 'Complete check-out per MCO 4600.39 — all required signatures from unit staff before departure' },
+      { id: 'msr_review',       name: 'Service Record Review (MSR/ESR)',   form: 'MSR / ESR',               required: true,  desc: 'Verify Master Service Record and Electronic Service Record are complete and current' },
+      { id: 'mccs_brief',       name: 'MCCS Relocation Brief',             form: 'MCCS Brief',              required: false, desc: 'PCS relocation counseling brief through Marine Corps Community Services' },
+    ],
+  },
+  'Air Force': {
+    orders: [
+      { id: 'af_mypers',        name: 'AF PCS Orders via myPers',          form: 'AF Orders',               required: true,  desc: 'Official AF PCS orders from AFPC — verify in myPers portal and print all endorsements', formUrl: 'https://mypers.af.mil' },
+    ],
+    family: [
+      { id: 'af907',            name: 'Relocation Preparation Checklist',  form: 'AF Form 907',             required: true,  desc: 'Complete AF Form 907 with Airman & Family Readiness Center counselor before departure' },
+      { id: 'af_outprocess',    name: 'Base / Unit Out-Processing',        form: 'AF Out-Processing Sheet', required: true,  desc: 'Complete all base out-processing appointments: MPF, finance, housing, medical' },
+      { id: 'vmpf_review',      name: 'vMPF Records Review',               form: 'AFPC vMPF',               required: true,  desc: 'Verify all records are current in Air Force Personnel Center virtual MPF before departure' },
+    ],
+  },
+  'Space Force': {
+    orders: [
+      { id: 'sf_mypers',        name: 'Space Force PCS Orders via myPers', form: 'SF Orders',               required: true,  desc: 'Official Space Force PCS orders via myPers (shared AF/SF system)', formUrl: 'https://mypers.af.mil' },
+    ],
+    family: [
+      { id: 'sf_outprocess',    name: 'Delta / Unit Out-Processing',       form: 'SF Out-Processing',       required: true,  desc: 'Complete all out-processing at losing Delta/unit and Space Force installation' },
+      { id: 'gdp_review',       name: 'Guardian Development Plan',         form: 'GDP',                     required: false, desc: 'Review and update Guardian Development Plan before PCS for career continuity' },
+    ],
+  },
+  'Coast Guard': {
+    orders: [
+      { id: 'cg3103',           name: 'CG Transfer Orders (CG-3103)',      form: 'CG-3103',                 required: true,  desc: 'Official Coast Guard PCS transfer orders — access and verify via Direct Access portal' },
+      { id: 'cg_direct_access', name: 'Direct Access Records Verification', form: 'CG Direct Access',       required: true,  desc: 'Verify all personnel records are current and accurate in CGBI / Direct Access' },
+    ],
+    family: [
+      { id: 'cg_unit_checkout', name: 'Unit Check-Out Sheet',              form: 'CG Form',                 required: true,  desc: 'Signed check-out from losing unit Command Master Chief and department heads' },
+      { id: 'cg_work_life',     name: 'CG Work-Life Relocation Brief',     form: 'Work-Life Brief',         required: false, desc: 'Relocation counseling through Coast Guard Work-Life program prior to PCS' },
+    ],
+  },
+};
+
+// ─── Merge base + branch-specific docs ──────────────────────────────────────
+
+function getDocsForBranch(branch, isOconus) {
+  const extra = BRANCH_EXTRA[branch] || {};
+  return DOC_CATEGORIES.reduce((acc, cat) => {
+    if (cat.id === 'oconus' && !isOconus) { acc[cat.id] = []; return acc; }
+    acc[cat.id] = [...(BASE_DOCS[cat.id] || []), ...(extra[cat.id] || [])];
+    return acc;
+  }, {});
+}
+
+// ─── Persistent state ────────────────────────────────────────────────────────
+
+const STATE_KEY = 'pcs_doc_states';
+const loadStates = () => { try { return JSON.parse(localStorage.getItem(STATE_KEY)) || {}; } catch { return {}; } };
+const saveStates = (s) => { try { localStorage.setItem(STATE_KEY, JSON.stringify(s)); } catch {} };
+
+// ─── Main Component ──────────────────────────────────────────────────────────
+
+export default function PCSDocumentsModule({ theme, profile }) {
+  const branch    = profile?.branch    || 'Army';
+  const isOconus  = profile?.isOverseas || false;
+  const allDocs   = getDocsForBranch(branch, isOconus);
+
+  const [states,      setStates]      = useState(loadStates);
+  const [activecat,   setActivecat]   = useState('orders');
+  const [uploading,   setUploading]   = useState(null);   // docId being uploaded
+  const [uploadError, setUploadError] = useState(null);
+  const [toast,       setToast]       = useState(null);   // { msg, ok }
+  const fileInputRef = useRef(null);
+  const pendingDocId = useRef(null);
+
+  // Calculate per-category and overall progress
+  const categoryProgress = useCallback(() => {
+    return DOC_CATEGORIES.reduce((acc, cat) => {
+      const docs = allDocs[cat.id] || [];
+      const total    = docs.length;
+      const obtained = docs.filter(d => states[d.id]?.obtained).length;
+      const reqTotal = docs.filter(d => d.required).length;
+      const reqDone  = docs.filter(d => d.required && states[d.id]?.obtained).length;
+      acc[cat.id] = { total, obtained, reqTotal, reqDone };
+      return acc;
+    }, {});
+  }, [allDocs, states]);
+
+  const progress = categoryProgress();
+  const totalDocs    = Object.values(allDocs).flat().length;
+  const totalObtained = Object.values(allDocs).flat().filter(d => states[d.id]?.obtained).length;
+  const missingRequired = Object.values(allDocs).flat().filter(d => d.required && !states[d.id]?.obtained);
+
+  // Show toast helper
+  const showToast = (msg, ok = true) => {
+    setToast({ msg, ok });
+    setTimeout(() => setToast(null), 3200);
+  };
+
+  // Toggle obtained
+  const toggleObtained = (docId) => {
+    setStates(prev => {
+      const next = { ...prev, [docId]: { ...prev[docId], obtained: !prev[docId]?.obtained } };
+      saveStates(next);
+      return next;
+    });
+  };
+
+  // Trigger file picker
+  const pickFile = (docId) => {
+    pendingDocId.current = docId;
+    fileInputRef.current.value = '';
+    fileInputRef.current.click();
+  };
+
+  // Handle file selected
+  const handleFileSelected = async (e) => {
+    const file = e.target.files?.[0];
+    const docId = pendingDocId.current;
+    if (!file || !docId) return;
+
+    setUploading(docId);
+    setUploadError(null);
+    try {
+      const docs = Object.values(allDocs).flat();
+      const doc  = docs.find(d => d.id === docId);
+      await docFileStorage.save(docId, file.name, doc?.name || docId, file);
+      setStates(prev => {
+        const next = { ...prev, [docId]: { ...prev[docId], obtained: true, filename: file.name, uploadedAt: new Date().toISOString() } };
+        saveStates(next);
+        return next;
+      });
+      showToast(`${file.name} saved securely`);
+    } catch (err) {
+      setUploadError(err.message);
+      showToast(err.message, false);
+    } finally {
+      setUploading(null);
+      pendingDocId.current = null;
+    }
+  };
+
+  // Open / print file
+  const openFile = async (docId) => {
+    const stored = await docFileStorage.get(docId);
+    if (!stored) { showToast('File not found — please re-upload', false); return; }
+    const url = stored.dataUrl || stored;
+    const win = window.open();
+    if (win) {
+      win.document.write(`<html><body style="margin:0"><iframe src="${url}" width="100%" height="100%" style="border:none"></iframe></body></html>`);
+      win.document.close();
+    }
+  };
+
+  const printFile = async (docId) => {
+    const stored = await docFileStorage.get(docId);
+    if (!stored) { showToast('File not found — please re-upload', false); return; }
+    const url = stored.dataUrl || stored;
+    const win = window.open();
+    if (win) {
+      win.document.write(`<html><body style="margin:0"><iframe id="f" src="${url}" width="100%" height="100%" style="border:none" onload="window.frames[0].print()"></iframe></body></html>`);
+      win.document.close();
+    }
+  };
+
+  const downloadFile = async (docId, filename) => {
+    const stored = await docFileStorage.get(docId);
+    if (!stored) { showToast('File not found — please re-upload', false); return; }
+    const url = stored.dataUrl || stored;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || docId;
+    a.click();
+  };
+
+  const removeFile = async (docId) => {
+    await docFileStorage.remove(docId);
+    setStates(prev => {
+      const next = { ...prev, [docId]: { ...prev[docId], filename: null, uploadedAt: null } };
+      saveStates(next);
+      return next;
+    });
+    showToast('File removed');
+  };
+
+  const currentDocs = allDocs[activecat] || [];
+  const cat = DOC_CATEGORIES.find(c => c.id === activecat);
+  const pct = totalDocs > 0 ? Math.round((totalObtained / totalDocs) * 100) : 0;
+
+  const inputSt = { background: 'none', border: 'none', cursor: 'pointer', padding: 0 };
+
+  return (
+    <div style={{ paddingBottom: 80 }}>
+      {/* Hidden file input */}
+      <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.gif,.tiff,.bmp" style={{ display: 'none' }} onChange={handleFileSelected} />
+
+      {/* ── Overall progress header ── */}
+      <div style={{ background: theme.secondary, padding: '16px 16px 14px' }}>
+        <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 2 }}>PCS Documents</div>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginBottom: 12 }}>
+          {branch} · {isOconus ? 'OCONUS Assignment' : 'CONUS Assignment'} · {totalObtained}/{totalDocs} obtained
+        </div>
+        {/* Progress bar */}
+        <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 6, height: 8, marginBottom: 6 }}>
+          <div style={{ height: 8, borderRadius: 6, background: theme.accent, width: `${pct}%`, transition: 'width .4s' }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>
+          <span>{pct}% complete</span>
+          <span style={{ color: missingRequired.length > 0 ? '#FF8080' : theme.accent, fontWeight: 700 }}>
+            {missingRequired.length > 0 ? `${missingRequired.length} required doc${missingRequired.length !== 1 ? 's' : ''} outstanding` : '✓ All required docs obtained'}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Missing-documents notification banner ── */}
+      {missingRequired.length > 0 && (
+        <div style={{ background: '#7F1D1D', borderBottom: '1px solid #991B1B', padding: '10px 16px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          <div style={{ fontSize: 16, flexShrink: 0 }}>⚠️</div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#FECACA', marginBottom: 3 }}>Required Documents Outstanding</div>
+            <div style={{ fontSize: 11, color: '#FCA5A5', lineHeight: 1.5 }}>
+              {missingRequired.slice(0, 3).map(d => d.name).join(', ')}
+              {missingRequired.length > 3 ? ` +${missingRequired.length - 3} more` : ''}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Toast notification ── */}
+      {toast && (
+        <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', background: toast.ok ? '#1B4332' : '#7F1D1D', color: '#FFF', padding: '10px 18px', borderRadius: 24, fontSize: 12, fontWeight: 700, zIndex: 9999, boxShadow: '0 4px 20px rgba(0,0,0,0.4)', whiteSpace: 'nowrap' }}>
+          {toast.ok ? '✓ ' : '✕ '}{toast.msg}
+        </div>
+      )}
+
+      {/* ── Category pills ── */}
+      <div style={{ padding: '12px 16px 0', background: '#F8FAFC' }}>
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 10 }}>
+          {DOC_CATEGORIES.filter(c => c.id !== 'oconus' || isOconus).map(c => {
+            const p = progress[c.id];
+            const isActive = activecat === c.id;
+            const allReqDone = p.reqTotal === 0 || p.reqDone === p.reqTotal;
+            return (
+              <button key={c.id} onClick={() => setActivecat(c.id)} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 20, border: `1.5px solid ${isActive ? c.color : '#CBD5E1'}`, background: isActive ? c.color : '#FFF', color: isActive ? '#FFF' : '#374151', fontSize: 11, fontWeight: isActive ? 800 : 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, position: 'relative' }}>
+                <span>{c.icon}</span>
+                <span>{c.label}</span>
+                <span style={{ background: isActive ? 'rgba(255,255,255,0.25)' : (allReqDone ? '#D1FAE5' : '#FEE2E2'), color: isActive ? '#FFF' : (allReqDone ? '#065F46' : '#991B1B'), fontSize: 10, fontWeight: 900, padding: '1px 6px', borderRadius: 10 }}>
+                  {p.obtained}/{p.total}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Document list ── */}
+      <div style={{ padding: '4px 16px 16px' }}>
+        {/* Category header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '12px 0 10px' }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: `${cat?.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{cat?.icon}</div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 900, color: '#0D1821' }}>{cat?.label}</div>
+            <div style={{ fontSize: 11, color: '#56697C' }}>{progress[activecat]?.obtained}/{progress[activecat]?.total} obtained · {progress[activecat]?.reqTotal} required</div>
+          </div>
+        </div>
+
+        {activecat === 'oconus' && (
+          <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 12, color: '#1E40AF' }}>
+            🌏 OCONUS documents apply to your overseas assignment. Start passport applications at least <strong>3 months early</strong>.
+          </div>
+        )}
+
+        {currentDocs.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9CA3AF', fontSize: 13 }}>No documents in this category.</div>
+        ) : currentDocs.map((doc) => {
+          const st        = states[doc.id] || {};
+          const obtained  = !!st.obtained;
+          const hasFile   = !!st.filename;
+          const isUploading = uploading === doc.id;
+
+          return (
+            <div key={doc.id} style={{ background: '#FFF', borderRadius: 14, marginBottom: 10, border: `1.5px solid ${obtained ? `${cat?.color}40` : '#E2E8F0'}`, overflow: 'hidden', boxShadow: obtained ? `0 2px 8px ${cat?.color}18` : 'none' }}>
+              {/* Main row */}
+              <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                {/* Checkbox */}
+                <button onClick={() => toggleObtained(doc.id)} style={{ ...inputSt, flexShrink: 0, marginTop: 2 }} aria-label={obtained ? 'Mark as not obtained' : 'Mark as obtained'}>
+                  <div style={{ width: 24, height: 24, borderRadius: 7, border: `2px solid ${obtained ? cat?.color : '#CBD5E1'}`, background: obtained ? cat?.color : '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .2s' }}>
+                    {obtained && <span style={{ color: '#FFF', fontSize: 13, fontWeight: 900 }}>✓</span>}
+                  </div>
+                </button>
+
+                {/* Content */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 3 }}>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: obtained ? '#0D1821' : '#374151', textDecoration: obtained ? 'none' : 'none' }}>{doc.name}</span>
+                    {doc.required && (
+                      <span style={{ fontSize: 9, fontWeight: 800, background: obtained ? '#D1FAE5' : '#FEE2E2', color: obtained ? '#065F46' : '#991B1B', padding: '2px 7px', borderRadius: 10, letterSpacing: '.05em' }}>
+                        {obtained ? '✓ REQUIRED' : 'REQUIRED'}
+                      </span>
+                    )}
+                    {!doc.required && <span style={{ fontSize: 9, color: '#9CA3AF', fontWeight: 600 }}>optional</span>}
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: cat?.color, marginBottom: 4 }}>{doc.form}</div>
+                  <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{doc.desc}</div>
+                  {st.uploadedAt && <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 4 }}>Uploaded {new Date(st.uploadedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>}
+                </div>
+              </div>
+
+              {/* Action bar */}
+              <div style={{ borderTop: `1px solid ${obtained ? `${cat?.color}20` : '#F1F5F9'}`, padding: '8px 14px', display: 'flex', gap: 8, flexWrap: 'wrap', background: obtained ? `${cat?.color}06` : '#FAFAFA' }}>
+                {/* Upload / re-upload */}
+                <button onClick={() => pickFile(doc.id)} disabled={isUploading} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, background: hasFile ? '#F1F5F9' : cat?.color, color: hasFile ? '#374151' : '#FFF', border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                  {isUploading ? '⏳ Saving…' : hasFile ? `📎 ${st.filename.length > 20 ? st.filename.slice(0,18)+'…' : st.filename}` : '⬆ Attach File'}
+                </button>
+
+                {/* Form link (if no file attached) */}
+                {!hasFile && doc.formUrl && (
+                  <a href={doc.formUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', fontSize: 11, fontWeight: 700, textDecoration: 'none' }}>
+                    🔗 Get Form
+                  </a>
+                )}
+
+                {/* File actions */}
+                {hasFile && (
+                  <>
+                    <button onClick={() => openFile(doc.id)} style={{ padding: '6px 12px', borderRadius: 8, background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                      👁 View
+                    </button>
+                    <button onClick={() => printFile(doc.id)} style={{ padding: '6px 12px', borderRadius: 8, background: '#F0FDF4', color: '#15803D', border: '1px solid #BBF7D0', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                      🖨 Print
+                    </button>
+                    <button onClick={() => downloadFile(doc.id, st.filename)} style={{ padding: '6px 12px', borderRadius: 8, background: '#F5F3FF', color: '#7C3AED', border: '1px solid #DDD6FE', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                      ⬇ Save
+                    </button>
+                    <button onClick={() => removeFile(doc.id)} style={{ padding: '6px 12px', borderRadius: 8, background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                      ✕
+                    </button>
+                  </>
+                )}
+
+                {/* Mark obtained (if no file, quick toggle) */}
+                {!obtained && !hasFile && (
+                  <button onClick={() => toggleObtained(doc.id)} style={{ marginLeft: 'auto', padding: '6px 12px', borderRadius: 8, background: `${cat?.color}15`, color: cat?.color, border: `1px solid ${cat?.color}40`, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                    ✓ Mark Obtained
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
