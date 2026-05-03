@@ -1,19 +1,10 @@
 {
-  "$schema": "railway.app/railway.schema.json",
   "build": {
-    "builder": "dockerfile",
-    "dockerfile": "Dockerfile"
+    "builder": "dockerfile"
   },
   "deploy": {
     "startCommand": "node server/index.js",
     "restartPolicyType": "on_failure",
-    "restartPolicyMaxRetries": 1,
-    "healthCheck": {
-      "command": "curl --fail http://localhost:$PORT/health || exit 1",
-      "interval": 30,
-      "timeout": 5,
-      "retries": 2,
-      "startPeriod": 20
-    }
+    "restartPolicyMaxRetries": 1
   }
 }
