@@ -1,37 +1,31 @@
 /**
  * API Configuration for PCS Express Frontend
- * Update the apiUrl to match your backend deployment
+ * Properly configured for Docker production and development
  */
 
+// Get the current hostname/origin
+const getApiUrl = () => {
+  // In Docker production: nginx serves both frontend and proxies /api to Express on port 3001
+  // The frontend should always use relative paths to /api for same-origin requests
+  
+  if (typeof window === 'undefined') {
+    // SSR/Node.js environment
+    return 'http://localhost:3001';
+  }
+
+  // Browser environment - use relative path (works across all deployments)
+  return '';
+};
+
 export const API_CONFIG = {
-  // Local development
-  development: {
-    apiUrl: 'http://localhost:3000'
-  },
+  // Always use relative paths when available (current origin)
+  apiUrl: getApiUrl(),
   
-  // Railway production
-  production: {
-    apiUrl: 'https://pcs-express-backend.railway.app'
-  },
-  
-  // AWS production
-  aws: {
-    apiUrl: 'https://api.pcs-express.military.mil'
+  // API endpoints
+  endpoints: {
+    health: '/api/health',
+    ai: '/api/ai'
   }
 };
 
-// Get current environment
-const ENV = process.env.NODE_ENV || 'development';
-const DEPLOYMENT = process.env.DEPLOYMENT || 'development';
-
-// Determine which config to use
-let config;
-if (DEPLOYMENT === 'railway' && ENV === 'production') {
-  config = API_CONFIG.production;
-} else if (DEPLOYMENT === 'aws' && ENV === 'production') {
-  config = API_CONFIG.aws;
-} else {
-  config = API_CONFIG.development;
-}
-
-export default config;
+export default API_CONFIG;

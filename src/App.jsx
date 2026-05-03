@@ -487,141 +487,420 @@ function EducationBenefitsTab({ theme, profile }) {
   );
 }
 
+// ─── Onboarding constants ──────────────────────────────────────────────────
+const COMPONENT_TYPES = ['Active Duty', 'Reserve', 'National Guard', 'AGR', 'FTNG'];
+
+const SUPPORTED_LANGUAGES = [
+  { code: 'en', name: 'English',              native: 'English'    },
+  { code: 'es', name: 'Spanish',              native: 'Español'    },
+  { code: 'de', name: 'German',               native: 'Deutsch'    },
+  { code: 'fr', name: 'French',               native: 'Français'   },
+  { code: 'ko', name: 'Korean',               native: '한국어'       },
+  { code: 'ja', name: 'Japanese',             native: '日本語'       },
+  { code: 'tl', name: 'Tagalog',              native: 'Tagalog'    },
+  { code: 'ar', name: 'Arabic',               native: 'العربية'     },
+  { code: 'zh', name: 'Chinese (Simplified)', native: '中文'        },
+  { code: 'it', name: 'Italian',              native: 'Italiano'   },
+  { code: 'pt', name: 'Portuguese',           native: 'Português'  },
+  { code: 'vi', name: 'Vietnamese',           native: 'Tiếng Việt' },
+];
+
+const RELIGIOUS_PREFERENCES = [
+  'No Preference', 'Protestant / Christian', 'Catholic', 'Orthodox Christian',
+  'Jewish', 'Muslim / Islam', 'Buddhist', 'Hindu',
+  'Sikh', 'LDS / Mormon', 'Unitarian Universalist',
+  'Prefer not to say', 'Other',
+];
+
+const INSTALLATION_UNITS = {
+  'Fort Liberty': {
+    Army: ['XVIII Airborne Corps', '82nd Airborne Division', '1st Special Forces Command', '525th Expeditionary Military Intelligence Brigade'],
+    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Fort Campbell': {
+    Army: ['101st Airborne Division (Air Assault)', 'Special Operations Command Central', '5th Special Forces Group'],
+    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Fort Hood': {
+    Army: ['III Corps', '1st Cavalry Division', '3rd Cavalry Regiment', '13th Sustainment Command'],
+    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Fort Cavazos': {
+    Army: ['III Corps', '1st Cavalry Division', '3rd Cavalry Regiment', '13th Sustainment Command'],
+    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Joint Base Lewis-McChord': {
+    Army: ['I Corps', '7th Infantry Division', '2nd Infantry Division', '62nd Airlift Wing'],
+    'Air Force': ['62nd Airlift Wing', '446th Airlift Wing'],
+    Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Fort Carson': {
+    Army: ['4th Infantry Division', 'U.S. Army Space and Missile Defense Command', '10th Special Forces Group'],
+    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Fort Bliss': {
+    Army: ['1st Armored Division', '32nd Army Air and Missile Defense Command', '46th Military Police Command'],
+    'Air Force': ['Air Defense Artillery Center of Excellence'],
+    Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Fort Drum': {
+    Army: ['10th Mountain Division', 'Fort Drum Garrison'],
+    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Fort Sill': {
+    Army: ['Fires Center of Excellence', '75th Field Artillery Brigade', '31st Air Defense Artillery Brigade'],
+    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Naval Station Norfolk': {
+    Navy: ['U.S. Fleet Forces Command', 'Naval Station Norfolk', 'Carrier Strike Groups', 'Naval Air Force Atlantic'],
+    'Marine Corps': ['2nd Marine Aircraft Wing'],
+    Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Naval Base San Diego': {
+    Navy: ['Navy Region Southwest', 'Third Fleet', 'Carrier Strike Groups', 'Submarine Forces'],
+    'Marine Corps': ['1st Marine Division', '3rd Marine Expeditionary Force'],
+    Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Marine Corps Base Camp Lejeune': {
+    'Marine Corps': ['2nd Marine Division', 'II Marine Expeditionary Force', '2nd Marine Logistics Group'],
+    Navy: ['Naval Medical Center Camp Lejeune'],
+    Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Camp Pendleton': {
+    'Marine Corps': ['1st Marine Division', 'I Marine Expeditionary Force', 'Marine Aircraft Group 16'],
+    Navy: ['Naval Hospital Camp Pendleton'],
+    Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Camp Humphreys': {
+    Army: ['U.S. Forces Korea', '8th Army', '2nd Infantry Division', '19th Expeditionary Sustainment Command'],
+    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Ramstein Air Base': {
+    'Air Force': ['U.S. Air Forces in Europe (USAFE)', '86th Airlift Wing', '521st Air Mobility Operations Wing'],
+    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Kadena Air Base': {
+    'Air Force': ['18th Wing', '353rd Special Operations Wing', '5th Air Force'],
+    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Yokota Air Base': {
+    'Air Force': ['374th Airlift Wing', '5th Air Force', 'U.S. Forces Japan'],
+    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Joint Base Pearl Harbor-Hickam': {
+    Navy: ['U.S. Pacific Fleet', 'Naval Station Pearl Harbor'],
+    'Air Force': ['15th Wing', 'Pacific Air Forces'],
+    Army: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'Eglin AFB': {
+    'Air Force': ['Air Force Materiel Command', '96th Test Wing', '33rd Fighter Wing'],
+    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
+  },
+  'MacDill AFB': {
+    'Air Force': ['6th Air Refueling Wing', 'U.S. Central Command (CENTCOM)', 'U.S. Special Operations Command (SOCOM)'],
+    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
+  },
+};
+
+const DEMO_PROFILE = {
+  firstName: 'Marcus', lastName: 'Thompson',
+  branch: 'Army', component: 'Active Duty', paygrade: 'E-7',
+  losingInstallation: 'Fort Liberty', gainingInstallation: 'Camp Humphreys',
+  departingDate: '2026-06-15',
+  unit: '8th Army',
+  isOverseas: true, hasDependents: true, hasChildren: true,
+  childAges: [14, 11, 8], bedrooms: '4',
+  language: 'en', religiousPreference: 'Protestant / Christian',
+};
+
 function Onboarding({ onComplete }) {
   const [step, setStep] = useState(0);
+  const [losingSearch, setLosingSearch] = useState('');
+  const [gainingSearch, setGainingSearch] = useState('');
   const [p, setP] = useState({
-    firstName: '',
-    branch: 'Army',
-    paygrade: 'E-5',
-    departingDate: '',
-    gainingInstallation: '',
-    isOverseas: false,
-    language: 'English',
-    religion: 'Christian',
-    religiousPreference: 'Christian',
-    childrenAges: '',
-    hasDependents: false,
+    firstName: '', lastName: '', branch: 'Army', component: 'Active Duty', paygrade: 'E-5',
+    losingInstallation: '', gainingInstallation: '', departingDate: '', unit: '',
+    isOverseas: false, hasDependents: false, hasChildren: false, childAges: [], bedrooms: '3',
+    language: 'en', religiousPreference: 'No Preference',
   });
+
+  const upd = (k, v) => setP(prev => ({ ...prev, [k]: v }));
+  const updBranch = (branch) => setP(prev => ({ ...prev, branch, unit: '' }));
+  const updGaining = (name) => {
+    const sel = MILITARY_DUTY_STATIONS.find(s => s.name === name);
+    setP(prev => ({ ...prev, gainingInstallation: name, unit: '', isOverseas: sel?.country ? true : false }));
+  };
 
   const theme = BRANCH_THEMES[p.branch];
 
+  const losingSuggestions = losingSearch.length > 1
+    ? MILITARY_DUTY_STATIONS.filter(b => b.name.toLowerCase().includes(losingSearch.toLowerCase())).slice(0, 7)
+    : [];
+  const gainingSuggestions = gainingSearch.length > 1
+    ? MILITARY_DUTY_STATIONS.filter(b => b.name.toLowerCase().includes(gainingSearch.toLowerCase())).slice(0, 7)
+    : [];
+  const availableUnits = p.gainingInstallation
+    ? (INSTALLATION_UNITS[p.gainingInstallation]?.[p.branch] || [])
+    : [];
+
+  const inputSt = {
+    width: '100%', fontSize: 14, padding: '11px 14px', borderRadius: 10,
+    border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.25)',
+    color: '#FFFFFF', outline: 'none', boxSizing: 'border-box',
+  };
+  const canGo1 = p.firstName && p.branch && p.paygrade && p.component;
+  const canGo2 = p.gainingInstallation && p.departingDate;
+
+  const SuggestionList = ({ items, onSelect }) => items.length === 0 ? null : (
+    <div style={{ marginTop: 4, background: 'rgba(0,0,0,0.5)', borderRadius: 10, maxHeight: 200, overflowY: 'auto', border: '1px solid rgba(255,255,255,0.12)' }}>
+      {items.map(b => (
+        <div key={b.name} onClick={() => onSelect(b.name)} style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>
+          {b.name} — {b.state} <span style={{ fontSize: 11, color: theme.accent }}>({b.branch})</span>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
-    <div style={{ minHeight: '100vh', background: theme.secondary, display: 'flex', flexDirection: 'column', fontFamily: 'system-ui' }}>
-      <div style={{ padding: '20px 16px', textAlign: 'center' }}>
-        <div style={{ fontSize: 24, fontWeight: 900, color: '#FFFFFF' }}>PCS Express</div>
-        <div style={{ fontSize: 12, color: theme.accent, marginTop: 4 }}>Your move, simplified</div>
+    <div style={{ minHeight: '100dvh', background: theme.secondary, display: 'flex', flexDirection: 'column', fontFamily: 'system-ui' }}>
+      {/* Header */}
+      <div style={{ padding: 'env(safe-area-inset-top) 0 0', background: theme.secondary }}>
+        <div style={{ padding: '20px 16px 12px', textAlign: 'center' }}>
+          <div style={{ fontSize: 26, fontWeight: 900, color: '#FFFFFF', letterSpacing: '.05em' }}>PCS EXPRESS</div>
+          <div style={{ fontSize: 12, color: theme.accent, marginTop: 4 }}>Your move, simplified.</div>
+        </div>
+        {/* Progress dots */}
+        {step >= 0 && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, paddingBottom: 12 }}>
+            {[0, 1, 2].map(i => (
+              <div key={i} style={{ width: i === step ? 20 : 8, height: 8, borderRadius: 4, background: i <= step ? theme.accent : 'rgba(255,255,255,0.2)', transition: 'all .3s' }} />
+            ))}
+          </div>
+        )}
       </div>
 
-      <div style={{ flex: 1, padding: '0 16px 20px' }}>
+      <div style={{ flex: 1, padding: '0 16px 24px', overflowY: 'auto' }}>
         <div style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(10px)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.12)', padding: '20px 16px' }}>
+
+          {/* Demo / preview step */}
+          {step === -1 && (
+            <>
+              <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                <div style={{ fontSize: 36, marginBottom: 10 }}>🎬</div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: '#FFF', marginBottom: 8 }}>See PCS Express in Action</div>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>
+                  An E-7 Army soldier with 3 kids managing an overseas move to South Korea — showcasing all app features.
+                </p>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 14, marginBottom: 16, border: '1px solid rgba(255,255,255,0.12)' }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: theme.accent, marginBottom: 10, letterSpacing: '.1em' }}>DEMO PROFILE</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  {[['Rank', 'E-7 (SFC)'], ['Branch', 'Army'], ['Family', '3 Children'], ['Move', 'OCONUS'], ['From', 'Fort Liberty, NC'], ['To', 'Camp Humphreys, SK']].map(([k, v]) => (
+                    <div key={k}><div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>{k}</div><div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>{v}</div></div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <button onClick={() => onComplete(DEMO_PROFILE)} style={{ padding: '13px', borderRadius: 12, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 14, fontWeight: 900, cursor: 'pointer' }}>Launch Demo</button>
+                <button onClick={() => setStep(0)} style={{ padding: '13px', borderRadius: 12, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#FFF', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>My Profile</button>
+              </div>
+            </>
+          )}
+
+          {/* Step 0 — Branch & Profile */}
           {step === 0 && (
             <>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#FFFFFF', marginBottom: 16 }}>Select Your Branch</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
-                {Object.keys(BRANCH_THEMES).map((branch) => (
-                  <button
-                    key={branch}
-                    onClick={() => setP({ ...p, branch })}
-                    style={{
-                      padding: '12px',
-                      borderRadius: 12,
-                      border: `2px solid ${p.branch === branch ? BRANCH_THEMES[branch].accent : 'rgba(255,255,255,0.2)'}`,
-                      background: p.branch === branch ? `${BRANCH_THEMES[branch].accent}30` : 'rgba(0,0,0,0.2)',
-                      color: '#FFFFFF',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      fontSize: 11,
-                    }}
-                  >
-                    {branch}
-                  </button>
-                ))}
+              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Branch & Profile</div>
+
+              {/* Branch buttons */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
+                {Object.keys(BRANCH_THEMES).map(b => {
+                  const t = BRANCH_THEMES[b];
+                  const active = p.branch === b;
+                  return (
+                    <button key={b} onClick={() => updBranch(b)} style={{ padding: '11px 4px', borderRadius: 10, border: `2px solid ${active ? t.accent : 'rgba(255,255,255,0.15)'}`, background: active ? `${t.accent}30` : 'rgba(255,255,255,0.04)', color: active ? t.accent : 'rgba(255,255,255,0.55)', fontSize: 10, fontWeight: active ? 800 : 500, cursor: 'pointer', lineHeight: 1.3, textAlign: 'center' }}>
+                      {b}
+                    </button>
+                  );
+                })}
               </div>
 
-              <input
-                type="text"
-                placeholder="First name"
-                value={p.firstName}
-                onChange={(e) => setP({ ...p, firstName: e.target.value })}
-                style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.25)', color: '#FFFFFF', marginBottom: 10, outline: 'none', fontSize: 14, boxSizing: 'border-box' }}
-              />
+              {/* Name */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>FIRST NAME</label>
+                  <input value={p.firstName} onChange={e => upd('firstName', e.target.value)} placeholder="Jordan" style={inputSt} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>LAST NAME</label>
+                  <input value={p.lastName} onChange={e => upd('lastName', e.target.value)} placeholder="Rivera" style={inputSt} />
+                </div>
+              </div>
 
-              <select value={p.paygrade} onChange={(e) => setP({ ...p, paygrade: e.target.value })} style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.25)', color: '#FFFFFF', marginBottom: 10, outline: 'none', fontSize: 14 }}>
-                {['E-1', 'E-2', 'E-3', 'E-4', 'E-5', 'E-6', 'E-7', 'E-8', 'E-9', 'W-1', 'W-2', 'W-3', 'W-4', 'W-5', 'O-1', 'O-2', 'O-3', 'O-4', 'O-5', 'O-6', 'O-7', 'O-8', 'O-9', 'O-10'].map(g => <option key={g}>{g}</option>)}
-              </select>
+              {/* Component */}
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>COMPONENT</label>
+                <select value={p.component} onChange={e => upd('component', e.target.value)} style={inputSt}>
+                  {COMPONENT_TYPES.map(c => <option key={c}>{c}</option>)}
+                </select>
+              </div>
 
-              <button onClick={() => setStep(1)} style={{ width: '100%', padding: '12px', borderRadius: 12, background: theme.accent, color: theme.secondary, border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: 14 }}>
+              {/* Pay grade */}
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>PAY GRADE</label>
+                <select value={p.paygrade} onChange={e => upd('paygrade', e.target.value)} style={inputSt}>
+                  {['E-1','E-2','E-3','E-4','E-5','E-6','E-7','E-8','E-9','W-1','W-2','W-3','W-4','W-5','O-1','O-2','O-3','O-4','O-5','O-6','O-7','O-8','O-9','O-10'].map(g => <option key={g}>{g}</option>)}
+                </select>
+              </div>
+
+              {/* Language */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>PREFERRED LANGUAGE</label>
+                <select value={p.language} onChange={e => upd('language', e.target.value)} style={inputSt}>
+                  {SUPPORTED_LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.native} — {l.name}</option>)}
+                </select>
+                <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>Used for translation services and language-specific resources</div>
+              </div>
+
+              <button onClick={() => setStep(-1)} style={{ width: '100%', padding: '10px', marginBottom: 10, borderRadius: 10, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                See Demo First →
+              </button>
+              <button onClick={() => setStep(1)} disabled={!canGo1} style={{ width: '100%', padding: '13px', borderRadius: 12, background: canGo1 ? theme.accent : 'rgba(255,255,255,0.1)', color: canGo1 ? theme.secondary : 'rgba(255,255,255,0.3)', border: 'none', fontWeight: 900, cursor: canGo1 ? 'pointer' : 'not-allowed', fontSize: 14 }}>
                 Continue →
               </button>
             </>
           )}
 
+          {/* Step 1 — Bases & Unit */}
           {step === 1 && (
             <>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#FFFFFF', marginBottom: 16 }}>Your Move Details</div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Your Bases & Unit</div>
 
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: 6 }}>DEPARTING DATE</label>
-              <input type="date" value={p.departingDate} onChange={(e) => setP({ ...p, departingDate: e.target.value })} style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.25)', color: '#FFFFFF', marginBottom: 16, outline: 'none', colorScheme: 'dark', fontSize: 14, boxSizing: 'border-box' }} />
+              {/* Losing installation */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>DEPARTING FROM (LOSING INSTALLATION)</label>
+                <input
+                  value={losingSearch || p.losingInstallation}
+                  onChange={e => { setLosingSearch(e.target.value); upd('losingInstallation', e.target.value); }}
+                  placeholder="Type base name..."
+                  style={inputSt}
+                />
+                <SuggestionList items={losingSuggestions} onSelect={name => { upd('losingInstallation', name); setLosingSearch(''); }} />
+              </div>
 
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: 6 }}>GAINING INSTALLATION</label>
-              <select value={p.gainingInstallation} onChange={(e) => {
-                const sel = MILITARY_DUTY_STATIONS.find(s => s.name === e.target.value);
-                setP({ ...p, gainingInstallation: e.target.value, isOverseas: sel?.country ? true : false });
-              }} style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.25)', color: '#FFFFFF', marginBottom: 16, outline: 'none', fontSize: 14 }}>
-                <option value="">Select base...</option>
-                {MILITARY_DUTY_STATIONS.map(s => <option key={s.name} value={s.name}>{s.name} — {s.state} ({s.branch})</option>)}
-              </select>
+              {/* Gaining installation */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>REPORTING TO (GAINING INSTALLATION)</label>
+                <input
+                  value={gainingSearch || p.gainingInstallation}
+                  onChange={e => { setGainingSearch(e.target.value); updGaining(e.target.value); }}
+                  placeholder="Type base name..."
+                  style={inputSt}
+                />
+                <SuggestionList items={gainingSuggestions} onSelect={name => { updGaining(name); setGainingSearch(''); }} />
+                {p.isOverseas && <div style={{ marginTop: 5, fontSize: 11, color: theme.accent, fontWeight: 700 }}>🌏 OCONUS — Overseas move detected</div>}
+              </div>
 
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => setStep(0)} style={{ flex: 1, padding: '12px', borderRadius: 12, background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.15)', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>← Back</button>
-                <button onClick={() => setStep(2)} style={{ flex: 1, padding: '12px', borderRadius: 12, background: theme.accent, color: theme.secondary, border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: 12 }}>Next →</button>
+              {/* Departing date */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>DEPARTING DATE</label>
+                <input type="date" value={p.departingDate} onChange={e => upd('departingDate', e.target.value)} style={{ ...inputSt, colorScheme: 'dark' }} />
+              </div>
+
+              {/* Unit assignment */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
+                  UNIT ASSIGNMENT{p.gainingInstallation ? ` AT ${p.gainingInstallation.toUpperCase()}` : ''}
+                </label>
+                <select value={p.unit} onChange={e => upd('unit', e.target.value)} style={inputSt} disabled={!p.gainingInstallation}>
+                  <option value="">{p.gainingInstallation ? 'Select unit...' : 'Select a gaining installation first'}</option>
+                  {availableUnits.length > 0
+                    ? availableUnits.map(u => <option key={u} value={u}>{u}</option>)
+                    : p.gainingInstallation && <option value="" disabled>No {p.branch} units listed — enter manually below</option>
+                  }
+                </select>
+                {p.gainingInstallation && availableUnits.length === 0 && (
+                  <input value={p.unit} onChange={e => upd('unit', e.target.value)} placeholder="Enter unit name manually..." style={{ ...inputSt, marginTop: 8 }} />
+                )}
+                {availableUnits.length > 0 && <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{availableUnits.length} {p.branch} unit{availableUnits.length !== 1 ? 's' : ''} available</div>}
+              </div>
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={() => setStep(0)} style={{ padding: '13px 18px', borderRadius: 12, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>← Back</button>
+                <button onClick={() => setStep(2)} disabled={!canGo2} style={{ flex: 1, padding: '13px', borderRadius: 12, background: canGo2 ? theme.accent : 'rgba(255,255,255,0.1)', color: canGo2 ? theme.secondary : 'rgba(255,255,255,0.3)', border: 'none', fontWeight: 900, cursor: canGo2 ? 'pointer' : 'not-allowed', fontSize: 14 }}>Continue →</button>
               </div>
             </>
           )}
 
+          {/* Step 2 — Family, Religion & Housing */}
           {step === 2 && (
             <>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#FFFFFF', marginBottom: 16 }}>Language & Religion</div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Family & Preferences</div>
 
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: 6 }}>PREFERRED LANGUAGE</label>
-              <select value={p.language} onChange={(e) => setP({ ...p, language: e.target.value })} style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.25)', color: '#FFFFFF', marginBottom: 16, outline: 'none', fontSize: 14 }}>
-                {['English', 'Spanish', 'German', 'Korean', 'Japanese'].map(l => <option key={l}>{l}</option>)}
-              </select>
+              {/* Toggles */}
+              {[['hasDependents', 'Spouse / Dependents traveling with me'], ['hasChildren', 'I have children']].map(([key, label]) => (
+                <div key={key} onClick={() => upd(key, !p[key])} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, marginBottom: 10, background: p[key] ? `${theme.accent}20` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${p[key] ? `${theme.accent}66` : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer' }}>
+                  <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${p[key] ? theme.accent : 'rgba(255,255,255,0.25)'}`, background: p[key] ? theme.accent : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {p[key] && <span style={{ color: theme.secondary, fontSize: 13, fontWeight: 900 }}>✓</span>}
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>{label}</div>
+                </div>
+              ))}
 
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: 6 }}>RELIGIOUS PREFERENCE</label>
-              <select value={p.religion} onChange={(e) => setP({ ...p, religion: e.target.value, religiousPreference: e.target.value })} style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.25)', color: '#FFFFFF', marginBottom: 16, outline: 'none', fontSize: 14 }}>
-                {['Christian', 'Catholic', 'Protestant', 'Jewish', 'Islamic', 'Buddhist', 'Hindu', 'Other', 'Prefer not to say'].map(r => <option key={r}>{r}</option>)}
-              </select>
-
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => setStep(1)} style={{ flex: 1, padding: '12px', borderRadius: 12, background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.15)', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>← Back</button>
-                <button onClick={() => setStep(3)} style={{ flex: 1, padding: '12px', borderRadius: 12, background: theme.accent, color: theme.secondary, border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: 12 }}>Next →</button>
-              </div>
-            </>
-          )}
-
-          {step === 3 && (
-            <>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#FFFFFF', marginBottom: 16 }}>Family Information</div>
-
-              <label style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, background: 'rgba(0,0,0,0.2)', cursor: 'pointer', marginBottom: 12 }}>
-                <input type="checkbox" checked={p.hasDependents} onChange={(e) => setP({ ...p, hasDependents: e.target.checked })} style={{ width: 18, height: 18, cursor: 'pointer' }} />
-                <span style={{ color: '#FFFFFF', fontWeight: 700, fontSize: 12 }}>I have dependents/children</span>
-              </label>
-
-              {p.hasDependents && (
-                <>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: 6 }}>CHILDREN'S AGES (comma-separated)</label>
-                  <input type="text" placeholder="e.g., 5, 8, 12" value={p.childrenAges} onChange={(e) => setP({ ...p, childrenAges: e.target.value })} style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.25)', color: '#FFFFFF', marginBottom: 16, outline: 'none', fontSize: 14, boxSizing: 'border-box' }} />
-                </>
+              {/* Children ages */}
+              {p.hasChildren && (
+                <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 14, marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent }}>CHILDREN'S AGES</label>
+                    <button onClick={() => upd('childAges', [...p.childAges, ''])} style={{ padding: '5px 12px', borderRadius: 8, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>+ Add Child</button>
+                  </div>
+                  {p.childAges.length === 0 && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '6px 0' }}>No children added yet</div>}
+                  {p.childAges.map((age, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', minWidth: 60 }}>Child {idx + 1}</div>
+                      <input type="number" min="0" max="25" value={age} onChange={e => { const a = [...p.childAges]; a[idx] = e.target.value; upd('childAges', a); }} placeholder="Age" style={{ ...inputSt, width: 80, flexShrink: 0 }} />
+                      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>yrs</span>
+                      <button onClick={() => upd('childAges', p.childAges.filter((_, i) => i !== idx))} style={{ marginLeft: 'auto', padding: '4px 9px', borderRadius: 7, background: 'rgba(255,80,80,0.2)', border: '1px solid rgba(255,80,80,0.35)', color: '#FF8080', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>✕</button>
+                    </div>
+                  ))}
+                </div>
               )}
 
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => setStep(2)} style={{ flex: 1, padding: '12px', borderRadius: 12, background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.15)', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>← Back</button>
-                <button onClick={() => onComplete({ ...p, religiousPreference: p.religion })} style={{ flex: 1, padding: '12px', borderRadius: 12, background: theme.accent, color: theme.secondary, border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: 12 }}>Start</button>
+              {/* Bedrooms */}
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>BEDROOMS NEEDED</label>
+                <select value={p.bedrooms} onChange={e => upd('bedrooms', e.target.value)} style={inputSt}>
+                  {['1', '2', '3', '4', '5+'].map(b => <option key={b}>{b}</option>)}
+                </select>
+              </div>
+
+              {/* Religious preference */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
+                  RELIGIOUS PREFERENCE <span style={{ fontWeight: 400, opacity: 0.55, fontSize: 10 }}>(for chaplain & community resources)</span>
+                </label>
+                <select value={p.religiousPreference} onChange={e => upd('religiousPreference', e.target.value)} style={inputSt}>
+                  {RELIGIOUS_PREFERENCES.map(r => <option key={r}>{r}</option>)}
+                </select>
+                <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>Stored locally only — helps surface relevant chapel and community resources</div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={() => setStep(1)} style={{ padding: '13px 18px', borderRadius: 12, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>← Back</button>
+                <button
+                  onClick={() => onComplete({
+                    ...p,
+                    childAges: p.childAges.filter(a => a !== '' && !isNaN(Number(a))).map(Number),
+                    childrenAges: p.childAges.filter(a => a !== '' && !isNaN(Number(a))).map(Number).join(', '),
+                  })}
+                  style={{ flex: 1, padding: '13px', borderRadius: 12, background: theme.accent, color: theme.secondary, border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: 14 }}
+                >
+                  Build My PCS Plan ✦
+                </button>
               </div>
             </>
           )}
+
         </div>
       </div>
     </div>
