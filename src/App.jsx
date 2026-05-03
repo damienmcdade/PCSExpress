@@ -191,11 +191,10 @@ function StarRating({ rating }) {
   );
 }
 
-function ChecklistTab({ theme, profile }) {
-  const [checklistItems, setChecklistItems] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('pcs_checklist_checks')) || {}; } catch { return {}; }
-  });
+function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
   const [activePhase, setActivePhase] = useState(Object.keys(PCS_CHECKLIST)[0]);
+
+  const daysUntil = getDaysUntilDeparture(profile?.departingDate);
 
   const toggleCheckItem = (phase, idx) => {
     const key = `${phase}-${idx}`;
@@ -210,9 +209,22 @@ function ChecklistTab({ theme, profile }) {
   const done = allTasks.filter(k => checklistItems[k]).length;
   const pct = allTasks.length ? Math.round((done / allTasks.length) * 100) : 0;
 
+  const phaseIsOverdue = daysUntil !== null && PHASE_WINDOWS[activePhase] && daysUntil < PHASE_WINDOWS[activePhase].overdueAt;
+
   return (
     <div style={{ padding: 16 }}>
       <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 16 }}>PCS Checklist</div>
+
+      {/* Overdue warning banner */}
+      {phaseIsOverdue && (
+        <div style={{ background: '#FFEBEE', border: '1.5px solid #EF9A9A', borderRadius: 12, padding: '12px 14px', marginBottom: 14, display: 'flex', gap: 10, alignItems: 'center' }}>
+          <span style={{ fontSize: 22, flexShrink: 0 }}>⚠️</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#C62828' }}>"{activePhase}" Phase is Past Due</div>
+            <div style={{ fontSize: 11, color: '#B71C1C', marginTop: 2 }}>Incomplete tasks are highlighted — complete them immediately.</div>
+          </div>
+        </div>
+      )}
 
       {/* Progress bar */}
       <div style={{ background: '#FFFFFF', border: `2px solid ${theme.accent}40`, borderRadius: 14, padding: '14px 22px', marginBottom: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
@@ -230,6 +242,11 @@ function ChecklistTab({ theme, profile }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10, color: '#BBB' }}>
           <span>Orders Received</span><span>In Progress</span><span>Move Complete</span>
         </div>
+        {daysUntil !== null && (
+          <div style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: daysUntil < 0 ? '#C62828' : daysUntil < 30 ? '#E65100' : '#56697C', textAlign: 'center' }}>
+            {daysUntil < 0 ? `${Math.abs(daysUntil)}d since departure` : `${daysUntil} days until departure`}
+          </div>
+        )}
       </div>
 
       {/* Phase tabs */}
@@ -237,9 +254,10 @@ function ChecklistTab({ theme, profile }) {
         {Object.keys(PCS_CHECKLIST).map(phase => {
           const phaseTasks = PCS_CHECKLIST[phase].map((_, i) => `${phase}-${i}`);
           const phaseDone = phaseTasks.filter(k => checklistItems[k]).length;
+          const phaseOverdue = daysUntil !== null && PHASE_WINDOWS[phase] && daysUntil < PHASE_WINDOWS[phase].overdueAt && phaseDone < phaseTasks.length;
           return (
-            <button key={phase} onClick={() => setActivePhase(phase)} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${activePhase === phase ? theme.primary : '#E0E6EE'}`, background: activePhase === phase ? theme.primary : '#FFF', color: activePhase === phase ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
-              {phase} ({phaseDone}/{phaseTasks.length})
+            <button key={phase} onClick={() => setActivePhase(phase)} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${phaseOverdue ? '#EF9A9A' : activePhase === phase ? theme.primary : '#E0E6EE'}`, background: activePhase === phase ? theme.primary : phaseOverdue ? '#FFF5F5' : '#FFF', color: activePhase === phase ? '#FFF' : phaseOverdue ? '#C62828' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: phaseOverdue || activePhase === phase ? 800 : 700, whiteSpace: 'nowrap' }}>
+              {phaseOverdue ? '⚠ ' : ''}{phase} ({phaseDone}/{phaseTasks.length})
             </button>
           );
         })}
@@ -247,14 +265,21 @@ function ChecklistTab({ theme, profile }) {
 
       {/* Tasks */}
       <div>
-        {PCS_CHECKLIST[activePhase].map((task, i) => (
-          <div key={i} onClick={() => toggleCheckItem(activePhase, i)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 8, background: checklistItems[`${activePhase}-${i}`] ? '#E8F5E9' : '#FFFFFF', border: `1px solid ${checklistItems[`${activePhase}-${i}`] ? '#A5D6A7' : 'rgba(0,0,0,0.08)'}`, cursor: 'pointer', marginBottom: 8, transition: 'all 0.15s' }}>
-            <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${checklistItems[`${activePhase}-${i}`] ? '#2E7D32' : theme.accent}`, background: checklistItems[`${activePhase}-${i}`] ? '#2E7D32' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              {checklistItems[`${activePhase}-${i}`] && <span style={{ color: '#fff', fontSize: 14, fontWeight: 900 }}>✓</span>}
+        {PCS_CHECKLIST[activePhase].map((task, i) => {
+          const checked = !!checklistItems[`${activePhase}-${i}`];
+          const taskOverdue = phaseIsOverdue && !checked;
+          return (
+            <div key={i} onClick={() => toggleCheckItem(activePhase, i)} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 14px', borderRadius: 8, background: checked ? '#E8F5E9' : taskOverdue ? '#FFF5F5' : '#FFFFFF', border: `1px solid ${checked ? '#A5D6A7' : taskOverdue ? '#FFCDD2' : 'rgba(0,0,0,0.08)'}`, cursor: 'pointer', marginBottom: 8, transition: 'all 0.15s' }}>
+              <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${checked ? '#2E7D32' : taskOverdue ? '#E57373' : theme.accent}`, background: checked ? '#2E7D32' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                {checked && <span style={{ color: '#fff', fontSize: 14, fontWeight: 900 }}>✓</span>}
+              </div>
+              <div style={{ flex: 1 }}>
+                <span style={{ fontSize: 13, color: checked ? '#888' : taskOverdue ? '#C62828' : theme.primary, textDecoration: checked ? 'line-through' : 'none', fontWeight: checked ? 400 : 600, lineHeight: 1.4 }}>{task}</span>
+                {taskOverdue && <div style={{ fontSize: 10, color: '#E57373', fontWeight: 800, marginTop: 3 }}>PAST DUE — Complete immediately</div>}
+              </div>
             </div>
-            <span style={{ fontSize: 13, color: checklistItems[`${activePhase}-${i}`] ? '#666' : theme.primary, textDecoration: checklistItems[`${activePhase}-${i}`] ? 'line-through' : 'none', fontWeight: checklistItems[`${activePhase}-${i}`] ? 400 : 500 }}>{task}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -326,28 +351,60 @@ function SchoolsTab({ theme, profile }) {
 }
 
 function VeteranBusinessesTab({ theme, profile }) {
+  const [filter, setFilter] = useState('All');
   const instName = (profile?.gainingInstallation || '').split(',')[0].trim();
-  const businesses = VETERAN_OWNED_BUSINESSES[instName] || [];
+  const localBiz = VETERAN_OWNED_BUSINESSES[instName] || [];
+  const categories = ['All', ...new Set(localBiz.map(b => b.category))];
+  const filtered = filter === 'All' ? localBiz : localBiz.filter(b => b.category === filter);
+
+  const NATIONAL_DIRS = [
+    { name: 'Veteran-Owned Business Directory', icon: '🇺🇸', desc: 'Search thousands of verified veteran-owned businesses by location and category.', url: 'https://veteranownedbusiness.com' },
+    { name: 'SBA Veteran Business Outreach', icon: '🏛️', desc: 'Free counseling, training, and procurement opportunities for veteran entrepreneurs.', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses' },
+    { name: 'V-WISE (Women Vets)', icon: '💪', desc: 'SBA program specifically supporting women veteran business owners.', url: 'https://www.sba.gov/vwise' },
+    { name: 'Hire Heroes USA', icon: '✈️', desc: 'Free job placement and career coaching for veterans and military spouses.', url: 'https://www.hireheroesusa.org' },
+  ];
 
   return (
     <div style={{ padding: 16 }}>
-      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Veteran Owned Businesses</div>
-      {instName ? (
-        <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>Near <strong>{instName}</strong></div>
-      ) : (
-        <div style={{ fontSize: 12, color: '#888', marginBottom: 16 }}>Complete onboarding to see local veteran businesses.</div>
-      )}
+      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Veteran Businesses</div>
+      <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>
+        {instName ? <>Local businesses near <strong>{instName}</strong></> : 'Complete onboarding to see businesses near your installation.'}
+      </div>
 
-      {businesses.length === 0 && (
-        <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-          <div style={{ fontSize: 20, marginBottom: 8 }}>⭐</div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 4 }}>No local data yet</div>
-          <div style={{ fontSize: 11, color: '#888' }}>Check usasbe.org or veteranownedbusiness.com for your area.</div>
-          <a href="https://veteranownedbusiness.com" target="_blank" rel="noopener noreferrer" style={{ display: 'block', marginTop: 12, padding: '10px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 11 }}>Search National Directory</a>
+      {/* National directory quick links */}
+      <div style={{ background: theme.secondary, borderRadius: 14, padding: 14, marginBottom: 16 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: theme.accent, marginBottom: 10, letterSpacing: '.08em' }}>NATIONAL DIRECTORIES & RESOURCES</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {NATIONAL_DIRS.map((d, i) => (
+            <a key={i} href={d.url} target="_blank" rel="noopener noreferrer" style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.12)' }}>
+              <div style={{ fontSize: 18, marginBottom: 4 }}>{d.icon}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#FFF', lineHeight: 1.3 }}>{d.name}</div>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {/* Category filter */}
+      {localBiz.length > 0 && categories.length > 2 && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 14, overflowX: 'auto', paddingBottom: 4 }}>
+          {categories.map(cat => (
+            <button key={cat} onClick={() => setFilter(cat)} style={{ flexShrink: 0, padding: '6px 12px', borderRadius: 16, border: `1.5px solid ${filter === cat ? theme.primary : '#E0E6EE'}`, background: filter === cat ? theme.primary : '#FFF', color: filter === cat ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
+              {cat}
+            </button>
+          ))}
         </div>
       )}
 
-      {businesses.map((biz, idx) => (
+      {/* Local listings */}
+      {localBiz.length === 0 && (
+        <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center' }}>
+          <div style={{ fontSize: 20, marginBottom: 8 }}>⭐</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 4 }}>No local listings yet for this installation</div>
+          <div style={{ fontSize: 11, color: '#888' }}>Use the national directories above to find veteran-owned businesses in your area.</div>
+        </div>
+      )}
+
+      {filtered.map((biz, idx) => (
         <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
             <span style={{ fontSize: 22 }}>{biz.icon}</span>
@@ -481,6 +538,271 @@ function EducationBenefitsTab({ theme, profile }) {
               <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: theme.primary, fontWeight: 700, textDecoration: 'none' }}>Open Resource →</a>
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Phase timeline windows (days relative to departure) ──────────────────
+const PHASE_WINDOWS = {
+  'Orders Received': { activeAt: 999, overdueAt: 90 },
+  '90 Days Out':     { activeAt: 90,  overdueAt: 60 },
+  '60 Days Out':     { activeAt: 60,  overdueAt: 30 },
+  '30 Days Out':     { activeAt: 30,  overdueAt: 7  },
+  'Move Week':       { activeAt: 7,   overdueAt: 0  },
+  'In-Processing':   { activeAt: 0,   overdueAt: -30 },
+};
+
+function getDaysUntilDeparture(dateStr) {
+  if (!dateStr) return null;
+  const diff = new Date(dateStr + 'T12:00:00') - new Date();
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
+function OrdersTab({ theme, profile }) {
+  const [orders, setOrders] = useState(() => store.get('pcs_orders') || null);
+  const [mode, setMode] = useState('view');
+  const [form, setForm] = useState({
+    ordersNumber: '',
+    reportDate: profile?.departingDate || '',
+    gainingUnit: profile?.unit || '',
+    gainingInstallation: profile?.gainingInstallation || '',
+    losingInstallation: profile?.losingInstallation || '',
+    authorizedDependents: profile?.hasDependents ?? false,
+    tdyEnRoute: false,
+    tdyLocation: '',
+    pcsAllowances: '',
+  });
+  const [uploading, setUploading] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState('');
+
+  const upd = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
+
+  const saveOrders = (data) => {
+    const saved = { ...data, savedAt: new Date().toISOString() };
+    setOrders(saved);
+    store.set('pcs_orders', saved);
+    setMode('view');
+    setUploadMsg('');
+  };
+
+  const handleFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadMsg('Reading file…');
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const raw = ev.target.result || '';
+      // Extract printable ASCII strings — captures text from text-based PDFs
+      const readable = (raw.match(/[ -~\n\r\t]{8,}/g) || []).join(' ');
+      if (readable.length < 50) {
+        setUploadMsg('Could not extract text. Please fill in the fields below.');
+        setUploading(false);
+        setMode('manual');
+        return;
+      }
+      setUploadMsg('Analyzing orders with AI…');
+      try {
+        const res = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system: 'Parse U.S. military PCS orders text. Return ONLY valid JSON, no other text: {"ordersNumber":"","reportDate":"YYYY-MM-DD or null","gainingUnit":"","gainingInstallation":"","losingInstallation":"","authorizedDependents":true,"tdyEnRoute":false,"tdyLocation":"","pcsAllowances":""}',
+            user: readable.slice(0, 3500),
+          }),
+        });
+        if (res.ok) {
+          const { text } = await res.json();
+          const match = text.match(/\{[\s\S]*?\}/);
+          if (match) {
+            try {
+              const parsed = JSON.parse(match[0]);
+              setForm(prev => ({
+                ...prev,
+                ordersNumber: parsed.ordersNumber || prev.ordersNumber,
+                reportDate: parsed.reportDate || prev.reportDate,
+                gainingUnit: parsed.gainingUnit || prev.gainingUnit,
+                gainingInstallation: parsed.gainingInstallation || prev.gainingInstallation,
+                losingInstallation: parsed.losingInstallation || prev.losingInstallation,
+                authorizedDependents: parsed.authorizedDependents ?? prev.authorizedDependents,
+                tdyEnRoute: parsed.tdyEnRoute ?? prev.tdyEnRoute,
+                tdyLocation: parsed.tdyLocation || prev.tdyLocation,
+                pcsAllowances: parsed.pcsAllowances || prev.pcsAllowances,
+              }));
+              setUploadMsg('Orders analyzed — review fields below and save.');
+            } catch {
+              setUploadMsg('Partially parsed. Fill in any missing fields below.');
+            }
+          } else {
+            setUploadMsg('AI response unclear. Fill in fields manually.');
+          }
+        } else {
+          setUploadMsg('AI unavailable. Enter fields manually below.');
+        }
+      } catch {
+        setUploadMsg('Could not reach server. Enter fields manually.');
+      }
+      setUploading(false);
+      setMode('manual');
+    };
+    reader.readAsText(file, 'utf-8');
+  };
+
+  const daysUntil = orders?.reportDate ? getDaysUntilDeparture(orders.reportDate) : null;
+
+  const fieldSt = {
+    width: '100%', fontSize: 13, padding: '10px 12px', borderRadius: 8,
+    border: '1px solid #CBD5E1', background: '#F8FAFC',
+    color: '#0D1821', outline: 'none', boxSizing: 'border-box',
+  };
+  const labelSt = { fontSize: 11, fontWeight: 700, color: theme.primary, display: 'block', marginBottom: 5 };
+  const InfoRow = ({ label, value }) => !value ? null : (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '7px 0', borderBottom: '1px solid #F5F5F5', fontSize: 12 }}>
+      <span style={{ color: '#888', fontWeight: 600, flexShrink: 0, marginRight: 8 }}>{label}</span>
+      <span style={{ color: '#0D1821', fontWeight: 700, textAlign: 'right' }}>{value}</span>
+    </div>
+  );
+
+  return (
+    <div style={{ padding: 16 }}>
+      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Military Orders</div>
+      <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>Upload your PCS orders to track timelines and deadlines automatically</div>
+
+      {/* No orders: upload prompt */}
+      {mode === 'view' && !orders && (
+        <div style={{ background: theme.secondary, borderRadius: 14, padding: 20, marginBottom: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 36, marginBottom: 10 }}>📋</div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: '#FFF', marginBottom: 8 }}>Upload Your PCS Orders</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 16, lineHeight: 1.5 }}>
+            Upload your orders PDF to automatically extract key dates, unit info, and report deadlines.
+          </div>
+          <label style={{ display: 'block', padding: '12px', borderRadius: 10, background: theme.accent, color: theme.secondary, fontWeight: 800, fontSize: 13, cursor: 'pointer', marginBottom: 10 }}>
+            {uploading ? 'Reading…' : '📎 Select Orders File (PDF / Image)'}
+            <input type="file" accept=".pdf,.png,.jpg,.jpeg,.txt" onChange={handleFile} style={{ display: 'none' }} disabled={uploading} />
+          </label>
+          {uploadMsg && <div style={{ fontSize: 12, color: theme.accent, marginBottom: 10 }}>{uploadMsg}</div>}
+          <button onClick={() => setMode('manual')} style={{ width: '100%', padding: '11px', borderRadius: 10, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+            Enter Orders Manually
+          </button>
+        </div>
+      )}
+
+      {/* Orders on file: summary + timeline */}
+      {mode === 'view' && orders && (
+        <>
+          {daysUntil !== null && (
+            <div style={{ background: daysUntil < 0 ? '#FFEBEE' : daysUntil < 14 ? '#FFF3E0' : '#E8F5E9', border: `2px solid ${daysUntil < 0 ? '#EF9A9A' : daysUntil < 14 ? '#FFB74D' : '#A5D6A7'}`, borderRadius: 12, padding: 14, marginBottom: 14, display: 'flex', gap: 12, alignItems: 'center' }}>
+              <div style={{ fontSize: 28 }}>{daysUntil < 0 ? '📍' : daysUntil < 14 ? '⚡' : '📅'}</div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 900, color: daysUntil < 0 ? '#C62828' : daysUntil < 14 ? '#E65100' : '#1B5E20' }}>
+                  {daysUntil < 0 ? `${Math.abs(daysUntil)} days since report date` : daysUntil === 0 ? 'Report date is TODAY' : `${daysUntil} days to report date`}
+                </div>
+                <div style={{ fontSize: 11, color: '#666' }}>Report NLT: {orders.reportDate}</div>
+              </div>
+            </div>
+          )}
+
+          <div style={{ background: '#FFFFFF', border: `1px solid #E0E6EE`, borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: theme.primary }}>Orders on File</div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <label style={{ padding: '5px 10px', borderRadius: 7, background: `${theme.primary}15`, color: theme.primary, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                  📎 Update
+                  <input type="file" accept=".pdf,.png,.jpg,.jpeg,.txt" onChange={handleFile} style={{ display: 'none' }} />
+                </label>
+                <button onClick={() => { setForm({ ...orders }); setMode('manual'); }} style={{ padding: '5px 10px', borderRadius: 7, background: `${theme.primary}15`, color: theme.primary, fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer' }}>Edit</button>
+              </div>
+            </div>
+            <InfoRow label="Orders Number" value={orders.ordersNumber} />
+            <InfoRow label="Report NLT" value={orders.reportDate} />
+            <InfoRow label="Gaining Unit" value={orders.gainingUnit} />
+            <InfoRow label="Gaining Installation" value={orders.gainingInstallation} />
+            <InfoRow label="Losing Installation" value={orders.losingInstallation} />
+            <InfoRow label="Dependents Auth" value={orders.authorizedDependents ? '✓ Yes' : 'No'} />
+            <InfoRow label="TDY En Route" value={orders.tdyEnRoute ? `✓ Yes${orders.tdyLocation ? ` — ${orders.tdyLocation}` : ''}` : 'No'} />
+            <InfoRow label="Allowances" value={orders.pcsAllowances} />
+          </div>
+
+          {orders.reportDate && (
+            <div style={{ background: '#F8FAFC', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#0D1821', marginBottom: 12 }}>PCS Phase Timeline</div>
+              {Object.entries(PHASE_WINDOWS).map(([phase, win]) => {
+                const phaseDate = new Date(orders.reportDate + 'T12:00:00');
+                phaseDate.setDate(phaseDate.getDate() + win.overdueAt);
+                const isPast = new Date() > phaseDate;
+                const isActive = daysUntil !== null && daysUntil <= win.activeAt && daysUntil >= win.overdueAt;
+                return (
+                  <div key={phase} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: isPast ? '#A5D6A7' : isActive ? theme.accent : '#E0E6EE', flexShrink: 0 }} />
+                    <div style={{ fontSize: 12, color: isPast ? '#555' : isActive ? theme.primary : '#AAA', fontWeight: isActive ? 800 : 400, flex: 1 }}>{phase}</div>
+                    <div style={{ fontSize: 10, color: '#AAA' }}>{win.overdueAt >= 0 ? `${win.overdueAt}d before` : `${Math.abs(win.overdueAt)}d after`}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <button onClick={() => { setOrders(null); store.set('pcs_orders', null); }} style={{ width: '100%', padding: '10px', borderRadius: 10, background: 'transparent', border: '1px solid #FFCDD2', color: '#C62828', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+            Remove Orders
+          </button>
+        </>
+      )}
+
+      {/* Manual entry / edit form */}
+      {mode === 'manual' && (
+        <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 14, padding: 16 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#0D1821', marginBottom: 12 }}>
+            {uploadMsg ? '📋 Review Extracted Data' : 'Orders Information'}
+          </div>
+          {uploadMsg && (
+            <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, padding: '8px 12px', marginBottom: 14, fontSize: 12, color: '#1D4ED8' }}>
+              {uploadMsg}
+            </div>
+          )}
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelSt}>ORDERS NUMBER</label>
+            <input value={form.ordersNumber} onChange={e => upd('ordersNumber', e.target.value)} placeholder="e.g. ORDERS 123-01" style={fieldSt} />
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelSt}>REPORT NLT DATE</label>
+            <input type="date" value={form.reportDate} onChange={e => upd('reportDate', e.target.value)} style={{ ...fieldSt, colorScheme: 'light' }} />
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelSt}>GAINING UNIT</label>
+            <input value={form.gainingUnit} onChange={e => upd('gainingUnit', e.target.value)} placeholder="e.g. 2-7 Infantry, 1st Cav" style={fieldSt} />
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelSt}>GAINING INSTALLATION</label>
+            <input value={form.gainingInstallation} onChange={e => upd('gainingInstallation', e.target.value)} placeholder="e.g. Fort Liberty" style={fieldSt} />
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelSt}>LOSING INSTALLATION</label>
+            <input value={form.losingInstallation} onChange={e => upd('losingInstallation', e.target.value)} placeholder="e.g. Fort Carson" style={fieldSt} />
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelSt}>PCS ALLOWANCES / ENTITLEMENTS</label>
+            <input value={form.pcsAllowances} onChange={e => upd('pcsAllowances', e.target.value)} placeholder="e.g. DPS authorized, PPM, TLE" style={fieldSt} />
+          </div>
+          {[['authorizedDependents', 'Dependents authorized to travel'], ['tdyEnRoute', 'TDY en route authorized']].map(([key, label]) => (
+            <div key={key} onClick={() => upd(key, !form[key])} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderTop: '1px solid #F0F4F8', cursor: 'pointer' }}>
+              <div style={{ width: 20, height: 20, borderRadius: 5, border: `2px solid ${form[key] ? theme.primary : '#CBD5E1'}`, background: form[key] ? theme.primary : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {form[key] && <span style={{ color: '#fff', fontSize: 11 }}>✓</span>}
+              </div>
+              <span style={{ fontSize: 13, color: '#0D1821', fontWeight: 500 }}>{label}</span>
+            </div>
+          ))}
+          {form.tdyEnRoute && (
+            <div style={{ marginTop: 10, marginBottom: 4 }}>
+              <label style={labelSt}>TDY LOCATION</label>
+              <input value={form.tdyLocation} onChange={e => upd('tdyLocation', e.target.value)} placeholder="e.g. Fort Lee, VA" style={fieldSt} />
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+            <button onClick={() => { setMode('view'); setUploadMsg(''); }} style={{ padding: '11px 16px', borderRadius: 10, background: '#F0F4F8', border: 'none', color: '#56697C', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+            <button onClick={() => saveOrders(form)} style={{ flex: 1, padding: '11px', borderRadius: 10, background: theme.primary, border: 'none', color: '#FFF', fontSize: 13, fontWeight: 800, cursor: 'pointer' }}>Save Orders</button>
+          </div>
         </div>
       )}
     </div>
@@ -911,13 +1233,37 @@ function App() {
   const [profile, setProfile] = useState(() => store.get('pcs_profile'));
   const [activeTab, setActiveTab] = useState('home');
   const [navOpen, setNavOpen] = useState(false);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const [checklistItems, setChecklistItems] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('pcs_checklist_checks')) || {}; } catch { return {}; }
+  });
 
   const theme = profile ? BRANCH_THEMES[profile.branch] : BRANCH_THEMES.Army;
 
-  // Close nav on tab change for mobile
+  // Compute pending alerts based on departure date and checklist completion
+  const daysUntilDeparture = profile?.departingDate ? getDaysUntilDeparture(profile.departingDate) : null;
+  const pendingAlerts = profile?.departingDate
+    ? Object.entries(PHASE_WINDOWS)
+        .filter(([phase, win]) => {
+          if (daysUntilDeparture === null || daysUntilDeparture > win.activeAt) return false;
+          const tasks = PCS_CHECKLIST[phase] || [];
+          return tasks.some((_, i) => !checklistItems[`${phase}-${i}`]);
+        })
+        .map(([phase, win]) => ({
+          phase,
+          overdue: daysUntilDeparture < win.overdueAt,
+          daysUntil: daysUntilDeparture,
+          count: (PCS_CHECKLIST[phase] || []).filter((_, i) => !checklistItems[`${phase}-${i}`]).length,
+        }))
+    : [];
+  const overdueCount = pendingAlerts.filter(a => a.overdue).length;
+  const alertCount = pendingAlerts.length;
+
+  // Close nav/notifs on tab change
   const goTo = (tab) => {
     setActiveTab(tab);
     setNavOpen(false);
+    setShowNotifs(false);
   };
 
   if (!profile) {
@@ -925,16 +1271,17 @@ function App() {
   }
 
   const BOTTOM_NAV = [
-    { id: 'home', label: 'Home', icon: '🏠' },
+    { id: 'home',      label: 'Home',     icon: '🏠' },
     { id: 'checklist', label: 'Checklist', icon: '✓' },
-    { id: 'schools', label: 'Schools', icon: '🏫' },
-    { id: 'veterans', label: 'Vet Biz', icon: '⭐' },
-    { id: 'employment', label: 'Work', icon: '💼' },
-    { id: 'education', label: 'GI Bill', icon: '🎓' },
-    { id: 'nav', label: 'Map', icon: '🗺️' },
-    { id: 'spouse', label: 'Spouse', icon: '💛' },
-    { id: 'religion', label: 'Faith', icon: '✝️' },
-    { id: 'translation', label: 'Translate', icon: '🌐' },
+    { id: 'orders',    label: 'Orders',   icon: '📋' },
+    { id: 'schools',   label: 'Schools',  icon: '🏫' },
+    { id: 'nav',       label: 'Map',      icon: '🗺️' },
+    { id: 'veterans',  label: 'Veterans', icon: '⭐' },
+    { id: 'employment',label: 'Work',     icon: '💼' },
+    { id: 'education', label: 'GI Bill',  icon: '🎓' },
+    { id: 'spouse',    label: 'Spouse',   icon: '💛' },
+    { id: 'religion',  label: 'Faith',    icon: '✝️' },
+    { id: 'translation',label: 'Translate',icon: '🌐' },
   ];
 
   const currentLabel = BOTTOM_NAV.find(n => n.id === activeTab)?.label || 'Home';
@@ -962,9 +1309,19 @@ function App() {
             <div style={{ fontSize: 10, letterSpacing: '.12em', color: theme.accent, fontWeight: 900 }}>PCS EXPRESS</div>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#FFFFFF' }}>{profile.firstName} · {currentLabel}</div>
           </div>
-          <button onClick={() => setNavOpen(o => !o)} style={{ background: navOpen ? `${theme.accent}30` : 'none', border: `1px solid rgba(255,255,255,0.25)`, color: '#fff', fontSize: 16, cursor: 'pointer', padding: '6px 11px', borderRadius: 8, lineHeight: 1, fontWeight: 700 }}>
-            {navOpen ? '✕' : '☰'}
-          </button>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {alertCount > 0 && (
+              <button onClick={() => { setShowNotifs(o => !o); setNavOpen(false); }} style={{ position: 'relative', background: showNotifs ? `${theme.accent}30` : overdueCount > 0 ? 'rgba(229,57,53,0.2)' : 'none', border: `1px solid ${overdueCount > 0 ? 'rgba(229,57,53,0.5)' : 'rgba(255,255,255,0.25)'}`, color: '#fff', fontSize: 15, cursor: 'pointer', padding: '6px 10px', borderRadius: 8, lineHeight: 1 }}>
+                🔔
+                <span style={{ position: 'absolute', top: -5, right: -5, background: overdueCount > 0 ? '#E53935' : theme.accent, color: overdueCount > 0 ? '#FFF' : theme.secondary, fontSize: 9, fontWeight: 900, borderRadius: '50%', width: 17, height: 17, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
+                  {overdueCount > 0 ? overdueCount : alertCount}
+                </span>
+              </button>
+            )}
+            <button onClick={() => { setNavOpen(o => !o); setShowNotifs(false); }} style={{ background: navOpen ? `${theme.accent}30` : 'none', border: `1px solid rgba(255,255,255,0.25)`, color: '#fff', fontSize: 16, cursor: 'pointer', padding: '6px 11px', borderRadius: 8, lineHeight: 1, fontWeight: 700 }}>
+              {navOpen ? '✕' : '☰'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -985,8 +1342,34 @@ function App() {
         </div>
       )}
 
-      {/* Backdrop to close nav */}
-      {navOpen && <div onClick={() => setNavOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 150, background: 'transparent' }} />}
+      {/* Notification dropdown */}
+      {showNotifs && pendingAlerts.length > 0 && (
+        <div style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: 0, right: 0, maxWidth: 480, margin: '0 auto', zIndex: 200, background: '#FFFFFF', borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid #F0F0F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821' }}>
+              {overdueCount > 0 ? `${overdueCount} Overdue Action${overdueCount !== 1 ? 's' : ''}` : 'Pending Actions'}
+            </div>
+            <button onClick={() => setShowNotifs(false)} style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: '#888' }}>✕</button>
+          </div>
+          {pendingAlerts.map((alert, i) => (
+            <div key={i} onClick={() => { goTo('checklist'); }} style={{ padding: '12px 16px', borderBottom: '1px solid #F8F8F8', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: alert.overdue ? '#FFF5F5' : '#FFFDE7' }}>
+              <span style={{ fontSize: 20, flexShrink: 0 }}>{alert.overdue ? '⚠️' : '📋'}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: alert.overdue ? '#C62828' : '#E65100' }}>
+                  {alert.overdue ? 'OVERDUE: ' : 'Due Now: '}{alert.phase}
+                </div>
+                <div style={{ fontSize: 11, color: '#888', marginTop: 1 }}>
+                  {alert.count} task{alert.count !== 1 ? 's' : ''} remaining · {alert.daysUntil < 0 ? `${Math.abs(alert.daysUntil)}d past departure` : `${alert.daysUntil}d until departure`}
+                </div>
+              </div>
+              <span style={{ fontSize: 11, color: '#AAA' }}>→</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Backdrop to close nav/notifs */}
+      {(navOpen || showNotifs) && <div onClick={() => { setNavOpen(false); setShowNotifs(false); }} style={{ position: 'fixed', inset: 0, zIndex: 150, background: 'transparent' }} />}
 
       {/* CONTENT */}
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
@@ -997,6 +1380,7 @@ function App() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {[
                 { icon: '📝', label: 'Checklist', id: 'checklist' },
+                { icon: '📋', label: 'Orders', id: 'orders' },
                 { icon: '💼', label: 'Employment', id: 'employment' },
                 { icon: '🏫', label: 'Schools', id: 'schools' },
                 { icon: '⭐', label: 'Vet Businesses', id: 'veterans' },
@@ -1025,7 +1409,8 @@ function App() {
           </div>
         )}
 
-        {activeTab === 'checklist' && <ChecklistTab theme={theme} profile={profile} />}
+        {activeTab === 'checklist' && <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />}
+        {activeTab === 'orders' && <OrdersTab theme={theme} profile={profile} />}
         {activeTab === 'schools' && <SchoolsTab theme={theme} profile={profile} />}
         {activeTab === 'veterans' && <VeteranBusinessesTab theme={theme} profile={profile} />}
         {activeTab === 'employment' && <EmploymentModule theme={theme} profile={profile} />}
