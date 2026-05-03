@@ -1962,6 +1962,7 @@ function DesktopApp({ profile, onReset }) {
                       <option value={reportForm.unit}>{reportForm.unit} (custom)</option>
                     )}
                   </select>
+                </div>
 
               </div>
 
