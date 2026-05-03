@@ -308,7 +308,24 @@ const ALL_UNITS = [
   "United States Transportation Command", "United States Cyber Command", "United States Space Command",
 ].sort();
 
-const COMPONENT_TYPES = ["Active Duty", "Reserve", "National Guard", "AGR", "FTNG"];
+const DEMO_PROFILE = {
+  firstName: "Marcus",
+  lastName: "Thompson",
+  branch: "Army",
+  component: "Active Duty",
+  paygrade: "E-7",
+  losingInstallation: "Fort Liberty",
+  gainingInstallation: "Camp Humphreys",
+  departingDate: "2026-06-15",
+  unit: "101st Airborne Division (Air Assault)",
+  isOverseas: true,
+  hasDependents: true,
+  hasChildren: true,
+  childAges: [14, 11, 8],
+  bedrooms: "4",
+  language: "English",
+  religiousPreference: "Christian (Protestant)",
+};
 
 const VETERAN_BUSINESSES = {
   "Army": [
@@ -832,6 +849,7 @@ function Onboarding({ onComplete }) {
   const [step, setStep] = useState(0);
   const [losingSearch, setLosingSearch] = useState("");
   const [gainingSearch, setGainingSearch] = useState("");
+  const [isDemo, setIsDemo] = useState(false);
   const [p, setP] = useState({
     firstName:"", lastName:"", branch:"Army", component:"Active Duty", paygrade:"E-5",
     losingInstallation:"", gainingInstallation:"", departingDate:"", unit:"",
@@ -871,10 +889,35 @@ function Onboarding({ onComplete }) {
         <div style={{ fontSize:12, letterSpacing:".2em", color:theme.accent, marginBottom:10, fontWeight:800 }}>✦ PCS EXPRESS · {theme.abbr} ✦</div>
         <div style={{ fontSize:42, fontWeight:900, color:"#FFFFFF", lineHeight:1.2 }}>Your move,<br/><span style={{ color:theme.accent }}>simplified.</span></div>
         <p style={{ fontSize:16, color:"rgba(255,255,255,0.6)", marginTop:12 }}>PCS guidance tailored to your branch</p>
+        {step === 0 && <button onClick={() => setStep(-1)} style={{ marginTop:16, padding:"8px 16px", borderRadius:8, background:"rgba(255,255,255,0.15)", border:`1px solid ${theme.accent}40`, color:"rgba(255,255,255,0.7)", fontSize:12, fontWeight:700, cursor:"pointer" }}>See Demo →</button>}
       </div>
 
       <div style={{ flex:1, padding:"40px", maxWidth:600, margin:"0 auto", width:"100%" }}>
         <div style={{ background:"rgba(0,0,0,0.35)", backdropFilter:"blur(10px)", borderRadius:20, border:"1px solid rgba(255,255,255,0.12)", padding:"32px", position:"relative", zIndex:1 }}>
+          {step === -1 && <>
+            <div style={{ textAlign:"center", marginBottom:40 }}>
+              <div style={{ fontSize:48, marginBottom:20 }}>🎬</div>
+              <div style={{ fontSize:28, fontWeight:900, color:"#FFFFFF", marginBottom:16 }}>See PCS Express in Action</div>
+              <p style={{ fontSize:14, color:"rgba(255,255,255,0.8)", marginBottom:32, lineHeight:1.6 }}>Watch how an E-7 Army soldier with 3 kids can use PCS Express to manage an overseas move to South Korea. This demo showcases all features and capabilities.</p>
+              
+              <div style={{ background:"rgba(255,255,255,0.08)", borderRadius:14, padding:"20px", marginBottom:24, textAlign:"left", border:"1px solid rgba(255,255,255,0.15)" }}>
+                <div style={{ fontSize:12, fontWeight:700, color:theme.accent, marginBottom:12, textTransform:"uppercase", letterSpacing:".1em" }}>Demo Profile</div>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                  <div><span style={{ fontSize:11, color:"rgba(255,255,255,0.6)" }}>Rank:</span><br/><span style={{ fontSize:14, fontWeight:700, color:"#FFFFFF" }}>E-7 (Sergeant First Class)</span></div>
+                  <div><span style={{ fontSize:11, color:"rgba(255,255,255,0.6)" }}>Branch:</span><br/><span style={{ fontSize:14, fontWeight:700, color:"#FFFFFF" }}>Army</span></div>
+                  <div><span style={{ fontSize:11, color:"rgba(255,255,255,0.6)" }}>Family:</span><br/><span style={{ fontSize:14, fontWeight:700, color:"#FFFFFF" }}>3 Children (Ages 8, 11, 14)</span></div>
+                  <div><span style={{ fontSize:11, color:"rgba(255,255,255,0.6)" }}>Move Type:</span><br/><span style={{ fontSize:14, fontWeight:700, color:"#FFFFFF" }}>OCONUS (Overseas)</span></div>
+                  <div><span style={{ fontSize:11, color:"rgba(255,255,255,0.6)" }}>From:</span><br/><span style={{ fontSize:14, fontWeight:700, color:"#FFFFFF" }}>Fort Liberty, NC</span></div>
+                  <div><span style={{ fontSize:11, color:"rgba(255,255,255,0.6)" }}>To:</span><br/><span style={{ fontSize:14, fontWeight:700, color:"#FFFFFF" }}>Camp Humphreys, SK</span></div>
+                </div>
+              </div>
+              
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <button onClick={() => { setIsDemo(true); onComplete(DEMO_PROFILE); }} style={{ padding:"14px", borderRadius:12, background:theme.accent, color:theme.secondary, border:"none", fontSize:16, fontWeight:900, cursor:"pointer" }}>Launch Demo</button>
+                <button onClick={() => setStep(0)} style={{ padding:"14px", borderRadius:12, background:"rgba(255,255,255,0.1)", border:`1px solid rgba(255,255,255,0.2)`, color:"#FFFFFF", fontSize:16, fontWeight:700, cursor:"pointer" }}>Create Profile</button>
+              </div>
+            </div>
+          </>}
 
           {step === 0 && <>
             <div style={{ fontSize:24, fontWeight:900, color:"#FFFFFF", marginBottom:20 }}>Branch & Profile</div>
@@ -1478,7 +1521,7 @@ function DesktopApp({ profile, onReset }) {
       <div style={{ width:280, background:theme.secondary, color:"#FFFFFF", padding:"32px 24px", borderRight:`3px solid ${theme.accent}`, display:"flex", flexDirection:"column", position:"relative", backgroundImage:`url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><pattern id="insignia" patternUnits="userSpaceOnUse" width="400" height="400"><circle cx="200" cy="200" r="150" fill="none" stroke="${encodeURIComponent(theme.accent)}" stroke-width="2" opacity="0.08"/><path d="M200,100 L220,150 L270,150 L230,190 L250,240 L200,200 L150,240 L170,190 L130,150 L180,150Z" fill="none" stroke="${encodeURIComponent(theme.accent)}" stroke-width="2" opacity="0.08"/></pattern></defs><rect width="400" height="400" fill="url(%23insignia)"/></svg>')`, backgroundSize:"400px 400px" }}>
 
         <div style={{ position:"relative", zIndex:1 }}>
-          <div style={{ fontSize:11, letterSpacing:".15em", color:theme.accent, fontWeight:800, marginBottom:8 }}>PCS EXPRESS</div>
+          <div style={{ fontSize:11, letterSpacing:".15em", color:theme.accent, fontWeight:800, marginBottom:8 }}>PCS EXPRESS {profile.branch === "Demo" ? "(DEMO MODE)" : ""}</div>
           <div style={{ fontSize:18, fontWeight:900, color:"#FFFFFF", marginBottom:4 }}>{profile.firstName} {profile.lastName}</div>
           <div style={{ fontSize:13, color:"rgba(255,255,255,0.6)", marginBottom:24 }}>{theme.name} · {profile.paygrade}</div>
 
@@ -1522,7 +1565,7 @@ function DesktopApp({ profile, onReset }) {
             ))}
           </nav>
 
-          <button onClick={onReset} style={{ marginTop:"auto", width:"100%", padding:"12px", borderRadius:10, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", color:"rgba(255,255,255,0.7)", fontSize:13, fontWeight:700, cursor:"pointer" }}>Edit Profile</button>
+          <button onClick={() => { onReset(); }} style={{ marginTop:"auto", width:"100%", padding:"12px", borderRadius:10, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", color:"rgba(255,255,255,0.7)", fontSize:13, fontWeight:700, cursor:"pointer" }}>Exit Demo / Edit Profile</button>
         </div>
       </div>
 
