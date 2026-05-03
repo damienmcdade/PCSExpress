@@ -1,663 +1,351 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+const BASE_CITY = {
+  'Fort Liberty': 'Fayetteville, NC', 'Fort Bragg': 'Fayetteville, NC',
+  'Fort Campbell': 'Clarksville, TN', 'Fort Cavazos': 'Killeen, TX', 'Fort Hood': 'Killeen, TX',
+  'Joint Base Lewis-McChord': 'Tacoma, WA', 'Fort Carson': 'Colorado Springs, CO',
+  'Fort Bliss': 'El Paso, TX', 'Fort Stewart': 'Hinesville, GA', 'Fort Drum': 'Watertown, NY',
+  'Fort Sill': 'Lawton, OK', 'Fort Jackson': 'Columbia, SC', 'Fort Meade': 'Odenton, MD',
+  'Fort Knox': 'Radcliff, KY', 'Fort Leavenworth': 'Leavenworth, KS',
+  'Fort Sam Houston': 'San Antonio, TX', 'Fort Wainwright': 'Fairbanks, AK',
+  'Fort Eisenhower': 'Augusta, GA', 'Fort Gregg-Adams': 'Petersburg, VA',
+  'Fort Leonard Wood': 'Waynesville, MO', 'Fort Novosel': 'Daleville, AL',
+  'Fort Rucker': 'Daleville, AL', 'Schofield Barracks': 'Wahiawa, HI',
+  'Fort Shafter': 'Honolulu, HI', 'West Point': 'West Point, NY',
+  'Fort Hamilton': 'Brooklyn, NY', 'Fort Myer': 'Arlington, VA',
+  'Naval Station Norfolk': 'Norfolk, VA', 'Naval Base San Diego': 'San Diego, CA',
+  'NAS Jacksonville': 'Jacksonville, FL', 'NAS Pensacola': 'Pensacola, FL',
+  'Naval Station Mayport': 'Jacksonville, FL', 'Naval Base Kitsap': 'Bremerton, WA',
+  'Naval Station Everett': 'Everett, WA', 'NAS Oceana': 'Virginia Beach, VA',
+  'NAS Whidbey Island': 'Oak Harbor, WA', 'NAS Corpus Christi': 'Corpus Christi, TX',
+  'Marine Corps Base Camp Lejeune': 'Jacksonville, NC', 'Camp Pendleton': 'Oceanside, CA',
+  'MCAS Cherry Point': 'Havelock, NC', 'MCAS Miramar': 'San Diego, CA',
+  'MCB Quantico': 'Quantico, VA', 'MCAS New River': 'Jacksonville, NC',
+  'MCB Hawaii Kaneohe Bay': 'Kailua, HI', 'MCAS Yuma': 'Yuma, AZ',
+  'MCAS Beaufort': 'Beaufort, SC',
+  'Joint Base Langley-Eustis': 'Hampton, VA', 'Eglin AFB': 'Valparaiso, FL',
+  'MacDill AFB': 'Tampa, FL', 'Travis AFB': 'Fairfield, CA',
+  'Wright-Patterson AFB': 'Dayton, OH', 'Joint Base Andrews': 'Clinton, MD',
+  'Nellis AFB': 'Las Vegas, NV', 'Edwards AFB': 'Rosamond, CA',
+  'Keesler AFB': 'Biloxi, MS', 'Little Rock AFB': 'Jacksonville, AR',
+  'Dyess AFB': 'Abilene, TX', 'Luke AFB': 'Glendale, AZ',
+  'Davis-Monthan AFB': 'Tucson, AZ', 'Fairchild AFB': 'Spokane, WA',
+  'Hill AFB': 'Ogden, UT', 'Minot AFB': 'Minot, ND',
+  'Malmstrom AFB': 'Great Falls, MT', 'Ellsworth AFB': 'Rapid City, SD',
+  'Hurlburt Field': 'Fort Walton Beach, FL', 'Moody AFB': 'Valdosta, GA',
+  'Shaw AFB': 'Sumter, SC', 'Seymour Johnson AFB': 'Goldsboro, NC',
+  'Joint Base San Antonio': 'San Antonio, TX',
+  'Buckley SFB': 'Aurora, CO', 'Schriever SFB': 'Colorado Springs, CO',
+  'Peterson SFB': 'Colorado Springs, CO', 'Patrick SFB': 'Cocoa Beach, FL',
+  'Vandenberg SFB': 'Lompoc, CA',
+  'Camp Humphreys': 'Pyeongtaek, South Korea', 'Osan Air Base': 'Pyeongtaek, South Korea',
+  'Kadena Air Base': 'Okinawa, Japan', 'Yokota Air Base': 'Fussa, Japan',
+  'Ramstein Air Base': 'Kaiserslautern, Germany', 'USAG Stuttgart': 'Stuttgart, Germany',
+  'USAG Wiesbaden': 'Wiesbaden, Germany',
+}
+
+const INDUSTRIES = [
+  { id: 'tech',      label: 'Technology & IT',           keywords: 'information technology software cybersecurity network administrator', color: '#1565C0' },
+  { id: 'health',    label: 'Healthcare & Medicine',      keywords: 'nurse medical healthcare physician health clinical EMT paramedic',   color: '#00695C' },
+  { id: 'business',  label: 'Business & Finance',         keywords: 'finance accounting business management analyst operations',          color: '#E65100' },
+  { id: 'govt',      label: 'Government & Defense',       keywords: 'government federal defense contractor intelligence analyst',         color: '#283593' },
+  { id: 'eng',       label: 'Engineering & Science',      keywords: 'engineer engineering science research mechanical electrical',        color: '#4A148C' },
+  { id: 'edu',       label: 'Education & Training',       keywords: 'teacher education training instructor curriculum developer',         color: '#1B5E20' },
+  { id: 'security',  label: 'Law Enforcement & Security', keywords: 'security law enforcement police investigator federal agent',        color: '#B71C1C' },
+  { id: 'logistics', label: 'Logistics & Supply Chain',   keywords: 'logistics supply chain warehouse operations distribution planning',  color: '#F57F17' },
+  { id: 'trades',    label: 'Skilled Trades',             keywords: 'mechanic electrician plumber technician maintenance HVAC',          color: '#37474F' },
+  { id: 'hr',        label: 'Human Resources',            keywords: 'human resources HR recruiter talent management people operations',   color: '#006064' },
+]
+
+const SKILL_CATS = [
+  { id: 'technical',    label: 'Technical',     color: '#1565C0' },
+  { id: 'soft',         label: 'Soft Skill',    color: '#2E7D32' },
+  { id: 'cert',         label: 'Certification', color: '#6A1B9A' },
+  { id: 'language',     label: 'Language',      color: '#E65100' },
+]
+
+const JOB_BOARDS = [
+  { name: 'USAJobs.gov',          desc: 'Official federal civilian jobs portal. Schedule A hiring authority and military preference applies to qualifying applicants.',    url: 'https://www.usajobs.gov',                              badge: 'Federal',   color: '#1565C0' },
+  { name: 'Indeed',               desc: 'Largest general job search engine. Advanced location, salary, and experience-level filters across all industries.',              url: 'https://www.indeed.com',                               badge: 'General',   color: '#00897B' },
+  { name: 'LinkedIn Jobs',        desc: 'Professional networking and job search. Free LinkedIn Premium available to qualifying active duty and recently separated members.',url: 'https://www.linkedin.com/jobs/',                       badge: 'Network',   color: '#0077B5' },
+  { name: 'Hire Heroes USA',      desc: 'Free job placement assistance, resume coaching, and employer connections for service members and military spouses.',              url: 'https://www.hireheroesusa.org',                        badge: 'Military',  color: '#C62828' },
+  { name: 'ClearanceJobs',        desc: 'Job listings specifically for roles requiring active security clearances. Clearance holders earn significantly more on average.', url: 'https://www.clearancejobs.com',                        badge: 'Clearance', color: '#558B2F' },
+  { name: 'Transition GPS (DoD)', desc: 'DoD Transition Assistance Program workshops, employer connections, and career resources for separating service members.',        url: 'https://www.dodtap.mil',                               badge: 'DoD TAP',   color: '#283593' },
+  { name: 'CareerOneStop',        desc: 'Department of Labor career exploration tool, training finder, and job search for all experience levels and industries.',          url: 'https://www.careeronestop.org',                        badge: 'DoL',       color: '#37474F' },
+  { name: 'ZipRecruiter',         desc: 'AI-powered job matching. Create a profile and get contacted by employers directly. Fast application process.',                    url: 'https://www.ziprecruiter.com',                         badge: 'General',   color: '#E65100' },
+]
+
+const SPOUSE_BOARDS = [
+  { name: 'MySECO / MSEP Portal',          desc: 'Military Spouse Employment Partnership — 500+ top companies committed to hiring military spouses. Free career coaching, resume review, and job matching.', url: 'https://myseco.militaryonesource.mil/portal/', badge: 'Spouse',    color: '#880E4F' },
+  { name: 'Hiring Our Heroes (Spouses)',    desc: 'Free fellowship programs, hiring events, and direct employer connections specifically for military spouses. Active nationwide hiring events.', url: 'https://www.hiringourheroes.org/programs/spouses/', badge: 'Spouse',    color: '#AD1457' },
+  { name: 'Blue Star Families Careers',    desc: 'Employment resources, career coaching, and remote-friendly job connections tailored for military families on the move.',                       url: 'https://bluestarfam.org/resources/employment/',   badge: 'Spouse',    color: '#1565C0' },
+  { name: 'Military Spouse JD Network',    desc: 'Legal career resources, pro bono opportunities, and bar admission assistance for military spouse attorneys relocating to new states.',         url: 'https://www.msjdn.org/',                           badge: 'Legal',     color: '#4A148C' },
+  { name: 'MyCAA Scholarship Program',     desc: 'Up to $4,000 per year in funding for spouse education and career credentials. Portable certificates designed for PCS life.',                  url: 'https://aiportal.acc.af.mil/mycaa',                badge: 'Education', color: '#1B5E20' },
+]
 
 function EmploymentModule({ theme, profile }) {
-  const [activeTab, setActiveTab] = useState('resume')
-  const [resumeText, setResumeText] = useState('')
-  const [selectedPosition, setSelectedPosition] = useState(null)
-  const [refinedResume, setRefinedResume] = useState('')
-  const [mosInput, setMosInput] = useState('')
-  const [mosResult, setMosResult] = useState(null)
+  const [activeTab, setActiveTab] = useState('skills')
 
-  // New state for AI resume analysis
+  const [skills, setSkills] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('pcs_employment_skills')) || [] } catch { return [] }
+  })
+  const [newSkill, setNewSkill] = useState('')
+  const [newSkillCat, setNewSkillCat] = useState('technical')
+
+  const [radius, setRadius] = useState(25)
+  const [selectedIndustries, setSelectedIndustries] = useState(new Set())
+  const [showResults, setShowResults] = useState(false)
+
+  const [resumeText, setResumeText] = useState('')
   const [resumeAnalysis, setResumeAnalysis] = useState(null)
   const [fileLoading, setFileLoading] = useState(false)
   const [fileMsg, setFileMsg] = useState('')
+  const [refinedResume, setRefinedResume] = useState('')
+  const [selectedPosition, setSelectedPosition] = useState(null)
 
-  // Mock job database for region
-  const JOBS_DATABASE = {
-    'Fort Liberty NC': [
-      {
-        id: 1,
-        title: 'Logistics Coordinator',
-        company: 'US Army Civilian',
-        location: 'Fort Liberty, NC',
-        salary: '$45,000–$55,000',
-        matchScore: 95,
-        description: 'Coordinate supply chain and inventory management',
-        applyUrl: 'https://usajobs.gov',
-      },
-      {
-        id: 2,
-        title: 'IT Systems Administrator',
-        company: 'Government Contractor',
-        location: 'Fayetteville, NC',
-        salary: '$60,000–$75,000',
-        matchScore: 88,
-        description: 'Manage military IT infrastructure',
-        applyUrl: 'https://usajobs.gov',
-      },
-      {
-        id: 3,
-        title: 'Project Manager',
-        company: 'Federal Contractor',
-        location: 'Fort Liberty, NC',
-        salary: '$70,000–$85,000',
-        matchScore: 82,
-        description: 'Oversee military construction projects',
-        applyUrl: 'https://usajobs.gov',
-      },
-    ],
+  useEffect(() => {
+    localStorage.setItem('pcs_employment_skills', JSON.stringify(skills))
+  }, [skills])
+
+  const installName = (profile?.gainingInstallation || '').split(',')[0].trim()
+  const searchCity = BASE_CITY[installName] || (installName ? `${installName} area` : 'your area')
+
+  const addSkill = () => {
+    const name = newSkill.trim()
+    if (!name || skills.some(s => s.name.toLowerCase() === name.toLowerCase())) return
+    setSkills(prev => [...prev, { name, cat: newSkillCat }])
+    setNewSkill('')
   }
 
-  // MOS to civilian career mapping
-  const MOS_MAP = {
-    '11B': {
-      label: 'Army Infantry',
-      careers: ['Security Manager', 'Law Enforcement Officer', 'Emergency Services', 'Federal Agent'],
-      description:
-        'Infantry experience translates directly to security, law enforcement, and federal protective roles. Your leadership, firearms proficiency, and high-stress decision-making are highly valued.',
-    },
-    '0311': {
-      label: 'Marine Rifleman',
-      careers: ['Security Specialist', 'Police Officer', 'First Responder'],
-      description:
-        'Marine rifleman background is ideal for law enforcement, protective services, and first responder careers. Physical discipline and tactical training are major assets.',
-    },
-    '68W': {
-      label: 'Army Medic',
-      careers: ['EMT', 'Paramedic', 'Medical Assistant', 'Healthcare Administrator'],
-      description:
-        'Combat medic training often qualifies you for EMT or Paramedic licensing. Clinical experience and ability to perform under pressure are invaluable in civilian healthcare.',
-    },
-    'IT': {
-      label: 'Signal / IT',
-      careers: ['IT Support Specialist', 'Network Engineer', 'Cybersecurity Analyst', 'Systems Administrator'],
-      description:
-        'Military IT and signal experience is in high demand. Certifications like CompTIA Security+, Network+, or CCNA can accelerate your transition.',
-    },
-    '25U': {
-      label: 'Signal Support Systems Specialist',
-      careers: ['IT Support Specialist', 'Network Engineer', 'Cybersecurity Analyst', 'Systems Administrator'],
-      description:
-        'Signal support experience maps directly to enterprise IT roles. Your hands-on networking and communications background is a strong foundation for civilian tech careers.',
-    },
-    '92A': {
-      label: 'Automated Logistical Specialist',
-      careers: ['Supply Chain Manager', 'Warehouse Manager', 'Operations Coordinator', 'Inventory Analyst'],
-      description:
-        'Logistics and supply chain experience from the military is highly transferable. Civilian employers value your ability to manage large inventories and coordinate complex operations.',
-    },
-    '15T': {
-      label: 'UH-60 Helicopter Mechanic',
-      careers: ['Aircraft Mechanic (FAA)', 'Aerospace Technician', 'Maintenance Supervisor', 'Quality Control Inspector'],
-      description:
-        'Military aviation maintenance experience is directly applicable to FAA-certified civilian roles. Pursue an A&P (Airframe & Powerplant) certificate to formalize your credentials.',
-    },
-    '2A3X2': {
-      label: 'Aircraft Hydraulic Systems',
-      careers: ['Aircraft Mechanic (FAA)', 'Aerospace Technician', 'Maintenance Supervisor'],
-      description:
-        'Hydraulic systems expertise is valued in commercial aviation and aerospace industries. Your Air Force training gives you a strong baseline for FAA certification.',
-    },
+  const removeSkill = idx => setSkills(prev => prev.filter((_, i) => i !== idx))
+
+  const toggleIndustry = id => {
+    setSelectedIndustries(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+    setShowResults(false)
   }
 
-  const JOB_BOARDS = [
-    {
-      name: 'USAJobs.gov',
-      description: 'Official federal civilian jobs portal with veteran preference and Schedule A hiring.',
-      url: 'https://www.usajobs.gov',
-      badge: 'Federal',
-      badgeColor: '#1565C0',
-    },
-    {
-      name: 'Indeed Military',
-      description: 'Job search engine with filters tailored to military skills and experience.',
-      url: 'https://www.indeed.com/q-military-jobs.html',
-      badge: 'General',
-      badgeColor: '#00897B',
-    },
-    {
-      name: 'LinkedIn Veterans',
-      description: 'Free LinkedIn Premium subscription for eligible veterans. Expand your network and apply faster.',
-      url: 'https://socialimpact.linkedin.com/programs/veterans',
-      badge: 'Networking',
-      badgeColor: '#0077B5',
-    },
-    {
-      name: 'Hire Heroes USA',
-      description: 'Free job placement assistance, resume coaching, and employer connections for veterans.',
-      url: 'https://www.hireheroesusa.org',
-      badge: 'Veteran-Focused',
-      badgeColor: '#C62828',
-    },
-    {
-      name: 'Transition GPS (dodtap.mil)',
-      description: 'DoD Transition Assistance Program resources, workshops, and career tools.',
-      url: 'https://www.dodtap.mil',
-      badge: 'DoD',
-      badgeColor: '#283593',
-    },
-    {
-      name: 'ClearanceJobs',
-      description: 'Job listings specifically for roles requiring active security clearances.',
-      url: 'https://www.clearancejobs.com',
-      badge: 'Clearance',
-      badgeColor: '#558B2F',
-    },
-    {
-      name: 'Military.com Jobs',
-      description: 'Job board built for the military community with veteran-friendly employers.',
-      url: 'https://www.military.com/veteran-jobs',
-      badge: 'Community',
-      badgeColor: '#6A1B9A',
-    },
-    {
-      name: 'CareerOneStop',
-      description: 'Department of Labor career exploration, training, and job search tools for veterans.',
-      url: 'https://www.careeronestop.org/Veterans/default.aspx',
-      badge: 'DoL',
-      badgeColor: '#37474F',
-    },
-  ]
+  const buildSearchUrl = (board) => {
+    const industryKw = [...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.keywords || '').join(' ')
+    const skillKw = skills.map(s => s.name).join(' ')
+    const kw = encodeURIComponent([industryKw, skillKw].filter(Boolean).join(' ').trim() || 'jobs')
+    const loc = encodeURIComponent(searchCity)
+    switch (board) {
+      case 'usajobs':  return `https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}`
+      case 'indeed':   return `https://www.indeed.com/jobs?q=${kw}&l=${loc}&radius=${radius}`
+      case 'linkedin': return `https://www.linkedin.com/jobs/search/?keywords=${kw}&location=${loc}&distance=${radius}`
+      case 'zip':      return `https://www.ziprecruiter.com/jobs-search?search=${kw}&location=${loc}&radius=${radius}`
+      default: return 'https://www.usajobs.gov'
+    }
+  }
 
-  // Handle file upload with FileReader API + AI analysis
   const handleFileChange = (e) => {
     const file = e.target.files[0]
     if (!file) return
-
     const ext = file.name.split('.').pop().toLowerCase()
     setFileLoading(true)
     setFileMsg('Reading file...')
     setResumeAnalysis(null)
-
     const reader = new FileReader()
-
     const processText = async (text) => {
       setResumeText(text)
       setFileMsg('Analyzing with AI...')
-
       try {
         const res = await fetch('/api/ai', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            system:
-              'Analyze this resume and extract: name, years of experience, top 5 skills, highest education level, and 3 most relevant job titles. Return JSON: {name, experience_years, skills, education, suggested_titles}',
-            message: text,
+            system: 'Analyze this resume and extract: name, years of experience, top 5 skills, highest education level, and 3 most relevant job titles. Return JSON only: {name, experience_years, skills, education, suggested_titles}',
+            user: text,
           }),
         })
-
-        if (!res.ok) throw new Error('AI request failed')
-
+        if (!res.ok) throw new Error('AI error')
         const data = await res.json()
-        let parsed = null
-
-        // Try to parse JSON from AI response
         try {
-          const raw = typeof data === 'string' ? data : data.reply || data.content || data.text || JSON.stringify(data)
-          const jsonMatch = raw.match(/\{[\s\S]*\}/)
-          if (jsonMatch) parsed = JSON.parse(jsonMatch[0])
-        } catch (_) {
-          parsed = null
-        }
-
-        const jobs = getJobsList()
-        if (parsed) {
-          setResumeAnalysis(parsed)
-          setFileMsg(`Analysis complete! ${jobs.length} job matches found`)
-        } else {
-          setFileMsg(`Resume loaded. ${jobs.length} job matches found`)
-        }
-      } catch (err) {
-        const jobs = getJobsList()
-        setFileMsg(`Resume loaded. Upload your resume for better matches (${jobs.length} jobs available)`)
+          const raw = data.text || JSON.stringify(data)
+          const m = raw.match(/\{[\s\S]*\}/)
+          if (m) setResumeAnalysis(JSON.parse(m[0]))
+        } catch (_) {}
+        setFileMsg('Analysis complete')
+      } catch {
+        setFileMsg('Resume loaded')
       } finally {
         setFileLoading(false)
       }
     }
-
     if (ext === 'pdf') {
-      reader.onload = (ev) => {
-        const binary = ev.target.result
-        // Extract printable ASCII strings from binary
-        const printable = (binary.match(/[ -~\n\r\t]{8,}/g) || []).join('\n')
-        processText(printable || '[PDF content extracted — paste text manually for best results]')
-      }
+      reader.onload = ev => processText((ev.target.result.match(/[ -~\n\r\t]{8,}/g) || []).join('\n'))
       reader.readAsBinaryString(file)
     } else {
-      reader.onload = (ev) => {
-        processText(ev.target.result || '')
-      }
+      reader.onload = ev => processText(ev.target.result || '')
       reader.readAsText(file)
     }
   }
 
-  // Get raw jobs list for the current installation
-  const getJobsList = () => {
-    const parts = profile?.gainingInstallation?.split(',') || []
-    const baseKey = (parts[0] || '').trim() + ' ' + (parts[1] || '').trim()
-    return JOBS_DATABASE[baseKey] || []
-  }
-
-  // Match jobs — use AI-extracted skills when available for smarter ordering
-  const matchJobsToResume = () => {
-    const jobs = getJobsList()
-    if (!resumeAnalysis || !resumeAnalysis.skills) {
-      return jobs.sort((a, b) => b.matchScore - a.matchScore)
-    }
-
-    // Boost matchScore based on skill keyword overlap with job title/description
-    const skills = (resumeAnalysis.skills || []).map((s) => s.toLowerCase())
-    const suggested = (resumeAnalysis.suggested_titles || []).map((t) => t.toLowerCase())
-
-    const scored = jobs.map((job) => {
-      const haystack = `${job.title} ${job.description}`.toLowerCase()
-      let boost = 0
-      skills.forEach((skill) => { if (haystack.includes(skill)) boost += 3 })
-      suggested.forEach((title) => { if (haystack.includes(title)) boost += 5 })
-      return { ...job, matchScore: Math.min(99, job.matchScore + boost) }
-    })
-
-    return scored.sort((a, b) => b.matchScore - a.matchScore)
-  }
-
-  const refineResume = (jobListing) => {
-    const refined = `TAILORED RESUME FOR: ${jobListing.title}
-
-${resumeText}
-
-TAILORED SKILLS:
-  Project management (matched to role)
-  Supply chain coordination (matched to role)
-  Team leadership experience
-  Military protocol knowledge
-  Logistics optimization
-
----
-This resume has been auto-tailored to match the job requirements for:
-${jobListing.title} at ${jobListing.company}`
-    setRefinedResume(refined)
-  }
-
-  const lookupMOS = () => {
-    const code = mosInput.trim().toUpperCase()
-    const result = MOS_MAP[code] || null
-    setMosResult(result ? { code, ...result } : { code, notFound: true })
-  }
-
   const TABS = [
-    { id: 'resume', label: 'Resume', icon: '📄' },
-    { id: 'jobs', label: 'Browse Jobs', icon: '🔍' },
-    { id: 'refinement', label: 'Tailor Resume', icon: '✏️' },
-    { id: 'recommendations', label: 'Recommendations', icon: '🎯' },
-    { id: 'jobboards', label: 'Job Boards', icon: '🌐' },
+    { id: 'skills',          label: 'Skills Profile'  },
+    { id: 'search',          label: 'Job Search'      },
+    { id: 'recommendations', label: 'Recommendations' },
+    { id: 'resume',          label: 'Resume'          },
+    { id: 'jobboards',       label: 'Job Boards'      },
   ]
 
-  const tabBtn = (t) => ({
-    padding: '8px 12px',
-    borderRadius: 20,
+  const tb = (t) => ({
+    padding: '7px 11px', borderRadius: 8,
     border: `1.5px solid ${activeTab === t.id ? theme.primary : '#E0E6EE'}`,
-    background: activeTab === t.id ? theme.primary : '#FFFFFF',
-    color: activeTab === t.id ? '#FFFFFF' : '#56697C',
-    fontSize: 11,
-    cursor: 'pointer',
-    fontWeight: activeTab === t.id ? 800 : 500,
-    whiteSpace: 'nowrap',
-  })
-
-  const card = (extra = {}) => ({
-    background: '#FFFFFF',
-    border: '1px solid #E0E6EE',
-    borderRadius: 12,
-    padding: '14px',
-    marginBottom: 12,
-    ...extra,
-  })
-
-  const primaryBtn = (extra = {}) => ({
-    width: '100%',
-    padding: '12px',
-    borderRadius: 12,
-    background: theme.primary,
-    color: '#FFFFFF',
-    border: 'none',
-    fontWeight: 700,
-    cursor: 'pointer',
-    fontSize: 13,
-    ...extra,
+    background: activeTab === t.id ? theme.primary : '#FFF',
+    color: activeTab === t.id ? '#FFF' : '#56697C',
+    fontSize: 10, fontWeight: 800, cursor: 'pointer',
+    letterSpacing: '.04em', textTransform: 'uppercase',
   })
 
   return (
-    <div style={{ padding: '16px' }}>
-      <h2 style={{ color: theme.primary, marginTop: 0, marginBottom: 16, fontSize: 18, fontWeight: 800 }}>
-        Employment &amp; Career Center
-      </h2>
+    <div style={{ padding: 16 }}>
+      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 2 }}>Employment & Career Center</div>
+      <div style={{ fontSize: 11, color: '#56697C', marginBottom: 16 }}>Service members & military spouses · {searchCity}</div>
 
-      {/* TAB BAR */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-        {TABS.map((t) => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} style={tabBtn(t)}>
-            <span style={{ marginRight: 4 }}>{t.icon}</span>
-            {t.label}
-          </button>
-        ))}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' }}>
+        {TABS.map(t => <button key={t.id} onClick={() => setActiveTab(t.id)} style={tb(t)}>{t.label}</button>)}
       </div>
 
-      {/* ── RESUME ── */}
-      {activeTab === 'resume' && (
+      {/* ── SKILLS PROFILE ── */}
+      {activeTab === 'skills' && (
         <div>
-          {/* AI Analysis Summary Card */}
-          {resumeAnalysis && (
-            <div style={{
-              background: '#E8F5E9',
-              border: '1.5px solid #4CAF50',
-              borderRadius: 12,
-              padding: '14px',
-              marginBottom: 14,
-            }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#2E7D32', marginBottom: 8 }}>
-                Resume AI Analysis
+          <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, marginBottom: 16, borderLeft: `3px solid ${theme.accent}` }}>
+            <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 4 }}>YOUR SKILLS PROFILE</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', lineHeight: 1.5 }}>Skills drive your Recommendations and Job Search results. Add technical skills, soft skills, certifications, and languages.</div>
+          </div>
+
+          <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#0D1821', marginBottom: 10 }}>Add a Skill</div>
+            <input
+              value={newSkill}
+              onChange={e => setNewSkill(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addSkill()}
+              placeholder="e.g. Project Management, Python, EMT-B, Spanish, PMP..."
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #E0E6EE', fontSize: 13, marginBottom: 10, boxSizing: 'border-box', outline: 'none' }}
+            />
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+              {SKILL_CATS.map(cat => (
+                <button key={cat.id} onClick={() => setNewSkillCat(cat.id)} style={{ padding: '5px 12px', borderRadius: 20, border: `1.5px solid ${newSkillCat === cat.id ? cat.color : '#E0E6EE'}`, background: newSkillCat === cat.id ? cat.color : '#FFF', color: newSkillCat === cat.id ? '#FFF' : '#56697C', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+            <button onClick={addSkill} style={{ width: '100%', padding: '10px', borderRadius: 10, background: theme.primary, color: '#FFF', border: 'none', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+              Add Skill
+            </button>
+          </div>
+
+          {skills.length > 0 ? (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#56697C', letterSpacing: '.1em', marginBottom: 10 }}>YOUR SKILLS ({skills.length})</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+                {skills.map((skill, i) => {
+                  const cat = SKILL_CATS.find(c => c.id === skill.cat) || SKILL_CATS[0]
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, background: `${cat.color}12`, border: `1px solid ${cat.color}35`, borderRadius: 20, padding: '5px 10px' }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: cat.color }}>{skill.name}</span>
+                      <span style={{ fontSize: 9, color: `${cat.color}AA`, fontWeight: 600 }}>{cat.label}</span>
+                      <button onClick={() => removeSkill(i)} style={{ background: 'none', border: 'none', color: cat.color, fontSize: 15, cursor: 'pointer', padding: 0, lineHeight: 1, opacity: 0.65 }}>×</button>
+                    </div>
+                  )
+                })}
               </div>
-              {resumeAnalysis.name && (
-                <div style={{ fontSize: 12, color: '#1B5E20', marginBottom: 4 }}>
-                  <span style={{ fontWeight: 700 }}>Name: </span>{resumeAnalysis.name}
-                </div>
-              )}
-              {resumeAnalysis.experience_years !== undefined && (
-                <div style={{ fontSize: 12, color: '#1B5E20', marginBottom: 4 }}>
-                  <span style={{ fontWeight: 700 }}>Experience: </span>{resumeAnalysis.experience_years} years
-                </div>
-              )}
-              {resumeAnalysis.education && (
-                <div style={{ fontSize: 12, color: '#1B5E20', marginBottom: 6 }}>
-                  <span style={{ fontWeight: 700 }}>Education: </span>{resumeAnalysis.education}
-                </div>
-              )}
-              {resumeAnalysis.skills && resumeAnalysis.skills.length > 0 && (
-                <div style={{ marginBottom: 6 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#2E7D32', marginBottom: 4 }}>TOP SKILLS</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {resumeAnalysis.skills.map((skill, i) => (
-                      <div key={i} style={{
-                        background: '#C8E6C9',
-                        color: '#1B5E20',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        padding: '3px 10px',
-                        borderRadius: 12,
-                      }}>
-                        {skill}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {resumeAnalysis.suggested_titles && resumeAnalysis.suggested_titles.length > 0 && (
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#2E7D32', marginBottom: 4 }}>AI-SUGGESTED JOB TITLES</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {resumeAnalysis.suggested_titles.map((title, i) => (
-                      <div key={i} style={{
-                        background: '#A5D6A7',
-                        color: '#1B5E20',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        padding: '3px 10px',
-                        borderRadius: 12,
-                      }}>
-                        {title}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <button onClick={() => setActiveTab('recommendations')} style={{ width: '100%', padding: '12px', borderRadius: 10, background: theme.accent, color: theme.secondary, border: 'none', fontWeight: 900, fontSize: 13, cursor: 'pointer' }}>
+                View Matched Jobs →
+              </button>
+            </div>
+          ) : (
+            <div style={{ background: '#F0F4F8', borderRadius: 12, padding: 20, textAlign: 'center', color: '#888' }}>
+              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>No skills added yet</div>
+              <div style={{ fontSize: 11 }}>Add skills above to unlock personalized job recommendations.</div>
             </div>
           )}
-
-          <div style={{ ...card(), borderLeft: `3px solid ${theme.primary}` }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 8 }}>
-              Upload or Paste Your Resume
-            </div>
-
-            {/* File status message */}
-            {fileMsg ? (
-              <div style={{
-                background: fileLoading ? '#FFF8E1' : resumeAnalysis ? '#E8F5E9' : '#E3F2FD',
-                border: `1px solid ${fileLoading ? '#FFE082' : resumeAnalysis ? '#4CAF50' : '#90CAF9'}`,
-                borderRadius: 8,
-                padding: '8px 12px',
-                marginBottom: 10,
-                fontSize: 12,
-                fontWeight: 700,
-                color: fileLoading ? '#E65100' : resumeAnalysis ? '#2E7D32' : '#1565C0',
-              }}>
-                {fileLoading ? '⏳ ' : resumeAnalysis ? '✅ ' : 'ℹ️ '}{fileMsg}
-              </div>
-            ) : null}
-
-            <textarea
-              value={resumeText}
-              onChange={(e) => setResumeText(e.target.value)}
-              placeholder="Paste your resume text here or upload a file below..."
-              style={{
-                width: '100%',
-                minHeight: 300,
-                padding: 12,
-                borderRadius: 8,
-                border: '1px solid #E0E6EE',
-                fontSize: 12,
-                fontFamily: 'monospace',
-                resize: 'vertical',
-                boxSizing: 'border-box',
-              }}
-            />
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx,.txt"
-              onChange={handleFileChange}
-              disabled={fileLoading}
-              style={{ marginTop: 12, display: 'block', fontSize: 12 }}
-            />
-            {fileLoading && (
-              <div style={{ fontSize: 11, color: '#56697C', marginTop: 6 }}>
-                Analyzing resume with AI...
-              </div>
-            )}
-          </div>
-          <button onClick={() => setActiveTab('jobs')} style={primaryBtn()}>
-            Scan &amp; Match Jobs
-          </button>
         </div>
       )}
 
-      {/* ── BROWSE JOBS ── */}
-      {activeTab === 'jobs' && (
+      {/* ── JOB SEARCH ── */}
+      {activeTab === 'search' && (
         <div>
-          {resumeText ? (
-            <>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 6, letterSpacing: 0.5 }}>
-                {resumeAnalysis
-                  ? `AI-MATCHED JOBS IN REGION (${matchJobsToResume().length})`
-                  : `MATCHED JOBS IN REGION (${matchJobsToResume().length})`}
-              </div>
-              {!resumeAnalysis && (
-                <div style={{
-                  background: '#FFF8E1',
-                  border: '1px solid #FFE082',
-                  borderRadius: 8,
-                  padding: '8px 12px',
-                  marginBottom: 12,
-                  fontSize: 11,
-                  color: '#6D4C00',
-                }}>
-                  Upload your resume for better matches
-                </div>
-              )}
-              {matchJobsToResume().map((job) => {
-                const scoreColor = job.matchScore > 90 ? '#4CAF50' : job.matchScore > 80 ? '#FFC107' : '#FF9800'
+          <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, marginBottom: 16, borderLeft: `3px solid ${theme.accent}` }}>
+            <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 2 }}>SEARCH AREA</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: '#FFF' }}>{searchCity}</div>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)' }}>Near {installName || 'your gaining installation'}</div>
+          </div>
+
+          <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#56697C', letterSpacing: '.1em', marginBottom: 10 }}>SEARCH RADIUS</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {[10, 25, 50, 75, 100].map(r => (
+                <button key={r} onClick={() => { setRadius(r); setShowResults(false) }} style={{ flex: 1, padding: '9px 4px', borderRadius: 8, border: `1.5px solid ${radius === r ? theme.primary : '#E0E6EE'}`, background: radius === r ? theme.primary : '#FFF', color: radius === r ? '#FFF' : '#56697C', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>
+                  {r}mi
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#56697C', letterSpacing: '.1em', marginBottom: 10 }}>
+              INDUSTRY FILTER <span style={{ fontWeight: 500, fontSize: 10, letterSpacing: 0 }}>— select one or more</span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {INDUSTRIES.map(ind => {
+                const sel = selectedIndustries.has(ind.id)
                 return (
-                  <div
-                    key={job.id}
-                    style={{ ...card(), borderLeft: `3px solid ${scoreColor}` }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821' }}>{job.title}</div>
-                        <div style={{ fontSize: 11, color: '#56697C' }}>{job.company} · {job.location}</div>
-                      </div>
-                      <div style={{
-                        fontSize: 12,
-                        fontWeight: 800,
-                        color: '#FFFFFF',
-                        background: scoreColor,
-                        padding: '4px 8px',
-                        borderRadius: 6,
-                        whiteSpace: 'nowrap',
-                      }}>
-                        {job.matchScore}% match
-                      </div>
-                    </div>
-                    {/* Prominent pay range badge */}
-                    <div style={{
-                      background: '#E8F5E9',
-                      color: '#2E7D32',
-                      fontSize: 12,
-                      fontWeight: 800,
-                      padding: '4px 10px',
-                      borderRadius: 6,
-                      display: 'inline-block',
-                      marginBottom: 8,
-                    }}>
-                      💰 {job.salary}
-                    </div>
-                    <div style={{ fontSize: 12, color: '#34495E', marginBottom: 10 }}>{job.description}</div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button
-                        onClick={() => { setSelectedPosition(job); setActiveTab('refinement') }}
-                        style={{
-                          flex: 1,
-                          padding: 8,
-                          borderRadius: 8,
-                          background: theme.primary,
-                          color: '#FFFFFF',
-                          border: 'none',
-                          fontWeight: 700,
-                          fontSize: 11,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Tailor Resume
-                      </button>
-                      <a
-                        href={job.applyUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          flex: 1,
-                          padding: 8,
-                          borderRadius: 8,
-                          background: '#E3F2FD',
-                          color: '#1565C0',
-                          textDecoration: 'none',
-                          fontWeight: 700,
-                          fontSize: 11,
-                          textAlign: 'center',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        Apply Now
-                      </a>
-                    </div>
-                  </div>
+                  <button key={ind.id} onClick={() => toggleIndustry(ind.id)} style={{ padding: '7px 14px', borderRadius: 20, border: `1.5px solid ${sel ? ind.color : '#E0E6EE'}`, background: sel ? ind.color : '#FFF', color: sel ? '#FFF' : '#56697C', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all .15s' }}>
+                    {ind.label}
+                  </button>
                 )
               })}
-            </>
-          ) : (
-            <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Upload Resume First</div>
-              <div style={{ fontSize: 11 }}>Go to the Resume tab to paste or upload your resume to start matching.</div>
             </div>
-          )}
-        </div>
-      )}
-
-      {/* ── TAILOR RESUME ── */}
-      {activeTab === 'refinement' && (
-        <div>
-          {selectedPosition ? (
-            <>
-              <div style={{
-                background: `${theme.primary}20`,
-                border: `1px solid ${theme.primary}`,
-                borderRadius: 12,
-                padding: 12,
-                marginBottom: 16,
-              }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: theme.primary, marginBottom: 4 }}>
-                  Tailoring for: {selectedPosition.title}
-                </div>
-                <div style={{ fontSize: 11, color: '#56697C' }}>
-                  The auto-tailor tool will align your resume skills to the target job requirements.
-                </div>
-              </div>
-              <button
-                onClick={() => refineResume(selectedPosition)}
-                style={primaryBtn({ marginBottom: 16 })}
-              >
-                Auto-Tailor Resume for This Position
+            {selectedIndustries.size > 0 && (
+              <button onClick={() => { setSelectedIndustries(new Set()); setShowResults(false) }} style={{ marginTop: 10, padding: '5px 14px', borderRadius: 20, border: '1px solid #E0E6EE', background: '#F0F4F8', color: '#888', fontSize: 10, cursor: 'pointer', fontWeight: 600 }}>
+                Clear Filters
               </button>
-              {refinedResume && (
-                <>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 8, letterSpacing: 0.5 }}>
-                    REFINED RESUME PREVIEW
+            )}
+          </div>
+
+          <button
+            onClick={() => setShowResults(true)}
+            style={{ width: '100%', padding: '13px', borderRadius: 12, background: theme.primary, color: '#FFF', border: 'none', fontWeight: 900, fontSize: 14, cursor: 'pointer', marginBottom: 14 }}
+          >
+            Search Jobs Within {radius} Miles
+          </button>
+
+          {showResults && (
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', letterSpacing: '.1em', marginBottom: 12 }}>
+                RESULTS — {selectedIndustries.size > 0 ? [...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.label).join(', ') : 'All Industries'} · {radius}mi of {searchCity}
+              </div>
+              {[
+                { name: 'USAJobs.gov',  desc: 'Federal and government positions with military hiring preference.', color: '#1565C0', key: 'usajobs'  },
+                { name: 'Indeed',       desc: 'All industries. Largest job board with location + salary filters.', color: '#00897B', key: 'indeed'   },
+                { name: 'LinkedIn',     desc: 'Professional roles. Best for management and corporate positions.', color: '#0077B5', key: 'linkedin'  },
+                { name: 'ZipRecruiter',  desc: 'AI-matched listings. Fastest application. Employer outreach.',    color: '#E65100', key: 'zip'       },
+              ].map((board, i) => (
+                <div key={i} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${board.color}`, borderRadius: 12, padding: 14, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 2 }}>{board.name}</div>
+                    <div style={{ fontSize: 11, color: '#56697C' }}>{board.desc}</div>
                   </div>
-                  <div style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E0E6EE',
-                    borderRadius: 12,
-                    padding: 14,
-                    marginBottom: 16,
-                    maxHeight: 400,
-                    overflowY: 'auto',
-                    whiteSpace: 'pre-wrap',
-                    fontSize: 11,
-                    fontFamily: 'monospace',
-                    color: '#34495E',
-                    lineHeight: 1.6,
-                  }}>
-                    {refinedResume}
+                  <a href={buildSearchUrl(board.key)} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 10, background: board.color, color: '#FFF', textDecoration: 'none', fontWeight: 800, fontSize: 12 }}>View Jobs</a>
+                </div>
+              ))}
+              {skills.length > 0 && (
+                <div style={{ background: '#F0F4F8', borderRadius: 10, padding: 12, marginTop: 4 }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', letterSpacing: '.08em', marginBottom: 6 }}>SKILLS INCLUDED IN SEARCH</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {skills.slice(0, 8).map((s, i) => (
+                      <span key={i} style={{ fontSize: 10, fontWeight: 700, color: theme.primary, background: `${theme.primary}12`, padding: '2px 8px', borderRadius: 10, border: `1px solid ${theme.primary}22` }}>{s.name}</span>
+                    ))}
+                    {skills.length > 8 && <span style={{ fontSize: 10, color: '#888' }}>+{skills.length - 8} more</span>}
                   </div>
-                  <button
-                    onClick={() => { navigator.clipboard.writeText(refinedResume); alert('Resume copied to clipboard!') }}
-                    style={{
-                      ...primaryBtn({ marginBottom: 8 }),
-                      background: '#4CAF50',
-                      fontSize: 12,
-                      borderRadius: 8,
-                    }}
-                  >
-                    Copy to Clipboard
-                  </button>
-                  <button
-                    onClick={() => window.open(selectedPosition.applyUrl)}
-                    style={{
-                      ...primaryBtn(),
-                      background: '#2196F3',
-                      fontSize: 12,
-                      borderRadius: 8,
-                    }}
-                  >
-                    Apply with Tailored Resume
-                  </button>
-                </>
+                </div>
               )}
-            </>
-          ) : (
-            <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Select a Position First</div>
-              <div style={{ fontSize: 11 }}>Go to Browse Jobs and tap "Tailor Resume" on a listing.</div>
             </div>
           )}
         </div>
@@ -666,197 +354,111 @@ ${jobListing.title} at ${jobListing.company}`
       {/* ── RECOMMENDATIONS ── */}
       {activeTab === 'recommendations' && (
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>
-            MOS / Rate to Civilian Career Translator
-          </div>
-          <div style={{ fontSize: 11, color: '#56697C', marginBottom: 16, lineHeight: 1.5 }}>
-            Enter your MOS, AFSC, NEC, or rate code to see recommended civilian career paths based on your military specialty.
-          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>Skill-Matched Opportunities</div>
+          <div style={{ fontSize: 11, color: '#56697C', marginBottom: 16, lineHeight: 1.5 }}>Active job listings matched to your skills near {searchCity}. Each card links directly to current openings.</div>
 
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-            <input
-              type="text"
-              value={mosInput}
-              onChange={(e) => setMosInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && lookupMOS()}
-              placeholder="e.g. 11B, 0311, 68W, 25U, 92A"
-              style={{
-                flex: 1,
-                padding: '10px 12px',
-                borderRadius: 10,
-                border: '1.5px solid #E0E6EE',
-                fontSize: 13,
-                outline: 'none',
-              }}
-            />
-            <button
-              onClick={lookupMOS}
-              style={{
-                padding: '10px 18px',
-                borderRadius: 10,
-                background: theme.primary,
-                color: '#FFFFFF',
-                border: 'none',
-                fontWeight: 700,
-                fontSize: 13,
-                cursor: 'pointer',
-              }}
-            >
-              Look Up
-            </button>
-          </div>
-
-          {mosResult && !mosResult.notFound && (
-            <div style={{
-              background: '#FFFFFF',
-              border: `1px solid #E0E6EE`,
-              borderLeft: `4px solid ${theme.accent || theme.primary}`,
-              borderRadius: 12,
-              padding: '16px',
-              marginBottom: 16,
-            }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#0D1821', marginBottom: 2 }}>
-                {mosResult.code} — {mosResult.label}
-              </div>
-              <div style={{ fontSize: 11, color: '#56697C', marginBottom: 12, lineHeight: 1.6 }}>
-                {mosResult.description}
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#56697C', marginBottom: 8, letterSpacing: 0.5 }}>
-                RECOMMENDED CIVILIAN CAREERS
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {mosResult.careers.map((career, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: `${theme.primary}15`,
-                      color: theme.primary,
-                      padding: '6px 12px',
-                      borderRadius: 20,
-                      fontSize: 12,
-                      fontWeight: 700,
-                      border: `1px solid ${theme.primary}40`,
-                    }}
-                  >
-                    {career}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {mosResult && mosResult.notFound && (
-            <div style={{
-              background: '#FFF8E1',
-              border: '1px solid #FFE082',
-              borderRadius: 12,
-              padding: '16px',
-              marginBottom: 16,
-            }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#E65100', marginBottom: 8 }}>
-                MOS "{mosResult.code}" not found in quick-reference
-              </div>
-              <div style={{ fontSize: 11, color: '#56697C', marginBottom: 12, lineHeight: 1.6 }}>
-                Use these official tools to translate your military experience to civilian careers:
-              </div>
-              <a
-                href="https://www.mynextmove.org/vets/"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'block',
-                  background: '#FFFFFF',
-                  border: '1px solid #E0E6EE',
-                  borderRadius: 10,
-                  padding: '12px',
-                  marginBottom: 10,
-                  textDecoration: 'none',
-                }}
-              >
-                <div style={{ fontSize: 13, fontWeight: 700, color: theme.primary, marginBottom: 2 }}>
-                  My Next Move for Veterans
-                </div>
-                <div style={{ fontSize: 11, color: '#56697C' }}>
-                  mynextmove.org/vets — Enter your MOS for a full civilian career crosswalk
-                </div>
-              </a>
-              <a
-                href="https://www.onetonline.org/crosswalk/MOC/"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'block',
-                  background: '#FFFFFF',
-                  border: '1px solid #E0E6EE',
-                  borderRadius: 10,
-                  padding: '12px',
-                  textDecoration: 'none',
-                }}
-              >
-                <div style={{ fontSize: 13, fontWeight: 700, color: theme.primary, marginBottom: 2 }}>
-                  O*NET Military Crosswalk
-                </div>
-                <div style={{ fontSize: 11, color: '#56697C' }}>
-                  onetonline.org — Comprehensive occupation crosswalk for all military branches
-                </div>
-              </a>
-            </div>
-          )}
-
-          {/* Quick reference grid */}
-          {!mosResult && (
+          {skills.length > 0 ? (
             <>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#56697C', marginBottom: 10, letterSpacing: 0.5 }}>
-                COMMON MOS QUICK REFERENCE
-              </div>
-              {Object.entries(MOS_MAP).map(([code, info]) => (
-                <div
-                  key={code}
-                  onClick={() => { setMosInput(code); setMosResult({ code, ...info }) }}
-                  style={{
-                    ...card({ cursor: 'pointer' }),
-                    borderLeft: `3px solid ${theme.secondary || '#E0E6EE'}`,
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: theme.primary }}>{code}</div>
-                    <div style={{ fontSize: 10, color: '#56697C', fontWeight: 600 }}>{info.label}</div>
+              {skills.map((skill, i) => {
+                const kw = encodeURIComponent(skill.name)
+                const loc = encodeURIComponent(searchCity)
+                const cat = SKILL_CATS.find(c => c.id === skill.cat) || SKILL_CATS[0]
+                return (
+                  <div key={i} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${cat.color}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 800, color: '#0D1821', marginBottom: 4 }}>{skill.name}</div>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: cat.color, background: `${cat.color}15`, padding: '2px 8px', borderRadius: 10, border: `1px solid ${cat.color}30` }}>{cat.label}</span>
+                      </div>
+                      <div style={{ fontSize: 10, color: '#888', textAlign: 'right' }}>
+                        <div style={{ fontWeight: 700 }}>{radius}mi radius</div>
+                        <div>{searchCity}</div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#556', lineHeight: 1.5, marginBottom: 10 }}>
+                      Current openings matching your "{skill.name}" skill. Tap a board to view real-time listings.
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <a href={`https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#1565C0', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>USAJobs</a>
+                      <a href={`https://www.indeed.com/jobs?q=${kw}&l=${loc}&radius=${radius}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#00897B', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>Indeed</a>
+                      <a href={`https://www.linkedin.com/jobs/search/?keywords=${kw}&location=${loc}&distance=${radius}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#0077B5', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>LinkedIn</a>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                    {info.careers.slice(0, 3).map((c, i) => (
-                      <div key={i} style={{ fontSize: 10, color: '#34495E', background: '#F5F5F5', padding: '2px 8px', borderRadius: 10 }}>
-                        {c}
-                      </div>
-                    ))}
-                    {info.careers.length > 3 && (
-                      <div style={{ fontSize: 10, color: '#56697C', padding: '2px 4px' }}>
-                        +{info.careers.length - 3} more
-                      </div>
-                    )}
+                )
+              })}
+
+              <div style={{ background: '#E8F5E9', border: '1.5px solid #4CAF50', borderRadius: 12, padding: 14, marginTop: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#1B5E20', marginBottom: 4 }}>Security Clearance Advantage</div>
+                <div style={{ fontSize: 11, color: '#2E7D32', lineHeight: 1.5, marginBottom: 10 }}>Your military service may have granted a clearance — one of the most valuable credentials in the civilian market. Clearance holders typically earn 10–30% more than peers.</div>
+                <a href="https://www.clearancejobs.com" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '10px', borderRadius: 10, background: '#2E7D32', color: '#FFF', textDecoration: 'none', fontWeight: 800, fontSize: 12, textAlign: 'center' }}>Browse Clearance Jobs</a>
+              </div>
+            </>
+          ) : (
+            <div style={{ background: '#F0F4F8', borderRadius: 12, padding: 24, textAlign: 'center' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 8 }}>No skills on file</div>
+              <div style={{ fontSize: 11, color: '#56697C', marginBottom: 14 }}>Add your skills in the Skills Profile tab to see personalized job matches.</div>
+              <button onClick={() => setActiveTab('skills')} style={{ padding: '10px 24px', borderRadius: 10, background: theme.primary, color: '#FFF', border: 'none', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>Add Skills →</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── RESUME ── */}
+      {activeTab === 'resume' && (
+        <div>
+          {resumeAnalysis && (
+            <div style={{ background: '#E8F5E9', border: '1.5px solid #4CAF50', borderRadius: 12, padding: 14, marginBottom: 14 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#2E7D32', marginBottom: 8 }}>Resume AI Analysis</div>
+              {resumeAnalysis.name && <div style={{ fontSize: 12, color: '#1B5E20', marginBottom: 4 }}><strong>Name:</strong> {resumeAnalysis.name}</div>}
+              {resumeAnalysis.experience_years !== undefined && <div style={{ fontSize: 12, color: '#1B5E20', marginBottom: 4 }}><strong>Experience:</strong> {resumeAnalysis.experience_years} years</div>}
+              {resumeAnalysis.education && <div style={{ fontSize: 12, color: '#1B5E20', marginBottom: 8 }}><strong>Education:</strong> {resumeAnalysis.education}</div>}
+              {resumeAnalysis.skills?.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: '#2E7D32', marginBottom: 6, letterSpacing: '.1em' }}>DETECTED SKILLS</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {resumeAnalysis.skills.map((s, i) => <span key={i} style={{ background: '#C8E6C9', color: '#1B5E20', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 12 }}>{s}</span>)}
                   </div>
                 </div>
-              ))}
-              <div style={{ marginTop: 4 }}>
-                <a
-                  href="https://www.mynextmove.org/vets/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'block',
-                    background: `${theme.primary}10`,
-                    border: `1px solid ${theme.primary}30`,
-                    borderRadius: 10,
-                    padding: '12px',
-                    textDecoration: 'none',
-                    textAlign: 'center',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: theme.primary,
-                  }}
-                >
-                  Search All MOS Codes at mynextmove.org/vets
-                </a>
+              )}
+            </div>
+          )}
+
+          <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#0D1821', marginBottom: 8 }}>Upload or Paste Resume</div>
+            {fileMsg && (
+              <div style={{ background: fileLoading ? '#FFF8E1' : resumeAnalysis ? '#E8F5E9' : '#E3F2FD', border: `1px solid ${fileLoading ? '#FFE082' : resumeAnalysis ? '#4CAF50' : '#90CAF9'}`, borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, fontWeight: 700, color: fileLoading ? '#E65100' : resumeAnalysis ? '#2E7D32' : '#1565C0' }}>
+                {fileMsg}
               </div>
+            )}
+            <textarea
+              value={resumeText}
+              onChange={e => setResumeText(e.target.value)}
+              placeholder="Paste resume text here, or upload a file below..."
+              style={{ width: '100%', minHeight: 280, padding: 12, borderRadius: 8, border: '1px solid #E0E6EE', fontSize: 12, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box' }}
+            />
+            <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={handleFileChange} disabled={fileLoading} style={{ marginTop: 10, display: 'block', fontSize: 12 }} />
+          </div>
+
+          {selectedPosition && (
+            <>
+              <div style={{ background: `${theme.primary}18`, border: `1px solid ${theme.primary}40`, borderRadius: 12, padding: 12, marginBottom: 10 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: theme.primary, marginBottom: 3 }}>Tailoring for: {selectedPosition.title}</div>
+                <div style={{ fontSize: 11, color: '#56697C' }}>Auto-tailor aligns your resume keywords to this position.</div>
+              </div>
+              <button onClick={() => setRefinedResume(`TAILORED FOR: ${selectedPosition.title}\n\n${resumeText}\n\nMATCHED SKILLS:\n${(resumeAnalysis?.skills || []).join('\n')}`)} style={{ width: '100%', padding: 12, borderRadius: 12, background: theme.primary, color: '#FFF', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 13, marginBottom: 12 }}>
+                Auto-Tailor Resume
+              </button>
+            </>
+          )}
+
+          {refinedResume && (
+            <>
+              <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 10, maxHeight: 300, overflowY: 'auto', whiteSpace: 'pre-wrap', fontSize: 11, fontFamily: 'monospace', color: '#34495E', lineHeight: 1.6 }}>
+                {refinedResume}
+              </div>
+              <button onClick={() => navigator.clipboard.writeText(refinedResume).then(() => alert('Copied!'))} style={{ width: '100%', padding: 12, borderRadius: 10, background: '#4CAF50', color: '#FFF', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>
+                Copy to Clipboard
+              </button>
             </>
           )}
         </div>
@@ -865,68 +467,37 @@ ${jobListing.title} at ${jobListing.company}`
       {/* ── JOB BOARDS ── */}
       {activeTab === 'jobboards' && (
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>
-            Veteran Job Boards &amp; Resources
-          </div>
-          <div style={{ fontSize: 11, color: '#56697C', marginBottom: 16, lineHeight: 1.5 }}>
-            Curated job boards and career portals with veteran preference, free services, and military-friendly employers.
-          </div>
-          {JOB_BOARDS.map((board, idx) => (
-            <div
-              key={idx}
-              style={{
-                background: '#FFFFFF',
-                border: '1px solid #E0E6EE',
-                borderLeft: `4px solid ${board.badgeColor}`,
-                borderRadius: 12,
-                padding: '14px',
-                marginBottom: 12,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-              }}
-            >
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>Job Boards & Career Resources</div>
+          <div style={{ fontSize: 11, color: '#56697C', marginBottom: 16, lineHeight: 1.5 }}>Curated job boards and career portals for military members and spouses. Federal hiring preference applies on USAJobs.gov.</div>
+
+          {JOB_BOARDS.map((board, i) => (
+            <div key={i} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${board.color}`, borderRadius: 12, padding: 14, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821' }}>{board.name}</div>
-                  <div style={{
-                    fontSize: 9,
-                    fontWeight: 700,
-                    color: '#FFFFFF',
-                    background: board.badgeColor,
-                    padding: '2px 6px',
-                    borderRadius: 8,
-                    whiteSpace: 'nowrap',
-                    letterSpacing: 0.3,
-                  }}>
-                    {board.badge}
-                  </div>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: '#FFF', background: board.color, padding: '2px 6px', borderRadius: 8 }}>{board.badge}</span>
                 </div>
-                <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>
-                  {board.description}
-                </div>
+                <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{board.desc}</div>
               </div>
-              <a
-                href={board.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  flexShrink: 0,
-                  padding: '9px 16px',
-                  borderRadius: 10,
-                  background: board.badgeColor,
-                  color: '#FFFFFF',
-                  textDecoration: 'none',
-                  fontWeight: 700,
-                  fontSize: 12,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                Open
-              </a>
+              <a href={board.url} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 10, background: board.color, color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 12 }}>Open</a>
+            </div>
+          ))}
+
+          <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, marginTop: 8, marginBottom: 12, borderLeft: `3px solid ${theme.accent}` }}>
+            <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 4 }}>MILITARY SPOUSE EMPLOYMENT</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', lineHeight: 1.5 }}>Dedicated programs and partnerships for spouses navigating careers through PCS moves. Most programs are completely free.</div>
+          </div>
+
+          {SPOUSE_BOARDS.map((board, i) => (
+            <div key={i} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${board.color}`, borderRadius: 12, padding: 14, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821' }}>{board.name}</div>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: '#FFF', background: board.color, padding: '2px 6px', borderRadius: 8 }}>{board.badge}</span>
+                </div>
+                <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{board.desc}</div>
+              </div>
+              <a href={board.url} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 10, background: board.color, color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 12 }}>Open</a>
             </div>
           ))}
         </div>
