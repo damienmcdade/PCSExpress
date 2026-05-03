@@ -7,7 +7,7 @@
   "deploy": {
     "startCommand": "node server/manager.js",
     "restartPolicyType": "on_failure",
-    "restartPolicyMaxRetries": 0,
+    "restartPolicyMaxRetries": 1,
     "healthCheck": {
       "command": "curl --fail --silent --show-error http://localhost:3001/health || exit 1",
       "interval": 30,
