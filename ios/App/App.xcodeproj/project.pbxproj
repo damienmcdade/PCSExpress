@@ -15,6 +15,11 @@
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+		C71160532FA80AA400EDEB94 /* KeychainDocumentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71160522FA80AA400EDEB94 /* KeychainDocumentService.swift */; };
+		C71160552FA80AB000EDEB94 /* SecureDocumentPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71160542FA80AB000EDEB94 /* SecureDocumentPlugin.swift */; };
+		C71160572FA80AD800EDEB94 /* AccessiblePCSTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71160562FA80AD800EDEB94 /* AccessiblePCSTaskView.swift */; };
+		C71160592FA80B0400EDEB94 /* PDFExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71160582FA80B0400EDEB94 /* PDFExportService.swift */; };
+		C711605B2FA80B1500EDEB94 /* PDFExportPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C711605A2FA80B1500EDEB94 /* PDFExportPlugin.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +33,11 @@
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
+		C71160522FA80AA400EDEB94 /* KeychainDocumentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainDocumentService.swift; sourceTree = "<group>"; };
+		C71160542FA80AB000EDEB94 /* SecureDocumentPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureDocumentPlugin.swift; sourceTree = "<group>"; };
+		C71160562FA80AD800EDEB94 /* AccessiblePCSTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessiblePCSTaskView.swift; sourceTree = "<group>"; };
+		C71160582FA80B0400EDEB94 /* PDFExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExportService.swift; sourceTree = "<group>"; };
+		C711605A2FA80B1500EDEB94 /* PDFExportPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExportPlugin.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,6 +80,11 @@
 				504EC3131FED79650016851F /* Info.plist */,
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
+				C71160522FA80AA400EDEB94 /* KeychainDocumentService.swift */,
+				C71160542FA80AB000EDEB94 /* SecureDocumentPlugin.swift */,
+				C71160562FA80AD800EDEB94 /* AccessiblePCSTaskView.swift */,
+				C71160582FA80B0400EDEB94 /* PDFExportService.swift */,
+				C711605A2FA80B1500EDEB94 /* PDFExportPlugin.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -155,7 +170,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C71160572FA80AD800EDEB94 /* AccessiblePCSTaskView.swift in Sources */,
+				C71160552FA80AB000EDEB94 /* SecureDocumentPlugin.swift in Sources */,
+				C71160532FA80AA400EDEB94 /* KeychainDocumentService.swift in Sources */,
+				C711605B2FA80B1500EDEB94 /* PDFExportPlugin.swift in Sources */,
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+				C71160592FA80B0400EDEB94 /* PDFExportService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
