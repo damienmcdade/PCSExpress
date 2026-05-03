@@ -1,9 +1,24 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// Capacitor's WKWebView custom scheme (capacitor://localhost) has issues with
+// type="module" crossorigin scripts. Strip those attributes so the script loads
+// as a classic script. The IIFE output format ensures all code is self-contained.
+function capacitorHtmlFix() {
+  return {
+    name: 'capacitor-html-fix',
+    transformIndexHtml(html) {
+      return html
+        .replace(/<script type="module" crossorigin/g, '<script')
+        .replace(/<link rel="modulepreload" crossorigin/g, '<link rel="preload" as="script"')
+        .replace(/ crossorigin(?=[ >])/g, '')
+    }
+  }
+}
+
 export default defineConfig({
   base: './',
-  plugins: [react()],
+  plugins: [react(), capacitorHtmlFix()],
   server: {
     port: 3000,
     proxy: {
@@ -16,12 +31,11 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    // Single bundle — no code splitting prevents ES module cross-chunk
-    // import failures in Capacitor's WKWebView custom URL scheme
     rollupOptions: {
       output: {
-        inlineDynamicImports: false,
-        manualChunks: undefined,
+        format: 'iife',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       }
     }
   }
