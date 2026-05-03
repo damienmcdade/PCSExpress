@@ -708,6 +708,92 @@ const EMPLOYMENT_RESOURCES = {
   ],
 };
 
+function haversineMiles(lat1, lng1, lat2, lng2) {
+  const R = 3959;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+const NATIONAL_CHILDCARE_RESOURCES = [
+  { name:"Military Child Care (MCC)", url:"https://militarychildcare.com", icon:"🏛️", desc:"Official DoD fee assistance program. Apply for subsidized childcare payments for off-installation providers." },
+  { name:"Child Care Aware — Military", url:"https://www.childcareaware.org/fee-assistance-and-respite/military-families/", icon:"👶", desc:"Resource navigation and fee assistance for military families seeking community childcare." },
+  { name:"YMCA Military Family Services", url:"https://www.ymca.net/military", icon:"⭐", desc:"Y-MVP program — free and reduced memberships and childcare for active duty military families nationwide." },
+  { name:"DoD Fee Assistance Program", url:"https://militarychildcare.com/mcc-provider-registration/fee-assistance", icon:"💰", desc:"Subsidized childcare payments for families using off-base providers — apply through the MCC portal." },
+  { name:"State CCAP Subsidy", url:"https://www.childcareta.acf.hhs.gov/ccdf-fundamentals", icon:"🤝", desc:"State-administered childcare subsidy accepted by most civilian providers. Eligibility varies by state income limits." },
+  { name:"School Age Care (SACC)", url:"https://www.militaryonesource.mil/family-relationships/parenting-and-children/child-care/", icon:"🎓", desc:"Before/after school programs on most installations — often lowest-cost option for school-age children." },
+];
+
+const DAYCARE_CENTERS = {
+  "Fort Liberty": [
+    { name:"Fort Liberty Child Development Center", type:"military", lat:35.1460, lng:-79.0095, rating:4.7, milScore:5, avail:"limited", ptPrice:"$420–$580/mo", ftPrice:"$670–$950/mo", url:"https://www.fortlibertyitf.com/child-youth-services/", notes:"Active duty priority. Income-based sliding scale. Ages 6 wks–12 yrs." },
+    { name:"KinderCare Learning — Fayetteville", type:"community", lat:35.0526, lng:-78.8784, rating:4.2, milScore:4, avail:"open", ptPrice:"$520–$680/mo", ftPrice:"$900–$1,100/mo", url:"https://www.kindercare.com", notes:"Military discount. Multiple Fayetteville locations." },
+    { name:"Primrose School of Fayetteville", type:"community", lat:35.0620, lng:-78.9500, rating:4.5, milScore:4, avail:"open", ptPrice:"$560–$720/mo", ftPrice:"$980–$1,200/mo", url:"https://www.primroseschools.com", notes:"Accredited STEM curriculum. MCC fee assistance accepted." },
+    { name:"La Petite Academy — Raeford Rd", type:"community", lat:35.0720, lng:-78.9750, rating:3.9, milScore:3, avail:"open", ptPrice:"$480–$620/mo", ftPrice:"$820–$1,050/mo", url:"https://www.lapetite.com", notes:"CCS subsidy accepted. Open enrollment." },
+  ],
+  "Fort Bliss": [
+    { name:"Fort Bliss Child Development Center", type:"military", lat:31.8155, lng:-106.4110, rating:4.5, milScore:5, avail:"limited", ptPrice:"$380–$520/mo", ftPrice:"$620–$880/mo", url:"https://www.armymwr.com/locations/fort-bliss", notes:"Income-based fees. Ages 6 wks–12 yrs." },
+    { name:"KinderCare — Northeast El Paso", type:"community", lat:31.8580, lng:-106.3980, rating:4.0, milScore:3, avail:"open", ptPrice:"$440–$580/mo", ftPrice:"$760–$970/mo", url:"https://www.kindercare.com", notes:"Closest to post. Bilingual staff." },
+    { name:"La Petite Academy — Dyer St", type:"community", lat:31.8350, lng:-106.4260, rating:3.8, milScore:3, avail:"open", ptPrice:"$400–$540/mo", ftPrice:"$700–$900/mo", url:"https://www.lapetite.com", notes:"CCS accepted. Multiple El Paso locations." },
+    { name:"Bright Horizons — El Paso", type:"community", lat:31.8200, lng:-106.4050, rating:4.3, milScore:4, avail:"waitlist", ptPrice:"$500–$650/mo", ftPrice:"$850–$1,050/mo", url:"https://www.brighthorizons.com", notes:"Military family discount. Join waitlist early." },
+  ],
+  "Fort Campbell": [
+    { name:"Fort Campbell Child Development Center", type:"military", lat:36.6670, lng:-87.4800, rating:4.6, milScore:5, avail:"limited", ptPrice:"$400–$560/mo", ftPrice:"$650–$920/mo", url:"https://campbell.armymwr.com/programs/child-development-center", notes:"101st Airborne community. Sliding scale fees." },
+    { name:"KinderCare — Clarksville", type:"community", lat:36.5298, lng:-87.3595, rating:4.1, milScore:4, avail:"open", ptPrice:"$480–$620/mo", ftPrice:"$820–$1,020/mo", url:"https://www.kindercare.com", notes:"Military-heavy clientele. 10 min from Gate 1." },
+    { name:"The Learning Experience — Clarksville", type:"community", lat:36.5400, lng:-87.3480, rating:4.3, milScore:4, avail:"open", ptPrice:"$520–$660/mo", ftPrice:"$880–$1,080/mo", url:"https://thelearningexperience.com", notes:"STEM curriculum. MCC fee assistance accepted." },
+    { name:"Primrose School — Clarksville", type:"community", lat:36.5200, lng:-87.3650, rating:4.4, milScore:4, avail:"waitlist", ptPrice:"$550–$700/mo", ftPrice:"$930–$1,150/mo", url:"https://www.primroseschools.com", notes:"Accredited. Strong pre-K." },
+  ],
+  "Fort Carson": [
+    { name:"Fort Carson Child Development Center", type:"military", lat:38.7295, lng:-104.7888, rating:4.5, milScore:5, avail:"limited", ptPrice:"$390–$550/mo", ftPrice:"$640–$900/mo", url:"https://carson.armymwr.com/programs/child-development-center", notes:"4th Infantry Division community. Sliding scale." },
+    { name:"KinderCare — Colorado Springs", type:"community", lat:38.8339, lng:-104.8214, rating:4.0, milScore:4, avail:"open", ptPrice:"$520–$680/mo", ftPrice:"$870–$1,100/mo", url:"https://www.kindercare.com", notes:"Multiple Colorado Springs locations." },
+    { name:"Primrose — Powers Blvd", type:"community", lat:38.8450, lng:-104.7600, rating:4.6, milScore:4, avail:"open", ptPrice:"$560–$720/mo", ftPrice:"$960–$1,200/mo", url:"https://www.primroseschools.com", notes:"Highly rated. Accredited STEM." },
+    { name:"La Petite Academy — N Academy Blvd", type:"community", lat:38.8700, lng:-104.7900, rating:3.9, milScore:3, avail:"open", ptPrice:"$460–$600/mo", ftPrice:"$790–$1,000/mo", url:"https://www.lapetite.com", notes:"CCS subsidy accepted." },
+  ],
+  "Fort Drum": [
+    { name:"Fort Drum Child Development Center", type:"military", lat:44.0555, lng:-75.7680, rating:4.4, milScore:5, avail:"limited", ptPrice:"$380–$520/mo", ftPrice:"$620–$860/mo", url:"https://drum.armymwr.com/programs/child-development-center", notes:"10th Mountain Division. Sliding scale." },
+    { name:"YMCA Child Care — Watertown", type:"community", lat:43.9748, lng:-75.9107, rating:4.0, milScore:4, avail:"open", ptPrice:"$400–$540/mo", ftPrice:"$700–$880/mo", url:"https://www.ymca.org", notes:"Military family-friendly. CCS accepted." },
+    { name:"KinderCare — Watertown", type:"community", lat:43.9700, lng:-75.9200, rating:3.8, milScore:3, avail:"open", ptPrice:"$430–$570/mo", ftPrice:"$730–$920/mo", url:"https://www.kindercare.com", notes:"Open enrollment year-round." },
+    { name:"Bright Horizons — Watertown", type:"community", lat:43.9800, lng:-75.9050, rating:4.2, milScore:4, avail:"open", ptPrice:"$420–$560/mo", ftPrice:"$720–$900/mo", url:"https://www.brighthorizons.com", notes:"Strong military family support." },
+  ],
+  "Naval Station Norfolk": [
+    { name:"NS Norfolk Child Development Center", type:"military", lat:36.9408, lng:-76.2938, rating:4.6, milScore:5, avail:"waitlist", ptPrice:"$410–$570/mo", ftPrice:"$660–$930/mo", url:"https://www.cnic.navy.mil/regions/cnrma/installations/ns_norfolk/ffsc/", notes:"High demand. Join waitlist immediately. Navy FCC also available." },
+    { name:"KinderCare — Norfolk", type:"community", lat:36.8508, lng:-76.2859, rating:4.1, milScore:4, avail:"open", ptPrice:"$520–$680/mo", ftPrice:"$880–$1,100/mo", url:"https://www.kindercare.com", notes:"Near NS Norfolk. Flexible scheduling." },
+    { name:"Bright Horizons — Hampton Roads", type:"community", lat:36.8900, lng:-76.3100, rating:4.4, milScore:4, avail:"open", ptPrice:"$580–$740/mo", ftPrice:"$990–$1,240/mo", url:"https://www.brighthorizons.com", notes:"Employer-partnered. Subsidy accepted." },
+    { name:"La Petite Academy — Virginia Beach", type:"community", lat:36.8529, lng:-76.0849, rating:3.9, milScore:3, avail:"open", ptPrice:"$500–$640/mo", ftPrice:"$860–$1,080/mo", url:"https://www.lapetite.com", notes:"Multiple Hampton Roads locations." },
+  ],
+  "Naval Base San Diego": [
+    { name:"NB San Diego Child Development Center", type:"military", lat:32.6865, lng:-117.1318, rating:4.6, milScore:5, avail:"waitlist", ptPrice:"$480–$640/mo", ftPrice:"$780–$1,080/mo", url:"https://www.cnic.navy.mil/regions/cnrsw/installations/nb_san_diego/", notes:"High demand — join waitlist immediately on arrival." },
+    { name:"KinderCare — Chula Vista", type:"community", lat:32.6401, lng:-117.0842, rating:4.0, milScore:4, avail:"open", ptPrice:"$620–$800/mo", ftPrice:"$1,050–$1,300/mo", url:"https://www.kindercare.com", notes:"Multiple SD locations. Military discount." },
+    { name:"Bright Horizons — National City", type:"community", lat:32.6782, lng:-117.0985, rating:4.3, milScore:4, avail:"open", ptPrice:"$650–$820/mo", ftPrice:"$1,100–$1,380/mo", url:"https://www.brighthorizons.com", notes:"Military discount. MCC fee assistance accepted." },
+    { name:"Primrose School — Chula Vista", type:"community", lat:32.6300, lng:-117.0700, rating:4.5, milScore:4, avail:"limited", ptPrice:"$680–$860/mo", ftPrice:"$1,150–$1,420/mo", url:"https://www.primroseschools.com", notes:"Accredited. Strong curriculum." },
+  ],
+  "Camp Pendleton": [
+    { name:"Camp Pendleton CDC", type:"military", lat:33.3795, lng:-117.5570, rating:4.5, milScore:5, avail:"limited", ptPrice:"$450–$610/mo", ftPrice:"$720–$1,000/mo", url:"https://www.mccsonesource.com/locations/camp-pendleton/", notes:"USMC CDC. Sliding scale. Join waitlist early." },
+    { name:"KinderCare — Oceanside", type:"community", lat:33.1959, lng:-117.3795, rating:4.0, milScore:4, avail:"open", ptPrice:"$580–$760/mo", ftPrice:"$990–$1,240/mo", url:"https://www.kindercare.com", notes:"Closest to main gate. Military-friendly." },
+    { name:"Bright Horizons — Carlsbad", type:"community", lat:33.1581, lng:-117.3506, rating:4.4, milScore:4, avail:"open", ptPrice:"$620–$790/mo", ftPrice:"$1,060–$1,300/mo", url:"https://www.brighthorizons.com", notes:"Strong school-readiness program." },
+    { name:"Primrose School — San Marcos", type:"community", lat:33.1434, lng:-117.1661, rating:4.5, milScore:3, avail:"open", ptPrice:"$640–$820/mo", ftPrice:"$1,100–$1,380/mo", url:"https://www.primroseschools.com", notes:"15–20 min from main gate. Accredited." },
+  ],
+  "Camp Lejeune": [
+    { name:"Camp Lejeune Child Development Center", type:"military", lat:34.6858, lng:-77.3375, rating:4.5, milScore:5, avail:"limited", ptPrice:"$400–$560/mo", ftPrice:"$650–$920/mo", url:"https://www.mccsonesource.com/locations/camp-lejeune/", notes:"USMC CDC. Income-based fees." },
+    { name:"KinderCare — Jacksonville NC", type:"community", lat:34.7540, lng:-77.4302, rating:3.9, milScore:4, avail:"open", ptPrice:"$460–$600/mo", ftPrice:"$790–$1,000/mo", url:"https://www.kindercare.com", notes:"Nearest chain to base. Military clientele." },
+    { name:"The Learning Experience — Jacksonville", type:"community", lat:34.7400, lng:-77.4200, rating:4.2, milScore:4, avail:"open", ptPrice:"$490–$630/mo", ftPrice:"$830–$1,050/mo", url:"https://thelearningexperience.com", notes:"Military family-friendly pricing." },
+    { name:"Primrose School — Jacksonville", type:"community", lat:34.7300, lng:-77.4300, rating:4.4, milScore:4, avail:"waitlist", ptPrice:"$520–$670/mo", ftPrice:"$880–$1,100/mo", url:"https://www.primroseschools.com", notes:"Accredited. Common waitlist." },
+  ],
+  "Lackland AFB": [
+    { name:"JBSA-Lackland Child Development Center", type:"military", lat:29.3885, lng:-98.6185, rating:4.5, milScore:5, avail:"limited", ptPrice:"$390–$550/mo", ftPrice:"$640–$900/mo", url:"https://www.jbsaservices.com/child-youth/", notes:"JBSA CDC. Income-based fees." },
+    { name:"KinderCare — San Antonio", type:"community", lat:29.4000, lng:-98.5900, rating:4.1, milScore:4, avail:"open", ptPrice:"$500–$650/mo", ftPrice:"$850–$1,060/mo", url:"https://www.kindercare.com", notes:"Multiple San Antonio locations." },
+    { name:"Bright Horizons — San Antonio", type:"community", lat:29.4200, lng:-98.5800, rating:4.3, milScore:4, avail:"open", ptPrice:"$530–$690/mo", ftPrice:"$900–$1,130/mo", url:"https://www.brighthorizons.com", notes:"Military family discount." },
+    { name:"Primrose School — San Antonio", type:"community", lat:29.4300, lng:-98.5750, rating:4.5, milScore:4, avail:"open", ptPrice:"$560–$720/mo", ftPrice:"$950–$1,200/mo", url:"https://www.primroseschools.com", notes:"Accredited. Multiple locations." },
+  ],
+  "Nellis AFB": [
+    { name:"Nellis AFB Child Development Center", type:"military", lat:36.2415, lng:-115.0338, rating:4.4, milScore:5, avail:"limited", ptPrice:"$400–$560/mo", ftPrice:"$650–$920/mo", url:"https://nellis.armymwr.com/programs/child-development-center", notes:"Nellis CDC. Sliding scale." },
+    { name:"KinderCare — North Las Vegas", type:"community", lat:36.2095, lng:-115.1176, rating:3.9, milScore:3, avail:"open", ptPrice:"$500–$650/mo", ftPrice:"$850–$1,050/mo", url:"https://www.kindercare.com", notes:"Nearest to base." },
+    { name:"Bright Horizons — Summerlin", type:"community", lat:36.1500, lng:-115.3300, rating:4.3, milScore:3, avail:"open", ptPrice:"$580–$750/mo", ftPrice:"$990–$1,240/mo", url:"https://www.brighthorizons.com", notes:"Higher quality. 25 min from base." },
+    { name:"The Learning Experience — Henderson", type:"community", lat:36.0395, lng:-115.0276, rating:4.2, milScore:3, avail:"open", ptPrice:"$520–$680/mo", ftPrice:"$880–$1,100/mo", url:"https://thelearningexperience.com", notes:"Military discount. 30 min from base." },
+  ],
+};
+
 const MENTAL_HEALTH_RESOURCES = {
   crisis: [
     { name: "Veterans Crisis Line", url: "https://www.veteranscrisisline.net", desc: "Call or text 988 then press 1 — confidential crisis support 24/7 for veterans and service members", phone: "988 → Press 1" },
@@ -1432,6 +1518,21 @@ function DesktopApp({ profile, onReset }) {
   const [empAiResults, setEmpAiResults] = useState("");
   const [empAiLoading, setEmpAiLoading] = useState(false);
   const [empAiError, setEmpAiError] = useState("");
+  const [empTab, setEmpTab] = useState("search");
+  const [empResume, setEmpResume] = useState("");
+  const [empMatchResults, setEmpMatchResults] = useState("");
+  const [empMatchLoading, setEmpMatchLoading] = useState(false);
+  const [empMatchError, setEmpMatchError] = useState("");
+  const [empJobListing, setEmpJobListing] = useState("");
+  const [empTailoredResume, setEmpTailoredResume] = useState("");
+  const [empTailoring, setEmpTailoring] = useState(false);
+  const [empTailorError, setEmpTailorError] = useState("");
+  const [empTailorMode, setEmpTailorMode] = useState("auto");
+  const [daycareInstallType, setDaycareInstallType] = useState("gaining");
+  const [daycareAddress, setDaycareAddress] = useState("");
+  const [daycareAddrCoord, setDaycareAddrCoord] = useState(null);
+  const [daycareAddrLoading, setDaycareAddrLoading] = useState(false);
+  const [daycareAddrError, setDaycareAddrError] = useState("");
   const theme = BRANCH_THEMES[profile.branch];
   const content = BRANCH_CONTENT[profile.branch];
   const branchBusinesses = VETERAN_BUSINESSES[profile.branch] || [];
@@ -1556,6 +1657,7 @@ function DesktopApp({ profile, onReset }) {
               { id:"spouse", icon:"💑", label:"Spouse Guide" },
               { id:"education", icon:"🎓", label:"Education" },
               { id:"employment", icon:"💼", label:"Spouse Employment" },
+              { id:"daycare", icon:"👶", label:"Daycare Finder" },
               { id:"translation", icon:"🌐", label:"Translation" },
               { id:"navigation", icon:"🗺️", label:"Navigation" },
               { id:"basemap", icon:"🏛️", label:"Base Map" },
@@ -2218,121 +2320,161 @@ function DesktopApp({ profile, onReset }) {
               if (!empPosition.trim() && empSkills.length === 0) return;
               setEmpAiLoading(true); setEmpAiResults(""); setEmpAiError("");
               try {
-                const sys = `You are a military spouse career counselor. The service member is stationed at ${profile.gainingInstallation || "a military installation"} (${profile.branch}). Provide 6 specific, actionable job recommendations for their spouse based on the desired position and skills. For each recommendation include: Job Title, Why It Fits (1-2 sentences), Where to Apply (specific job board or employer site), and Type (Remote / Local / Federal). Format with clear headers. End with 2 quick resume tips tailored to military spouses.`;
+                const sys = `You are a military spouse career counselor. The service member is stationed at ${profile.gainingInstallation || "a military installation"} (${profile.branch}). Provide 6 specific job recommendations for their spouse. For each include: Job Title, Why It Fits (1-2 sentences), Where to Apply (with real URL), Salary Range, and Type (Remote/Local/Federal). Use clear numbered headers. End with 2 resume tips for military spouses.`;
                 const userMsg = `Desired position: ${empPosition || "open to suggestions"}\nSkills: ${empSkills.length > 0 ? empSkills.join(", ") : "not specified"}\nInstallation: ${profile.gainingInstallation || "not specified"}`;
                 const result = await aiCall(sys, userMsg);
                 setEmpAiResults(result);
-              } catch (err) {
-                setEmpAiError(err.message || "Search failed");
-              } finally {
-                setEmpAiLoading(false);
-              }
+              } catch (err) { setEmpAiError(err.message || "Search failed"); }
+              finally { setEmpAiLoading(false); }
             };
+
+            const handleResumeMatch = async () => {
+              if (!empResume.trim()) return;
+              setEmpMatchLoading(true); setEmpMatchResults(""); setEmpMatchError("");
+              try {
+                const sys = `You are a military spouse employment specialist. Analyze the resume and recommend 6 best-suited job matches near ${profile.gainingInstallation || "a military installation"}. For each match provide: Job Title, Match Score (X/10), Why You're a Fit (2 sentences), Apply At (real URL with employer name), Salary Range, Type (Remote/Local/Federal). Use clear numbered format with separator lines.`;
+                const result = await aiCall(sys, `RESUME:\n${empResume}`);
+                setEmpMatchResults(result);
+              } catch (err) { setEmpMatchError(err.message || "Analysis failed"); }
+              finally { setEmpMatchLoading(false); }
+            };
+
+            const handleTailorResume = async () => {
+              if (!empResume.trim()) return;
+              if (empTailorMode === "listing" && !empJobListing.trim()) return;
+              setEmpTailoring(true); setEmpTailoredResume(""); setEmpTailorError("");
+              try {
+                let sys, userMsg;
+                if (empTailorMode === "auto") {
+                  sys = `You are an expert resume writer specializing in military spouse employment. Rewrite and enhance the resume to target ${empPosition || "relevant positions"} near ${profile.gainingInstallation || "a military installation"}. Strengthen action verbs, add relevant keywords, highlight transferable military-life skills (adaptability, cross-cultural, logistics). Keep all facts accurate. Return the complete tailored resume formatted and ready to copy.`;
+                  userMsg = `RESUME TO REFINE:\n${empResume}\n\nTARGET ROLE/SKILLS: ${empPosition || "general professional"}${empSkills.length ? `, ${empSkills.join(", ")}` : ""}`;
+                } else {
+                  sys = `You are an expert resume writer. Tailor the provided resume specifically for the job listing below. Match keywords exactly, reorder bullet points by relevance, strengthen language to align with stated requirements. Keep all facts accurate — improve only phrasing and emphasis. Return the complete tailored resume ready to submit.`;
+                  userMsg = `RESUME:\n${empResume}\n\nJOB LISTING:\n${empJobListing}`;
+                }
+                const result = await aiCall(sys, userMsg);
+                setEmpTailoredResume(result);
+              } catch (err) { setEmpTailorError(err.message || "Refinement failed"); }
+              finally { setEmpTailoring(false); }
+            };
+
+            const tabSt = (id) => ({ padding:"10px 20px", borderRadius:10, border:`2px solid ${empTab===id?theme.accent:theme.accent+"40"}`, background:empTab===id?theme.accent+"20":"transparent", color:empTab===id?theme.primary:"#888", fontSize:14, fontWeight:empTab===id?800:600, cursor:"pointer" });
+            const boxSt = { background:"#FFFFFF", padding:"24px", borderRadius:14, border:`2px solid ${theme.accent}40`, marginBottom:20, boxShadow:"0 2px 8px rgba(0,0,0,0.05)" };
+            const inputSt = { width:"100%", fontSize:14, padding:"11px 14px", borderRadius:10, border:`1.5px solid ${theme.accent}40`, outline:"none", fontFamily:"inherit", boxSizing:"border-box", color:"#1A1A1A" };
+            const resultSt = { marginTop:16, padding:"20px", background:theme.light, border:`1.5px solid ${theme.accent}40`, borderRadius:10, fontSize:14, color:theme.primary, lineHeight:1.85, whiteSpace:"pre-wrap", maxHeight:480, overflowY:"auto" };
 
             return (
               <div>
                 <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Spouse Employment</h1>
-                <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>
-                  AI job recommendations, active listings, federal positions, and remote opportunities near {profile.gainingInstallation || "your installation"}
-                </p>
+                <p style={{ fontSize:16, color:"#666", marginBottom:20 }}>Job search, resume matching, and AI resume refinement near {profile.gainingInstallation || "your installation"}</p>
 
-                {/* AI Search Panel */}
-                <div style={{ background:"#FFFFFF", padding:"28px", borderRadius:14, border:`2px solid ${theme.accent}40`, marginBottom:24, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
-                  <div style={{ fontSize:17, fontWeight:900, color:theme.primary, marginBottom:18 }}>🤖 AI Job Recommendations</div>
+                {/* Tab bar */}
+                <div style={{ display:"flex", gap:10, marginBottom:24, flexWrap:"wrap" }}>
+                  <button style={tabSt("search")} onClick={()=>setEmpTab("search")}>🔍 Job Search</button>
+                  <button style={tabSt("resume")} onClick={()=>setEmpTab("resume")}>📄 Resume Match</button>
+                  <button style={tabSt("refine")} onClick={()=>setEmpTab("refine")}>✨ Resume Refinement</button>
+                </div>
 
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
-                    <div>
-                      <label style={{ fontSize:12, fontWeight:800, color:theme.subtext, display:"block", marginBottom:6, letterSpacing:".08em" }}>DESIRED POSITION / JOB TITLE</label>
-                      <input
-                        value={empPosition}
-                        onChange={e => setEmpPosition(e.target.value)}
-                        placeholder="e.g. Registered Nurse, Software Developer, Teacher…"
-                        style={{ width:"100%", fontSize:14, padding:"11px 14px", borderRadius:10, border:`1.5px solid ${theme.accent}40`, outline:"none", fontFamily:"inherit", boxSizing:"border-box", color:"#1A1A1A" }}
-                      />
+                {/* ── TAB: Job Search ── */}
+                {empTab === "search" && <>
+                  <div style={boxSt}>
+                    <div style={{ fontSize:16, fontWeight:900, color:theme.primary, marginBottom:16 }}>🤖 AI Job Recommendations</div>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+                      <div>
+                        <label style={{ fontSize:12, fontWeight:800, color:theme.subtext, display:"block", marginBottom:6 }}>DESIRED POSITION</label>
+                        <input value={empPosition} onChange={e=>setEmpPosition(e.target.value)} placeholder="e.g. Registered Nurse, Software Developer…" style={inputSt} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize:12, fontWeight:800, color:theme.subtext, display:"block", marginBottom:6 }}>ADD SKILLS (Enter or comma)</label>
+                        <input value={empSkillInput} onChange={e=>setEmpSkillInput(e.target.value)} onKeyDown={e=>{ if((e.key==="Enter"||e.key===",")&&empSkillInput.trim()){e.preventDefault();const s=empSkillInput.trim().replace(/,$/,"");if(s&&!empSkills.includes(s))setEmpSkills(p=>[...p,s]);setEmpSkillInput("");}}} placeholder="e.g. Python, Project Management…" style={inputSt} />
+                      </div>
                     </div>
-                    <div>
-                      <label style={{ fontSize:12, fontWeight:800, color:theme.subtext, display:"block", marginBottom:6, letterSpacing:".08em" }}>ADD SKILLS (press Enter or comma)</label>
-                      <input
-                        value={empSkillInput}
-                        onChange={e => setEmpSkillInput(e.target.value)}
-                        onKeyDown={e => {
-                          if ((e.key === "Enter" || e.key === ",") && empSkillInput.trim()) {
-                            e.preventDefault();
-                            const skill = empSkillInput.trim().replace(/,$/, "");
-                            if (skill && !empSkills.includes(skill)) setEmpSkills(prev => [...prev, skill]);
-                            setEmpSkillInput("");
-                          }
-                        }}
-                        placeholder="e.g. Python, Project Management, EMT…"
-                        style={{ width:"100%", fontSize:14, padding:"11px 14px", borderRadius:10, border:`1.5px solid ${theme.accent}40`, outline:"none", fontFamily:"inherit", boxSizing:"border-box", color:"#1A1A1A" }}
-                      />
-                    </div>
+                    {empSkills.length > 0 && <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:16 }}>{empSkills.map((s,i)=><span key={i} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"5px 12px", borderRadius:20, background:theme.accent+"22", border:`1px solid ${theme.accent}50`, fontSize:13, fontWeight:700, color:theme.primary }}>{s}<button onClick={()=>setEmpSkills(p=>p.filter((_,j)=>j!==i))} style={{ background:"none", border:"none", color:theme.primary, cursor:"pointer", fontSize:14, padding:0 }}>×</button></span>)}</div>}
+                    <button onClick={handleEmpSearch} disabled={empAiLoading||(!empPosition.trim()&&empSkills.length===0)} style={{ padding:"12px 28px", borderRadius:10, background:empAiLoading||(!empPosition.trim()&&empSkills.length===0)?"#E0E0E0":theme.primary, color:empAiLoading||(!empPosition.trim()&&empSkills.length===0)?"#999":"#FFF", border:"none", fontSize:14, fontWeight:800, cursor:"pointer" }}>
+                      {empAiLoading ? "Searching…" : "Get AI Job Recommendations"}
+                    </button>
+                    {empAiError && <div style={{ marginTop:12, padding:"12px 14px", background:"#FEE", border:"1.5px solid #F88", borderRadius:10, color:"#C33", fontSize:13 }}>⚠️ {empAiError}</div>}
+                    {empAiResults && <div style={resultSt}>{empAiResults}</div>}
                   </div>
 
-                  {/* Skills tags */}
-                  {empSkills.length > 0 && (
-                    <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:16 }}>
-                      {empSkills.map((skill, i) => (
-                        <span key={i} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"5px 12px", borderRadius:20, background:theme.accent+"22", border:`1px solid ${theme.accent}50`, fontSize:13, fontWeight:700, color:theme.primary }}>
-                          {skill}
-                          <button onClick={() => setEmpSkills(prev => prev.filter((_,j) => j !== i))} style={{ background:"none", border:"none", color:theme.primary, cursor:"pointer", fontSize:14, lineHeight:1, padding:0 }}>×</button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <button
-                    onClick={handleEmpSearch}
-                    disabled={empAiLoading || (!empPosition.trim() && empSkills.length === 0)}
-                    style={{ padding:"12px 28px", borderRadius:10, background: empAiLoading || (!empPosition.trim() && empSkills.length === 0) ? "#E0E0E0" : theme.primary, color: empAiLoading || (!empPosition.trim() && empSkills.length === 0) ? "#999" : "#FFF", border:"none", fontSize:14, fontWeight:800, cursor:"pointer" }}
-                  >
-                    {empAiLoading ? "Searching…" : "Get AI Job Recommendations"}
-                  </button>
-
-                  {empAiError && (
-                    <div style={{ marginTop:14, padding:"12px 16px", background:"#FEE", border:"1.5px solid #F88", borderRadius:10, color:"#C33", fontSize:13 }}>⚠️ {empAiError}</div>
-                  )}
-                  {empAiResults && (
-                    <div style={{ marginTop:16, padding:"20px", background:theme.light, border:`1.5px solid ${theme.accent}40`, borderRadius:10, fontSize:14, color:theme.primary, lineHeight:1.85, whiteSpace:"pre-wrap" }}>
-                      {empAiResults}
-                    </div>
-                  )}
-                </div>
-
-                {/* Category filter */}
-                <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
-                  {categoryFilters.map(f => (
-                    <button key={f.id} onClick={() => setEmpCategory(f.id)} style={{ padding:"8px 18px", borderRadius:20, border:`1.5px solid ${empCategory===f.id?theme.accent:theme.accent+"40"}`, background: empCategory===f.id ? theme.accent+"22" : "transparent", color: empCategory===f.id ? theme.primary : "#888", fontSize:13, fontWeight:700, cursor:"pointer" }}>
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Job board cards */}
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:28 }}>
-                  {filteredBoards.map((board, i) => (
-                    <a key={i} href={board.url} target="_blank" rel="noopener noreferrer" style={{ background:"#FFFFFF", padding:"20px", borderRadius:14, border:`2px solid ${theme.accent}40`, textDecoration:"none", display:"block", boxShadow:"0 2px 8px rgba(0,0,0,0.05)", transition:"transform 0.15s" }} onMouseEnter={e=>e.currentTarget.style.transform="translateY(-3px)"} onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>
+                  <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
+                    {categoryFilters.map(f=><button key={f.id} onClick={()=>setEmpCategory(f.id)} style={{ padding:"8px 18px", borderRadius:20, border:`1.5px solid ${empCategory===f.id?theme.accent:theme.accent+"40"}`, background:empCategory===f.id?theme.accent+"22":"transparent", color:empCategory===f.id?theme.primary:"#888", fontSize:13, fontWeight:700, cursor:"pointer" }}>{f.label}</button>)}
+                  </div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:24 }}>
+                    {filteredBoards.map((b,i)=><a key={i} href={b.url} target="_blank" rel="noopener noreferrer" style={{ background:"#FFFFFF", padding:"18px", borderRadius:12, border:`2px solid ${theme.accent}40`, textDecoration:"none", display:"block" }}>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
-                        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                          <span style={{ fontSize:22 }}>{board.icon}</span>
-                          <div style={{ fontSize:15, fontWeight:800, color:theme.primary }}>{board.name}</div>
-                        </div>
-                        <span style={{ fontSize:10, fontWeight:700, background: board.type === "remote" ? "#1565C0" : board.type === "federal" ? "#2E7D32" : board.type === "military-spouse" ? theme.accent+"40" : "#EEE", color: board.type === "remote" ? "#FFF" : board.type === "federal" ? "#FFF" : theme.primary, borderRadius:6, padding:"2px 8px", whiteSpace:"nowrap", marginLeft:8, flexShrink:0 }}>
-                          {board.type === "military-spouse" ? "MIL SPOUSE" : board.type.toUpperCase()}
-                        </span>
+                        <div style={{ display:"flex", alignItems:"center", gap:8 }}><span style={{ fontSize:20 }}>{b.icon}</span><div style={{ fontSize:14, fontWeight:800, color:theme.primary }}>{b.name}</div></div>
+                        <span style={{ fontSize:10, fontWeight:700, background:b.type==="remote"?"#1565C0":b.type==="federal"?"#2E7D32":theme.accent+"30", color:b.type==="remote"||b.type==="federal"?"#FFF":theme.primary, borderRadius:6, padding:"2px 8px", whiteSpace:"nowrap", flexShrink:0 }}>{b.type==="military-spouse"?"MIL SPOUSE":b.type.toUpperCase()}</span>
                       </div>
-                      <div style={{ fontSize:12, color:"#666", lineHeight:1.6 }}>{board.desc}</div>
-                    </a>
-                  ))}
-                </div>
+                      <div style={{ fontSize:12, color:"#666", lineHeight:1.55 }}>{b.desc}</div>
+                    </a>)}
+                  </div>
+                  <div style={{ background:theme.light, border:`1.5px solid ${theme.accent}40`, borderRadius:12, padding:"18px 22px" }}>
+                    <div style={{ fontSize:14, fontWeight:800, color:theme.primary, marginBottom:10 }}>🏛️ Federal & Base Hiring Tips</div>
+                    <ul style={{ margin:0, paddingLeft:20, fontSize:13, color:"#444", lineHeight:1.9 }}>{EMPLOYMENT_RESOURCES.federalTips.map((t,i)=><li key={i}>{t}</li>)}</ul>
+                  </div>
+                </>}
 
-                {/* Federal hiring tips */}
-                <div style={{ background:theme.light, border:`1.5px solid ${theme.accent}40`, borderRadius:14, padding:"20px 24px" }}>
-                  <div style={{ fontSize:15, fontWeight:800, color:theme.primary, marginBottom:12 }}>🏛️ Federal & Base Hiring Tips for Military Spouses</div>
-                  <ul style={{ margin:0, paddingLeft:20, fontSize:13, color:"#444", lineHeight:1.95 }}>
-                    {EMPLOYMENT_RESOURCES.federalTips.map((tip, i) => <li key={i}>{tip}</li>)}
-                  </ul>
-                </div>
+                {/* ── TAB: Resume Match ── */}
+                {empTab === "resume" && <>
+                  <div style={boxSt}>
+                    <div style={{ fontSize:16, fontWeight:900, color:theme.primary, marginBottom:6 }}>📄 Resume Job Match</div>
+                    <p style={{ fontSize:13, color:"#666", marginBottom:16 }}>Paste your resume below. AI will scan it and recommend the 6 best-suited jobs with apply links near {profile.gainingInstallation || "your installation"}.</p>
+                    <label style={{ fontSize:12, fontWeight:800, color:theme.subtext, display:"block", marginBottom:6 }}>PASTE YOUR RESUME</label>
+                    <textarea value={empResume} onChange={e=>setEmpResume(e.target.value)} rows={12} placeholder="Paste your full resume text here — work experience, skills, education, certifications…" style={{ ...inputSt, resize:"vertical", lineHeight:1.6 }} />
+                    <button onClick={handleResumeMatch} disabled={empMatchLoading||!empResume.trim()} style={{ marginTop:14, padding:"12px 28px", borderRadius:10, background:empMatchLoading||!empResume.trim()?"#E0E0E0":theme.primary, color:empMatchLoading||!empResume.trim()?"#999":"#FFF", border:"none", fontSize:14, fontWeight:800, cursor:"pointer" }}>
+                      {empMatchLoading ? "Analyzing Resume…" : "🔍 Scan & Match Jobs"}
+                    </button>
+                    {empMatchError && <div style={{ marginTop:12, padding:"12px 14px", background:"#FEE", border:"1.5px solid #F88", borderRadius:10, color:"#C33", fontSize:13 }}>⚠️ {empMatchError}</div>}
+                    {empMatchResults && <div style={resultSt}>{empMatchResults}</div>}
+                  </div>
+                  <div style={{ background:theme.light, border:`1.5px solid ${theme.accent}40`, borderRadius:12, padding:"16px 20px" }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:theme.primary, marginBottom:8 }}>💡 Tips for the best matches</div>
+                    <ul style={{ margin:0, paddingLeft:18, fontSize:13, color:"#555", lineHeight:1.85 }}>
+                      <li>Include all work history — even informal or volunteer roles count</li>
+                      <li>List certifications, licenses, and language skills prominently</li>
+                      <li>Mention military spouse experience — it shows adaptability employers value</li>
+                      <li>Add any remote work or freelance experience for broader matches</li>
+                    </ul>
+                  </div>
+                </>}
+
+                {/* ── TAB: Resume Refinement ── */}
+                {empTab === "refine" && <>
+                  <div style={boxSt}>
+                    <div style={{ fontSize:16, fontWeight:900, color:theme.primary, marginBottom:6 }}>✨ AI Resume Refinement</div>
+                    <p style={{ fontSize:13, color:"#666", marginBottom:16 }}>Paste your resume and choose how to tailor it — auto-tailor to a role, or paste a specific job listing for a targeted rewrite.</p>
+
+                    <div style={{ display:"flex", gap:10, marginBottom:20 }}>
+                      {[["auto","🎯 Auto-Tailor to Role"],["listing","📋 Tailor to Job Listing"]].map(([m,label])=><button key={m} onClick={()=>setEmpTailorMode(m)} style={{ padding:"10px 18px", borderRadius:10, border:`2px solid ${empTailorMode===m?theme.accent:theme.accent+"40"}`, background:empTailorMode===m?theme.accent+"20":"transparent", color:empTailorMode===m?theme.primary:"#888", fontSize:13, fontWeight:empTailorMode===m?800:600, cursor:"pointer" }}>{label}</button>)}
+                    </div>
+
+                    <label style={{ fontSize:12, fontWeight:800, color:theme.subtext, display:"block", marginBottom:6 }}>PASTE YOUR RESUME</label>
+                    <textarea value={empResume} onChange={e=>setEmpResume(e.target.value)} rows={8} placeholder="Paste your full resume here…" style={{ ...inputSt, resize:"vertical", lineHeight:1.6, marginBottom:14 }} />
+
+                    {empTailorMode === "auto" && <>
+                      <label style={{ fontSize:12, fontWeight:800, color:theme.subtext, display:"block", marginBottom:6 }}>TARGET ROLE (optional — auto-fills from Job Search tab)</label>
+                      <input value={empPosition} onChange={e=>setEmpPosition(e.target.value)} placeholder="e.g. HR Specialist, Logistics Coordinator…" style={{ ...inputSt, marginBottom:14 }} />
+                    </>}
+
+                    {empTailorMode === "listing" && <>
+                      <label style={{ fontSize:12, fontWeight:800, color:theme.subtext, display:"block", marginBottom:6 }}>PASTE JOB LISTING</label>
+                      <textarea value={empJobListing} onChange={e=>setEmpJobListing(e.target.value)} rows={6} placeholder="Paste the full job description / posting here — title, requirements, responsibilities…" style={{ ...inputSt, resize:"vertical", lineHeight:1.6, marginBottom:14 }} />
+                    </>}
+
+                    <button onClick={handleTailorResume} disabled={empTailoring||!empResume.trim()||(empTailorMode==="listing"&&!empJobListing.trim())} style={{ padding:"12px 28px", borderRadius:10, background:empTailoring||!empResume.trim()?"#E0E0E0":theme.accent, color:empTailoring||!empResume.trim()?"#999":"#FFFFFF", border:"none", fontSize:14, fontWeight:800, cursor:"pointer" }}>
+                      {empTailoring ? "Refining Resume…" : "✨ Refine My Resume"}
+                    </button>
+                    {empTailorError && <div style={{ marginTop:12, padding:"12px 14px", background:"#FEE", border:"1.5px solid #F88", borderRadius:10, color:"#C33", fontSize:13 }}>⚠️ {empTailorError}</div>}
+                    {empTailoredResume && <>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:16, marginBottom:6 }}>
+                        <div style={{ fontSize:14, fontWeight:800, color:theme.primary }}>✅ Tailored Resume</div>
+                        <button onClick={()=>{navigator.clipboard?.writeText(empTailoredResume);}} style={{ padding:"6px 14px", borderRadius:8, background:theme.accent, color:"#FFF", border:"none", fontSize:12, fontWeight:700, cursor:"pointer" }}>📋 Copy</button>
+                      </div>
+                      <div style={resultSt}>{empTailoredResume}</div>
+                    </>}
+                  </div>
+                </>}
               </div>
             );
           })()}
@@ -2644,6 +2786,124 @@ function DesktopApp({ profile, onReset }) {
               </div>
             </div>
           )}
+
+          {screen === "daycare" && (() => {
+            const installation = daycareInstallType === "gaining" ? profile.gainingInstallation : profile.losingInstallation;
+            const baseCoord = installation ? INSTALLATION_COORDS[installation] : null;
+            const centers = installation ? (DAYCARE_CENTERS[installation] || []) : [];
+
+            const handleGeocode = async () => {
+              if (!daycareAddress.trim()) return;
+              setDaycareAddrLoading(true); setDaycareAddrError(""); setDaycareAddrCoord(null);
+              try {
+                const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(daycareAddress)}&format=json&limit=1`;
+                const res = await fetch(url, { headers: { "Accept-Language":"en" } });
+                const data = await res.json();
+                if (!data.length) throw new Error(`Address not found: "${daycareAddress}"`);
+                setDaycareAddrCoord({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+              } catch (e) { setDaycareAddrError(e.message); }
+              finally { setDaycareAddrLoading(false); }
+            };
+
+            const availColor = { open:"#2E7D32", limited:"#F57C00", waitlist:"#C62828" };
+            const availLabel = { open:"Open Enrollment", limited:"Limited Spots", waitlist:"Waitlist Only" };
+            const stars = (n) => Array.from({length:5},(_,i)=><span key={i} style={{ color:i<Math.round(n)?"#F9A825":"#DDD", fontSize:15 }}>★</span>);
+
+            return (
+              <div>
+                <h1 style={{ fontSize:32, fontWeight:900, color:theme.primary, marginBottom:8 }}>Daycare Finder</h1>
+                <p style={{ fontSize:16, color:"#666", marginBottom:24 }}>Childcare options near your installation with ratings, pricing, and distance</p>
+
+                {/* Installation toggle */}
+                <div style={{ display:"flex", gap:10, marginBottom:16 }}>
+                  {[["gaining",`Gaining: ${profile.gainingInstallation||"Not set"}`],["losing",`Losing: ${profile.losingInstallation||"Not set"}`]].map(([k,lbl])=>(
+                    <button key={k} onClick={()=>{ setDaycareInstallType(k); setDaycareAddrCoord(null); }} style={{ flex:1, padding:"11px 14px", borderRadius:10, border:daycareInstallType===k?`2px solid ${theme.accent}`:`1px solid rgba(0,0,0,0.15)`, background:daycareInstallType===k?theme.primary:"#FFFFFF", color:daycareInstallType===k?"#FFFFFF":theme.primary, fontSize:13, fontWeight:700, cursor:"pointer" }}>{lbl}</button>
+                  ))}
+                </div>
+
+                {/* Distance from address */}
+                <div style={{ background:"#FFFFFF", padding:"18px 22px", borderRadius:12, border:`2px solid ${theme.accent}40`, marginBottom:20 }}>
+                  <label style={{ fontSize:12, fontWeight:800, color:theme.primary, display:"block", marginBottom:8 }}>📍 CALCULATE DISTANCE FROM YOUR ADDRESS</label>
+                  <div style={{ display:"flex", gap:10 }}>
+                    <input value={daycareAddress} onChange={e=>setDaycareAddress(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleGeocode()} placeholder="Enter your home address or ZIP code…" style={{ flex:1, padding:"10px 14px", fontSize:14, borderRadius:10, border:`1.5px solid ${theme.accent}40`, outline:"none", color:"#1A1A1A" }} />
+                    <button onClick={handleGeocode} disabled={daycareAddrLoading||!daycareAddress.trim()} style={{ padding:"10px 18px", borderRadius:10, background:daycareAddrLoading?"#E0E0E0":theme.primary, color:daycareAddrLoading?"#999":"#FFF", border:"none", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>{daycareAddrLoading?"Finding…":"Set Location"}</button>
+                  </div>
+                  {daycareAddrError && <div style={{ marginTop:8, fontSize:13, color:"#C33" }}>⚠️ {daycareAddrError}</div>}
+                  {daycareAddrCoord && <div style={{ marginTop:8, fontSize:13, color:"#2E7D32", fontWeight:600 }}>✓ Location set — distances shown below</div>}
+                </div>
+
+                {!installation && <div style={{ padding:"16px", background:"#FFF8E1", border:"1.5px solid #FFD54F", borderRadius:12, marginBottom:16, color:"#5D4037", fontSize:14 }}>⚠️ No installation set for this selection. Update your profile.</div>}
+
+                {/* Daycare cards */}
+                {centers.length > 0 && (
+                  <div style={{ display:"flex", flexDirection:"column", gap:16, marginBottom:28 }}>
+                    {centers.map((dc, i) => {
+                      const distBase = baseCoord ? haversineMiles(baseCoord.lat, baseCoord.lng, dc.lat, dc.lng) : null;
+                      const distAddr = daycareAddrCoord ? haversineMiles(daycareAddrCoord.lat, daycareAddrCoord.lng, dc.lat, dc.lng) : null;
+                      return (
+                        <div key={i} style={{ background:"#FFFFFF", padding:"22px", borderRadius:14, border:`2px solid ${dc.type==="military"?theme.accent:theme.accent+"40"}`, boxShadow:"0 2px 8px rgba(0,0,0,0.05)" }}>
+                          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:10, marginBottom:12 }}>
+                            <div>
+                              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
+                                <div style={{ fontSize:16, fontWeight:900, color:theme.primary }}>{dc.name}</div>
+                                {dc.type === "military" && <span style={{ fontSize:11, fontWeight:800, background:theme.accent, color:theme.secondary, borderRadius:6, padding:"2px 8px" }}>ON-BASE CDC</span>}
+                              </div>
+                              <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+                                <div style={{ display:"flex", alignItems:"center", gap:4 }}>{stars(dc.rating)}<span style={{ fontSize:13, fontWeight:700, color:"#555", marginLeft:4 }}>{dc.rating}</span></div>
+                                <div style={{ display:"flex", alignItems:"center", gap:4, fontSize:13, color:"#555" }}>⭐ Mil-Friendly: <strong>{dc.milScore}/5</strong></div>
+                                <span style={{ fontSize:12, fontWeight:700, background:availColor[dc.avail]+"22", color:availColor[dc.avail], borderRadius:20, padding:"3px 10px", border:`1px solid ${availColor[dc.avail]}40` }}>{availLabel[dc.avail]}</span>
+                              </div>
+                            </div>
+                            <a href={dc.url} target="_blank" rel="noopener noreferrer" style={{ padding:"10px 18px", borderRadius:10, background:theme.primary, color:"#FFFFFF", textDecoration:"none", fontSize:13, fontWeight:700, whiteSpace:"nowrap" }}>🌐 Visit Website</a>
+                          </div>
+
+                          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(200px, 1fr))", gap:10, marginBottom:10 }}>
+                            <div style={{ background:theme.light, borderRadius:10, padding:"10px 14px" }}>
+                              <div style={{ fontSize:11, fontWeight:800, color:theme.subtext, marginBottom:4 }}>PART-TIME</div>
+                              <div style={{ fontSize:15, fontWeight:700, color:theme.primary }}>{dc.ptPrice}</div>
+                            </div>
+                            <div style={{ background:theme.light, borderRadius:10, padding:"10px 14px" }}>
+                              <div style={{ fontSize:11, fontWeight:800, color:theme.subtext, marginBottom:4 }}>FULL-TIME</div>
+                              <div style={{ fontSize:15, fontWeight:700, color:theme.primary }}>{dc.ftPrice}</div>
+                            </div>
+                            {distBase !== null && <div style={{ background:theme.light, borderRadius:10, padding:"10px 14px" }}>
+                              <div style={{ fontSize:11, fontWeight:800, color:theme.subtext, marginBottom:4 }}>FROM BASE</div>
+                              <div style={{ fontSize:15, fontWeight:700, color:theme.primary }}>{distBase.toFixed(1)} mi</div>
+                            </div>}
+                            {distAddr !== null && <div style={{ background:"#E8F5E9", borderRadius:10, padding:"10px 14px", border:"1px solid #A5D6A7" }}>
+                              <div style={{ fontSize:11, fontWeight:800, color:"#2E7D32", marginBottom:4 }}>FROM YOUR ADDRESS</div>
+                              <div style={{ fontSize:15, fontWeight:700, color:"#1B5E20" }}>{distAddr.toFixed(1)} mi</div>
+                            </div>}
+                          </div>
+                          <div style={{ fontSize:12, color:"#666", lineHeight:1.6 }}>{dc.notes}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {installation && !DAYCARE_CENTERS[installation] && (
+                  <div style={{ padding:"20px", background:"#FFF8E1", border:"1.5px solid #FFD54F", borderRadius:12, marginBottom:20, color:"#5D4037", fontSize:14 }}>⚠️ Detailed daycare data not yet available for "{installation}". Use the national resources below to search.</div>
+                )}
+
+                {/* National resources */}
+                <div style={{ background:"#FFFFFF", padding:"22px", borderRadius:14, border:`2px solid ${theme.accent}40` }}>
+                  <div style={{ fontSize:16, fontWeight:900, color:theme.primary, marginBottom:16 }}>🏛️ Military Childcare Programs & Fee Assistance</div>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(280px, 1fr))", gap:12 }}>
+                    {NATIONAL_CHILDCARE_RESOURCES.map((r,i)=>(
+                      <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" style={{ display:"block", padding:"16px", borderRadius:12, border:`1.5px solid ${theme.accent}40`, background:theme.light, textDecoration:"none" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
+                          <span style={{ fontSize:22 }}>{r.icon}</span>
+                          <div style={{ fontSize:14, fontWeight:800, color:theme.primary }}>{r.name}</div>
+                        </div>
+                        <div style={{ fontSize:12, color:"#666", lineHeight:1.55 }}>{r.desc}</div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {screen === "navigation" && (
             <NavigationMap profile={profile} theme={theme} />
