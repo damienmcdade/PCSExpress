@@ -2,12 +2,16 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 html, body, #root {
   width: 100%;
   height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
 }
 
 .app {
@@ -16,9 +20,27 @@ html, body, #root {
   height: 100vh;
   width: 100vw;
   background: #f5f5f5;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow: hidden;
 }
 
-/* Header */
+/* iOS Simulator Specific */
+.app.ios-simulator {
+  /* Safe area for notch */
+  padding-top: 0;
+}
+
+@supports (padding: max(0px)) {
+  .app.ios-simulator {
+    padding-top: max(0px, env(safe-area-inset-top));
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+/* Header - Don't block content */
 .header {
   display: flex;
   align-items: center;
@@ -27,9 +49,10 @@ html, body, #root {
   background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
   color: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 100;
+  flex-shrink: 0;
+  min-height: 60px;
 }
 
 .header h1 {
@@ -135,7 +158,7 @@ html, body, #root {
   background: #bdc3c7;
 }
 
-/* Chat Container */
+/* Chat Container - Allow scrolling, not blocked */
 .chat-container {
   grid-row: 2;
   grid-column: 2;
@@ -143,6 +166,8 @@ html, body, #root {
   flex-direction: column;
   background: white;
   overflow: hidden;
+  flex: 1;
+  min-height: 0;
 }
 
 .messages {
@@ -667,10 +692,19 @@ html, body, #root {
   z-index: 49;
 }
 
-/* Mobile Responsive */
+/* Mobile Responsive - iOS Portrait Optimized */
 @media (max-width: 768px) {
   .app {
     grid-template-columns: 1fr;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
+
+  .header {
+    position: relative;
+    flex-shrink: 0;
+    width: 100%;
   }
 
   .hamburger {
@@ -680,10 +714,12 @@ html, body, #root {
   .sidebar {
     position: fixed;
     left: 0;
-    top: 3.5rem;
-    height: calc(100vh - 3.5rem);
+    top: 60px;
+    height: calc(100vh - 60px);
     z-index: 50;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+    overflow-y: auto;
+    max-height: calc(100vh - 60px);
   }
 
   .sidebar.closed {
@@ -704,6 +740,10 @@ html, body, #root {
 
   .chat-container {
     grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    height: calc(100vh - 60px);
+    overflow: hidden;
   }
 
   .message .content {
@@ -716,6 +756,8 @@ html, body, #root {
 
   .tab-content {
     padding: 1rem;
+    overflow-y: auto;
+    max-height: calc(100vh - 70px);
   }
 
   .info-grid {
@@ -740,6 +782,31 @@ html, body, #root {
   }
 }
 
+/* Extra small devices (iPhone) */
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 1.2rem;
+  }
+
+  .demo-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .tab-content {
+    padding: 0.75rem;
+  }
+
+  .message .content {
+    max-width: 90%;
+    font-size: 0.9rem;
+  }
+
+  .input-area input {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+}
+
 /* Scrollbar styling */
 .messages::-webkit-scrollbar,
 .tab-content::-webkit-scrollbar {
@@ -760,4 +827,35 @@ html, body, #root {
 .messages::-webkit-scrollbar-thumb:hover,
 .tab-content::-webkit-scrollbar-thumb:hover {
   background: #95a5a6;
+}
+
+.dashboard-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.info-card {
+  background: linear-gradient(135deg, rgba(30, 144, 255, 0.1), rgba(52, 152, 219, 0.1));
+  border: 1px solid #3498db;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+.info-card h3 {
+  color: #3498db;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.info-card p, .info-card li {
+  color: #2c3e50;
+  line-height: 1.6;
+  margin: 0.5rem 0;
+}
+
+.info-card ul {
+  margin: 1rem 0 0 1.5rem;
+  padding: 0;
 }
