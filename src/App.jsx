@@ -14,12 +14,12 @@ const store = {
 };
 
 const BRANCH_THEMES = {
-  Army: { primary: "#4A5E2A", secondary: "#2C3A14", accent: "#C8A84B" },
-  Navy: { primary: "#1A2A5E", secondary: "#0D1838", accent: "#C8A84B" },
-  "Marine Corps": { primary: "#8B0000", secondary: "#5C0000", accent: "#C8A84B" },
-  "Air Force": { primary: "#1A3A5C", secondary: "#0D2240", accent: "#60A0C8" },
-  "Space Force": { primary: "#1A1A3E", secondary: "#0A0A28", accent: "#7AB0E0" },
-  "Coast Guard": { primary: "#005A8E", secondary: "#003D6A", accent: "#FF6B00" },
+  Army:           { primary: "#4A5E2A", secondary: "#2C3A14", accent: "#C8A84B", motto: "HOOAH",          tagline: "This We'll Defend",            insignia: "USA",  abbr: "USA"  },
+  Navy:           { primary: "#1A2A5E", secondary: "#0D1838", accent: "#C8A84B", motto: "BRAVO ZULU",     tagline: "A Global Force for Good",      insignia: "USN",  abbr: "USN"  },
+  "Marine Corps": { primary: "#8B0000", secondary: "#5C0000", accent: "#C8A84B", motto: "SEMPER FIDELIS", tagline: "The Few. The Proud.",           insignia: "USMC", abbr: "USMC" },
+  "Air Force":    { primary: "#1A3A5C", secondary: "#0D2240", accent: "#60A0C8", motto: "AIM HIGH",       tagline: "Fly–Fight–Win",                insignia: "USAF", abbr: "USAF" },
+  "Space Force":  { primary: "#1A1A3E", secondary: "#0A0A28", accent: "#7AB0E0", motto: "SEMPER SUPRA",   tagline: "Guardians of the High Ground", insignia: "USSF", abbr: "USSF" },
+  "Coast Guard":  { primary: "#005A8E", secondary: "#003D6A", accent: "#FF6B00", motto: "SEMPER PARATUS", tagline: "Always Ready",                 insignia: "USCG", abbr: "USCG" },
 };
 
 // Use the comprehensive base list from BaseMapModule (100+ installations, CONUS + OCONUS)
@@ -1547,18 +1547,18 @@ function App() {
   ];
 
   const BOTTOM_NAV = [
-    { id: 'home',        label: 'Home',        icon: '🏠' },
-    { id: 'checklist',   label: 'PCS Checklist', icon: '✓' },
-    { id: 'orders',      label: 'Orders',      icon: '📋' },
-    { id: 'schools',     label: 'Schools',     icon: '🏫' },
-    { id: 'nav',         label: 'Map',         icon: '🗺️' },
-    { id: 'veterans',    label: 'Veterans',    icon: '⭐' },
-    { id: 'employment',  label: 'Employment',  icon: '💼' },
-    { id: 'education',   label: 'Education',   icon: '🎓' },
-    { id: 'spouse',      label: 'Deployment',  icon: '💛' },
-    { id: 'religion',    label: 'Faith',       icon: '✝️' },
-    { id: 'translation', label: 'Translate',   icon: '🌐' },
-    { id: 'resources',   label: 'Resources',   icon: '🔗' },
+    { id: 'home',        label: 'Home',          icon: 'HQ'  },
+    { id: 'checklist',   label: 'PCS Checklist', icon: 'PCK' },
+    { id: 'orders',      label: 'Orders',        icon: 'ORD' },
+    { id: 'schools',     label: 'Schools',       icon: 'SCH' },
+    { id: 'nav',         label: 'Navigation',    icon: 'NAV' },
+    { id: 'veterans',    label: 'Veterans',      icon: 'VET' },
+    { id: 'employment',  label: 'Employment',    icon: 'EMP' },
+    { id: 'education',   label: 'Education',     icon: 'EDU' },
+    { id: 'spouse',      label: 'Deployment',    icon: 'DEP' },
+    { id: 'religion',    label: 'Faith',         icon: 'CHP' },
+    { id: 'translation', label: 'Translate',     icon: 'TRL' },
+    { id: 'resources',   label: 'Resources',     icon: 'RES' },
   ];
 
   const currentLabel = BOTTOM_NAV.find(n => n.id === activeTab)?.label || 'Home';
@@ -1607,8 +1607,8 @@ function App() {
         <div style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: 0, right: 0, maxWidth: 480, margin: '0 auto', zIndex: 200, background: theme.secondary, borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0 }}>
             {BOTTOM_NAV.map(item => (
-              <button key={item.id} onClick={() => goTo(item.id)} style={{ padding: '14px 6px', background: activeTab === item.id ? `${theme.accent}30` : 'transparent', border: 'none', borderBottom: `1px solid rgba(255,255,255,0.08)`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.85)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: activeTab === item.id ? 800 : 500 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: activeTab === item.id ? `${theme.accent}40` : 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{item.icon}</div>
+              <button key={item.id} onClick={() => goTo(item.id)} style={{ padding: '12px 4px', background: activeTab === item.id ? `${theme.accent}25` : 'transparent', border: 'none', borderBottom: `1px solid rgba(255,255,255,0.07)`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.75)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, fontSize: 9, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase' }}>
+                <div style={{ width: 38, height: 28, borderRadius: 6, background: activeTab === item.id ? `${theme.accent}30` : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 900, letterSpacing: '.08em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.6)', border: activeTab === item.id ? `1px solid ${theme.accent}60` : '1px solid rgba(255,255,255,0.1)' }}>{item.icon}</div>
                 {item.label}
               </button>
             ))}
@@ -1649,32 +1649,53 @@ function App() {
       {(navOpen || showNotifs) && <div onClick={() => { setNavOpen(false); setShowNotifs(false); }} style={{ position: 'fixed', inset: 0, zIndex: 150, background: 'transparent' }} />}
 
       {/* CONTENT */}
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
+      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {activeTab === 'home' && (
           <div style={{ padding: '16px', position: 'relative' }}>
-            {/* Branch insignia watermark */}
-            <div style={{ position: 'absolute', top: 0, right: 16, fontSize: 120, opacity: 0.04, userSelect: 'none', pointerEvents: 'none', lineHeight: 1 }}>
-              {profile.branch === 'Army' ? '⭐' : profile.branch === 'Navy' ? '⚓' : profile.branch === 'Marine Corps' ? '🦅' : profile.branch === 'Air Force' ? '✈️' : profile.branch === 'Space Force' ? '🚀' : '⚓'}
+            {/* Branch Hero Banner */}
+            <div style={{ background: `linear-gradient(135deg, ${theme.secondary} 0%, ${theme.primary} 100%)`, borderRadius: 16, padding: '20px 16px', marginBottom: 16, position: 'relative', overflow: 'hidden', border: `1px solid ${theme.accent}40`, boxShadow: '0 4px 20px rgba(0,0,0,0.18)' }}>
+              {/* Background branch acronym watermark */}
+              <div style={{ position: 'absolute', right: -8, bottom: -12, fontSize: 90, fontWeight: 900, opacity: 0.07, userSelect: 'none', pointerEvents: 'none', color: theme.accent, letterSpacing: '-4px', lineHeight: 1 }}>
+                {theme.insignia || theme.abbr}
+              </div>
+              {/* Branch label */}
+              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.22em', color: theme.accent, marginBottom: 4, textTransform: 'uppercase' }}>
+                UNITED STATES {profile.branch.toUpperCase()}
+              </div>
+              {/* Branch motto */}
+              <div style={{ fontSize: 22, fontWeight: 900, color: '#FFFFFF', letterSpacing: '.06em', marginBottom: 6, textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                {theme.motto || 'READY TO SERVE'}
+              </div>
+              <div style={{ fontSize: 10, color: `${theme.accent}CC`, fontStyle: 'italic', marginBottom: 12 }}>{theme.tagline}</div>
+              {/* Soldier info */}
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'rgba(255,255,255,0.95)' }}>
+                {profile.paygrade} {profile.firstName} {profile.lastName}
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 2 }}>
+                {profile.gainingInstallation ? `Reporting to: ${profile.gainingInstallation}` : 'Set gaining installation in onboarding'}
+              </div>
+              {/* Accent bar */}
+              <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: theme.accent, borderRadius: '16px 0 0 16px' }} />
             </div>
-            <div style={{ fontSize: 15, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Welcome, {profile.firstName}</div>
-            <div style={{ fontSize: 11, color: '#888', marginBottom: 14 }}>{profile.gainingInstallation ? `Moving to ${profile.gainingInstallation}` : 'Set your gaining installation to personalize'}</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {[
-                { icon: '✓', label: 'PCS Checklist', id: 'checklist', color: '#1565C0' },
-                { icon: '📋', label: 'Orders', id: 'orders', color: '#2E7D32' },
-                { icon: '💼', label: 'Employment', id: 'employment', color: '#4A5E2A' },
-                { icon: '🏫', label: 'Schools', id: 'schools', color: '#7B1FA2' },
-                { icon: '⭐', label: 'Vet Businesses', id: 'veterans', color: '#E65100' },
-                { icon: '🎓', label: 'Education', id: 'education', color: '#1565C0' },
-                { icon: '✝️', label: 'Faith', id: 'religion', color: '#37474F' },
-                { icon: '💛', label: 'Deployment Guide', id: 'spouse', color: '#F57F17' },
-                { icon: '🗺️', label: 'Navigation', id: 'nav', color: '#00695C' },
-                { icon: '🔗', label: 'Resources', id: 'resources', color: '#C62828' },
-                { icon: '🌐', label: 'Translate', id: 'translation', color: '#1976D2' },
+                { abbr: 'PCK', label: 'PCS Checklist',   id: 'checklist', color: '#1565C0' },
+                { abbr: 'ORD', label: 'Orders',           id: 'orders',    color: '#2E7D32' },
+                { abbr: 'EMP', label: 'Employment',       id: 'employment',color: '#4A5E2A' },
+                { abbr: 'SCH', label: 'Schools',          id: 'schools',   color: '#7B1FA2' },
+                { abbr: 'VET', label: 'Vet Businesses',   id: 'veterans',  color: '#E65100' },
+                { abbr: 'EDU', label: 'Education',        id: 'education', color: '#1565C0' },
+                { abbr: 'CHP', label: 'Faith',            id: 'religion',  color: '#37474F' },
+                { abbr: 'DEP', label: 'Deployment Guide', id: 'spouse',    color: '#F57F17' },
+                { abbr: 'NAV', label: 'Navigation',       id: 'nav',       color: '#00695C' },
+                { abbr: 'RES', label: 'Resources',        id: 'resources', color: '#C62828' },
+                { abbr: 'TRL', label: 'Translate',        id: 'translation',color: '#1976D2' },
               ].map((item) => (
-                <div key={item.id} onClick={() => goTo(item.id)} style={{ background: '#FFFFFF', border: `1px solid #E0E6EE`, borderRadius: 14, padding: '16px 12px', cursor: 'pointer', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontSize: 20 }}>{item.icon}</div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#0D1821' }}>{item.label}</div>
+                <div key={item.id} onClick={() => goTo(item.id)} style={{ background: '#FFFFFF', border: `1px solid #E0E6EE`, borderRadius: 12, padding: '14px 10px', cursor: 'pointer', textAlign: 'center', boxShadow: '0 1px 6px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 42, height: 30, borderRadius: 8, background: `${item.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${item.color}25` }}>
+                    <span style={{ fontSize: 10, fontWeight: 900, color: item.color, letterSpacing: '.06em' }}>{item.abbr}</span>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#0D1821', lineHeight: 1.2 }}>{item.label}</div>
                 </div>
               ))}
             </div>
@@ -1704,19 +1725,9 @@ function App() {
         {activeTab === 'resources' && <ResourcesTab theme={theme} profile={profile} />}
       </div>
 
-      {/* BOTTOM NAV — first 5 items */}
-      <div style={{ background: '#FFFFFF', borderTop: '1px solid #E0E6EE', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', position: 'fixed', bottom: 0, width: '100%', maxWidth: 480, left: '50%', transform: 'translateX(-50%)', zIndex: 90, paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        {BOTTOM_NAV.slice(0, 5).map((item) => (
-          <button key={item.id} onClick={() => goTo(item.id)} style={{ padding: '8px 2px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, fontSize: 9, color: activeTab === item.id ? theme.primary : '#9AAABB', fontWeight: activeTab === item.id ? 800 : 500 }}>
-            <div style={{ fontSize: 17 }}>{item.icon}</div>
-            {item.label}
-          </button>
-        ))}
-      </div>
-
       {/* INTERACTIVE DEMO TOUR OVERLAY */}
       {demoTip >= 0 && demoTip < DEMO_TIPS.length && (
-        <div style={{ position: 'fixed', bottom: 'calc(72px + env(safe-area-inset-bottom))', left: 0, right: 0, maxWidth: 480, margin: '0 auto', padding: '0 12px', zIndex: 300 }}>
+        <div style={{ position: 'fixed', bottom: 'calc(24px + env(safe-area-inset-bottom))', left: 0, right: 0, maxWidth: 480, margin: '0 auto', padding: '0 12px', zIndex: 300 }}>
           <div style={{ background: theme.secondary, borderRadius: 16, padding: '16px', border: `2px solid ${theme.accent}`, boxShadow: '0 -4px 30px rgba(0,0,0,0.4)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
