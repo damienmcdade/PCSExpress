@@ -865,11 +865,11 @@ function Onboarding({ onComplete }) {
     setP(prev => ({ ...prev, gainingInstallation: installation, unit: "" }));
   };
   const theme = BRANCH_THEMES[p.branch];
-  const losingSuggestions = losingSearch.length > 1
-    ? MILITARY_BASES.filter(b => b.name.toLowerCase().includes(losingSearch.toLowerCase())).slice(0, 8)
+  const losingSuggestions = losingSearch && losingSearch.length > 1
+    ? MILITARY_BASES.filter(b => b && b.name && b.name.toLowerCase().includes(losingSearch.toLowerCase())).slice(0, 8)
     : [];
-  const gainingSuggestions = gainingSearch.length > 1
-    ? MILITARY_BASES.filter(b => b.name.toLowerCase().includes(gainingSearch.toLowerCase())).slice(0, 8)
+  const gainingSuggestions = gainingSearch && gainingSearch.length > 1
+    ? MILITARY_BASES.filter(b => b && b.name && b.name.toLowerCase().includes(gainingSearch.toLowerCase())).slice(0, 8)
     : [];
   const availableUnits = p.gainingInstallation && INSTALLATION_UNITS[p.gainingInstallation]
     ? (INSTALLATION_UNITS[p.gainingInstallation][p.branch] || [])
