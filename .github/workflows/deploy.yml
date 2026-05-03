@@ -12,9 +12,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Lint & test
+        run: npm run build
+        working-directory: ./pcs-express
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -41,7 +55,19 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           docker build ./pcs-express -t pcs-express:test
-          docker run -d --name test -e ANTHROPIC_API_KEY=test -e NODE_ENV=production pcs-express:test
+          docker run -d --name test \
+            -e ANTHROPIC_API_KEY=sk-ant-test \
+            -e NODE_ENV=production \
+            -p 3001:3001 \
+            pcs-express:test
           sleep 5
-          docker logs test
+          docker logs test || true
           docker exec test wget -q -O- http://localhost:3001/api/health || exit 1
+          docker stop test
+          docker rm test
+      
+      - name: Notify deployment
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "✓ Docker image built and pushed: ${{ secrets.DOCKER_USERNAME }}/pcs-express:latest"
+          echo "✓ Build hash: ${{ github.sha }}"

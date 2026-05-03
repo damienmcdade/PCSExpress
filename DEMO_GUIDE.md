@@ -1,141 +1,310 @@
-# PCS EXPRESS - INTERACTIVE DEMO
+# PCS Express - Interactive Demo Guide
 
-## Demo Profile: E-7 Soldier with 3 Kids OCONUS Move
+## Demo Tour Overview
 
-### Service Member Profile
-- **Name:** Marcus Thompson
-- **Rank:** E-7 (Sergeant First Class)
-- **Branch:** Army
-- **Component:** Active Duty
-- **Move Type:** OCONUS (Overseas to South Korea)
+PCS Express includes an interactive guided tour that walks users through all features with platform-specific instructions.
 
-### Family Details
-- **Spouse/Dependents:** Yes
-- **Children:** 3 (Ages 8, 11, and 14)
-- **Housing Needed:** 4 Bedrooms
-- **Religious Preference:** Christian (Protestant)
-- **Language:** English
+### Starting the Demo
 
-### PCS Details
-- **Departing From:** Fort Liberty, North Carolina
-- **Reporting To:** Camp Humphreys, South Korea
-- **Departure Date:** June 15, 2026
-- **Unit:** 101st Airborne Division (Air Assault)
-- **Days to Departure:** 30+ days (countdown updates)
+**Web/Browser:**
+- Click the **🎯 Demo** button in the top-right corner of the header
+- Tour automatically shows on first visit
+- Can be reopened anytime by clicking Demo button
 
----
+**Docker:**
+```bash
+docker run -e ANTHROPIC_API_KEY=sk-ant-... -p 3001:3001 pcs-express:latest
+# Open http://localhost:3001
+# Click 🎯 Demo button
+```
 
-## Features Demonstrated
+**iOS:**
+- Open app in Xcode
+- Demo auto-runs on first launch
+- Tap "🎯 Demo" in top-right to restart
 
-### 📊 Dashboard
-- Timeline showing days to departure
-- Dependents and children count
-- Branch-specific support information
-- Collapsible dashboard for mobile optimization
+## Tour Sections
 
-### ✅ PCS Checklist
-- Pre-move tasks (notify command, schedule HHG, arrange lodging, etc.)
-- During-move checklist (tracking, photos, verification)
-- Post-move tasks (in-processing, registration, enrollment)
-- Organized by phase for OCONUS moves
+### 1. Welcome (Step 1)
+- Introduces PCS Express
+- Overview of all-in-one PCS assistant
+- Encourages navigation through tour
 
-### 🎓 Schools & Districts
-- Educational resources for military families
-- Military Child Education Coalition
-- State department of education resources
-- School information for children ages 8, 11, 14
-- Tips for military family transitions
+### 2. Chat Assistant (Steps 2-3)
+**What it does:**
+- AI-powered questions about PCS moves
+- Practical military relocation advice
+- Supports any PCS-related question
 
-### 🏠 Branch Resources (Army-Specific)
-- **Housing:** Army Housing Online, BAH Calculator, Army Communities of Excellence
-- **Finance:** Army Finance Office, Military Pay Overview, Leave & Earnings Statement
-- **Family Services:** Army Community Service, Military OneSource, Spouse Employment
-- **Medical:** TRICARE, Army Medical Command, Military Hospital Finder
+**Example questions:**
+- "What are the main steps in a PCS move?"
+- "How long does a PCS typically take?"
+- "What documents do I need?"
+- "How does BAH work?"
 
-### ⭐ Veteran Services (Army)
-- AAFES (Army Air Force Exchange)
-- Veterans United (VA Loans)
-- Hire Heroes USA (Career Support)
-- Semper Fi Fund (Financial Assistance)
+**Platform notes:**
+- Web: Type in chat box, instant responses
+- Docker: Same experience, hosted on server
+- iOS: Native keyboard input
 
-### 📋 Reporting Screen
-- Auto-populated from profile data
-- Losing Installation: Fort Liberty, NC
-- Gaining Installation: Camp Humphreys, South Korea
-- Reporting Date: June 15, 2026
-- Unit Selection: 101st Airborne Division
-- Save and retrieve report functionality
+### 3. Employment Tab (Steps 4-6)
+**Resume Matching:**
+- Upload resume (PDF/TXT/DOC)
+- Paste job description
+- Get AI analysis with:
+  - Match percentage (0-100%)
+  - Strengths
+  - Gaps to address
+  - Recommendations
 
-### 🤖 Ask AI
-- Claude-powered PCS assistant
-- Branch-aware responses (Army-specific)
-- Rank-aware guidance (E-7)
-- Family situation context
-- Example questions provided
+**Resume Refinement:**
+- Upload same resume and job description
+- AI rewrites resume for better alignment
+- Download refined version instantly
 
----
+**Platform-specific tips:**
+- **Web:** Direct file upload, instant download
+- **Docker:** Same as web, any file type
+- **iOS:** Use Files app to access documents, share results via AirDrop
 
-## Mobile Features Demonstrated
+### 4. Daycare Tab (Steps 7-8)
+**Search Features:**
+- Enter installation name or city
+- AI finds local daycare options
+- Shows facility types, costs, benefits
 
-### 📱 Responsive Design
-- Hamburger menu on mobile devices (< 768px)
-- Collapsible sidebar slides in/out
-- Full-screen content area on phones
-- Sidebar auto-closes after navigation
+**Information provided:**
+- On-base CDC options
+- Civilian daycare centers
+- Military childcare subsidies
+- Family resources
+- Selection tips
 
-### 🎨 Hyper-Realistic App Icon
-- Military-themed design
-- Army blue with gold accents
-- Compass insignia, checkmarks, progress bar
-- Professional appearance on home screen
+**Platform notes:**
+- **Web:** Search box with real-time results
+- **Docker:** Same web experience
+- **iOS:** Mobile-optimized search interface
 
----
+### 5. Checklist Tab (Step 9)
+**Two sections:**
+- Before You Move (5 items)
+- After You Arrive (5 items)
 
-## How to Access the Demo
+**Features:**
+- Checkboxes to track progress
+- Browser storage saves state
+- Portable across sessions
 
-### On Launch Screen
-1. Open PCS Express
-2. Tap **"See Demo →"** button
-3. Select **"Launch Demo"**
-4. App loads with Marcus Thompson's profile
+### 6. FAQ Tab (Step 10)
+**Quick answers:**
+- Timeline of PCS moves
+- Dislocation Allowance (BAH)
+- Refusing orders
+- School records
 
-### Demo Navigation
-- View all tabs: Dashboard, Reporting, Checklist, Schools, Resources, Veteran Services, Ask AI
-- Ask AI questions contextual to E-7 soldier moving family overseas
-- Explore all features without creating a profile
+**Usage:**
+- Click questions to expand
+- No AI processing needed
+- Instant reference
 
-### Return to Onboarding
-- Tap **"Exit Demo / Edit Profile"** button
-- Return to blank onboarding form
-- Create your own profile
+### 7. Platform Guides (Steps 11-13)
+**Web/Browser:**
+- Full-featured interface
+- File uploads for resumes
+- Download capabilities
+- Responsive mobile design
 
----
+**Docker:**
+- Container deployment
+- Run anywhere
+- Auto-restart on crash
+- Perfect for teams/servers
 
-## Demo Use Cases
+**iOS:**
+- Native app experience
+- All features work same
+- File access via Files app
+- Push notifications ready
 
-### What the Demo Shows
-✅ Complete family relocation planning  
-✅ Overseas move considerations  
-✅ Multi-child school transitions  
-✅ E-7 military benefits and resources  
-✅ Army-specific support services  
-✅ Mobile-first responsive design  
-✅ AI-powered PCS guidance  
-✅ Reporting and documentation tracking  
+### 8. Deployment (Step 14)
+**Railway:**
+1. Connect GitHub repo
+2. Set ANTHROPIC_API_KEY
+3. Push to main
+4. Auto-deploys
 
-### Perfect For
-- Military families understanding PCS process
-- Commanders reviewing soldier support tools
-- Recruiters showing military benefits
-- Soldiers planning actual moves
-- Evaluation of app capabilities
+**GitHub Actions:**
+- Auto-builds Docker image
+- Tests before deployment
+- Pushes to Docker Hub
 
----
+**iOS:**
+- Xcode Cloud CI/CD
+- App Store ready
 
-## Current Deployment
+### 9. Pro Tips (Step 15)
+**Best practices:**
+- Start with Chat for quick questions
+- Use Employment 2-3 months before PCS
+- Search Daycare 3-6 months early
+- Check Checklist monthly
+- Use FAQ for quick reference
 
-**iOS:** Running on iPhone 17 Pro simulator  
-**Web:** https://pcsexpress-production.up.railway.app/  
-**GitHub:** https://github.com/damienmcdade/PCSExpress  
+**Platform mixing:**
+- Web best for uploads
+- Docker best for servers
+- iOS best for mobile
+- Sync across platforms via cloud
 
-Try the demo to explore all features!
+### 10. Interactive Examples (Steps 16-17)
+**Resume Matching Example:**
+- Pre-loaded sample resume
+- Sample job description
+- Shows 75-85% match expected
+- Demonstrates matching feature
+
+**Daycare Search Example:**
+- Pre-populated Fort Bragg search
+- Shows AI response format
+- Demonstrates facility information
+
+### 11. Conclusion (Step 18)
+- Recap of all features
+- Next steps
+- Documentation links
+
+## Tour Navigation
+
+**Controls:**
+- **Next →** - Continue to next step
+- **← Back** - Return to previous step
+- **[Action Button]** - Jump to feature or load example
+- **Skip Tour** - Close demo anytime
+- **✕** - Close demo modal
+
+**Progress:**
+- Visual progress bar shows completion
+- Step counter (e.g., "5 / 18")
+- Can skip ahead anytime
+
+## Demo Data
+
+### Sample Resume
+```
+John Doe
+Military Logistics Specialist
+4 years supply chain experience
+
+Skills:
+- Leadership
+- Supply chain management
+- Budgeting
+- Team coordination
+```
+
+### Sample Job
+```
+Supply Chain Analyst
+
+Requirements:
+- 5+ years logistics experience
+- Data analysis skills
+- Problem-solving abilities
+- Budget management
+
+Preferred:
+- Military logistics background
+- Team leadership experience
+```
+
+### Sample Daycare Search
+- Installation: Fort Bragg
+- AI provides CDC options, costs, benefits
+- Shows military family resources
+
+## Browser Storage
+
+**First Visit:**
+- Demo opens automatically
+- User preference stored: `localStorage.setItem('pcs-demo-shown', 'true')`
+
+**Subsequent Visits:**
+- Demo hidden
+- User can click 🎯 Demo to restart
+
+**Clear Demo:**
+```javascript
+localStorage.removeItem('pcs-demo-shown')
+```
+
+## Accessibility
+
+**Keyboard Navigation:**
+- Tab through buttons
+- Enter to activate
+- Escape to close (future enhancement)
+
+**Screen Readers:**
+- Semantic HTML structure
+- ARIA labels on buttons
+- Modal announced to screen readers
+
+**Mobile:**
+- Touch-friendly buttons
+- Responsive modal (90% width)
+- Readable on small screens
+
+## Customization
+
+### Add new steps:
+Edit `DemoTour.jsx` DEMO_STEPS array:
+```jsx
+{
+  id: 'unique-id',
+  title: 'Step Title',
+  description: 'What this feature does',
+  content: 'How to use it on all platforms',
+  highlight: null,
+  action: 'Go to Chat',
+}
+```
+
+### Change demo trigger:
+- Auto-show: Modify `useEffect` in App.jsx
+- Custom: Add new event listeners
+- Persistent: Use database instead of localStorage
+
+## Testing
+
+**Manual testing:**
+```bash
+# Clear demo and restart
+localStorage.removeItem('pcs-demo-shown')
+# Refresh page
+# Demo should auto-open
+```
+
+**All platforms:**
+- Web: ✓ Demo works
+- Docker: ✓ Works in container
+- iOS: ✓ Works in Capacitor
+
+## Metrics (Future)
+
+Potential tracking:
+- Demo completion rate
+- Steps viewed
+- Time per step
+- Features used after demo
+- Button clicks
+- Platform distribution
+
+## Future Enhancements
+
+- [ ] Video tutorials for each feature
+- [ ] Animated highlights on app elements
+- [ ] Keyboard shortcuts (Escape to close)
+- [ ] Multiple demo paths (beginner/advanced)
+- [ ] Wizard mode with actual data input
+- [ ] Localization for different languages
+- [ ] Analytics dashboard

@@ -129,6 +129,8 @@ const SCHOOL_RESOURCES = {
     "Coast Guard": [],
   },
 };import { useState, useEffect, useCallback, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 const MILITARY_BASES = [
   { name: "Fort Liberty", state: "NC", branch: "Army", country: "USA" },
@@ -1104,7 +1106,7 @@ function NavigationMap({ profile, theme }) {
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
-    const L = window.L;
+    // L imported from leaflet npm
     if (!L) return;
     const map = L.map(mapContainerRef.current).setView([38.8, -96.8], 4);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -1126,7 +1128,7 @@ function NavigationMap({ profile, theme }) {
   async function handleRoute() {
     if (!from.trim() || !to.trim()) { setError("Please enter both a starting point and destination."); return; }
     setLoading(true); setError(""); setDirections([]); setRouteInfo(null);
-    const L = window.L;
+    // L imported from leaflet npm
     try {
       const [fromCoord, toCoord] = await Promise.all([geocode(from), geocode(to)]);
       const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${fromCoord.lng},${fromCoord.lat};${toCoord.lng},${toCoord.lat}?overview=full&geometries=geojson&steps=true`;
@@ -1169,7 +1171,7 @@ function NavigationMap({ profile, theme }) {
   }
 
   function handleLoadRoute(r) {
-    const L = window.L;
+    // L imported from leaflet npm
     setFrom(r.from); setTo(r.to);
     if (!L || !mapRef.current) return;
     if (routeLayerRef.current) mapRef.current.removeLayer(routeLayerRef.current);
@@ -1282,7 +1284,7 @@ function BaseMapView({ profile, theme }) {
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
-    const L = window.L;
+    // L imported from leaflet npm
     if (!L) return;
     const c = installation ? INSTALLATION_COORDS[installation] : null;
     const center = c ? [c.lat, c.lng] : [38.8, -96.8];
@@ -1298,7 +1300,7 @@ function BaseMapView({ profile, theme }) {
   }, []);
 
   useEffect(() => {
-    const L = window.L;
+    // L imported from leaflet npm
     if (!L || !mapRef.current || !markersGroupRef.current) return;
     const c = installation ? INSTALLATION_COORDS[installation] : null;
     if (c) mapRef.current.setView([c.lat, c.lng], c.zoom);

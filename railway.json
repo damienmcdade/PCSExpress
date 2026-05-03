@@ -1,19 +1,19 @@
 {
-  "$schema": "https://railway.app/railway.schema.json",
+  "$schema": "railway.app/railway.schema.json",
   "build": {
     "builder": "dockerfile",
     "dockerfile": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "node server/index.js",
+    "startCommand": "node server/manager.js",
     "restartPolicyType": "on_failure",
-    "restartPolicyMaxRetries": 5,
+    "restartPolicyMaxRetries": 0,
     "healthCheck": {
-      "command": "wget --quiet --tries=1 --spider http://localhost:8080/api/health || exit 1",
+      "command": "curl --fail --silent --show-error http://localhost:3001/health || exit 1",
       "interval": 30,
-      "timeout": 3,
-      "retries": 3,
-      "startPeriod": 10
+      "timeout": 5,
+      "retries": 2,
+      "startPeriod": 20
     }
   }
 }

@@ -7,6 +7,7 @@ npm-debug.log
 .env.local
 .env.*.local
 build
+dist
 .next
 out
 coverage
@@ -23,3 +24,8 @@ README.md
 .eslintrc
 pcs-express.zip
 pcs_express_v2.jsx
+.editorconfig
+.prettierignore
+npm.lock
+ios
+capacitor.config.json

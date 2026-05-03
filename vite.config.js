@@ -16,6 +16,7 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     rollupOptions: {
+      external: ['leaflet'],
       output: {
         manualChunks: {
           react: ['react', 'react-dom'],

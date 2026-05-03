@@ -1,11 +1,12 @@
 {
+  "type": "module",
   "name": "pcs-express-api",
   "version": "1.0.0",
   "description": "PCS Express - DoD Operational Military PCS System Backend",
-  "main": "api.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node server/api.js",
-    "dev": "nodemon server/api.js",
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
     "test": "jest",
     "migrate": "node scripts/migrate.js"
   },
@@ -28,7 +29,10 @@
     "jest": "^29.7.0",
     "supertest": "^6.3.3"
   },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   }
 }
