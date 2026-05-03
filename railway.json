@@ -1,10 +1,10 @@
 {
+  "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "dockerfile"
   },
   "deploy": {
-    "startCommand": "node server/index.js",
-    "restartPolicyType": "on_failure",
-    "restartPolicyMaxRetries": 1
+    "restartPolicyType": "unless_stopped",
+    "restartPolicyMaxRetries": 0
   }
 }
