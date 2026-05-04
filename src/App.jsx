@@ -3206,16 +3206,107 @@ function App() {
   }
 
   const DEMO_TIPS = [
-    { tab: 'orders',     title: 'Military Orders',              body: 'Upload your PCS orders PDF and AI automatically extracts your report date, gaining unit, and installation. Your departure countdown and phase timeline appear here — keeping you on track.' },
-    { tab: 'checklist',  title: 'PCS Checklist',               body: 'Track every phase of your PCS — from Orders Received through In-Processing. Overdue tasks turn red with warnings. Progress saves automatically to your device.' },
-    { tab: 'schools',    title: 'Schools & Childcare',          body: 'Find K-12 schools and child development centers near your gaining installation. Filter by grade level, sort by highest rating, or use the zip code search to find schools near off-post housing.' },
-    { tab: 'employment', title: 'Employment Center',            body: 'Upload your resume for AI-powered job matching. Translate your MOS to civilian careers using the Recommendations tab, then browse federal job boards and apply directly from the app.' },
-    { tab: 'education',  title: 'Education Benefits',          body: 'Explore your GI Bill options side by side, follow the step-by-step application guide, and apply directly to VA.gov. Military spouses can explore MyCAA — up to $4,000/year in scholarship funds.' },
-    { tab: 'religion',   title: 'Faith & Spiritual Resources', body: 'Chapel services near your installation tailored to your faith preference from onboarding. Overseas assignments show host-nation chapel info. Counseling resources from ACS and Military OneSource are always one tap away.' },
-    { tab: 'nav',        title: 'Navigation',                  body: 'Plan your PCS drive with real turn-by-turn directions via OSRM routing. Save directions independently in the Directions tab. The Base Map shows key facilities at your gaining installation.' },
-    { tab: 'resources',  title: 'Military Resources Hub',      body: 'All official military websites in one place — TRICARE, MilitaryOneSource, VA benefits, move.mil, education portals, and career tools — filtered to your branch. TRICARE and MilitaryOneSource are always pinned at the top.' },
-    { tab: 'resources',  title: 'Green Card & Citizenship',   body: 'Military spouses can navigate the full green card and naturalization process with official USCIS guidance, step-by-step checklists with direct links to USCIS.gov, and a guide to free legal help through your installation JAG office. Accessible under the Green Card & Citizenship tab in Resources.' },
-    { tab: 'resources',  title: 'Thank You for Your Service!', body: 'You\'ve completed the PCS Express tour. This app is here to support you and your family through every step of your move. Navigate to any section from the hamburger menu. Hooah!' },
+    // ── Home ──────────────────────────────────────────────────────────────────
+    { tab: 'home',       title: 'Home — Dashboard',
+      body: 'Your mission command center. See your departure countdown, current PCS phase, gaining installation, and a quick-access summary of your most important tasks. Everything starts here.' },
+
+    // ── PCS Checklist ─────────────────────────────────────────────────────────
+    { tab: 'checklist',  title: 'PCS Checklist — Overview',
+      body: 'Six sequential phases guide you from orders to settling in: Orders Received → 90 Days Out → 60 Days Out → 30 Days Out → Move Week → In-Processing. Each phase contains actionable tasks you check off as you complete them.' },
+    { tab: 'checklist',  title: 'PCS Checklist — Task Phases',
+      body: 'Overdue tasks turn red so nothing slips. Tasks in the active phase are highlighted. Your progress is saved automatically on your device. Tap any task to mark it complete — progress carries across sessions.' },
+
+    // ── PCS Documents ─────────────────────────────────────────────────────────
+    { tab: 'documents',  title: 'PCS Documents — Overview',
+      body: 'Upload, store, and track every PCS-required document in one secure place. Documents are organized into 7 categories: Orders, Travel & Finance, Household Goods, Housing, Medical, Family & Admin, and OCONUS (shown only for overseas assignments).' },
+    { tab: 'documents',  title: 'PCS Documents — Orders & Travel',
+      body: 'The Orders category holds your official PCS orders, amendment/endorsements, and authorization paperwork. Travel & Finance covers your travel voucher, DPS access, per diem authorization, and TLE/TLA approval — everything needed for reimbursement.' },
+    { tab: 'documents',  title: 'PCS Documents — Household Goods',
+      body: 'Track DD Form 1299 (HHG shipment application), weight tickets, DD 1840 inventory and condition report, POV shipment authorization, and pro-gear list. Every HHG document needed to protect your move and file claims lives here.' },
+    { tab: 'documents',  title: 'PCS Documents — Housing & Medical',
+      body: 'Housing stores your BAH authorization, on-post housing application, and SCRA lease termination notice. Medical stores SF 600/SF 603 records transfer, immunization records for you and family, and your TRICARE enrollment update.' },
+    { tab: 'documents',  title: 'PCS Documents — Family, Admin & OCONUS',
+      body: 'Family & Admin holds birth certificates, marriage certificate, school records, passports, and DEERS enrollment. OCONUS documents — SOFA agreements, Status of Forces briefing, country-specific visa paperwork — appear automatically when your gaining installation is overseas.' },
+    { tab: 'documents',  title: 'PCS Documents — Branch-Specific Docs',
+      body: 'In addition to universal requirements, PCS Documents shows forms specific to your branch: Army (DA 31, DA 137-1/2, DA 5960), Navy (NAVPERS 1300/16), Marine Corps (CMC orders, MCO 4600.39), Air Force (AF Form 907, vMPF), Space Force (Guardian Development Plan), and Coast Guard (CG-3103).' },
+
+    // ── Military Orders ───────────────────────────────────────────────────────
+    { tab: 'orders',     title: 'Military Orders — Upload & Extract',
+      body: 'Upload your PCS orders PDF and AI automatically extracts your report date, gaining unit, and installation. Your departure countdown and phase timeline update immediately — keeping every section of the app in sync.' },
+
+    // ── Schools ───────────────────────────────────────────────────────────────
+    { tab: 'schools',    title: 'Schools & Childcare',
+      body: 'Find K-12 schools, DoDEA schools, and child development centers near your gaining installation. Filter by your children\'s grade levels, sort by rating, or search by zip code for schools near off-post housing. Each listing links directly to the school\'s website.' },
+
+    // ── Navigation ────────────────────────────────────────────────────────────
+    { tab: 'nav',        title: 'Navigation — Turn-by-Turn Directions',
+      body: 'Plan your PCS drive with real turn-by-turn routing powered by OSRM. Enter any origin and destination to get step-by-step directions, estimated drive time, and total mileage — useful for calculating PCS mileage reimbursement.' },
+    { tab: 'nav',        title: 'Navigation — Popular Routes & Saved',
+      body: 'Popular Routes shows common PCS drive corridors between major installations. Save any set of directions to the Saved Directions tab so you can reference them offline without re-entering your route.' },
+    { tab: 'nav',        title: 'Navigation — Base Map',
+      body: 'The Base Map tab displays an interactive Leaflet map of your gaining installation showing key on-post facilities: main gate, housing office, finance, medical, PX/commissary, and more. Zoom, tap, and explore before you arrive.' },
+
+    // ── Veterans ──────────────────────────────────────────────────────────────
+    { tab: 'veterans',   title: 'Veteran-Owned Businesses',
+      body: 'Discover veteran-owned businesses near your gaining installation. Filter by category (restaurants, services, retail, and more). National directories from the SBA Veteran Business Outreach Center and Hire Heroes USA are always listed below local results.' },
+
+    // ── Employment ────────────────────────────────────────────────────────────
+    { tab: 'employment', title: 'Employment — Skills Profile',
+      body: 'Build your skills profile in the Skills Profile tab. Add your military skills, certifications, and experience. This profile powers the AI job matching engine used in the Recommendations tab.' },
+    { tab: 'employment', title: 'Employment — Job Search',
+      body: 'The Job Search tab lets you filter open positions by industry (technology, healthcare, logistics, finance, and more). Results tailor to skills you\'ve added in your profile — browse by industry to find the best fit.' },
+    { tab: 'employment', title: 'Employment — Recommendations',
+      body: 'The Recommendations tab uses AI to translate your MOS and military skills into civilian career paths. Review skill-matched job titles, required credentials, and salary benchmarks to identify the best post-military career opportunities.' },
+    { tab: 'employment', title: 'Employment — Resume Analyzer',
+      body: 'Upload your resume in the Resume tab for AI-powered analysis. Receive actionable feedback on clarity, keyword optimization, and civilian translation of military jargon. The analyzer scores your resume and suggests specific improvements.' },
+    { tab: 'employment', title: 'Employment — Job Boards',
+      body: 'The Job Boards tab links directly to USAJobs.gov (federal civilian with veteran preference), Hire Heroes USA, My Next Move for Veterans (MOS translator), MySECO for military spouses, MSEP employer network, and Transition GPS (TAP).' },
+
+    // ── Education ─────────────────────────────────────────────────────────────
+    { tab: 'education',  title: 'Education — GI Bill Chapters',
+      body: 'The GI Bill Chapters tab compares all four chapters side by side: Post-9/11 (Ch.33), Montgomery GI Bill (Ch.30), Survivors\' & Dependents\' Education Assistance (Ch.35), and Montgomery GI Bill Selected Reserve (Ch.1606). Eligibility and benefit amounts summarized for each.' },
+    { tab: 'education',  title: 'Education — How to Apply',
+      body: 'The How to Apply tab walks through the 5-step VA GI Bill application process: filing VA Form 22-1990, receiving your Certificate of Eligibility, notifying your School Certifying Official, understanding your BAH rate, and tracking remaining entitlement.' },
+    { tab: 'education',  title: 'Education — Colleges Near Base',
+      body: 'The Colleges tab lists universities, community colleges, and vocational schools near your gaining installation — with ratings, degree types, descriptions, and direct application links. All schools note whether Tuition Assistance and GI Bill are accepted.' },
+    { tab: 'education',  title: 'Education — Find Schools',
+      body: 'The Find Schools tab is a searchable directory of accredited institutions near any installation. Filter by degree type (2-year, 4-year, vocational) and sort by rating to narrow your search.' },
+    { tab: 'education',  title: 'Education — MyCAA (Military Spouses)',
+      body: 'The MyCAA tab covers the Military Spouse Career Advancement Accounts scholarship: up to $4,000/year (max $16,000 total) for spouses of E-1 to O-2 service members pursuing portable career credentials. Eligibility rules, covered programs, and the 5-step application are all explained.' },
+
+    // ── Deployment Support ────────────────────────────────────────────────────
+    { tab: 'spouse',     title: 'Deployment Support Guide',
+      body: 'Four essential preparation sections for military spouses and families: Legal & Financial Preparation (POA, will, family budget), Mental Health & Resilience (counseling, stress management), Family & Children (childcare, school support), and Household Management. Each section has step-by-step tasks with deadlines and external links.' },
+
+    // ── Faith ─────────────────────────────────────────────────────────────────
+    { tab: 'religion',   title: 'Faith & Spiritual Resources',
+      body: 'Chapel service listings near your installation filtered to your faith preference set during onboarding — Protestant, Catholic, Jewish, Islamic, and more. Overseas assignments include host-nation chapel information. Counseling and spiritual care resources from ACS and Military OneSource are always available.' },
+
+    // ── Translation ───────────────────────────────────────────────────────────
+    { tab: 'translation', title: 'Translation',
+      body: 'AI-powered translation for OCONUS assignments and multilingual families. Translate text into dozens of languages instantly — useful for navigating off-post in a host nation, communicating with local services, or assisting non-English-speaking family members during the PCS process.' },
+
+    // ── Resources: each section ───────────────────────────────────────────────
+    { tab: 'resources',  title: 'Resources — Healthcare',
+      body: 'The Healthcare section links to all TRICARE portals: TRICARE.mil, TRICARE Online, TRICARE 4U (claims/EOBs), TRICARE for Life, Dental Program (TDP), TRICARE Overseas/TOP, Pharmacy via Express Scripts, Humana Military (TRICARE East), My MHS GENESIS patient portal, and VA Health Care.' },
+    { tab: 'resources',  title: 'Resources — Military Portals',
+      body: 'Direct links to official DoD personnel systems: ARBA ACTS (Army records appeals), Army TAP Portal (transition scheduling), HRC iPERMS (official Army records), HRC Portal (assignments & promotions), IPPS-A (pay & personnel actions), milSuite MIP, and milConnect (DMDC — benefits & DEERS updates for all branches).' },
+    { tab: 'resources',  title: 'Resources — Family Support',
+      body: 'Family Support links to Military OneSource (24/7 counseling and referrals), Military Child Education Coalition (school transition), Operation Homefront (emergency financial assistance), Blue Star Families, and your branch-specific family readiness center (ACS, Fleet & Family Support, Airman & Family Readiness Center).' },
+    { tab: 'resources',  title: 'Resources — Financial',
+      body: 'Financial links to myPay (DFAS pay management), BAH Calculator, VA Benefits Explorer, Military Saves (financial readiness), Blended Retirement System calculator, and SCRA protections (interest rate caps, lease termination, foreclosure protection for all service members).' },
+    { tab: 'resources',  title: 'Resources — PCS & Housing',
+      body: 'PCS & Housing links to Move.mil / DPS (schedule and track your HHG shipment), Military Installations (on-post housing and facilities), the Housing Network, SCRA Lease Termination guidance, and VA Home Loan (zero-down home loan for eligible service members and veterans).' },
+    { tab: 'resources',  title: 'Resources — Education',
+      body: 'Education links to VA GI Bill (apply and check entitlement), MyCAA Scholarships (spouse career funding), Tuition Assistance for your specific branch (up to $4,500/year), DANTES/DSST free college-level exams, and DoDEA Schools for military children worldwide.' },
+    { tab: 'resources',  title: 'Resources — Careers',
+      body: 'Careers links to USAJobs.gov (federal civilian jobs with veteran preference), Hire Heroes USA (free resume coaching and placement), My Next Move for Veterans (MOS to civilian career translator), MySECO (spouse career opportunities), Military Spouse Employment Partnership, MyCAA scholarships, and Transition GPS (TAP).' },
+    { tab: 'resources',  title: 'Resources — Green Card & Citizenship',
+      body: 'Official USCIS guidance for military spouses: a 9-step green card guide (I-130, I-485, Parole in Place), 6-step citizenship path (3-year military spouse benefit, N-400, civics test), and 7 free military legal resources including your installation JAG office and the USCIS Military Help Line. Includes a full 19-item USCIS requirements checklist with direct links.' },
+
+    // ── End ───────────────────────────────────────────────────────────────────
+    { tab: 'home',       title: 'Tour Complete — Ready to PCS!',
+      body: 'You\'ve seen everything PCS Express has to offer. Every tab, every category, every resource — all here to support your move and your family. Navigate any section from the menu at any time. Thank you for your service. Hooah!' },
   ];
 
   const BOTTOM_NAV = [
