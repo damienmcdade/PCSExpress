@@ -7,6 +7,7 @@ import TranslationModule from './components/TranslationModule'
 import ReligiousServicesModule from './components/ReligiousServicesModule'
 import SpouseDeploymentGuide from './components/SpouseDeploymentGuide'
 import PCSDocumentsModule from './components/PCSDocumentsModule'
+import ImmigrationModule from './components/ImmigrationModule'
 import { ALL_BASES } from './components/BaseMapModule'
 
 const store = {
@@ -1982,13 +1983,14 @@ function ResourcesTab({ theme, profile }) {
   const branch = profile?.branch || 'Army';
 
   const SECTIONS = [
-    { id: 'healthcare', label: 'Healthcare', icon: '🏥' },
-    { id: 'portals',    label: 'Military Portals', icon: '🖥️' },
-    { id: 'family',     label: 'Family Support', icon: '👨‍👩‍👧' },
-    { id: 'financial',  label: 'Financial', icon: '💰' },
-    { id: 'pcs',        label: 'PCS & Housing', icon: '🏠' },
-    { id: 'education',  label: 'Education', icon: '🎓' },
-    { id: 'careers',    label: 'Careers', icon: '💼' },
+    { id: 'healthcare',   label: 'Healthcare', icon: '🏥' },
+    { id: 'portals',      label: 'Military Portals', icon: '🖥️' },
+    { id: 'family',       label: 'Family Support', icon: '👨‍👩‍👧' },
+    { id: 'financial',    label: 'Financial', icon: '💰' },
+    { id: 'pcs',          label: 'PCS & Housing', icon: '🏠' },
+    { id: 'education',    label: 'Education', icon: '🎓' },
+    { id: 'careers',      label: 'Careers', icon: '💼' },
+    { id: 'immigration',  label: 'Green Card & Citizenship', icon: '🌎' },
   ];
 
   const RESOURCES = {
@@ -2083,8 +2085,13 @@ function ResourcesTab({ theme, profile }) {
         ))}
       </div>
 
-      {/* Resource cards */}
-      {(RESOURCES[activeSection] || []).map((r, idx) => {
+      {/* Immigration section — custom module */}
+      {activeSection === 'immigration' && (
+        <ImmigrationModule theme={theme} />
+      )}
+
+      {/* Resource cards for all other sections */}
+      {activeSection !== 'immigration' && (RESOURCES[activeSection] || []).map((r, idx) => {
         const tc = tagColor(r.tag);
         return (
           <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
@@ -2954,9 +2961,9 @@ function Onboarding({ onComplete }) {
                 </div>
               </div>
 
-              {/* Military Affiliation */}
+              {/* Component */}
               <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>MILITARY AFFILIATION</label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>COMPONENT</label>
                 <select value={p.component} onChange={e => {
                   const comp = e.target.value;
                   if (['Spouse', 'Dependent'].includes(comp)) {
@@ -3207,6 +3214,7 @@ function App() {
     { tab: 'religion',   title: 'Faith & Spiritual Resources', body: 'Chapel services near your installation tailored to your faith preference from onboarding. Overseas assignments show host-nation chapel info. Counseling resources from ACS and Military OneSource are always one tap away.' },
     { tab: 'nav',        title: 'Navigation',                  body: 'Plan your PCS drive with real turn-by-turn directions via OSRM routing. Save directions independently in the Directions tab. The Base Map shows key facilities at your gaining installation.' },
     { tab: 'resources',  title: 'Military Resources Hub',      body: 'All official military websites in one place — TRICARE, MilitaryOneSource, VA benefits, move.mil, education portals, and career tools — filtered to your branch. TRICARE and MilitaryOneSource are always pinned at the top.' },
+    { tab: 'resources',  title: 'Green Card & Citizenship',   body: 'Military spouses can navigate the full green card and naturalization process with official USCIS guidance, step-by-step checklists with direct links to USCIS.gov, and a guide to free legal help through your installation JAG office. Accessible under the Green Card & Citizenship tab in Resources.' },
     { tab: 'resources',  title: 'Thank You for Your Service!', body: 'You\'ve completed the PCS Express tour. This app is here to support you and your family through every step of your move. Navigate to any section from the hamburger menu. Hooah!' },
   ];
 
