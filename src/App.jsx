@@ -1990,7 +1990,6 @@ function ResourcesTab({ theme, profile }) {
     { id: 'pcs',          label: 'PCS & Housing', icon: '🏠' },
     { id: 'education',    label: 'Education', icon: '🎓' },
     { id: 'careers',      label: 'Careers', icon: '💼' },
-    { id: 'immigration',  label: 'Permanent Resident & Naturalization', icon: '🌎' },
   ];
 
   const RESOURCES = {
@@ -2085,13 +2084,8 @@ function ResourcesTab({ theme, profile }) {
         ))}
       </div>
 
-      {/* Immigration section — custom module */}
-      {activeSection === 'immigration' && (
-        <ImmigrationModule theme={theme} />
-      )}
-
-      {/* Resource cards for all other sections */}
-      {activeSection !== 'immigration' && (RESOURCES[activeSection] || []).map((r, idx) => {
+      {/* Resource cards */}
+      {(RESOURCES[activeSection] || []).map((r, idx) => {
         const tc = tagColor(r.tag);
         return (
           <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
@@ -3308,7 +3302,7 @@ function App() {
       body: 'Education links to VA GI Bill (apply and check entitlement), MyCAA Scholarships (spouse career funding), Tuition Assistance for your specific branch (up to $4,500/year), DANTES/DSST free college-level exams, and DoDEA Schools for military children worldwide.' },
     { tab: 'resources',  title: 'Resources — Careers',
       body: 'Careers links to USAJobs.gov (federal civilian jobs with veteran preference), Hire Heroes USA (free resume coaching and placement), My Next Move for Veterans (MOS to civilian career translator), MySECO (spouse career opportunities), Military Spouse Employment Partnership, MyCAA scholarships, and Transition GPS (TAP).' },
-    { tab: 'resources',  title: 'Resources — Permanent Resident & Naturalization',
+    { tab: 'immigration', title: 'Permanent Resident & Naturalization',
       body: 'Official USCIS guidance for military spouses: a 9-step green card guide (I-130, I-485, Parole in Place), 6-step citizenship path (3-year military spouse benefit, N-400, civics test), and 7 free military legal resources including your installation JAG office and the USCIS Military Help Line. Includes a full 19-item USCIS requirements checklist with direct links.' },
 
     // ── End ───────────────────────────────────────────────────────────────────
@@ -3329,6 +3323,7 @@ function App() {
     { id: 'spouse',      label: 'Deployment',    icon: 'DEP', iosIcon: '🪖' },
     { id: 'religion',    label: 'Faith',         icon: 'CHP', iosIcon: '⛪' },
     { id: 'translation', label: 'Translate',     icon: 'TRL', iosIcon: '🌐' },
+    { id: 'immigration', label: 'Perm. Resident', icon: 'IMM', iosIcon: '🏛️' },
     { id: 'resources',   label: 'Resources',     icon: 'RES', iosIcon: '🔗' },
   ];
 
@@ -3542,6 +3537,7 @@ function App() {
                 { abbr: 'NAV', label: 'Navigation',       id: 'nav',       color: '#00695C' },
                 { abbr: 'RES', label: 'Resources',        id: 'resources', color: '#C62828' },
                 { abbr: 'TRL', label: 'Translate',        id: 'translation',color: '#1976D2' },
+                { abbr: 'IMM', label: 'Perm. Resident',   id: 'immigration',color: '#0D47A1' },
               ].map((item) => (
                 <div key={item.id} onClick={() => goTo(item.id)} style={{ background: '#FFFFFF', border: `1px solid #E0E6EE`, borderRadius: 12, padding: '14px 10px', cursor: 'pointer', textAlign: 'center', boxShadow: '0 1px 6px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                   <div style={{ width: 42, height: 30, borderRadius: 8, background: `${item.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${item.color}25` }}>
@@ -3576,6 +3572,7 @@ function App() {
         {activeTab === 'spouse' && <SpouseDeploymentGuide theme={theme} profile={profile} />}
         {activeTab === 'religion' && <ReligiousServicesModuleWrapped theme={theme} profile={profile} />}
         {activeTab === 'resources' && <ResourcesTab theme={theme} profile={profile} />}
+        {activeTab === 'immigration' && <ImmigrationModule theme={theme} profile={profile} />}
       </div>
       </div>{/* end body container */}
 
