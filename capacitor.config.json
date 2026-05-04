@@ -6,7 +6,8 @@
     "androidScheme": "https"
   },
   "ios": {
-    "contentInsetAdjustmentBehavior": "automatic"
+    "contentInsetAdjustmentBehavior": "never",
+    "scrollEnabled": true
   },
   "plugins": {
     "SplashScreen": {

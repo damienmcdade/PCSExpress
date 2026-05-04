@@ -25,6 +25,9 @@ import SwiftUI
 ///   // Present native SwiftUI views
 ///   await JTRPlugin.showRelocationEstimator({ payGrade: 'E-6', hasDependents: true });
 ///   await JTRPlugin.showMilestoneChecklist({ reportDateISO: '2025-09-01T00:00:00Z' });
+///   await JTRPlugin.showPetRelocation({});
+///   await JTRPlugin.showEFMPChecklist({});
+///   await JTRPlugin.showHousingClaims({});
 @objc(JTRPlugin)
 public class JTRPlugin: CAPPlugin, CAPBridgedPlugin {
 
@@ -39,6 +42,9 @@ public class JTRPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getCacheInventory",           returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "showRelocationEstimator",     returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "showMilestoneChecklist",      returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "showPetRelocation",           returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "showEFMPChecklist",           returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "showHousingClaims",           returnType: CAPPluginReturnPromise),
     ]
 
     // MARK: - Weight Allowance
@@ -207,6 +213,39 @@ public class JTRPlugin: CAPPlugin, CAPBridgedPlugin {
 
         DispatchQueue.main.async { [weak self] in
             let view    = PCSMilestoneView(initialReportDate: reportDate)
+            let hosting = UIHostingController(rootView: view)
+            hosting.modalPresentationStyle = .pageSheet
+            self?.bridge?.viewController?.present(hosting, animated: true) {
+                call.resolve(["presented": true])
+            }
+        }
+    }
+
+    @objc func showPetRelocation(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { [weak self] in
+            let view    = PetRelocationView()
+            let hosting = UIHostingController(rootView: view)
+            hosting.modalPresentationStyle = .pageSheet
+            self?.bridge?.viewController?.present(hosting, animated: true) {
+                call.resolve(["presented": true])
+            }
+        }
+    }
+
+    @objc func showEFMPChecklist(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { [weak self] in
+            let view    = EFMPView()
+            let hosting = UIHostingController(rootView: view)
+            hosting.modalPresentationStyle = .pageSheet
+            self?.bridge?.viewController?.present(hosting, animated: true) {
+                call.resolve(["presented": true])
+            }
+        }
+    }
+
+    @objc func showHousingClaims(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { [weak self] in
+            let view    = HousingClaimsView()
             let hosting = UIHostingController(rootView: view)
             hosting.modalPresentationStyle = .pageSheet
             self?.bridge?.viewController?.present(hosting, animated: true) {

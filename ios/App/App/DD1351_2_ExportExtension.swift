@@ -62,6 +62,10 @@ extension PDFExportService {
         let pageRect = CGRect(x: 0, y: 0, width: dd_pageW, height: dd_pageH)
         let renderer = UIGraphicsPDFRenderer(bounds: pageRect)
 
+        // Create the date formatter once per render pass rather than per leg.
+        let legDateFormatter = DateFormatter()
+        legDateFormatter.dateFormat = "MM/dd/yy"
+
         let appendData = renderer.pdfData { ctx in
             ctx.beginPage()
             var y = dd_margin
@@ -79,7 +83,7 @@ extension PDFExportService {
                     y = dd_drawItiColumnHeaders(y: y)
                     y = dd_drawDivider(y: y)
                 }
-                y = dd_drawItineraryLeg(leg, y: y)
+                y = dd_drawItineraryLeg(leg, formatter: legDateFormatter, y: y)
             }
 
             y = dd_drawDivider(y: y)
@@ -155,6 +159,7 @@ extension PDFExportService {
 
     @discardableResult
     private static func dd_drawItineraryLeg(_ leg: DD1351_2_Voucher.TravelLeg,
+                                             formatter: DateFormatter,
                                              y: CGFloat) -> CGFloat {
         let attr: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 8),
@@ -165,9 +170,8 @@ extension PDFExportService {
             .foregroundColor: UIColor.black,
         ]
         let c = dd_cols(y: y)
-        let df = DateFormatter(); df.dateFormat = "MM/dd/yy"
 
-        df.string(from: leg.date).draw(in: c.date, withAttributes: attr)
+        formatter.string(from: leg.date).draw(in: c.date, withAttributes: attr)
 
         // Clip long location strings to column width.
         let ctx = UIGraphicsGetCurrentContext()
@@ -231,11 +235,11 @@ extension PDFExportService {
         let locW    = dd_pageW - dd_margin * 2 - dateW - modeW - stopW - lodgeW - milesW - 20
 
         return DD_Cols(
-            date:  CGRect(x: x0,                                              y: y, width: dateW,  height: 13),
-            loc:   CGRect(x: x0 + dateW + 4,                                 y: y, width: locW,   height: 13),
-            mode:  CGRect(x: x0 + dateW + locW + 8,                          y: y, width: modeW,  height: 13),
-            stop:  CGRect(x: x0 + dateW + locW + modeW + 12,                 y: y, width: stopW,  height: 13),
-            lodge: CGRect(x: x0 + dateW + locW + modeW + stopW + 16,         y: y, width: lodgeW, height: 13),
+            date:  CGRect(x: x0,                                               y: y, width: dateW,  height: 13),
+            loc:   CGRect(x: x0 + dateW + 4,                                  y: y, width: locW,   height: 13),
+            mode:  CGRect(x: x0 + dateW + locW + 8,                           y: y, width: modeW,  height: 13),
+            stop:  CGRect(x: x0 + dateW + locW + modeW + 12,                  y: y, width: stopW,  height: 13),
+            lodge: CGRect(x: x0 + dateW + locW + modeW + stopW + 16,          y: y, width: lodgeW, height: 13),
             miles: CGRect(x: x0 + dateW + locW + modeW + stopW + lodgeW + 20, y: y, width: milesW, height: 13)
         )
     }

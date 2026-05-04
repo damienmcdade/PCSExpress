@@ -43,7 +43,6 @@ struct PCSMilestoneView: View {
             Text("RNLTD — REPORT NO LATER THAN DATE")
                 .font(.caption2.weight(.bold))
                 .foregroundStyle(.secondary)
-                .kerning(0.5)
             DatePicker("Report Date",
                        selection: $manager.reportDate,
                        displayedComponents: .date)

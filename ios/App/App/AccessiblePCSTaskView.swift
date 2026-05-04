@@ -17,6 +17,8 @@ struct PCSTask: Identifiable {
         case vehicle     = "Vehicle"
         case schools     = "Schools"
         case admin       = "Admin"
+        case pets        = "Pets"
+        case efmp        = "EFMP"
 
         var sfSymbol: String {
             switch self {
@@ -26,18 +28,22 @@ struct PCSTask: Identifiable {
             case .vehicle:  return "car.fill"
             case .schools:  return "graduationcap.fill"
             case .admin:    return "doc.fill"
+            case .pets:     return "pawprint.fill"
+            case .efmp:     return "heart.text.square.fill"
             }
         }
 
         /// Section 508 / WCAG AA-compliant colors (≥4.5:1 contrast on white background).
         var color: Color {
             switch self {
-            case .housing:  return Color(red: 0.07, green: 0.36, blue: 0.55)   // #12 5C8D
+            case .housing:  return Color(red: 0.07, green: 0.36, blue: 0.55)   // #125C8D
             case .finance:  return Color(red: 0.09, green: 0.43, blue: 0.18)   // #176E2E
             case .medical:  return Color(red: 0.62, green: 0.08, blue: 0.08)   // #9E1414
             case .vehicle:  return Color(red: 0.46, green: 0.24, blue: 0.00)   // #753D00
             case .schools:  return Color(red: 0.28, green: 0.18, blue: 0.55)   // #472E8D
             case .admin:    return Color(red: 0.08, green: 0.38, blue: 0.43)   // #15616E
+            case .pets:     return Color(red: 0.55, green: 0.27, blue: 0.07)   // #8C4512
+            case .efmp:     return Color(red: 0.30, green: 0.08, blue: 0.40)   // #4D1466
             }
         }
     }
@@ -282,35 +288,70 @@ private struct TaskRow: View {
 
 extension PCSTask {
     static let samples: [PCSTask] = [
+        // Housing
         PCSTask(id: UUID(), title: "Submit Housing Application",
                 detail: "Apply for on-post housing or BAH approval at gaining installation.",
                 category: .housing, isComplete: false,
                 dueDate: Calendar.current.date(byAdding: .day, value: 30, to: Date())),
+        PCSTask(id: UUID(), title: "Document HHG Condition (Before/After)",
+                detail: "Record video and photos of all high-value items before pickup. File claims within 180 days — use the Housing Claims tool.",
+                category: .housing, isComplete: false, dueDate: nil),
+
+        // Admin
         PCSTask(id: UUID(), title: "Update DEERS/ID Cards",
                 detail: "Update family member information at nearest ID card facility.",
                 category: .admin, isComplete: false,
                 dueDate: Calendar.current.date(byAdding: .day, value: 14, to: Date())),
-        PCSTask(id: UUID(), title: "Schedule Medical Records Transfer",
-                detail: "Request transfer of all family medical records to gaining MTF.",
-                category: .medical, isComplete: true, dueDate: nil),
         PCSTask(id: UUID(), title: "File DPS Shipment",
                 detail: "Schedule household goods pickup through Defense Personal Property System.",
                 category: .admin, isComplete: false,
                 dueDate: Calendar.current.date(byAdding: .day, value: -3, to: Date())),
-        PCSTask(id: UUID(), title: "Enroll Children in EFMP",
-                detail: "Complete Exceptional Family Member Program enrollment if applicable.",
-                category: .medical, isComplete: false, dueDate: nil),
+
+        // Medical
+        PCSTask(id: UUID(), title: "Schedule Medical Records Transfer",
+                detail: "Request transfer of all family medical records to gaining MTF.",
+                category: .medical, isComplete: true, dueDate: nil),
+
+        // Schools
         PCSTask(id: UUID(), title: "Research Schools",
                 detail: "Contact School Liaison Officer at gaining installation.",
                 category: .schools, isComplete: false,
                 dueDate: Calendar.current.date(byAdding: .day, value: 45, to: Date())),
+
+        // Vehicle
         PCSTask(id: UUID(), title: "Vehicle Shipment / POV",
                 detail: "Schedule POV shipment or plan driving route to new duty station.",
                 category: .vehicle, isComplete: false,
                 dueDate: Calendar.current.date(byAdding: .day, value: 21, to: Date())),
+
+        // Finance
         PCSTask(id: UUID(), title: "Update TSP / Thrift Savings Plan",
                 detail: "Verify allotment and beneficiary information with finance.",
                 category: .finance, isComplete: false, dueDate: nil),
+
+        // Pets
+        PCSTask(id: UUID(), title: "Obtain Pet Health Certificate",
+                detail: "Get a USDA-endorsed health certificate from a licensed vet within 10 days of departure. Use the Pet Relocation tool to track reimbursement.",
+                category: .pets, isComplete: false,
+                dueDate: Calendar.current.date(byAdding: .day, value: 21, to: Date())),
+        PCSTask(id: UUID(), title: "Microchip & Rabies Titer Test",
+                detail: "For OCONUS moves: schedule titer test 4–6 weeks early. Japan requires 180-day wait after passing — start immediately upon receiving orders.",
+                category: .pets, isComplete: false, dueDate: nil),
+        PCSTask(id: UUID(), title: "File Pet Relocation Reimbursement",
+                detail: "Track and file for JTR pet relocation reimbursement: $550 CONUS / $2,000 OCONUS (effective Jan 2024).",
+                category: .pets, isComplete: false, dueDate: nil),
+
+        // EFMP
+        PCSTask(id: UUID(), title: "EFMP Eligibility Screening",
+                detail: "Initiate screening through the EFMP office. Complete DD Form 2792 with your provider. Open the EFMP Checklist for the full task list.",
+                category: .efmp, isComplete: false,
+                dueDate: Calendar.current.date(byAdding: .day, value: 45, to: Date())),
+        PCSTask(id: UUID(), title: "IEP / 504 Plan Transfer",
+                detail: "Request a certified copy of the current IEP or 504 plan. Contact the gaining School Liaison Officer (SLO) before arrival.",
+                category: .efmp, isComplete: false, dueDate: nil),
+        PCSTask(id: UUID(), title: "Re-Enroll at Gaining MTF (EFMP)",
+                detail: "Update EFMP enrollment with the gaining MTF within 30 days of arrival. Bring all documentation from the losing installation.",
+                category: .efmp, isComplete: false, dueDate: nil),
     ]
 }
 

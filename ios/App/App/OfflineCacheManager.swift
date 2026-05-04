@@ -14,11 +14,14 @@ final class OfflineCacheManager {
     // MARK: - Cache Keys
 
     enum CacheKey: String, CaseIterable {
-        case profile    = "profile.json"
-        case checklist  = "checklist.json"
-        case orders     = "orders.json"
-        case expenses   = "expenses.json"
-        case milestones = "milestones.json"
+        case profile       = "profile.json"
+        case checklist     = "checklist.json"
+        case orders        = "orders.json"
+        case expenses      = "expenses.json"
+        case milestones    = "milestones.json"
+        case petRelocation = "pet_relocation.json"
+        case efmpChecklist = "efmp_checklist.json"
+        case housingClaims = "housing_claims.json"
     }
 
     // MARK: - Errors
