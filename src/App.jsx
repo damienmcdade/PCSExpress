@@ -3286,8 +3286,12 @@ function App() {
       body: 'Chapel service listings near your installation filtered to your faith preference set during onboarding — Protestant, Catholic, Jewish, Islamic, and more. Overseas assignments include host-nation chapel information. Counseling and spiritual care resources from ACS and Military OneSource are always available.' },
 
     // ── Translation ───────────────────────────────────────────────────────────
-    { tab: 'translation', title: 'Translation',
-      body: 'AI-powered translation for OCONUS assignments and multilingual families. Translate text into dozens of languages instantly — useful for navigating off-post in a host nation, communicating with local services, or assisting non-English-speaking family members during the PCS process.' },
+    { tab: 'translation', title: 'Translation — AI Translator',
+      body: 'The Translate tab supports 20 languages — German, Japanese, Korean, Italian, Spanish, French, Polish, Turkish, Arabic, Thai, and more. Type any English text, select your target language, and get an AI-powered translation in seconds. Every translation is automatically saved for offline reference.' },
+    { tab: 'translation', title: 'Translation — Common Military Phrases',
+      body: 'The Common Phrases tab gives you pre-translated military life phrases in all 20 languages across 6 categories: Emergency & Safety, Housing & Landlord, Shopping & Daily Life, Medical & Pharmacy, School & Childcare, and Transportation. One-tap copy sends any phrase to your clipboard.' },
+    { tab: 'translation', title: 'Translation — Saved Translations',
+      body: 'Every AI translation you make is saved automatically to the Saved tab — accessible without a connection. View original text, translation, language, and timestamp. One tap copies any saved translation. Useful for repeating critical phrases with local landlords, medical staff, or school officials.' },
 
     // ── Resources: each section ───────────────────────────────────────────────
     { tab: 'resources',  title: 'Resources — Healthcare',
