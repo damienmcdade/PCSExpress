@@ -1990,7 +1990,7 @@ function ResourcesTab({ theme, profile }) {
     { id: 'pcs',          label: 'PCS & Housing', icon: '🏠' },
     { id: 'education',    label: 'Education', icon: '🎓' },
     { id: 'careers',      label: 'Careers', icon: '💼' },
-    { id: 'immigration',  label: 'Green Card & Citizenship', icon: '🌎' },
+    { id: 'immigration',  label: 'Permanent Resident & Naturalization', icon: '🌎' },
   ];
 
   const RESOURCES = {
@@ -2931,10 +2931,10 @@ function Onboarding({ onComplete }) {
             </>
           )}
 
-          {/* Step 0 — Military Affiliation & Profile */}
+          {/* Step 0 — Component & Profile */}
           {step === 0 && (
             <>
-              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Military Affiliation & Profile</div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Component & Profile</div>
 
               {/* Branch buttons */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
@@ -3153,6 +3153,7 @@ function App() {
   const [profile, setProfile] = useState(() => store.get('pcs_profile'));
   const [activeTab, setActiveTab] = useState('home');
   const [navOpen, setNavOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
   const [checklistItems, setChecklistItems] = useState(() => {
     try { return JSON.parse(localStorage.getItem('pcs_checklist_checks')) || {}; } catch { return {}; }
@@ -3168,6 +3169,8 @@ function App() {
     return () => window.removeEventListener('resize', handler);
   }, []);
   const isDesktop = screenW >= 900;
+  // isNative is true only inside the Capacitor iOS/Android shell — never in a web browser
+  const isNative = typeof window !== 'undefined' && !!window.Capacitor?.isNativePlatform?.();
 
   const theme = profile ? BRANCH_THEMES[profile.branch] : BRANCH_THEMES.Army;
 
@@ -3301,7 +3304,7 @@ function App() {
       body: 'Education links to VA GI Bill (apply and check entitlement), MyCAA Scholarships (spouse career funding), Tuition Assistance for your specific branch (up to $4,500/year), DANTES/DSST free college-level exams, and DoDEA Schools for military children worldwide.' },
     { tab: 'resources',  title: 'Resources — Careers',
       body: 'Careers links to USAJobs.gov (federal civilian jobs with veteran preference), Hire Heroes USA (free resume coaching and placement), My Next Move for Veterans (MOS to civilian career translator), MySECO (spouse career opportunities), Military Spouse Employment Partnership, MyCAA scholarships, and Transition GPS (TAP).' },
-    { tab: 'resources',  title: 'Resources — Green Card & Citizenship',
+    { tab: 'resources',  title: 'Resources — Permanent Resident & Naturalization',
       body: 'Official USCIS guidance for military spouses: a 9-step green card guide (I-130, I-485, Parole in Place), 6-step citizenship path (3-year military spouse benefit, N-400, civics test), and 7 free military legal resources including your installation JAG office and the USCIS Military Help Line. Includes a full 19-item USCIS requirements checklist with direct links.' },
 
     // ── End ───────────────────────────────────────────────────────────────────
@@ -3310,19 +3313,27 @@ function App() {
   ];
 
   const BOTTOM_NAV = [
-    { id: 'home',        label: 'Home',          icon: 'HQ'  },
-    { id: 'checklist',   label: 'PCS Checklist', icon: 'PCK' },
-    { id: 'documents',   label: 'PCS Documents', icon: 'DOC' },
-    { id: 'orders',      label: 'Orders',        icon: 'ORD' },
-    { id: 'schools',     label: 'Schools',       icon: 'SCH' },
-    { id: 'nav',         label: 'Navigation',    icon: 'NAV' },
-    { id: 'veterans',    label: 'Veterans',      icon: 'VET' },
-    { id: 'employment',  label: 'Employment',    icon: 'EMP' },
-    { id: 'education',   label: 'Education',     icon: 'EDU' },
-    { id: 'spouse',      label: 'Deployment',    icon: 'DEP' },
-    { id: 'religion',    label: 'Faith',         icon: 'CHP' },
-    { id: 'translation', label: 'Translate',     icon: 'TRL' },
-    { id: 'resources',   label: 'Resources',     icon: 'RES' },
+    { id: 'home',        label: 'Home',          icon: 'HQ',  iosIcon: '🏠' },
+    { id: 'checklist',   label: 'Checklist',     icon: 'PCK', iosIcon: '✅' },
+    { id: 'documents',   label: 'Documents',     icon: 'DOC', iosIcon: '📁' },
+    { id: 'orders',      label: 'Orders',        icon: 'ORD', iosIcon: '📋' },
+    { id: 'schools',     label: 'Schools',       icon: 'SCH', iosIcon: '🎓' },
+    { id: 'nav',         label: 'Navigation',    icon: 'NAV', iosIcon: '🗺️' },
+    { id: 'veterans',    label: 'Veterans',      icon: 'VET', iosIcon: '⭐' },
+    { id: 'employment',  label: 'Employment',    icon: 'EMP', iosIcon: '💼' },
+    { id: 'education',   label: 'Education',     icon: 'EDU', iosIcon: '📚' },
+    { id: 'spouse',      label: 'Deployment',    icon: 'DEP', iosIcon: '🪖' },
+    { id: 'religion',    label: 'Faith',         icon: 'CHP', iosIcon: '⛪' },
+    { id: 'translation', label: 'Translate',     icon: 'TRL', iosIcon: '🌐' },
+    { id: 'resources',   label: 'Resources',     icon: 'RES', iosIcon: '🔗' },
+  ];
+
+  // iOS bottom tab bar: 4 primary + More button
+  const IOS_TAB_BAR = [
+    { id: 'home',       label: 'Home',      iosIcon: '🏠' },
+    { id: 'checklist',  label: 'Checklist', iosIcon: '✅' },
+    { id: 'orders',     label: 'Orders',    iosIcon: '📋' },
+    { id: 'resources',  label: 'Resources', iosIcon: '🔗' },
   ];
 
   const currentLabel = BOTTOM_NAV.find(n => n.id === activeTab)?.label || 'Home';
@@ -3353,10 +3364,41 @@ function App() {
             {!isDesktop && <button onClick={() => setActiveTab('home')} style={{ background: 'none', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', padding: '2px 4px' }}>←</button>}
             <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>Translation</div>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isNative && !isDesktop ? 'calc(58px + env(safe-area-inset-bottom))' : 0 }}>
             <TranslationModule theme={theme} profile={profile} />
           </div>
         </div>
+        {/* iOS bottom tab bar on translation route */}
+        {isNative && !isDesktop && (
+          <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 310, background: theme.secondary, borderTop: `1px solid ${theme.accent}35`, display: 'flex', alignItems: 'stretch', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+            {IOS_TAB_BAR.map(item => (
+              <button key={item.id} onClick={() => goTo(item.id)} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
+                <span style={{ fontSize: 22, lineHeight: 1, filter: activeTab === item.id ? 'none' : 'grayscale(40%) opacity(0.55)' }}>{item.iosIcon}</span>
+                <span style={{ fontSize: 10, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>{item.label}</span>
+              </button>
+            ))}
+            <button onClick={() => setMoreOpen(o => !o)} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
+              <span style={{ fontSize: 22, lineHeight: 1, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.55)', fontWeight: 900, letterSpacing: '-2px' }}>•••</span>
+              <span style={{ fontSize: 10, fontWeight: moreOpen ? 800 : 600, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>More</span>
+            </button>
+          </div>
+        )}
+        {isNative && !isDesktop && moreOpen && (
+          <>
+            <div onClick={() => setMoreOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 311, background: 'rgba(0,0,0,0.45)' }} />
+            <div style={{ position: 'fixed', bottom: `calc(49px + env(safe-area-inset-bottom))`, left: 0, right: 0, zIndex: 312, background: theme.secondary, borderRadius: '20px 20px 0 0', borderTop: `2px solid ${theme.accent}60`, paddingTop: 8, paddingBottom: 4 }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 12px' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, padding: '0 12px' }}>
+                {BOTTOM_NAV.map(item => (
+                  <button key={item.id} onClick={() => { goTo(item.id); setMoreOpen(false); }} style={{ padding: '10px 4px 8px', background: activeTab === item.id ? `${theme.accent}20` : 'rgba(255,255,255,0.05)', border: `1px solid ${activeTab === item.id ? theme.accent + '50' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, color: 'white', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 20, lineHeight: 1 }}>{item.iosIcon}</span>
+                    <span style={{ fontSize: 9, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.65)', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -3382,7 +3424,7 @@ function App() {
                 </span>
               </button>
             )}
-            {!isDesktop && (
+            {!isDesktop && !isNative && (
               <button onClick={() => { setNavOpen(o => !o); setShowNotifs(false); }} style={{ background: navOpen ? `${theme.accent}30` : 'none', border: `1px solid rgba(255,255,255,0.25)`, color: '#fff', fontSize: 16, cursor: 'pointer', padding: '6px 11px', borderRadius: 8, lineHeight: 1, fontWeight: 700 }}>
                 {navOpen ? '✕' : '☰'}
               </button>
@@ -3391,8 +3433,8 @@ function App() {
         </div>
       </div>
 
-      {/* SLIDE-DOWN NAV DRAWER — mobile only */}
-      {!isDesktop && navOpen && (
+      {/* SLIDE-DOWN NAV DRAWER — web mobile only (iOS native uses bottom tab bar instead) */}
+      {!isDesktop && !isNative && navOpen && (
         <div style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: 0, right: 0, maxWidth: 480, margin: '0 auto', zIndex: 200, background: theme.secondary, borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0 }}>
             {BOTTOM_NAV.map(item => (
@@ -3434,7 +3476,7 @@ function App() {
         </div>
       )}
 
-      {/* Backdrop to close nav/notifs */}
+      {/* Backdrop to close nav/notifs/more sheet */}
       {(navOpen || showNotifs) && <div onClick={() => { setNavOpen(false); setShowNotifs(false); }} style={{ position: 'fixed', inset: 0, zIndex: 150, background: 'transparent' }} />}
 
       {/* BODY: sidebar (desktop) + content */}
@@ -3459,7 +3501,7 @@ function App() {
         )}
 
       {/* CONTENT */}
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isNative && !isDesktop ? 'calc(58px + env(safe-area-inset-bottom))' : 'env(safe-area-inset-bottom)' }}>
         {activeTab === 'home' && (
           <div style={{ padding: '16px', position: 'relative' }}>
             {/* Branch Hero Banner */}
@@ -3535,7 +3577,7 @@ function App() {
 
       {/* INTERACTIVE DEMO TOUR OVERLAY */}
       {demoTip >= 0 && demoTip < DEMO_TIPS.length && (
-        <div style={{ position: 'fixed', bottom: 'calc(24px + env(safe-area-inset-bottom))', left: isDesktop ? 230 : 0, right: 0, maxWidth: isDesktop ? '100%' : 480, margin: isDesktop ? 0 : '0 auto', padding: '0 12px', zIndex: 300 }}>
+        <div style={{ position: 'fixed', bottom: isNative && !isDesktop ? 'calc(58px + env(safe-area-inset-bottom) + 12px)' : 'calc(24px + env(safe-area-inset-bottom))', left: isDesktop ? 230 : 0, right: 0, maxWidth: isDesktop ? '100%' : 480, margin: isDesktop ? 0 : '0 auto', padding: '0 12px', zIndex: 350 }}>
           <div style={{ background: theme.secondary, borderRadius: 16, padding: '16px', border: `2px solid ${theme.accent}`, boxShadow: '0 -4px 30px rgba(0,0,0,0.4)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -3570,6 +3612,48 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* ── iOS BOTTOM TAB BAR ── native only, invisible on web/Railway ── */}
+      {isNative && !isDesktop && (
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 310, background: theme.secondary, borderTop: `1px solid ${theme.accent}35`, display: 'flex', alignItems: 'stretch', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          {IOS_TAB_BAR.map(item => (
+            <button key={item.id} onClick={() => { goTo(item.id); setMoreOpen(false); }} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
+              <span style={{ fontSize: 22, lineHeight: 1, filter: activeTab === item.id ? 'none' : 'grayscale(40%) opacity(0.55)' }}>{item.iosIcon}</span>
+              <span style={{ fontSize: 10, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>{item.label}</span>
+              {activeTab === item.id && <div style={{ position: 'absolute', bottom: 'calc(env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', width: 4, height: 4, borderRadius: '50%', background: theme.accent }} />}
+            </button>
+          ))}
+          <button onClick={() => setMoreOpen(o => !o)} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
+            <span style={{ fontSize: 22, lineHeight: 1, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.55)', fontWeight: 900, letterSpacing: '-2px' }}>•••</span>
+            <span style={{ fontSize: 10, fontWeight: moreOpen ? 800 : 600, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>More</span>
+          </button>
+        </div>
+      )}
+
+      {/* ── iOS MORE BOTTOM SHEET ── */}
+      {isNative && !isDesktop && moreOpen && (
+        <>
+          <div onClick={() => setMoreOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 311, background: 'rgba(0,0,0,0.45)' }} />
+          <div style={{ position: 'fixed', bottom: `calc(49px + env(safe-area-inset-bottom))`, left: 0, right: 0, zIndex: 312, background: theme.secondary, borderRadius: '20px 20px 0 0', borderTop: `2px solid ${theme.accent}60`, paddingTop: 8, paddingBottom: 4 }}>
+            {/* Handle bar */}
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 12px' }} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, padding: '0 12px' }}>
+              {BOTTOM_NAV.map(item => (
+                <button key={item.id} onClick={() => { goTo(item.id); setMoreOpen(false); }} style={{ padding: '10px 4px 8px', background: activeTab === item.id ? `${theme.accent}20` : 'rgba(255,255,255,0.05)', border: `1px solid ${activeTab === item.id ? theme.accent + '50' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, color: 'white', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 20, lineHeight: 1, filter: activeTab === item.id ? 'none' : 'grayscale(30%) opacity(0.7)' }}>{item.iosIcon}</span>
+                  <span style={{ fontSize: 9, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.65)', letterSpacing: '.02em', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
+                </button>
+              ))}
+            </div>
+            <div style={{ padding: '10px 12px 4px' }}>
+              <button onClick={() => { setProfile(null); store.set('pcs_profile', null); setMoreOpen(false); }} style={{ width: '100%', padding: '12px', background: 'rgba(255,60,60,0.12)', border: '1px solid rgba(255,60,60,0.2)', borderRadius: 12, color: 'rgba(255,100,100,0.9)', fontSize: 13, cursor: 'pointer', fontWeight: 700 }}>
+                Reset / Re-onboard
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
     </div>
   );
 }

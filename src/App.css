@@ -28,7 +28,6 @@ html, body, #root {
 
 /* iOS Simulator Specific */
 .app.ios-simulator {
-  /* Safe area for notch */
   padding-top: 0;
 }
 
@@ -38,6 +37,41 @@ html, body, #root {
     padding-left: max(0px, env(safe-area-inset-left));
     padding-right: max(0px, env(safe-area-inset-right));
   }
+}
+
+/* ── iOS Mobile Overrides ── */
+
+/* Prevent tap highlight flash on all interactive elements */
+*, *:before, *:after {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth momentum scrolling */
+div {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent iOS auto-zoom on text inputs (requires ≥16px font-size) */
+@supports (-webkit-touch-callout: none) {
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Native button feel */
+button {
+  touch-action: manipulation;
+}
+
+/* Prevent pull-to-refresh interference */
+body {
+  overscroll-behavior-y: none;
 }
 
 /* Header - Don't block content */
