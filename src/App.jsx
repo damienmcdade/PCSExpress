@@ -1,3 +1,8 @@
+/*
+ * Purpose: Main PCS Express React shell, onboarding flow, tab navigation, and core PCS modules.
+ * Third-party dependencies: React, Leaflet through child map modules, Capacitor bridge when running native.
+ */
+
 import { useState, useEffect } from 'react'
 import './App.css'
 import EmploymentModule from './components/EmploymentModule'
@@ -8,12 +13,45 @@ import ReligiousServicesModule from './components/ReligiousServicesModule'
 import SpouseDeploymentGuide from './components/SpouseDeploymentGuide'
 import PCSDocumentsModule from './components/PCSDocumentsModule'
 import ImmigrationModule from './components/ImmigrationModule'
+import MovingFinancialAssistanceTab from './components/MovingFinancialAssistanceTab'
+import PetRelocationChecklistTab from './components/PetRelocationChecklistTab'
+import EFMPTab from './components/EFMPTab'
+import HomeRelocationTab from './components/HomeRelocationTab'
+import PrivacyShield from './components/PrivacyShield'
+import SyncStatusIndicator from './components/SyncStatusIndicator'
+import UnitInfoScreen from './components/UnitInfoScreen'
+import { AuditLogger } from './security/SecurityExtensions'
 import { ALL_BASES } from './components/BaseMapModule'
+import MILITARY_UNITS from './data/militaryUnits'
 
 const store = {
   get: (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
   set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
+
+const normLookup = (value) => (value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+function findPublicUnitProfile(profile) {
+  const selectedUnit = profile?.unit || '';
+  const selectedBase = (profile?.gainingInstallation || '').split(',')[0].trim();
+  if (!selectedUnit) return null;
+
+  const possibleKeys = [
+    profile?.gainingInstallation,
+    selectedBase,
+    `${selectedBase} ${profile?.branch || ''}`,
+    `${selectedBase} ${(profile?.gainingInstallation || '').split(',')[1] || ''}`,
+  ].filter(Boolean);
+
+  const candidates = Object.entries(MILITARY_UNITS).flatMap(([key, units]) => {
+    const keyMatch = possibleKeys.some(candidate => normLookup(key).includes(normLookup(candidate)) || normLookup(candidate).includes(normLookup(key)));
+    return keyMatch ? units : [];
+  });
+
+  return candidates.find(unit => normLookup(unit.name) === normLookup(selectedUnit))
+    || candidates.find(unit => normLookup(unit.name).includes(normLookup(selectedUnit)) || normLookup(selectedUnit).includes(normLookup(unit.name)))
+    || null;
+}
 
 const BRANCH_THEMES = {
   Army:           { primary: "#4A5E2A", secondary: "#2C3A14", accent: "#C8A84B", motto: "HOOAH",          tagline: "This We'll Defend",            insignia: "USA",  abbr: "USA"  },
@@ -765,6 +803,8 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
     setChecklistItems(prev => {
       const next = { ...prev, [key]: !prev[key] };
       try { localStorage.setItem('pcs_checklist_checks', JSON.stringify(next)); } catch {}
+      AuditLogger.record('pcs_milestone_status_change', { phase, index: idx, complete: !!next[key] });
+      window.dispatchEvent(new CustomEvent('pcs-local-sync', { detail: { key: 'pcs_checklist_checks' } }));
       return next;
     });
   };
@@ -778,6 +818,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
   return (
     <div style={{ padding: 16 }}>
       <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 16 }}>PCS Checklist</div>
+      <SyncStatusIndicator />
 
       {/* Overdue warning banner */}
       {phaseIsOverdue && (
@@ -2368,7 +2409,7 @@ function OrdersTab({ theme, profile }) {
 }
 
 // ─── Onboarding constants ──────────────────────────────────────────────────
-const COMPONENT_TYPES = ['Active Duty', 'Reserve', 'National Guard', 'AGR', 'FTNG', 'Spouse', 'Dependent'];
+const COMPONENT_TYPES = ['Active Duty', 'Reserve', 'National Guard', 'AGR', 'Spouse'];
 
 const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English',              native: 'English'    },
@@ -2925,10 +2966,10 @@ function Onboarding({ onComplete }) {
             </>
           )}
 
-          {/* Step 0 — Component & Profile */}
+              {/* Step 0 - Branch & Profile */}
           {step === 0 && (
             <>
-              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Component & Profile</div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Branch & Profile</div>
 
               {/* Branch buttons */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
@@ -2955,12 +2996,12 @@ function Onboarding({ onComplete }) {
                 </div>
               </div>
 
-              {/* Component */}
+              {/* Service status */}
               <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>COMPONENT</label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>SERVICE STATUS</label>
                 <select value={p.component} onChange={e => {
                   const comp = e.target.value;
-                  if (['Spouse', 'Dependent'].includes(comp)) {
+                  if (comp === 'Spouse') {
                     setP(prev => ({ ...prev, component: comp, paygrade: 'N/A' }));
                   } else {
                     setP(prev => ({ ...prev, component: comp, paygrade: prev.paygrade === 'N/A' ? 'E-5' : prev.paygrade }));
@@ -2971,7 +3012,7 @@ function Onboarding({ onComplete }) {
               </div>
 
               {/* Pay grade */}
-              {['Spouse', 'Dependent'].includes(p.component) ? (
+              {p.component === 'Spouse' ? (
                 <div style={{ marginBottom: 12, padding: '11px 14px', borderRadius: 10, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>
                   Pay Grade &amp; Rank — N/A ({p.component})
                 </div>
@@ -3056,7 +3097,12 @@ function Onboarding({ onComplete }) {
                   }
                 </select>
                 {p.gainingInstallation && availableUnits.length === 0 && (
-                  <input value={p.unit} onChange={e => upd('unit', e.target.value)} placeholder="Enter unit name manually..." style={{ ...inputSt, marginTop: 8 }} />
+                  <>
+                    <input value={p.unit} onChange={e => upd('unit', e.target.value)} placeholder="Enter unit name manually..." style={{ ...inputSt, marginTop: 8 }} />
+                    <a href={`https://www.google.com/search?q=${encodeURIComponent(`${p.unit || p.branch + ' unit'} ${p.gainingInstallation} official public unit information`)}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', marginTop: 8, padding: '9px 12px', borderRadius: 10, background: `${theme.accent}22`, border: `1px solid ${theme.accent}55`, color: theme.accent, textDecoration: 'none', fontSize: 11, fontWeight: 800, textAlign: 'center' }}>
+                      Search Google public sources for this unit
+                    </a>
+                  </>
                 )}
                 {availableUnits.length > 0 && <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{availableUnits.length} {p.branch} unit{availableUnits.length !== 1 ? 's' : ''} available</div>}
               </div>
@@ -3167,6 +3213,7 @@ function App() {
   const isNative = typeof window !== 'undefined' && !!window.Capacitor?.isNativePlatform?.();
 
   const theme = profile ? BRANCH_THEMES[profile.branch] : BRANCH_THEMES.Army;
+  const selectedUnitProfile = findPublicUnitProfile(profile);
 
   // Compute pending alerts based on departure date and checklist completion
   const daysUntilDeparture = profile?.departingDate ? getDaysUntilDeparture(profile.departingDate) : null;
@@ -3203,124 +3250,64 @@ function App() {
   }
 
   const DEMO_TIPS = [
-    // ── Home ──────────────────────────────────────────────────────────────────
-    { tab: 'home',       title: 'Home — Dashboard',
-      body: 'Your mission command center. See your departure countdown, current PCS phase, gaining installation, and a quick-access summary of your most important tasks. Everything starts here.' },
-
-    // ── PCS Checklist ─────────────────────────────────────────────────────────
-    { tab: 'checklist',  title: 'PCS Checklist — Overview',
-      body: 'Six sequential phases guide you from orders to settling in: Orders Received → 90 Days Out → 60 Days Out → 30 Days Out → Move Week → In-Processing. Each phase contains actionable tasks you check off as you complete them.' },
-    { tab: 'checklist',  title: 'PCS Checklist — Task Phases',
-      body: 'Overdue tasks turn red so nothing slips. Tasks in the active phase are highlighted. Your progress is saved automatically on your device. Tap any task to mark it complete — progress carries across sessions.' },
-
-    // ── PCS Documents ─────────────────────────────────────────────────────────
-    { tab: 'documents',  title: 'PCS Documents — Overview',
-      body: 'Upload, store, and track every PCS-required document in one secure place. Documents are organized into 7 categories: Orders, Travel & Finance, Household Goods, Housing, Medical, Family & Admin, and OCONUS (shown only for overseas assignments).' },
-    { tab: 'documents',  title: 'PCS Documents — Orders & Travel',
-      body: 'The Orders category holds your official PCS orders, amendment/endorsements, and authorization paperwork. Travel & Finance covers your travel voucher, DPS access, per diem authorization, and TLE/TLA approval — everything needed for reimbursement.' },
-    { tab: 'documents',  title: 'PCS Documents — Household Goods',
-      body: 'Track DD Form 1299 (HHG shipment application), weight tickets, DD 1840 inventory and condition report, POV shipment authorization, and pro-gear list. Every HHG document needed to protect your move and file claims lives here.' },
-    { tab: 'documents',  title: 'PCS Documents — Housing & Medical',
-      body: 'Housing stores your BAH authorization, on-post housing application, and SCRA lease termination notice. Medical stores SF 600/SF 603 records transfer, immunization records for you and family, and your TRICARE enrollment update.' },
-    { tab: 'documents',  title: 'PCS Documents — Family, Admin & OCONUS',
-      body: 'Family & Admin holds birth certificates, marriage certificate, school records, passports, and DEERS enrollment. OCONUS documents — SOFA agreements, Status of Forces briefing, country-specific visa paperwork — appear automatically when your gaining installation is overseas.' },
-    { tab: 'documents',  title: 'PCS Documents — Branch-Specific Docs',
-      body: 'In addition to universal requirements, PCS Documents shows forms specific to your branch: Army (DA 31, DA 137-1/2, DA 5960), Navy (NAVPERS 1300/16), Marine Corps (CMC orders, MCO 4600.39), Air Force (AF Form 907, vMPF), Space Force (Guardian Development Plan), and Coast Guard (CG-3103).' },
-
-    // ── Military Orders ───────────────────────────────────────────────────────
-    { tab: 'orders',     title: 'Military Orders — Upload & Extract',
-      body: 'Upload your PCS orders PDF and AI automatically extracts your report date, gaining unit, and installation. Your departure countdown and phase timeline update immediately — keeping every section of the app in sync.' },
-
-    // ── Schools ───────────────────────────────────────────────────────────────
-    { tab: 'schools',    title: 'Schools & Childcare',
-      body: 'Find K-12 schools, DoDEA schools, and child development centers near your gaining installation. Filter by your children\'s grade levels, sort by rating, or search by zip code for schools near off-post housing. Each listing links directly to the school\'s website.' },
-
-    // ── Navigation ────────────────────────────────────────────────────────────
-    { tab: 'nav',        title: 'Navigation — Turn-by-Turn Directions',
-      body: 'Plan your PCS drive with real turn-by-turn routing powered by OSRM. Enter any origin and destination to get step-by-step directions, estimated drive time, and total mileage — useful for calculating PCS mileage reimbursement.' },
-    { tab: 'nav',        title: 'Navigation — Popular Routes & Saved',
-      body: 'Popular Routes shows common PCS drive corridors between major installations. Save any set of directions to the Saved Directions tab so you can reference them offline without re-entering your route.' },
-    { tab: 'nav',        title: 'Navigation — Base Map',
-      body: 'The Base Map tab displays an interactive Leaflet map of your gaining installation showing key on-post facilities: main gate, housing office, finance, medical, PX/commissary, and more. Zoom, tap, and explore before you arrive.' },
-
-    // ── Veterans ──────────────────────────────────────────────────────────────
-    { tab: 'veterans',   title: 'Veteran-Owned Businesses',
-      body: 'Discover veteran-owned businesses near your gaining installation. Filter by category (restaurants, services, retail, and more). National directories from the SBA Veteran Business Outreach Center and Hire Heroes USA are always listed below local results.' },
-
-    // ── Employment ────────────────────────────────────────────────────────────
-    { tab: 'employment', title: 'Employment — Skills Profile',
-      body: 'Build your skills profile in the Skills Profile tab. Add your military skills, certifications, and experience. This profile powers the AI job matching engine used in the Recommendations tab.' },
-    { tab: 'employment', title: 'Employment — Job Search',
-      body: 'The Job Search tab lets you filter open positions by industry (technology, healthcare, logistics, finance, and more). Results tailor to skills you\'ve added in your profile — browse by industry to find the best fit.' },
-    { tab: 'employment', title: 'Employment — Recommendations',
-      body: 'The Recommendations tab uses AI to translate your MOS and military skills into civilian career paths. Review skill-matched job titles, required credentials, and salary benchmarks to identify the best post-military career opportunities.' },
-    { tab: 'employment', title: 'Employment — Resume Analyzer',
-      body: 'Upload your resume in the Resume tab for AI-powered analysis. Receive actionable feedback on clarity, keyword optimization, and civilian translation of military jargon. The analyzer scores your resume and suggests specific improvements.' },
-    { tab: 'employment', title: 'Employment — Job Boards',
-      body: 'The Job Boards tab links directly to USAJobs.gov (federal civilian with veteran preference), Hire Heroes USA, My Next Move for Veterans (MOS translator), MySECO for military spouses, MSEP employer network, and Transition GPS (TAP).' },
-
-    // ── Education ─────────────────────────────────────────────────────────────
-    { tab: 'education',  title: 'Education — GI Bill Chapters',
-      body: 'The GI Bill Chapters tab compares all four chapters side by side: Post-9/11 (Ch.33), Montgomery GI Bill (Ch.30), Survivors\' & Dependents\' Education Assistance (Ch.35), and Montgomery GI Bill Selected Reserve (Ch.1606). Eligibility and benefit amounts summarized for each.' },
-    { tab: 'education',  title: 'Education — How to Apply',
-      body: 'The How to Apply tab walks through the 5-step VA GI Bill application process: filing VA Form 22-1990, receiving your Certificate of Eligibility, notifying your School Certifying Official, understanding your BAH rate, and tracking remaining entitlement.' },
-    { tab: 'education',  title: 'Education — Colleges Near Base',
-      body: 'The Colleges tab lists universities, community colleges, and vocational schools near your gaining installation — with ratings, degree types, descriptions, and direct application links. All schools note whether Tuition Assistance and GI Bill are accepted.' },
-    { tab: 'education',  title: 'Education — Find Schools',
-      body: 'The Find Schools tab is a searchable directory of accredited institutions near any installation. Filter by degree type (2-year, 4-year, vocational) and sort by rating to narrow your search.' },
-    { tab: 'education',  title: 'Education — MyCAA (Military Spouses)',
-      body: 'The MyCAA tab covers the Military Spouse Career Advancement Accounts scholarship: up to $4,000/year (max $16,000 total) for spouses of E-1 to O-2 service members pursuing portable career credentials. Eligibility rules, covered programs, and the 5-step application are all explained.' },
-
-    // ── Deployment Support ────────────────────────────────────────────────────
-    { tab: 'spouse',     title: 'Deployment Support Guide',
-      body: 'Four essential preparation sections for military spouses and families: Legal & Financial Preparation (POA, will, family budget), Mental Health & Resilience (counseling, stress management), Family & Children (childcare, school support), and Household Management. Each section has step-by-step tasks with deadlines and external links.' },
-
-    // ── Faith ─────────────────────────────────────────────────────────────────
-    { tab: 'religion',   title: 'Faith & Spiritual Resources',
-      body: 'Chapel service listings near your installation filtered to your faith preference set during onboarding — Protestant, Catholic, Jewish, Islamic, and more. Overseas assignments include host-nation chapel information. Counseling and spiritual care resources from ACS and Military OneSource are always available.' },
-
-    // ── Translation ───────────────────────────────────────────────────────────
-    { tab: 'translation', title: 'Translation — AI Translator',
-      body: 'The Translate tab supports 20 languages — German, Japanese, Korean, Italian, Spanish, French, Polish, Turkish, Arabic, Thai, and more. Type any English text, select your target language, and get an AI-powered translation in seconds. Every translation is automatically saved for offline reference.' },
-    { tab: 'translation', title: 'Translation — Common Military Phrases',
-      body: 'The Common Phrases tab gives you pre-translated military life phrases in all 20 languages across 6 categories: Emergency & Safety, Housing & Landlord, Shopping & Daily Life, Medical & Pharmacy, School & Childcare, and Transportation. One-tap copy sends any phrase to your clipboard.' },
-    { tab: 'translation', title: 'Translation — Saved Translations',
-      body: 'Every AI translation you make is saved automatically to the Saved tab — accessible without a connection. View original text, translation, language, and timestamp. One tap copies any saved translation. Useful for repeating critical phrases with local landlords, medical staff, or school officials.' },
-
-    // ── Resources: each section ───────────────────────────────────────────────
-    { tab: 'resources',  title: 'Resources — Healthcare',
-      body: 'The Healthcare section links to all TRICARE portals: TRICARE.mil, TRICARE Online, TRICARE 4U (claims/EOBs), TRICARE for Life, Dental Program (TDP), TRICARE Overseas/TOP, Pharmacy via Express Scripts, Humana Military (TRICARE East), My MHS GENESIS patient portal, and VA Health Care.' },
-    { tab: 'resources',  title: 'Resources — Military Portals',
-      body: 'Direct links to official DoD personnel systems: ARBA ACTS (Army records appeals), Army TAP Portal (transition scheduling), HRC iPERMS (official Army records), HRC Portal (assignments & promotions), IPPS-A (pay & personnel actions), milSuite MIP, and milConnect (DMDC — benefits & DEERS updates for all branches).' },
-    { tab: 'resources',  title: 'Resources — Family Support',
-      body: 'Family Support links to Military OneSource (24/7 counseling and referrals), Military Child Education Coalition (school transition), Operation Homefront (emergency financial assistance), Blue Star Families, and your branch-specific family readiness center (ACS, Fleet & Family Support, Airman & Family Readiness Center).' },
-    { tab: 'resources',  title: 'Resources — Financial',
-      body: 'Financial links to myPay (DFAS pay management), BAH Calculator, VA Benefits Explorer, Military Saves (financial readiness), Blended Retirement System calculator, and SCRA protections (interest rate caps, lease termination, foreclosure protection for all service members).' },
-    { tab: 'resources',  title: 'Resources — PCS & Housing',
-      body: 'PCS & Housing links to Move.mil / DPS (schedule and track your HHG shipment), Military Installations (on-post housing and facilities), the Housing Network, SCRA Lease Termination guidance, and VA Home Loan (zero-down home loan for eligible service members and veterans).' },
-    { tab: 'resources',  title: 'Resources — Education',
-      body: 'Education links to VA GI Bill (apply and check entitlement), MyCAA Scholarships (spouse career funding), Tuition Assistance for your specific branch (up to $4,500/year), DANTES/DSST free college-level exams, and DoDEA Schools for military children worldwide.' },
-    { tab: 'resources',  title: 'Resources — Careers',
-      body: 'Careers links to USAJobs.gov (federal civilian jobs with veteran preference), Hire Heroes USA (free resume coaching and placement), My Next Move for Veterans (MOS to civilian career translator), MySECO (spouse career opportunities), Military Spouse Employment Partnership, MyCAA scholarships, and Transition GPS (TAP).' },
-    { tab: 'immigration', title: 'Permanent Resident & Naturalization',
-      body: 'Official USCIS guidance for military spouses: a 9-step green card guide (I-130, I-485, Parole in Place), 6-step citizenship path (3-year military spouse benefit, N-400, civics test), and 7 free military legal resources including your installation JAG office and the USCIS Military Help Line. Includes a full 19-item USCIS requirements checklist with direct links.' },
-
-    // ── End ───────────────────────────────────────────────────────────────────
-    { tab: 'home',       title: 'Tour Complete — Ready to PCS!',
-      body: 'You\'ve seen everything PCS Express has to offer. Every tab, every category, every resource — all here to support your move and your family. Navigate any section from the menu at any time. Thank you for your service. Hooah!' },
+    { tab: 'home', title: 'Home - Dashboard & Category Selector',
+      body: 'Home shows the PCS countdown, current phase, profile summary, and the full category selector in app order: Checklist, EFMP, Orders, Unit Info, Pets, Move Aid, Home Relocation, Employment, Schools, Veteran Businesses, Education, Faith, Deployment, Navigation, Resources, Translation, and Permanent Resident.' },
+    { tab: 'checklist', title: 'PCS Checklist - Phase Tracker',
+      body: 'Official PCS planning is organized into phases from orders to in-processing. Tasks save locally for comms-dark use and help track orders, finance, HHG, travel, lodging, medical, school, and arrival actions.' },
+    { tab: 'documents', title: 'PCS Documents - Required Records',
+      body: 'Documents keeps PCS orders, travel and finance records, household goods forms, housing papers, medical records, family/admin records, OCONUS documents, and branch-specific forms in one checklist-style workspace.' },
+    { tab: 'efmp', title: 'EFMP - Branch-Tailored PCS Requirements',
+      body: 'The EFMP category explains official identification/enrollment, assignment coordination, and family support. It tailors start points and checklist requirements for Army, Navy, Marine Corps, Air Force, Space Force, and Coast Guard families.' },
+    { tab: 'orders', title: 'Military Orders - Upload & Extract',
+      body: 'Orders helps capture the report date, gaining unit, gaining installation, losing installation, and dependent travel details so the rest of the app can personalize the PCS plan.' },
+    { tab: 'schools', title: 'Schools & Childcare - Local Education',
+      body: 'Schools surfaces DoDEA, K-12, childcare, and school transition resources near the gaining installation, with age-aware filtering from the profile and direct public links where available.' },
+    { tab: 'nav', title: 'Navigation - Routes & Public Base Map',
+      body: 'Navigation includes drive planning, saved directions, and a public-only base map. If a base is missing, the app supports manual entry and official public lookup instead of storing sensitive or classified information.' },
+    { tab: 'unit-info', title: 'Unit Information - Public Unit Profile',
+      body: 'Unit Information uses onboarding branch and unit details to show public information only: overview, official links, public social media lookup, unit history, common uniforms, and contact pathways for leadership, S1, or staff duty.' },
+    { tab: 'veterans', title: 'Veteran-Owned Businesses',
+      body: 'Veterans lists veteran-owned business resources and directories near the gaining installation, with national public resources included when local data is limited.' },
+    { tab: 'employment', title: 'Employment - Careers & Official Job Resources',
+      body: 'Employment covers skills profile, job search, recommendations, resume help, and job board links including federal and military spouse career resources.' },
+    { tab: 'education', title: 'Education - Benefits & Schools',
+      body: 'Education explains GI Bill chapters, VA application steps, colleges near base, school search, Tuition Assistance context, and MyCAA spouse scholarship resources.' },
+    { tab: 'spouse', title: 'Deployment Support Guide',
+      body: 'Deployment support organizes legal, financial, mental health, children, household, and family readiness tasks into practical preparation sections for spouses and families.' },
+    { tab: 'moving-assistance', title: 'Move Aid - Grants, Free Help & Housing',
+      body: 'Move Aid clearly marks GRANT, FREE ASSISTANCE, and LAND / HOUSING resources, including branch relief societies, Military OneSource financial counseling, PCS entitlements, SCRA protections, and VA housing assistance.' },
+    { tab: 'pet-relocation', title: 'Pets - Relocation Checklist',
+      body: 'Pets mirrors the PCS checklist with phase-based tasks for vet records, USDA APHIS requirements, airline or AMC travel, lodging, import rules, crate prep, and eligible PCS pet expense documentation.' },
+    { tab: 'home-relocation', title: 'Home Relocation - Inventory, Evidence & Claims',
+      body: 'Home Relocation adds digital inventory and evidence tracking for before/after photos or videos, 180-day loss/damage notice tracking, 9-month full replacement value claim tracking, and a replacement vs. depreciated value calculator.' },
+    { tab: 'religion', title: 'Faith - Chaplain & Spiritual Support',
+      body: 'Faith filters chapel, worship, counseling, and community resources by the preference selected during onboarding while preserving local-only profile storage.' },
+    { tab: 'translation', title: 'Translate - Language Support',
+      body: 'Translate provides AI translation, common military life phrases, and saved translations for housing, medical, school, emergency, transportation, and daily life conversations.' },
+    { tab: 'immigration', title: 'Permanent Resident - USCIS & Legal Support',
+      body: 'Permanent Resident includes official USCIS-based military spouse and family immigration guidance, naturalization support, green card steps, checklist items, and free legal support pathways.' },
+    { tab: 'resources', title: 'Resources - Official Source Hub',
+      body: 'Resources gathers official and public support links for healthcare, military portals, family support, finance, PCS and housing, education, careers, immigration, and emergency assistance.' },
+    { tab: 'home', title: 'Tour Complete - Ready to PCS',
+      body: 'The demo now follows the same order as the category selector and home screen, including every new addition: EFMP, Pets, Move Aid, and Home Relocation with official-source descriptions.' },
   ];
 
   const BOTTOM_NAV = [
     { id: 'home',        label: 'Home',          icon: 'HQ',  iosIcon: '🏠' },
     { id: 'checklist',   label: 'Checklist',     icon: 'PCK', iosIcon: '✅' },
     { id: 'documents',   label: 'Documents',     icon: 'DOC', iosIcon: '📁' },
+    { id: 'efmp',        label: 'EFMP',          icon: 'EFM', iosIcon: '♿' },
     { id: 'orders',      label: 'Orders',        icon: 'ORD', iosIcon: '📋' },
     { id: 'schools',     label: 'Schools',       icon: 'SCH', iosIcon: '🎓' },
     { id: 'nav',         label: 'Navigation',    icon: 'NAV', iosIcon: '🗺️' },
+    { id: 'unit-info',    label: 'Unit Info',     icon: 'UNT', iosIcon: '🎖️' },
     { id: 'veterans',    label: 'Veterans',      icon: 'VET', iosIcon: '⭐' },
     { id: 'employment',  label: 'Employment',    icon: 'EMP', iosIcon: '💼' },
     { id: 'education',   label: 'Education',     icon: 'EDU', iosIcon: '📚' },
     { id: 'spouse',      label: 'Deployment',    icon: 'DEP', iosIcon: '🪖' },
+    { id: 'moving-assistance', label: 'Move Aid', icon: 'AID', iosIcon: '💵' },
+    { id: 'pet-relocation', label: 'Pets',        icon: 'PET', iosIcon: '🐾' },
+    { id: 'home-relocation', label: 'Home Move',  icon: 'HME', iosIcon: '🏠' },
     { id: 'religion',    label: 'Faith',         icon: 'CHP', iosIcon: '⛪' },
     { id: 'translation', label: 'Translate',     icon: 'TRL', iosIcon: '🌐' },
     { id: 'immigration', label: 'Perm. Resident', icon: 'IMM', iosIcon: '🏛️' },
@@ -3340,6 +3327,7 @@ function App() {
   if (activeTab === 'translation') {
     return (
       <div style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: '#f0f4f8', fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
+        <PrivacyShield />
         {isDesktop && (
           <div style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', minHeight: '100dvh', borderRight: `2px solid ${theme.accent}30`, flexShrink: 0 }}>
             <div style={{ padding: '20px 16px 12px', borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
@@ -3438,6 +3426,7 @@ function App() {
 
   return (
     <div style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: '#f0f4f8', fontFamily: 'system-ui', display: 'flex', flexDirection: 'column' }}>
+      <PrivacyShield />
       {/* HEADER — paddingTop uses env(safe-area-inset-top) for notch/Dynamic Island.
           Requires viewport-fit=cover in the HTML meta and contentInsetAdjustmentBehavior=never
           in capacitor.config.json to receive non-zero values from the OS. */}
@@ -3563,7 +3552,12 @@ function App() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {[
                 { abbr: 'PCK', label: 'PCS Checklist',   id: 'checklist', color: '#1565C0' },
+                { abbr: 'EFM', label: 'EFMP',            id: 'efmp',      color: '#5B2A86' },
                 { abbr: 'ORD', label: 'Orders',           id: 'orders',    color: '#2E7D32' },
+                { abbr: 'UNT', label: 'Unit Info',        id: 'unit-info', color: '#3F51B5' },
+                { abbr: 'PET', label: 'Pets',             id: 'pet-relocation', color: '#00897B' },
+                { abbr: 'AID', label: 'Move Aid',         id: 'moving-assistance', color: '#6A4C1B' },
+                { abbr: 'HME', label: 'Home Relocation',  id: 'home-relocation', color: '#455A64' },
                 { abbr: 'EMP', label: 'Employment',       id: 'employment',color: '#4A5E2A' },
                 { abbr: 'SCH', label: 'Schools',          id: 'schools',   color: '#7B1FA2' },
                 { abbr: 'VET', label: 'Vet Owned Biz',    id: 'veterans',  color: '#E65100' },
@@ -3599,11 +3593,16 @@ function App() {
 
         {activeTab === 'checklist' && <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />}
         {activeTab === 'documents' && <PCSDocumentsModule theme={theme} profile={profile} />}
+        {activeTab === 'efmp' && <EFMPTab theme={theme} profile={profile} />}
         {activeTab === 'orders' && <OrdersTab theme={theme} profile={profile} />}
+        {activeTab === 'unit-info' && <UnitInfoScreen theme={theme} profile={profile} unit={selectedUnitProfile} />}
         {activeTab === 'schools' && <SchoolsTab theme={theme} profile={profile} />}
         {activeTab === 'veterans' && <VeteranBusinessesTab theme={theme} profile={profile} />}
         {activeTab === 'employment' && <EmploymentModule theme={theme} profile={profile} />}
         {activeTab === 'education' && <EducationBenefitsTab theme={theme} profile={profile} />}
+        {activeTab === 'moving-assistance' && <MovingFinancialAssistanceTab theme={theme} profile={profile} />}
+        {activeTab === 'pet-relocation' && <PetRelocationChecklistTab theme={theme} profile={profile} />}
+        {activeTab === 'home-relocation' && <HomeRelocationTab theme={theme} profile={profile} />}
         {activeTab === 'nav' && <NavigationModule theme={theme} profile={profile} />}
         {activeTab === 'spouse' && <SpouseDeploymentGuide theme={theme} profile={profile} />}
         {activeTab === 'religion' && <ReligiousServicesModuleWrapped theme={theme} profile={profile} />}

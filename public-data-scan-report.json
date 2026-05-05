@@ -1,0 +1,6 @@
+{
+  "generatedAt": "2026-05-05T05:19:11.476Z",
+  "standard": "Public-release safety scan for classified, CUI, operational, and sensitive-data indicators",
+  "result": "PASS",
+  "findings": []
+}
