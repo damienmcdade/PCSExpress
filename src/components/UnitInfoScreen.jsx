@@ -39,7 +39,7 @@ function normalizeUnit(unit, profile) {
     history: unit?.history || `${unitName} information should be verified through official public command pages, public affairs releases, lineage pages, and installation directories before use.`,
     uniforms: unit?.uniforms || branchUniforms[unit?.branch || profile?.branch] || ['Daily duty uniform', 'Service uniform', 'Physical training uniform'],
     contacts: unit?.contacts || [],
-    sourceStatus: unit ? 'Known local public profile' : 'Manual unit entry: verify via public sources',
+    sourceStatus: unit?.sourceStatus || (unit ? 'Known local public profile' : 'Manual unit entry: verify via public sources'),
   };
 }
 
@@ -122,7 +122,10 @@ export default function UnitInfoScreen({ profile, theme, unit }) {
           <Field label="Nickname" value={workingUnit.nickname} />
           <Field label="Established" value={workingUnit.established} />
           <Field label="Motto" value={workingUnit.motto} />
-          {workingUnit.website && <a className="unit-action" href={workingUnit.website} target="_blank" rel="noopener noreferrer" style={{ background: theme.primary }}>Official Website</a>}
+          {workingUnit.website && <a className="unit-action" href={workingUnit.website} target="_blank" rel="noopener noreferrer" style={{ background: theme.primary }}>{workingUnit.sourceStatus?.includes('Generated') ? 'Open Public Website Lookup' : 'Official Website'}</a>}
+          {workingUnit.sourceStatus?.includes('Generated') && (
+            <p className="unit-muted">This profile is populated from public-source lookup templates because a verified local unit record is not stored yet. Use the lookup links to confirm details through official public pages.</p>
+          )}
         </section>
       )}
 

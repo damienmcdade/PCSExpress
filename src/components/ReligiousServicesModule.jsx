@@ -411,10 +411,10 @@ function ReligiousServicesModule({ theme, profile }) {
               }}>
                 <div style={{ fontSize: 28, marginBottom: 10 }}>⛪</div>
                 <div style={{ fontSize: 14, fontWeight: 800, color: '#0D1821', marginBottom: 6 }}>
-                  No chapel data on file for {instName}
+                  Public chapel lookup for {instName}
                 </div>
                 <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.6, marginBottom: 16 }}>
-                  We don't have local chapel listings for this installation yet. Use the resources below to locate your installation chaplain, or reach out directly.
+                  Local chapel listings are not stored for this installation yet, so PCS Express opens official installation and public search resources instead of leaving this category empty.
                 </div>
                 <a
                   href="https://www.militaryinstallations.dod.mil"
@@ -432,6 +432,24 @@ function ReligiousServicesModule({ theme, profile }) {
                   }}
                 >
                   Contact Installation Chaplain
+                </a>
+                <a
+                  href={`https://www.google.com/search?q=${encodeURIComponent(`${instName} installation chapel chaplain official`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-block',
+                    padding: '10px 20px',
+                    borderRadius: 8,
+                    background: '#F0F4F8',
+                    color: theme.primary,
+                    fontWeight: 700,
+                    fontSize: 12,
+                    textDecoration: 'none',
+                    marginLeft: 8,
+                  }}
+                >
+                  Search Public Chapel Listings
                 </a>
               </div>
 

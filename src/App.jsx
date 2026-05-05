@@ -50,7 +50,56 @@ function findPublicUnitProfile(profile) {
 
   return candidates.find(unit => normLookup(unit.name) === normLookup(selectedUnit))
     || candidates.find(unit => normLookup(unit.name).includes(normLookup(selectedUnit)) || normLookup(selectedUnit).includes(normLookup(unit.name)))
-    || null;
+    || makePublicLookupUnitProfile(profile);
+}
+
+const publicSearchUrl = (query) => `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+const militaryInstallationsUrl = 'https://installations.militaryonesource.mil/';
+
+const PUBLIC_BRANCH_UNIT_TEMPLATES = {
+  Army: ['Garrison Headquarters', 'Tenant Unit / Activity', 'Medical Department Activity', 'Dental Activity', 'Mission Support Element', 'Public Affairs Office'],
+  Navy: ['Installation Command', 'Tenant Command', 'Fleet and Family Support Center', 'Naval Medical Readiness Command', 'Quarterdeck / Staff Duty', 'Public Affairs Office'],
+  'Marine Corps': ['Installation Command', 'Tenant Command', 'Marine Corps Community Services', 'Naval Medical Readiness Command', 'Duty Desk', 'Public Affairs Office'],
+  'Air Force': ['Host Wing', 'Mission Support Group', 'Medical Group', 'Force Support Squadron', 'Command Post / Staff Duty', 'Public Affairs Office'],
+  'Space Force': ['Space Base Delta', 'Mission Support Squadron', 'Medical Support Element', 'Force Support Squadron', 'Command Post / Staff Duty', 'Public Affairs Office'],
+  'Coast Guard': ['Sector Command', 'Base Command', 'Station / Unit', 'Health Services Office', 'Command Center / Duty Desk', 'Public Affairs Office'],
+};
+
+const PUBLIC_BRANCH_UNIFORMS = {
+  Army: ['Army Combat Uniform (ACU)', 'Army Green Service Uniform (AGSU)', 'Army Service Uniform (ASU)', 'Army Physical Fitness Uniform (APFU)'],
+  Navy: ['Navy Working Uniform Type III', 'Service Khaki', 'Service Dress Blue', 'Navy Physical Training Uniform'],
+  'Marine Corps': ['Marine Corps Combat Utility Uniform (MCCUU)', 'Service Alpha / Bravo / Charlie', 'Dress Blue', 'USMC physical training uniform'],
+  'Air Force': ['Operational Camouflage Pattern (OCP)', 'Service Dress', 'Blues uniform', 'Air Force physical training gear'],
+  'Space Force': ['Operational Camouflage Pattern (OCP)', 'Service Dress / Blues', 'Space Force physical training gear'],
+  'Coast Guard': ['Operational Dress Uniform (ODU)', 'Tropical Blue', 'Service Dress Blue', 'Coast Guard physical fitness clothing'],
+};
+
+const getBranchUniforms = (branch) => PUBLIC_BRANCH_UNIFORMS[branch] || ['Daily duty uniform', 'Service uniform', 'Physical training uniform'];
+
+function makePublicLookupUnitProfile(profile = {}) {
+  const unitName = profile?.unit || `${profile?.branch || 'Military'} gaining unit`;
+  const baseName = (profile?.gainingInstallation || '').split(',')[0].trim() || 'gaining installation';
+  const branch = profile?.branch || 'Military';
+  const publicQuery = `${unitName} ${baseName} official public`;
+  return {
+    id: `PUBLIC-${normLookup(unitName).slice(0, 24) || 'UNIT'}`,
+    name: unitName,
+    branch,
+    nickname: 'Public-source lookup profile',
+    established: 'Verify through official unit history or lineage page',
+    motto: 'Verify through official public command page',
+    website: publicSearchUrl(`${publicQuery} website`),
+    social: {},
+    history: `${unitName} at ${baseName} is populated through the public lookup fallback. Use the official links below to verify the command page, public affairs releases, DVIDS imagery/news, and approved public social media before relying on details.`,
+    uniforms: getBranchUniforms(branch),
+    contacts: [
+      { label: 'MilitaryINSTALLATIONS directory', url: militaryInstallationsUrl },
+      { label: 'Google official unit page', url: publicSearchUrl(`${publicQuery} site:.mil OR site:.gov`) },
+      { label: 'Google public affairs / DVIDS', url: publicSearchUrl(`${unitName} ${baseName} DVIDS public affairs`) },
+      { label: 'Google staff duty / quarterdeck public contact', url: publicSearchUrl(`${unitName} ${baseName} staff duty quarterdeck public contact`) },
+    ],
+    sourceStatus: 'Generated public lookup profile',
+  };
 }
 
 const BRANCH_THEMES = {
@@ -793,6 +842,22 @@ function StarRating({ rating }) {
   );
 }
 
+function PublicLookupCard({ theme, title, body, links }) {
+  return (
+    <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
+      <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821', marginBottom: 5 }}>{title}</div>
+      <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 10 }}>{body}</div>
+      <div style={{ display: 'grid', gap: 8 }}>
+        {links.map(link => (
+          <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '9px 10px', borderRadius: 8, background: `${theme.primary}12`, border: `1px solid ${theme.primary}24`, color: theme.primary, textDecoration: 'none', fontSize: 11, fontWeight: 800 }}>
+            {link.label}
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
   const [activePhase, setActivePhase] = useState(Object.keys(PCS_CHECKLIST)[0]);
 
@@ -961,7 +1026,19 @@ function SchoolsTab({ theme, profile }) {
             </div>
           )}
           {!instName && <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12 }}>Complete onboarding to see schools near your installation.</div>}
-          {instName && filteredSchools.length === 0 && <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12, marginBottom: 12 }}>No school data yet for this installation. Try "Find Schools" above.</div>}
+          {instName && filteredSchools.length === 0 && (
+            <PublicLookupCard
+              theme={theme}
+              title={`Public school lookup for ${instName}`}
+              body="Local verified school cards are not stored for this installation yet, so PCS Express links directly to public education search tools instead of showing an unavailable message."
+              links={[
+                { label: 'Google schools near installation', url: publicSearchUrl(`${instName} public schools near military installation`) },
+                { label: 'GreatSchools search', url: 'https://www.greatschools.org' },
+                { label: 'MilitaryINSTALLATIONS school liaison', url: militaryInstallationsUrl },
+                { label: 'DoDEA school finder', url: 'https://www.dodea.edu/school-finder' },
+              ]}
+            />
+          )}
           {filteredSchools.map((school, idx) => (
             <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
@@ -989,9 +1066,16 @@ function SchoolsTab({ theme, profile }) {
             Child Development Centers (CDCs) on-post give priority to active duty families. Contact early — waitlists can be 2–8 weeks.
           </div>
           {daycares.length === 0 && (
-            <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12, marginBottom: 14 }}>
-              No CDC data for this installation. Call your installation's Child &amp; Youth Services (CYS) office directly.
-            </div>
+            <PublicLookupCard
+              theme={theme}
+              title={`CDC and childcare lookup for ${instName || 'your installation'}`}
+              body="Local CDC cards are not stored for this installation yet, so PCS Express opens official childcare and installation directory searches instead."
+              links={[
+                { label: 'MilitaryINSTALLATIONS child care', url: militaryInstallationsUrl },
+                { label: 'MilitaryChildCare.com', url: 'https://public.militarychildcare.csd.disa.mil/mcc-central/mcchome' },
+                { label: 'Google CDC near installation', url: publicSearchUrl(`${instName || 'military installation'} child development center CDC`) },
+              ]}
+            />
           )}
           {daycares.map((dc, idx) => (
             <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
@@ -1100,11 +1184,16 @@ function VeteranBusinessesTab({ theme, profile }) {
 
       {/* Local listings */}
       {localBiz.length === 0 && (
-        <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-          <div style={{ fontSize: 20, marginBottom: 8 }}>⭐</div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 4 }}>No local listings yet for this installation</div>
-          <div style={{ fontSize: 11, color: '#888' }}>Use the national directories above to find veteran-owned businesses in your area.</div>
-        </div>
+        <PublicLookupCard
+          theme={theme}
+          title={`Veteran business lookup near ${instName || 'your installation'}`}
+          body="Local stored listings are not available for this installation yet, so the app opens public business directories and Google searches for the selected area."
+          links={[
+            { label: 'Google veteran-owned businesses nearby', url: publicSearchUrl(`${instName || 'military installation'} veteran owned business near`) },
+            { label: 'Veteran Owned Business directory', url: 'https://veteranownedbusiness.com' },
+            { label: 'SBA veteran business resources', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses' },
+          ]}
+        />
       )}
 
       {filtered.map((biz, idx) => (
@@ -1962,12 +2051,16 @@ function EducationBenefitsTab({ theme, profile }) {
               ))}
             </>
           ) : (
-            <div style={{ background: '#F0F4F8', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 8 }}>No college data for this installation yet</div>
-              <div style={{ fontSize: 11, color: '#56697C', marginBottom: 14 }}>Use the resources below to find accredited schools near your gaining installation.</div>
-              <a href="https://www.va.gov/gi-bill-comparison-tool/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '10px', borderRadius: 10, background: theme.primary, color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 12, marginBottom: 8 }}>VA GI Bill School Comparison Tool</a>
-              <a href="https://nces.ed.gov/collegenavigator/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '10px', borderRadius: 10, background: '#E8F5E9', color: '#1B5E20', textDecoration: 'none', fontWeight: 700, fontSize: 12 }}>NCES College Navigator</a>
-            </div>
+            <PublicLookupCard
+              theme={theme}
+              title={`College lookup near ${resolvedInstall || 'your installation'}`}
+              body="Local verified college cards are not stored for this installation yet, so the app opens official education tools and public searches for accredited military-friendly schools nearby."
+              links={[
+                { label: 'Google colleges near installation', url: publicSearchUrl(`${resolvedInstall || installName || 'military installation'} colleges university community college military friendly`) },
+                { label: 'VA GI Bill School Comparison Tool', url: 'https://www.va.gov/gi-bill-comparison-tool/' },
+                { label: 'NCES College Navigator', url: 'https://nces.ed.gov/collegenavigator/' },
+              ]}
+            />
           )}
         </div>
       )}
@@ -2846,6 +2939,30 @@ const INSTALLATION_UNITS = {
   },
 };
 
+function resolveInstallationUnits(installation, branch) {
+  const baseName = (installation || '').split(',')[0].trim();
+  if (!baseName) return [];
+  const exact = INSTALLATION_UNITS[baseName]?.[branch] || [];
+  if (exact.length > 0) return exact;
+
+  const matchedKey = Object.keys(INSTALLATION_UNITS).find(key => {
+    const a = normLookup(key);
+    const b = normLookup(baseName);
+    return a === b || a.includes(b) || b.includes(a);
+  });
+  const matched = matchedKey ? (INSTALLATION_UNITS[matchedKey]?.[branch] || []) : [];
+  if (matched.length > 0) return matched;
+
+  const baseRecord = ALL_BASES.find(base => {
+    const a = normLookup(base.name);
+    const b = normLookup(baseName);
+    return a === b || a.includes(b) || b.includes(a);
+  });
+  const fallbackBranch = branch || baseRecord?.branch || 'Military';
+  return (PUBLIC_BRANCH_UNIT_TEMPLATES[fallbackBranch] || PUBLIC_BRANCH_UNIT_TEMPLATES.Army)
+    .map(name => `${baseName} ${name}`);
+}
+
 const DEMO_PROFILE = {
   firstName: 'Marcus', lastName: 'Thompson',
   branch: 'Army', component: 'Active Duty', paygrade: 'E-7',
@@ -2899,7 +3016,7 @@ function Onboarding({ onComplete }) {
       ).slice(0, 10)
     : [];
   const availableUnits = p.gainingInstallation
-    ? (INSTALLATION_UNITS[p.gainingInstallation]?.[p.branch] || [])
+    ? resolveInstallationUnits(p.gainingInstallation, p.branch)
     : [];
 
   const inputSt = {
@@ -3091,12 +3208,9 @@ function Onboarding({ onComplete }) {
                 </label>
                 <select value={p.unit} onChange={e => upd('unit', e.target.value)} style={inputSt} disabled={!p.gainingInstallation}>
                   <option value="">{p.gainingInstallation ? 'Select unit...' : 'Select a gaining installation first'}</option>
-                  {availableUnits.length > 0
-                    ? availableUnits.map(u => <option key={u} value={u}>{u}</option>)
-                    : p.gainingInstallation && <option value="" disabled>No {p.branch} units listed — enter manually below</option>
-                  }
+                  {availableUnits.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
-                {p.gainingInstallation && availableUnits.length === 0 && (
+                {p.gainingInstallation && (
                   <>
                     <input value={p.unit} onChange={e => upd('unit', e.target.value)} placeholder="Enter unit name manually..." style={{ ...inputSt, marginTop: 8 }} />
                     <a href={`https://www.google.com/search?q=${encodeURIComponent(`${p.unit || p.branch + ' unit'} ${p.gainingInstallation} official public unit information`)}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', marginTop: 8, padding: '9px 12px', borderRadius: 10, background: `${theme.accent}22`, border: `1px solid ${theme.accent}55`, color: theme.accent, textDecoration: 'none', fontSize: 11, fontWeight: 800, textAlign: 'center' }}>
@@ -3104,7 +3218,7 @@ function Onboarding({ onComplete }) {
                     </a>
                   </>
                 )}
-                {availableUnits.length > 0 && <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{availableUnits.length} {p.branch} unit{availableUnits.length !== 1 ? 's' : ''} available</div>}
+                {availableUnits.length > 0 && <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{availableUnits.length} {p.branch} public unit option{availableUnits.length !== 1 ? 's' : ''} available. Manual entry also supported.</div>}
               </div>
 
               <div style={{ display: 'flex', gap: 10 }}>
