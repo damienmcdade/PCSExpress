@@ -1,3 +1,11 @@
+//
+//  PDFExportPlugin.swift
+//  PCS Express
+//
+//  Purpose: Capacitor PDF export bridge for travel vouchers and DD Form 1351-2.
+//  Third-party dependencies: Capacitor, UIKit.
+//
+
 import Capacitor
 import UIKit
 
@@ -92,6 +100,10 @@ public class PDFExportPlugin: CAPPlugin, CAPBridgedPlugin {
             if let error = error {
                 call.reject(error.localizedDescription)
             } else {
+                AuditLogger.shared.record("pdf_export", details: [
+                    "file": url.lastPathComponent,
+                    "completed": completed ? "true" : "false",
+                ])
                 call.resolve(["saved": completed])
             }
         }
