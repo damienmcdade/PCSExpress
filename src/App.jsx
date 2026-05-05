@@ -3244,6 +3244,7 @@ function App() {
   if (!profile) {
     return <Onboarding onComplete={(p) => {
       setProfile(p);
+      setActiveTab('home');
       store.set('pcs_profile', p);
       if (p?.firstName === 'Marcus' && p?.lastName === 'Thompson') setDemoTip(0);
     }} />;
@@ -3251,70 +3252,71 @@ function App() {
 
   const DEMO_TIPS = [
     { tab: 'home', title: 'Home - Dashboard & Category Selector',
-      body: 'Home shows the PCS countdown, current phase, profile summary, and the full category selector in app order: Checklist, EFMP, Orders, Unit Info, Pets, Move Aid, Home Relocation, Employment, Schools, Veteran Businesses, Education, Faith, Deployment, Navigation, Resources, Translation, and Permanent Resident.' },
-    { tab: 'checklist', title: 'PCS Checklist - Phase Tracker',
-      body: 'Official PCS planning is organized into phases from orders to in-processing. Tasks save locally for comms-dark use and help track orders, finance, HHG, travel, lodging, medical, school, and arrival actions.' },
+      body: 'Home starts the demo on the dashboard, not a previous tab. The category selector below is alphabetized and matches the main home screen tiles exactly: Checklist, Deployment, Documents, Education, EFMP, Employment, Faith, Home Relocation, Move Aid, Navigation, Orders, Permanent Resident, Pets, Resources, Schools, Translate, Unit Info, and Veterans.' },
+    { tab: 'checklist', title: 'Checklist - PCS Phase Tracker',
+      body: 'Checklist organizes official PCS planning into phases from orders to in-processing. Tasks save locally for comms-dark use and cover orders, finance, HHG, travel, lodging, medical, school, and arrival actions.' },
+    { tab: 'spouse', title: 'Deployment - Family Support Guide',
+      body: 'Deployment organizes legal, financial, mental health, children, household, and family readiness tasks into practical preparation sections for spouses and families.' },
     { tab: 'documents', title: 'PCS Documents - Required Records',
       body: 'Documents keeps PCS orders, travel and finance records, household goods forms, housing papers, medical records, family/admin records, OCONUS documents, and branch-specific forms in one checklist-style workspace.' },
+    { tab: 'education', title: 'Education - Benefits & Schools',
+      body: 'Education explains GI Bill chapters, VA application steps, colleges near base, school search, Tuition Assistance context, and MyCAA spouse scholarship resources.' },
     { tab: 'efmp', title: 'EFMP - Branch-Tailored PCS Requirements',
       body: 'The EFMP category explains official identification/enrollment, assignment coordination, and family support. It tailors start points and checklist requirements for Army, Navy, Marine Corps, Air Force, Space Force, and Coast Guard families.' },
-    { tab: 'orders', title: 'Military Orders - Upload & Extract',
-      body: 'Orders helps capture the report date, gaining unit, gaining installation, losing installation, and dependent travel details so the rest of the app can personalize the PCS plan.' },
-    { tab: 'schools', title: 'Schools & Childcare - Local Education',
-      body: 'Schools surfaces DoDEA, K-12, childcare, and school transition resources near the gaining installation, with age-aware filtering from the profile and direct public links where available.' },
-    { tab: 'nav', title: 'Navigation - Routes & Public Base Map',
-      body: 'Navigation includes drive planning, saved directions, and a public-only base map. If a base is missing, the app supports manual entry and official public lookup instead of storing sensitive or classified information.' },
-    { tab: 'unit-info', title: 'Unit Information - Public Unit Profile',
-      body: 'Unit Information uses onboarding branch and unit details to show public information only: overview, official links, public social media lookup, unit history, common uniforms, and contact pathways for leadership, S1, or staff duty.' },
-    { tab: 'veterans', title: 'Veteran-Owned Businesses',
-      body: 'Veterans lists veteran-owned business resources and directories near the gaining installation, with national public resources included when local data is limited.' },
     { tab: 'employment', title: 'Employment - Job Search',
       body: 'Job Search now prioritizes military spouse-supportive roles near the selected installation radius and remote positions. Each result card includes a brief role description, a REMOTE or radius indicator, a military spouse incentive label, and a Google Jobs search link.' },
     { tab: 'employment', title: 'Employment - Job Resources',
       body: 'The former Job Boards tab is now Job Resources. It stays focused on official portals, coaching programs, MSEP, MySECO, USAJOBS, Hire Heroes USA, Hiring Our Heroes, MyCAA, and other career-support resources instead of duplicating live job search.' },
-    { tab: 'education', title: 'Education - Benefits & Schools',
-      body: 'Education explains GI Bill chapters, VA application steps, colleges near base, school search, Tuition Assistance context, and MyCAA spouse scholarship resources.' },
-    { tab: 'spouse', title: 'Deployment Support Guide',
-      body: 'Deployment support organizes legal, financial, mental health, children, household, and family readiness tasks into practical preparation sections for spouses and families.' },
-    { tab: 'moving-assistance', title: 'Move Aid - Grants, Free Help & Housing',
-      body: 'Move Aid clearly marks GRANT, FREE ASSISTANCE, and LAND / HOUSING resources, including branch relief societies, Military OneSource financial counseling, PCS entitlements, SCRA protections, and VA housing assistance.' },
-    { tab: 'pet-relocation', title: 'Pets - Relocation Checklist',
-      body: 'Pets mirrors the PCS checklist with phase-based tasks for vet records, USDA APHIS requirements, airline or AMC travel, lodging, import rules, crate prep, and eligible PCS pet expense documentation.' },
-    { tab: 'home-relocation', title: 'Home Relocation - Inventory, Evidence & Claims',
-      body: 'Home Relocation adds digital inventory and evidence tracking for before/after photos or videos, 180-day loss/damage notice tracking, 9-month full replacement value claim tracking, and a replacement vs. depreciated value calculator.' },
     { tab: 'religion', title: 'Faith - Chaplain & Spiritual Support',
       body: 'Faith filters chapel, worship, counseling, and community resources by the preference selected during onboarding while preserving local-only profile storage.' },
-    { tab: 'translation', title: 'Translate - Language Support',
-      body: 'Translate provides AI translation, common military life phrases, and saved translations for housing, medical, school, emergency, transportation, and daily life conversations.' },
+    { tab: 'home-relocation', title: 'Home Relocation - Inventory, Evidence & Claims',
+      body: 'Home Relocation adds digital inventory and evidence tracking for before/after photos or videos, 180-day loss/damage notice tracking, 9-month full replacement value claim tracking, and a replacement vs. depreciated value calculator.' },
+    { tab: 'moving-assistance', title: 'Move Aid - Grants, Free Help & Housing',
+      body: 'Move Aid clearly marks GRANT, FREE ASSISTANCE, and LAND / HOUSING resources, including branch relief societies, Military OneSource financial counseling, PCS entitlements, SCRA protections, and VA housing assistance.' },
+    { tab: 'nav', title: 'Navigation - Routes & Public Base Map',
+      body: 'Navigation includes drive planning, saved directions, and a public-only base map. If a base is missing, the app supports manual entry and official public lookup instead of storing sensitive or classified information.' },
+    { tab: 'orders', title: 'Orders - Upload & Extract',
+      body: 'Orders helps capture the report date, gaining unit, gaining installation, losing installation, and dependent travel details so the rest of the app can personalize the PCS plan.' },
     { tab: 'immigration', title: 'Permanent Resident - USCIS & Legal Support',
       body: 'Permanent Resident includes official USCIS-based military spouse and family immigration guidance, naturalization support, green card steps, checklist items, and free legal support pathways.' },
+    { tab: 'pet-relocation', title: 'Pets - Relocation Checklist',
+      body: 'Pets mirrors the PCS checklist with phase-based tasks for vet records, USDA APHIS requirements, airline or AMC travel, lodging, import rules, crate prep, and eligible PCS pet expense documentation.' },
     { tab: 'resources', title: 'Resources - Official Source Hub',
       body: 'Resources gathers official and public support links for healthcare, military portals, family support, finance, PCS and housing, education, careers, immigration, and emergency assistance.' },
+    { tab: 'schools', title: 'Schools - Childcare & Local Education',
+      body: 'Schools surfaces DoDEA, K-12, childcare, and school transition resources near the gaining installation, with age-aware filtering from the profile and direct public links where available.' },
+    { tab: 'translation', title: 'Translate - Language Support',
+      body: 'Translate provides AI translation, common military life phrases, and saved translations for housing, medical, school, emergency, transportation, and daily life conversations.' },
+    { tab: 'unit-info', title: 'Unit Info - Public Unit Profile',
+      body: 'Unit Info uses onboarding branch and unit details to show public information only: overview, official links, public social media lookup, unit history, common uniforms, and contact pathways for leadership, S1, or staff duty.' },
+    { tab: 'veterans', title: 'Veterans - Veteran-Owned Businesses',
+      body: 'Veterans lists veteran-owned business resources and directories near the gaining installation, with national public resources included when local data is limited.' },
     { tab: 'home', title: 'Tour Complete - Ready to PCS',
-      body: 'The demo now follows the same order as the category selector and home screen, including every new addition: EFMP, Pets, Move Aid, and Home Relocation with official-source descriptions.' },
+      body: 'The demo now follows the same alphabetized order as the category selector and home screen, and it returns cleanly to Home when finished.' },
   ];
 
   const BOTTOM_NAV = [
-    { id: 'home',        label: 'Home',          icon: 'HQ',  iosIcon: '🏠' },
-    { id: 'checklist',   label: 'Checklist',     icon: 'PCK', iosIcon: '✅' },
-    { id: 'documents',   label: 'Documents',     icon: 'DOC', iosIcon: '📁' },
-    { id: 'efmp',        label: 'EFMP',          icon: 'EFM', iosIcon: '♿' },
-    { id: 'orders',      label: 'Orders',        icon: 'ORD', iosIcon: '📋' },
-    { id: 'schools',     label: 'Schools',       icon: 'SCH', iosIcon: '🎓' },
-    { id: 'nav',         label: 'Navigation',    icon: 'NAV', iosIcon: '🗺️' },
-    { id: 'unit-info',    label: 'Unit Info',     icon: 'UNT', iosIcon: '🎖️' },
-    { id: 'veterans',    label: 'Veterans',      icon: 'VET', iosIcon: '⭐' },
-    { id: 'employment',  label: 'Employment',    icon: 'EMP', iosIcon: '💼' },
-    { id: 'education',   label: 'Education',     icon: 'EDU', iosIcon: '📚' },
-    { id: 'spouse',      label: 'Deployment',    icon: 'DEP', iosIcon: '🪖' },
-    { id: 'moving-assistance', label: 'Move Aid', icon: 'AID', iosIcon: '💵' },
-    { id: 'pet-relocation', label: 'Pets',        icon: 'PET', iosIcon: '🐾' },
-    { id: 'home-relocation', label: 'Home Move',  icon: 'HME', iosIcon: '🏠' },
-    { id: 'religion',    label: 'Faith',         icon: 'CHP', iosIcon: '⛪' },
-    { id: 'translation', label: 'Translate',     icon: 'TRL', iosIcon: '🌐' },
-    { id: 'immigration', label: 'Perm. Resident', icon: 'IMM', iosIcon: '🏛️' },
-    { id: 'resources',   label: 'Resources',     icon: 'RES', iosIcon: '🔗' },
+    { id: 'home',        label: 'Home',              icon: 'HQ',  iosIcon: '🏠', color: '#0D1821' },
+    { id: 'checklist',   label: 'Checklist',         icon: 'PCK', iosIcon: '✅', color: '#1565C0' },
+    { id: 'spouse',      label: 'Deployment',        icon: 'DEP', iosIcon: '🪖', color: '#F57F17' },
+    { id: 'documents',   label: 'Documents',         icon: 'DOC', iosIcon: '📁', color: '#5D4037' },
+    { id: 'education',   label: 'Education',         icon: 'EDU', iosIcon: '📚', color: '#1565C0' },
+    { id: 'efmp',        label: 'EFMP',              icon: 'EFM', iosIcon: '♿', color: '#5B2A86' },
+    { id: 'employment',  label: 'Employment',        icon: 'EMP', iosIcon: '💼', color: '#4A5E2A' },
+    { id: 'religion',    label: 'Faith',             icon: 'CHP', iosIcon: '⛪', color: '#37474F' },
+    { id: 'home-relocation', label: 'Home Relocation', icon: 'HME', iosIcon: '🏠', color: '#455A64' },
+    { id: 'moving-assistance', label: 'Move Aid',    icon: 'AID', iosIcon: '💵', color: '#6A4C1B' },
+    { id: 'nav',         label: 'Navigation',        icon: 'NAV', iosIcon: '🗺️', color: '#00695C' },
+    { id: 'orders',      label: 'Orders',            icon: 'ORD', iosIcon: '📋', color: '#2E7D32' },
+    { id: 'immigration', label: 'Perm. Resident',    icon: 'IMM', iosIcon: '🏛️', color: '#0D47A1' },
+    { id: 'pet-relocation', label: 'Pets',           icon: 'PET', iosIcon: '🐾', color: '#00897B' },
+    { id: 'resources',   label: 'Resources',         icon: 'RES', iosIcon: '🔗', color: '#C62828' },
+    { id: 'schools',     label: 'Schools',           icon: 'SCH', iosIcon: '🎓', color: '#7B1FA2' },
+    { id: 'translation', label: 'Translate',         icon: 'TRL', iosIcon: '🌐', color: '#1976D2' },
+    { id: 'unit-info',   label: 'Unit Info',         icon: 'UNT', iosIcon: '🎖️', color: '#3F51B5' },
+    { id: 'veterans',    label: 'Veterans',          icon: 'VET', iosIcon: '⭐', color: '#E65100' },
   ];
+  const HOME_CATEGORIES = BOTTOM_NAV.filter(item => item.id !== 'home');
 
   // iOS bottom tab bar: 4 primary + More button
   const IOS_TAB_BAR = [
@@ -3552,28 +3554,10 @@ function App() {
               <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: theme.accent, borderRadius: '16px 0 0 16px' }} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {[
-                { abbr: 'PCK', label: 'PCS Checklist',   id: 'checklist', color: '#1565C0' },
-                { abbr: 'EFM', label: 'EFMP',            id: 'efmp',      color: '#5B2A86' },
-                { abbr: 'ORD', label: 'Orders',           id: 'orders',    color: '#2E7D32' },
-                { abbr: 'UNT', label: 'Unit Info',        id: 'unit-info', color: '#3F51B5' },
-                { abbr: 'PET', label: 'Pets',             id: 'pet-relocation', color: '#00897B' },
-                { abbr: 'AID', label: 'Move Aid',         id: 'moving-assistance', color: '#6A4C1B' },
-                { abbr: 'HME', label: 'Home Relocation',  id: 'home-relocation', color: '#455A64' },
-                { abbr: 'EMP', label: 'Employment',       id: 'employment',color: '#4A5E2A' },
-                { abbr: 'SCH', label: 'Schools',          id: 'schools',   color: '#7B1FA2' },
-                { abbr: 'VET', label: 'Vet Owned Biz',    id: 'veterans',  color: '#E65100' },
-                { abbr: 'EDU', label: 'Education',        id: 'education', color: '#1565C0' },
-                { abbr: 'CHP', label: 'Faith',            id: 'religion',  color: '#37474F' },
-                { abbr: 'DEP', label: 'Deployment Guide', id: 'spouse',    color: '#F57F17' },
-                { abbr: 'NAV', label: 'Navigation',       id: 'nav',       color: '#00695C' },
-                { abbr: 'RES', label: 'Resources',        id: 'resources', color: '#C62828' },
-                { abbr: 'TRL', label: 'Translate',        id: 'translation',color: '#1976D2' },
-                { abbr: 'IMM', label: 'Perm. Resident',   id: 'immigration',color: '#0D47A1' },
-              ].map((item) => (
+              {HOME_CATEGORIES.map((item) => (
                 <div key={item.id} onClick={() => goTo(item.id)} style={{ background: '#FFFFFF', border: `1px solid #E0E6EE`, borderRadius: 12, padding: '14px 10px', cursor: 'pointer', textAlign: 'center', boxShadow: '0 1px 6px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                   <div style={{ width: 42, height: 30, borderRadius: 8, background: `${item.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${item.color}25` }}>
-                    <span style={{ fontSize: 10, fontWeight: 900, color: item.color, letterSpacing: '.06em' }}>{item.abbr}</span>
+                    <span style={{ fontSize: 10, fontWeight: 900, color: item.color, letterSpacing: '.06em' }}>{item.icon}</span>
                   </div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#0D1821', lineHeight: 1.2 }}>{item.label}</div>
                 </div>
