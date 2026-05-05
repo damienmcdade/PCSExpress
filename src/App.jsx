@@ -1,3 +1,8 @@
+/*
+ * Purpose: Main PCS Express React shell, onboarding flow, tab navigation, and core PCS modules.
+ * Third-party dependencies: React, Leaflet through child map modules, Capacitor bridge when running native.
+ */
+
 import { useState, useEffect } from 'react'
 import './App.css'
 import EmploymentModule from './components/EmploymentModule'
@@ -8,6 +13,11 @@ import ReligiousServicesModule from './components/ReligiousServicesModule'
 import SpouseDeploymentGuide from './components/SpouseDeploymentGuide'
 import PCSDocumentsModule from './components/PCSDocumentsModule'
 import ImmigrationModule from './components/ImmigrationModule'
+import MovingFinancialAssistanceTab from './components/MovingFinancialAssistanceTab'
+import PetRelocationChecklistTab from './components/PetRelocationChecklistTab'
+import PrivacyShield from './components/PrivacyShield'
+import SyncStatusIndicator from './components/SyncStatusIndicator'
+import { AuditLogger } from './security/SecurityExtensions'
 import { ALL_BASES } from './components/BaseMapModule'
 
 const store = {
@@ -765,6 +775,8 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
     setChecklistItems(prev => {
       const next = { ...prev, [key]: !prev[key] };
       try { localStorage.setItem('pcs_checklist_checks', JSON.stringify(next)); } catch {}
+      AuditLogger.record('pcs_milestone_status_change', { phase, index: idx, complete: !!next[key] });
+      window.dispatchEvent(new CustomEvent('pcs-local-sync', { detail: { key: 'pcs_checklist_checks' } }));
       return next;
     });
   };
@@ -778,6 +790,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
   return (
     <div style={{ padding: 16 }}>
       <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 16 }}>PCS Checklist</div>
+      <SyncStatusIndicator />
 
       {/* Overdue warning banner */}
       {phaseIsOverdue && (
@@ -3302,6 +3315,10 @@ function App() {
       body: 'Education links to VA GI Bill (apply and check entitlement), MyCAA Scholarships (spouse career funding), Tuition Assistance for your specific branch (up to $4,500/year), DANTES/DSST free college-level exams, and DoDEA Schools for military children worldwide.' },
     { tab: 'resources',  title: 'Resources — Careers',
       body: 'Careers links to USAJobs.gov (federal civilian jobs with veteran preference), Hire Heroes USA (free resume coaching and placement), My Next Move for Veterans (MOS to civilian career translator), MySECO (spouse career opportunities), Military Spouse Employment Partnership, MyCAA scholarships, and Transition GPS (TAP).' },
+    { tab: 'moving-assistance', title: 'Moving Assistance — Grants & Free Help',
+      body: 'Financial Assistance for Moving clearly marks grants, free assistance, and land or housing resources to help service members and military families reduce PCS strain.' },
+    { tab: 'pet-relocation', title: 'Pet Relocation Checklist',
+      body: 'Pet Relocation mirrors PCS checklist behavior with phase-based tasks, local progress, and active links to USDA APHIS, JTR, Military OneSource, AMC pet travel, CDC import rules, and airline transport standards.' },
     { tab: 'immigration', title: 'Permanent Resident & Naturalization',
       body: 'Official USCIS guidance for military spouses: a 9-step green card guide (I-130, I-485, Parole in Place), 6-step citizenship path (3-year military spouse benefit, N-400, civics test), and 7 free military legal resources including your installation JAG office and the USCIS Military Help Line. Includes a full 19-item USCIS requirements checklist with direct links.' },
 
@@ -3321,6 +3338,8 @@ function App() {
     { id: 'employment',  label: 'Employment',    icon: 'EMP', iosIcon: '💼' },
     { id: 'education',   label: 'Education',     icon: 'EDU', iosIcon: '📚' },
     { id: 'spouse',      label: 'Deployment',    icon: 'DEP', iosIcon: '🪖' },
+    { id: 'moving-assistance', label: 'Move Aid', icon: 'AID', iosIcon: '💵' },
+    { id: 'pet-relocation', label: 'Pets',        icon: 'PET', iosIcon: '🐾' },
     { id: 'religion',    label: 'Faith',         icon: 'CHP', iosIcon: '⛪' },
     { id: 'translation', label: 'Translate',     icon: 'TRL', iosIcon: '🌐' },
     { id: 'immigration', label: 'Perm. Resident', icon: 'IMM', iosIcon: '🏛️' },
@@ -3340,6 +3359,7 @@ function App() {
   if (activeTab === 'translation') {
     return (
       <div style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: '#f0f4f8', fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
+        <PrivacyShield />
         {isDesktop && (
           <div style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', minHeight: '100dvh', borderRight: `2px solid ${theme.accent}30`, flexShrink: 0 }}>
             <div style={{ padding: '20px 16px 12px', borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
@@ -3438,6 +3458,7 @@ function App() {
 
   return (
     <div style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: '#f0f4f8', fontFamily: 'system-ui', display: 'flex', flexDirection: 'column' }}>
+      <PrivacyShield />
       {/* HEADER — paddingTop uses env(safe-area-inset-top) for notch/Dynamic Island.
           Requires viewport-fit=cover in the HTML meta and contentInsetAdjustmentBehavior=never
           in capacitor.config.json to receive non-zero values from the OS. */}
@@ -3604,6 +3625,8 @@ function App() {
         {activeTab === 'veterans' && <VeteranBusinessesTab theme={theme} profile={profile} />}
         {activeTab === 'employment' && <EmploymentModule theme={theme} profile={profile} />}
         {activeTab === 'education' && <EducationBenefitsTab theme={theme} profile={profile} />}
+        {activeTab === 'moving-assistance' && <MovingFinancialAssistanceTab theme={theme} profile={profile} />}
+        {activeTab === 'pet-relocation' && <PetRelocationChecklistTab theme={theme} profile={profile} />}
         {activeTab === 'nav' && <NavigationModule theme={theme} profile={profile} />}
         {activeTab === 'spouse' && <SpouseDeploymentGuide theme={theme} profile={profile} />}
         {activeTab === 'religion' && <ReligiousServicesModuleWrapped theme={theme} profile={profile} />}

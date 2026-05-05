@@ -1,3 +1,11 @@
+//
+//  PCSMilestoneView.swift
+//  PCS Express
+//
+//  Purpose: Section 508-compliant PCS milestone checklist with local accountability logging.
+//  Third-party dependencies: SwiftUI.
+//
+
 import SwiftUI
 
 /// Section 508-compliant PCS Compliance Checklist.
@@ -96,7 +104,13 @@ struct PCSMilestoneView: View {
                 MilestoneRow(
                     milestone:  milestone,
                     deadline:   milestone.deadline(relativeTo: manager.reportDate),
-                    onToggle:   { manager.toggleCompletion(for: milestone.id) }
+                    onToggle:   {
+                        manager.toggleCompletion(for: milestone.id)
+                        AuditLogger.shared.record("pcs_milestone_status_change", details: [
+                            "milestone": milestone.title,
+                            "id": milestone.id.uuidString,
+                        ])
+                    }
                 )
             }
         }

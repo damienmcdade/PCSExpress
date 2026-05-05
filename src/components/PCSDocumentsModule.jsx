@@ -1,4 +1,11 @@
+/*
+ * Purpose: PCS document checklist, local document attachment handling, and document progress tracking.
+ * Third-party dependencies: React, Capacitor bridge when running native.
+ */
+
 import { useState, useRef, useCallback, useEffect } from 'react';
+import SyncStatusIndicator from './SyncStatusIndicator';
+import { AuditLogger, secureLocalStore } from '../security/SecurityExtensions';
 
 // ─── Secure storage helpers ──────────────────────────────────────────────────
 // Uses iOS Keychain via SecureDocumentPlugin (Capacitor native) or localStorage (web).
@@ -17,7 +24,7 @@ const docFileStorage = {
           await SecureDocumentPlugin.storeDocument({ id, filename, docType, dataBase64: base64 });
         } else {
           if (file.size > 5 * 1024 * 1024) { reject(new Error('File exceeds 5 MB limit. Please compress or scan at lower resolution.')); return; }
-          localStorage.setItem(`pcs_file_${id}`, JSON.stringify({ dataUrl, filename, mimeType: file.type, storedAt: new Date().toISOString() }));
+          await secureLocalStore.set(`pcs_file_${id}`, { dataUrl, filename, mimeType: file.type, storedAt: new Date().toISOString() });
         }
         resolve(true);
       } catch (err) { reject(err); }
@@ -33,8 +40,7 @@ const docFileStorage = {
         const res = await SecureDocumentPlugin.retrieveDocument({ id });
         return res?.dataBase64 ? { dataUrl: `data:application/octet-stream;base64,${res.dataBase64}`, filename: id } : null;
       } else {
-        const raw = localStorage.getItem(`pcs_file_${id}`);
-        return raw ? JSON.parse(raw) : null;
+        return await secureLocalStore.get(`pcs_file_${id}`, null);
       }
     } catch { return null; }
   },
@@ -46,6 +52,7 @@ const docFileStorage = {
         await SecureDocumentPlugin.deleteDocument({ id });
       } else {
         localStorage.removeItem(`pcs_file_${id}`);
+        window.dispatchEvent(new CustomEvent('pcs-local-sync', { detail: { key: `pcs_file_${id}` } }));
       }
     } catch {}
   },
@@ -213,7 +220,10 @@ function getDocsForBranch(branch, isOconus) {
 
 const STATE_KEY = 'pcs_doc_states';
 const loadStates = () => { try { return JSON.parse(localStorage.getItem(STATE_KEY)) || {}; } catch { return {}; } };
-const saveStates = (s) => { try { localStorage.setItem(STATE_KEY, JSON.stringify(s)); } catch {} };
+const saveStates = (s) => {
+  try { localStorage.setItem(STATE_KEY, JSON.stringify(s)); } catch {}
+  secureLocalStore.set(STATE_KEY, s);
+};
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
@@ -259,6 +269,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
     setStates(prev => {
       const next = { ...prev, [docId]: { ...prev[docId], obtained: !prev[docId]?.obtained } };
       saveStates(next);
+      AuditLogger.record('pcs_document_status_change', { docId, obtained: !!next[docId].obtained });
       return next;
     });
   };
@@ -328,6 +339,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
     a.href = url;
     a.download = filename || docId;
     a.click();
+    AuditLogger.record('pcs_document_export', { docId, filename: filename || docId, action: 'download' });
   };
 
   const removeFile = async (docId) => {
@@ -354,6 +366,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
       {/* ── Overall progress header ── */}
       <div style={{ background: theme.secondary, padding: '16px 16px 14px' }}>
         <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 2 }}>PCS Documents</div>
+        <SyncStatusIndicator label="Documents saved locally" />
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginBottom: 12 }}>
           {branch} · {isOconus ? 'OCONUS Assignment' : 'CONUS Assignment'} · {totalObtained}/{totalDocs} obtained
         </div>
