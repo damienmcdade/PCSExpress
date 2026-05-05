@@ -26,9 +26,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name: Lint & test
+      - name: Build
         run: npm run build
-        working-directory: ./pcs-express
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -43,7 +42,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./pcs-express
+          context: .
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/pcs-express:latest
@@ -54,7 +53,7 @@ jobs:
       - name: Test image
         if: github.event_name == 'pull_request'
         run: |
-          docker build ./pcs-express -t pcs-express:test
+          docker build . -t pcs-express:test
           docker run -d --name test \
             -e ANTHROPIC_API_KEY=sk-ant-test \
             -e NODE_ENV=production \
