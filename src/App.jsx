@@ -56,15 +56,6 @@ function findPublicUnitProfile(profile) {
 const publicSearchUrl = (query) => `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 const militaryInstallationsUrl = 'https://installations.militaryonesource.mil/';
 
-const PUBLIC_BRANCH_UNIT_TEMPLATES = {
-  Army: ['Garrison Headquarters', 'Tenant Unit / Activity', 'Medical Department Activity', 'Dental Activity', 'Mission Support Element', 'Public Affairs Office'],
-  Navy: ['Installation Command', 'Tenant Command', 'Fleet and Family Support Center', 'Naval Medical Readiness Command', 'Quarterdeck / Staff Duty', 'Public Affairs Office'],
-  'Marine Corps': ['Installation Command', 'Tenant Command', 'Marine Corps Community Services', 'Naval Medical Readiness Command', 'Duty Desk', 'Public Affairs Office'],
-  'Air Force': ['Host Wing', 'Mission Support Group', 'Medical Group', 'Force Support Squadron', 'Command Post / Staff Duty', 'Public Affairs Office'],
-  'Space Force': ['Space Base Delta', 'Mission Support Squadron', 'Medical Support Element', 'Force Support Squadron', 'Command Post / Staff Duty', 'Public Affairs Office'],
-  'Coast Guard': ['Sector Command', 'Base Command', 'Station / Unit', 'Health Services Office', 'Command Center / Duty Desk', 'Public Affairs Office'],
-};
-
 const PUBLIC_BRANCH_UNIFORMS = {
   Army: ['Army Combat Uniform (ACU)', 'Army Green Service Uniform (AGSU)', 'Army Service Uniform (ASU)', 'Army Physical Fitness Uniform (APFU)'],
   Navy: ['Navy Working Uniform Type III', 'Service Khaki', 'Service Dress Blue', 'Navy Physical Training Uniform'],
@@ -2942,25 +2933,33 @@ const INSTALLATION_UNITS = {
 function resolveInstallationUnits(installation, branch) {
   const baseName = (installation || '').split(',')[0].trim();
   if (!baseName) return [];
-  const exact = INSTALLATION_UNITS[baseName]?.[branch] || [];
-  if (exact.length > 0) return exact;
+  const branchName = branch || 'Army';
+  const candidates = [];
+  const addUnits = (items = []) => {
+    items.forEach(item => {
+      const name = typeof item === 'string' ? item : item?.name;
+      const itemBranch = typeof item === 'string' ? branchName : item?.branch;
+      if (!name) return;
+      if (itemBranch && branchName && itemBranch !== branchName) return;
+      if (!candidates.some(existing => normLookup(existing) === normLookup(name))) candidates.push(name);
+    });
+  };
 
-  const matchedKey = Object.keys(INSTALLATION_UNITS).find(key => {
+  addUnits(INSTALLATION_UNITS[baseName]?.[branchName] || []);
+
+  Object.entries(INSTALLATION_UNITS).forEach(([key, branchMap]) => {
     const a = normLookup(key);
     const b = normLookup(baseName);
-    return a === b || a.includes(b) || b.includes(a);
+    if (a === b || a.includes(b) || b.includes(a)) addUnits(branchMap?.[branchName] || []);
   });
-  const matched = matchedKey ? (INSTALLATION_UNITS[matchedKey]?.[branch] || []) : [];
-  if (matched.length > 0) return matched;
 
-  const baseRecord = ALL_BASES.find(base => {
-    const a = normLookup(base.name);
+  Object.entries(MILITARY_UNITS).forEach(([key, units]) => {
+    const a = normLookup(key);
     const b = normLookup(baseName);
-    return a === b || a.includes(b) || b.includes(a);
+    if (a === b || a.includes(b) || b.includes(a)) addUnits(units || []);
   });
-  const fallbackBranch = branch || baseRecord?.branch || 'Military';
-  return (PUBLIC_BRANCH_UNIT_TEMPLATES[fallbackBranch] || PUBLIC_BRANCH_UNIT_TEMPLATES.Army)
-    .map(name => `${baseName} ${name}`);
+
+  return candidates.sort((a, b) => a.localeCompare(b));
 }
 
 const DEMO_PROFILE = {
@@ -3207,18 +3206,23 @@ function Onboarding({ onComplete }) {
                   UNIT ASSIGNMENT{p.gainingInstallation ? ` AT ${p.gainingInstallation.toUpperCase()}` : ''}
                 </label>
                 <select value={p.unit} onChange={e => upd('unit', e.target.value)} style={inputSt} disabled={!p.gainingInstallation}>
-                  <option value="">{p.gainingInstallation ? 'Select unit...' : 'Select a gaining installation first'}</option>
+                  <option value="">
+                    {p.gainingInstallation
+                      ? (availableUnits.length > 0 ? 'Select verified unit...' : 'No verified public units listed')
+                      : 'Select a gaining installation first'}
+                  </option>
                   {availableUnits.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
                 {p.gainingInstallation && (
                   <>
-                    <input value={p.unit} onChange={e => upd('unit', e.target.value)} placeholder="Enter unit name manually..." style={{ ...inputSt, marginTop: 8 }} />
+                    <input value={p.unit} onChange={e => upd('unit', e.target.value)} placeholder="Enter actual gaining unit manually..." style={{ ...inputSt, marginTop: 8 }} />
                     <a href={`https://www.google.com/search?q=${encodeURIComponent(`${p.unit || p.branch + ' unit'} ${p.gainingInstallation} official public unit information`)}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', marginTop: 8, padding: '9px 12px', borderRadius: 10, background: `${theme.accent}22`, border: `1px solid ${theme.accent}55`, color: theme.accent, textDecoration: 'none', fontSize: 11, fontWeight: 800, textAlign: 'center' }}>
-                      Search Google public sources for this unit
+                      Search Google public sources for the actual unit
                     </a>
                   </>
                 )}
-                {availableUnits.length > 0 && <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{availableUnits.length} {p.branch} public unit option{availableUnits.length !== 1 ? 's' : ''} available. Manual entry also supported.</div>}
+                {availableUnits.length > 0 && <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{availableUnits.length} verified public {p.branch} unit option{availableUnits.length !== 1 ? 's' : ''} available. Manual actual-unit entry also supported.</div>}
+                {p.gainingInstallation && availableUnits.length === 0 && <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>No verified public unit list is stored for this base yet. Enter the actual gaining unit from orders or sponsor contact, then use the public-source search link to populate Unit Info.</div>}
               </div>
 
               <div style={{ display: 'flex', gap: 10 }}>
@@ -3369,42 +3373,78 @@ function App() {
       body: 'Home starts the demo on the dashboard, not a previous tab. The category selector below is alphabetized and matches the main home screen tiles exactly: Checklist, Deployment, Documents, Education, EFMP, Employment, Faith, Home Relocation, Move Aid, Navigation, Orders, Permanent Resident, Pets, Resources, Schools, Translate, Unit Info, and Veterans.' },
     { tab: 'checklist', title: 'Checklist - PCS Phase Tracker',
       body: 'Checklist organizes official PCS planning into phases from orders to in-processing. Tasks save locally for comms-dark use and cover orders, finance, HHG, travel, lodging, medical, school, and arrival actions.' },
+    { tab: 'checklist', title: 'Checklist - PCS Phase Sections',
+      body: 'The checklist sections follow the move timeline: Orders Received, 90 Days Out, 60 Days Out, 30 Days Out, Move Week, and In-Processing. Each task can be checked off without changing the rest of the profile.' },
     { tab: 'spouse', title: 'Deployment - Family Support Guide',
       body: 'Deployment organizes legal, financial, mental health, children, household, and family readiness tasks into practical preparation sections for spouses and families.' },
+    { tab: 'spouse', title: 'Deployment - Readiness Sections',
+      body: 'The deployment guide includes Legal & Financial, Mental Health & Resilience, Family & Children, Household Management, and emergency support pathways for family members.' },
     { tab: 'documents', title: 'PCS Documents - Required Records',
       body: 'Documents keeps PCS orders, travel and finance records, household goods forms, housing papers, medical records, family/admin records, OCONUS documents, and branch-specific forms in one checklist-style workspace.' },
+    { tab: 'documents', title: 'Documents - Branch and PCS Packets',
+      body: 'Document sections include Orders, Travel & Finance, Household Goods, Housing, Medical, Family & Admin, OCONUS, EFMP documentation, and branch-specific records for Army, Navy, Marine Corps, Air Force, Space Force, and Coast Guard moves.' },
     { tab: 'education', title: 'Education - Benefits & Schools',
       body: 'Education explains GI Bill chapters, VA application steps, colleges near base, school search, Tuition Assistance context, and MyCAA spouse scholarship resources.' },
+    { tab: 'education', title: 'Education - Benefit Sections',
+      body: 'Education tabs cover GI Bill chapters, how to apply, colleges near the gaining base, school search, tuition assistance context, and MyCAA spouse scholarship pathways.' },
     { tab: 'efmp', title: 'EFMP - Branch-Tailored PCS Requirements',
       body: 'The EFMP category explains official identification/enrollment, assignment coordination, and family support. It tailors start points and checklist requirements for Army, Navy, Marine Corps, Air Force, Space Force, and Coast Guard families.' },
+    { tab: 'efmp', title: 'EFMP - PCS Checklist Sections',
+      body: 'EFMP sections guide families through Before Orders, Orders Received, Medical & Education Screening, Gaining Location Coordination, Arrival, branch start points, and official EFMP links.' },
     { tab: 'employment', title: 'Employment - Job Search',
       body: 'Job Search now prioritizes military spouse-supportive roles near the selected installation radius and remote positions. Each result card includes a brief role description, a REMOTE or radius indicator, a military spouse incentive label, and a Google Jobs search link.' },
+    { tab: 'employment', title: 'Employment - Career Center Sections',
+      body: 'Employment includes Skills Profile, Job Search, Recommendations, Resume support, and Job Resources so the search experience no longer duplicates the resource library.' },
     { tab: 'employment', title: 'Employment - Job Resources',
       body: 'The former Job Boards tab is now Job Resources. It stays focused on official portals, coaching programs, MSEP, MySECO, USAJOBS, Hire Heroes USA, Hiring Our Heroes, MyCAA, and other career-support resources instead of duplicating live job search.' },
     { tab: 'religion', title: 'Faith - Chaplain & Spiritual Support',
       body: 'Faith filters chapel, worship, counseling, and community resources by the preference selected during onboarding while preserving local-only profile storage.' },
+    { tab: 'religion', title: 'Faith - Public Chapel Lookup',
+      body: 'Faith sections keep installation chapel support, counseling options, service preference matching, and public search links separated from sensitive pastoral or personal information.' },
     { tab: 'home-relocation', title: 'Home Relocation - Inventory, Evidence & Claims',
       body: 'Home Relocation adds digital inventory and evidence tracking for before/after photos or videos, 180-day loss/damage notice tracking, 9-month full replacement value claim tracking, and a replacement vs. depreciated value calculator.' },
+    { tab: 'home-relocation', title: 'Home Relocation - Claims Sections',
+      body: 'Home Relocation sections include Digital Inventory & Evidence, Claims Deadline Management, Replacement Value Calculator, DPS links, and household goods damage documentation.' },
     { tab: 'moving-assistance', title: 'Move Aid - Grants, Free Help & Housing',
       body: 'Move Aid clearly marks GRANT, FREE ASSISTANCE, and LAND / HOUSING resources, including branch relief societies, Military OneSource financial counseling, PCS entitlements, SCRA protections, and VA housing assistance.' },
+    { tab: 'moving-assistance', title: 'Move Aid - Assistance Sections',
+      body: 'Move Aid sections separate grants, free assistance, emergency relief, land and housing support, PCS entitlement education, service-member protections, and official financial counseling links.' },
     { tab: 'nav', title: 'Navigation - Routes & Public Base Map',
       body: 'Navigation includes drive planning, saved directions, and a public-only base map. If a base is missing, the app supports manual entry and official public lookup instead of storing sensitive or classified information.' },
+    { tab: 'nav', title: 'Navigation - Map and Route Sections',
+      body: 'Navigation sections include Route Planner, Directions, Saved Routes, and Base Map. The base map is limited to public, non-classified points such as gates, hospitals, commissaries, chapels, schools, and visitor support.' },
     { tab: 'orders', title: 'Orders - Upload & Extract',
       body: 'Orders helps capture the report date, gaining unit, gaining installation, losing installation, and dependent travel details so the rest of the app can personalize the PCS plan.' },
+    { tab: 'orders', title: 'Orders - Profile Autofill Sections',
+      body: 'Orders sections support upload, extraction review, manual correction, and profile update fields for report date, branch, losing base, gaining base, gaining unit, family travel, and OCONUS indicators.' },
     { tab: 'immigration', title: 'Permanent Resident - USCIS & Legal Support',
       body: 'Permanent Resident includes official USCIS-based military spouse and family immigration guidance, naturalization support, green card steps, checklist items, and free legal support pathways.' },
+    { tab: 'immigration', title: 'Permanent Resident - Immigration Sections',
+      body: 'Permanent Resident sections include Green Card, Citizenship, Military Legal Help, USCIS resources, and a checklist for military families managing immigration requirements during PCS.' },
     { tab: 'pet-relocation', title: 'Pets - Relocation Checklist',
       body: 'Pets mirrors the PCS checklist with phase-based tasks for vet records, USDA APHIS requirements, airline or AMC travel, lodging, import rules, crate prep, and eligible PCS pet expense documentation.' },
+    { tab: 'pet-relocation', title: 'Pets - Resource Sections',
+      body: 'Pet sections include records, health certificates, microchip and vaccine checks, airline or AMC planning, OCONUS import rules, lodging, reimbursement documentation, and active official resource links.' },
     { tab: 'resources', title: 'Resources - Official Source Hub',
       body: 'Resources gathers official and public support links for healthcare, military portals, family support, finance, PCS and housing, education, careers, immigration, and emergency assistance.' },
+    { tab: 'resources', title: 'Resources - Support Sections',
+      body: 'Resource sections organize healthcare, military portals, family support, finance, PCS and housing, education, career support, immigration, emergency assistance, and other official/public links.' },
     { tab: 'schools', title: 'Schools - Childcare & Local Education',
       body: 'Schools surfaces DoDEA, K-12, childcare, and school transition resources near the gaining installation, with age-aware filtering from the profile and direct public links where available.' },
+    { tab: 'schools', title: 'Schools - Education Sections',
+      body: 'Schools sections include K-12 Schools, Daycare & CDC, school liaison support, DoDEA or local district lookup, and Find Schools links for custom gaining locations.' },
     { tab: 'translation', title: 'Translate - Language Support',
       body: 'Translate provides AI translation, common military life phrases, and saved translations for housing, medical, school, emergency, transportation, and daily life conversations.' },
+    { tab: 'translation', title: 'Translate - Phrase Sections',
+      body: 'Translate sections include live translation, common phrases, saved phrases, and category filters for housing, medical, school, emergency, transportation, and daily-life needs.' },
     { tab: 'unit-info', title: 'Unit Info - Public Unit Profile',
       body: 'Unit Info uses onboarding branch and unit details to show public information only: overview, official links, public social media lookup, unit history, common uniforms, and contact pathways for leadership, S1, or staff duty.' },
+    { tab: 'unit-info', title: 'Unit Info - Public Sections',
+      body: 'Unit Info sections include Overview, Social Media, Unit History, Uniforms, Unit Connection, and Public Lookup. The onboarding selector now shows only actual verified unit names, while manual entries use public-source lookup links.' },
     { tab: 'veterans', title: 'Veterans - Veteran-Owned Businesses',
       body: 'Veterans lists veteran-owned business resources and directories near the gaining installation, with national public resources included when local data is limited.' },
+    { tab: 'veterans', title: 'Veterans - Directory Sections',
+      body: 'Veterans sections include veteran-owned business categories, national directories, local/public lookup near the gaining installation, and support resources when local entries are limited.' },
     { tab: 'home', title: 'Tour Complete - Ready to PCS',
       body: 'The demo now follows the same alphabetized order as the category selector and home screen, and it returns cleanly to Home when finished.' },
   ];
