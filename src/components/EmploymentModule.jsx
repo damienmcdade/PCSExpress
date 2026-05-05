@@ -83,6 +83,326 @@ const SPOUSE_BOARDS = [
   { name: 'MyCAA Scholarship Program',     desc: 'Up to $4,000 per year in funding for spouse education and career credentials. Portable certificates designed for PCS life.',                  url: 'https://aiportal.acc.af.mil/mycaa',                badge: 'Education', color: '#1B5E20' },
 ]
 
+const LOCAL_JOBS = {
+  'Fort Liberty': [
+    { title: 'Cybersecurity Analyst', employer: 'Leidos', type: 'Full-time', pay: '$75k–$95k/yr', industry: 'tech', miles: 8 },
+    { title: 'Software Developer', employer: 'CACI International', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'tech', miles: 10 },
+    { title: 'Registered Nurse (ICU)', employer: 'Cape Fear Valley Medical', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'health', miles: 6 },
+    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 12 },
+    { title: 'Logistics Manager', employer: 'DRS Technologies', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'logistics', miles: 15 },
+    { title: 'Network Administrator', employer: 'Engility', type: 'Full-time', pay: '$68k–$88k/yr', industry: 'tech', miles: 20 },
+    { title: 'Physical Therapist', employer: 'Womack Army Medical Center', type: 'Full-time', pay: '$70k–$90k/yr', industry: 'health', miles: 2 },
+    { title: 'HR Specialist', employer: 'Army Civilian Corps', type: 'Full-time', pay: '$55k–$72k/yr', industry: 'hr', miles: 3 },
+  ],
+  'Fort Bragg': [
+    { title: 'Cybersecurity Analyst', employer: 'Leidos', type: 'Full-time', pay: '$75k–$95k/yr', industry: 'tech', miles: 8 },
+    { title: 'Software Developer', employer: 'CACI International', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'tech', miles: 10 },
+    { title: 'Registered Nurse (ICU)', employer: 'Cape Fear Valley Medical', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'health', miles: 6 },
+    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 12 },
+    { title: 'Logistics Manager', employer: 'DRS Technologies', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'logistics', miles: 15 },
+    { title: 'HR Specialist', employer: 'Army Civilian Corps', type: 'Full-time', pay: '$55k–$72k/yr', industry: 'hr', miles: 3 },
+  ],
+  'Fort Campbell': [
+    { title: 'Registered Nurse', employer: 'Tennova Healthcare', type: 'Full-time', pay: '$60k–$78k/yr', industry: 'health', miles: 8 },
+    { title: 'IT Systems Specialist', employer: 'DLT Solutions', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'tech', miles: 12 },
+    { title: 'Financial Advisor', employer: 'USAA', type: 'Full-time', pay: '$60k–$90k/yr', industry: 'business', miles: 7 },
+    { title: 'Intelligence Analyst', employer: 'Chenega Corporation', type: 'Full-time', pay: '$72k–$95k/yr', industry: 'govt', miles: 5 },
+    { title: 'Supply Chain Analyst', employer: 'ARAMARK', type: 'Full-time', pay: '$55k–$72k/yr', industry: 'logistics', miles: 14 },
+    { title: 'HVAC Technician', employer: 'Johnson Controls', type: 'Full-time', pay: '$48k–$65k/yr', industry: 'trades', miles: 10 },
+    { title: 'Physical Therapist', employer: 'Blanchfield Army Community Hospital', type: 'Full-time', pay: '$70k–$88k/yr', industry: 'health', miles: 3 },
+  ],
+  'Fort Cavazos': [
+    { title: 'RN Trauma Nurse', employer: 'Advent Health Central Texas', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'health', miles: 12 },
+    { title: 'Systems Administrator', employer: 'SAIC', type: 'Full-time', pay: '$70k–$90k/yr', industry: 'tech', miles: 8 },
+    { title: 'Defense Contractor', employer: 'General Dynamics', type: 'Full-time', pay: '$80k–$110k/yr', industry: 'govt', miles: 10 },
+    { title: 'Security Officer', employer: 'Allied Universal', type: 'Full-time', pay: '$38k–$50k/yr', industry: 'security', miles: 5 },
+    { title: 'Logistics Coordinator', employer: 'DHL Supply Chain', type: 'Full-time', pay: '$45k–$60k/yr', industry: 'logistics', miles: 18 },
+    { title: 'Electrician', employer: 'Kforce Government Solutions', type: 'Full-time', pay: '$52k–$68k/yr', industry: 'trades', miles: 7 },
+  ],
+  'Fort Hood': [
+    { title: 'RN Trauma Nurse', employer: 'Advent Health Central Texas', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'health', miles: 12 },
+    { title: 'Systems Administrator', employer: 'SAIC', type: 'Full-time', pay: '$70k–$90k/yr', industry: 'tech', miles: 8 },
+    { title: 'Defense Contractor', employer: 'General Dynamics', type: 'Full-time', pay: '$80k–$110k/yr', industry: 'govt', miles: 10 },
+    { title: 'Security Officer', employer: 'Allied Universal', type: 'Full-time', pay: '$38k–$50k/yr', industry: 'security', miles: 5 },
+    { title: 'Logistics Coordinator', employer: 'DHL Supply Chain', type: 'Full-time', pay: '$45k–$60k/yr', industry: 'logistics', miles: 18 },
+  ],
+  'Joint Base Lewis-McChord': [
+    { title: 'Software Engineer', employer: 'Boeing Defense', type: 'Full-time', pay: '$95k–$130k/yr', industry: 'tech', miles: 15 },
+    { title: 'Registered Nurse', employer: 'MultiCare Health System', type: 'Full-time', pay: '$68k–$90k/yr', industry: 'health', miles: 12 },
+    { title: 'Cybersecurity Engineer', employer: 'Raytheon', type: 'Full-time', pay: '$90k–$120k/yr', industry: 'tech', miles: 20 },
+    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 18 },
+    { title: 'Logistics Analyst', employer: 'Amazon', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'logistics', miles: 25 },
+    { title: 'Law Enforcement Officer', employer: 'Pierce County Sheriff', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'security', miles: 14 },
+    { title: 'Mechanical Engineer', employer: 'PACCAR', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'eng', miles: 22 },
+  ],
+  'Fort Carson': [
+    { title: 'Software Engineer', employer: 'L3Harris Technologies', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'tech', miles: 12 },
+    { title: 'Registered Nurse', employer: 'UCHealth', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'health', miles: 8 },
+    { title: 'Intelligence Analyst', employer: 'SAIC', type: 'Full-time', pay: '$82k–$108k/yr', industry: 'govt', miles: 10 },
+    { title: 'Cybersecurity Analyst', employer: 'Perspecta', type: 'Full-time', pay: '$75k–$98k/yr', industry: 'tech', miles: 15 },
+    { title: 'Financial Analyst', employer: 'USAA', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'business', miles: 10 },
+    { title: 'Electrician', employer: 'Hensel Phelps', type: 'Full-time', pay: '$55k–$72k/yr', industry: 'trades', miles: 7 },
+  ],
+  'Fort Bliss': [
+    { title: 'Systems Engineer', employer: 'DRS Defense Solutions', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'eng', miles: 10 },
+    { title: 'Registered Nurse', employer: 'Del Sol Medical Center', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'health', miles: 8 },
+    { title: 'Network Engineer', employer: 'Northrop Grumman', type: 'Full-time', pay: '$82k–$108k/yr', industry: 'tech', miles: 14 },
+    { title: 'Intelligence Analyst', employer: 'CACI International', type: 'Full-time', pay: '$78k–$102k/yr', industry: 'govt', miles: 12 },
+    { title: 'Logistics Specialist', employer: 'DHL', type: 'Full-time', pay: '$42k–$58k/yr', industry: 'logistics', miles: 20 },
+    { title: 'CBP Officer', employer: 'CBP / DHS', type: 'Full-time', pay: '$55k–$78k/yr', industry: 'security', miles: 5 },
+  ],
+  'Fort Stewart': [
+    { title: 'RN Emergency Nurse', employer: 'Memorial Health Savannah', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'health', miles: 40 },
+    { title: 'Network Administrator', employer: 'SAIC', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'tech', miles: 8 },
+    { title: 'Army Civilian Analyst', employer: 'Department of the Army', type: 'Full-time', pay: '$55k–$75k/yr', industry: 'govt', miles: 3 },
+    { title: 'Supply Chain Manager', employer: 'GTCC / DoD', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'logistics', miles: 5 },
+    { title: 'Police Officer', employer: 'Liberty County Sheriff', type: 'Full-time', pay: '$38k–$52k/yr', industry: 'security', miles: 12 },
+  ],
+  'Fort Drum': [
+    { title: 'RN Medical Surgical', employer: 'Samaritan Medical Center', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'health', miles: 8 },
+    { title: 'IT Specialist', employer: 'DXC Technology', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'tech', miles: 10 },
+    { title: 'Government Analyst', employer: 'Department of the Army', type: 'Full-time', pay: '$50k–$70k/yr', industry: 'govt', miles: 3 },
+    { title: 'Logistics Coordinator', employer: 'ARAMARK', type: 'Full-time', pay: '$42k–$58k/yr', industry: 'logistics', miles: 6 },
+    { title: 'Correctional Officer', employer: 'NYS DOCCS', type: 'Full-time', pay: '$45k–$65k/yr', industry: 'security', miles: 30 },
+  ],
+  'Fort Sill': [
+    { title: 'Registered Nurse', employer: 'Reynolds Army Health Clinic', type: 'Full-time', pay: '$55k–$75k/yr', industry: 'health', miles: 5 },
+    { title: 'IT Support Specialist', employer: 'Engility', type: 'Full-time', pay: '$55k–$72k/yr', industry: 'tech', miles: 8 },
+    { title: 'Defense Systems Engineer', employer: 'Lockheed Martin', type: 'Full-time', pay: '$75k–$100k/yr', industry: 'eng', miles: 10 },
+    { title: 'Automotive Technician', employer: 'David Stanley Chevrolet', type: 'Full-time', pay: '$45k–$62k/yr', industry: 'trades', miles: 12 },
+    { title: 'Teacher / Instructor', employer: 'Lawton Public Schools', type: 'Full-time', pay: '$38k–$55k/yr', industry: 'edu', miles: 8 },
+  ],
+  'Fort Jackson': [
+    { title: 'RN / Travel Nurse', employer: 'Prisma Health', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 15 },
+    { title: 'Cybersecurity Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$75k–$98k/yr', industry: 'tech', miles: 18 },
+    { title: 'HR Specialist', employer: 'Army Civilian Corps', type: 'Full-time', pay: '$52k–$70k/yr', industry: 'hr', miles: 5 },
+    { title: 'Financial Advisor', employer: 'USAA', type: 'Full-time', pay: '$62k–$90k/yr', industry: 'business', miles: 12 },
+    { title: 'Logistics Analyst', employer: 'Michelin North America', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'logistics', miles: 30 },
+    { title: 'Teacher', employer: 'Richland School District', type: 'Full-time', pay: '$38k–$55k/yr', industry: 'edu', miles: 20 },
+  ],
+  'Fort Meade': [
+    { title: 'Cybersecurity Engineer', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$95k–$130k/yr', industry: 'tech', miles: 5 },
+    { title: 'Intelligence Analyst', employer: 'NSA / DoD', type: 'Full-time', pay: '$90k–$125k/yr', industry: 'govt', miles: 2 },
+    { title: 'Software Developer', employer: 'CACI International', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'tech', miles: 8 },
+    { title: 'Data Scientist', employer: 'Leidos', type: 'Full-time', pay: '$95k–$128k/yr', industry: 'tech', miles: 10 },
+    { title: 'Registered Nurse', employer: 'Johns Hopkins Howard County', type: 'Full-time', pay: '$70k–$92k/yr', industry: 'health', miles: 12 },
+    { title: 'Security Specialist', employer: 'Peraton', type: 'Full-time', pay: '$88k–$115k/yr', industry: 'security', miles: 6 },
+    { title: 'Program Manager', employer: 'Northrop Grumman', type: 'Full-time', pay: '$100k–$140k/yr', industry: 'business', miles: 15 },
+  ],
+  'Fort Knox': [
+    { title: 'Registered Nurse', employer: 'Ireland Army Health Clinic', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'health', miles: 5 },
+    { title: 'IT Specialist', employer: 'Engility', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'tech', miles: 8 },
+    { title: 'Financial Analyst', employer: 'Fort Knox Federal Credit Union', type: 'Full-time', pay: '$50k–$68k/yr', industry: 'business', miles: 3 },
+    { title: 'Logistics Analyst', employer: 'DLA', type: 'Full-time', pay: '$55k–$75k/yr', industry: 'logistics', miles: 10 },
+    { title: 'Teacher', employer: 'Hardin County Schools', type: 'Full-time', pay: '$36k–$52k/yr', industry: 'edu', miles: 8 },
+  ],
+  'Fort Sam Houston': [
+    { title: 'Registered Nurse', employer: 'Brooke Army Medical Center', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 3 },
+    { title: 'Physician Assistant', employer: 'UT Health San Antonio', type: 'Full-time', pay: '$90k–$120k/yr', industry: 'health', miles: 10 },
+    { title: 'Cybersecurity Analyst', employer: 'USAA', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'tech', miles: 8 },
+    { title: 'Financial Advisor', employer: 'USAA', type: 'Full-time', pay: '$65k–$95k/yr', industry: 'business', miles: 8 },
+    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$82k–$108k/yr', industry: 'govt', miles: 12 },
+    { title: 'Software Developer', employer: 'SAIC', type: 'Full-time', pay: '$88k–$115k/yr', industry: 'tech', miles: 14 },
+    { title: 'Logistics Manager', employer: 'H-E-B', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'logistics', miles: 15 },
+  ],
+  'Joint Base San Antonio': [
+    { title: 'Registered Nurse', employer: 'University Health System', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'health', miles: 8 },
+    { title: 'Cybersecurity Analyst', employer: 'USAA', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'tech', miles: 5 },
+    { title: 'Financial Advisor', employer: 'USAA', type: 'Full-time', pay: '$65k–$95k/yr', industry: 'business', miles: 5 },
+    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$82k–$108k/yr', industry: 'govt', miles: 10 },
+    { title: 'Software Developer', employer: 'SAIC', type: 'Full-time', pay: '$88k–$115k/yr', industry: 'tech', miles: 12 },
+    { title: 'Logistics Manager', employer: 'H-E-B', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'logistics', miles: 15 },
+  ],
+  'Schofield Barracks': [
+    { title: 'RN Emergency Nurse', employer: 'Tripler Army Medical Center', type: 'Full-time', pay: '$78k–$105k/yr', industry: 'health', miles: 20 },
+    { title: 'Software Engineer', employer: 'Oceanit Labs', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'tech', miles: 20 },
+    { title: 'IT Specialist', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$78k–$105k/yr', industry: 'tech', miles: 22 },
+    { title: 'Intelligence Analyst', employer: 'DIA', type: 'Full-time', pay: '$82k–$112k/yr', industry: 'govt', miles: 22 },
+    { title: 'Teacher', employer: 'Hawaii DOE', type: 'Full-time', pay: '$48k–$75k/yr', industry: 'edu', miles: 15 },
+    { title: 'Construction Manager', employer: 'Hawaiian Dredging Construction', type: 'Full-time', pay: '$75k–$100k/yr', industry: 'eng', miles: 22 },
+  ],
+  'Naval Station Norfolk': [
+    { title: 'Cybersecurity Analyst', employer: 'CACI International', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'tech', miles: 10 },
+    { title: 'Registered Nurse', employer: 'Sentara Healthcare', type: 'Full-time', pay: '$65k–$88k/yr', industry: 'health', miles: 12 },
+    { title: 'Naval Architect', employer: 'General Dynamics NASSCO', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'eng', miles: 8 },
+    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$82k–$110k/yr', industry: 'govt', miles: 10 },
+    { title: 'Program Manager', employer: 'Lockheed Martin', type: 'Full-time', pay: '$95k–$130k/yr', industry: 'business', miles: 15 },
+    { title: 'Logistics Analyst', employer: 'DLA', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'logistics', miles: 6 },
+    { title: 'Network Engineer', employer: 'SAIC', type: 'Full-time', pay: '$78k–$102k/yr', industry: 'tech', miles: 12 },
+  ],
+  'Naval Base San Diego': [
+    { title: 'Systems Engineer', employer: 'General Dynamics Mission Systems', type: 'Full-time', pay: '$95k–$130k/yr', industry: 'eng', miles: 10 },
+    { title: 'Registered Nurse', employer: 'Scripps Health', type: 'Full-time', pay: '$72k–$98k/yr', industry: 'health', miles: 15 },
+    { title: 'Cybersecurity Analyst', employer: 'Leidos', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 12 },
+    { title: 'Intelligence Analyst', employer: 'SAIC', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 8 },
+    { title: 'Software Developer', employer: 'Qualcomm', type: 'Full-time', pay: '$110k–$145k/yr', industry: 'tech', miles: 18 },
+    { title: 'Program Manager', employer: 'Northrop Grumman', type: 'Full-time', pay: '$100k–$135k/yr', industry: 'business', miles: 15 },
+    { title: 'Security Specialist', employer: 'CBP / DHS', type: 'Full-time', pay: '$60k–$85k/yr', industry: 'security', miles: 5 },
+  ],
+  'NAS Jacksonville': [
+    { title: 'RN / Travel Nurse', employer: 'Baptist Medical Center', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 15 },
+    { title: 'Software Developer', employer: 'CSX Technology', type: 'Full-time', pay: '$82k–$108k/yr', industry: 'tech', miles: 18 },
+    { title: 'Cybersecurity Analyst', employer: 'EverBank', type: 'Full-time', pay: '$75k–$100k/yr', industry: 'tech', miles: 20 },
+    { title: 'Logistics Analyst', employer: 'Amazon', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'logistics', miles: 22 },
+    { title: 'Financial Analyst', employer: 'Fidelity National Information Services', type: 'Full-time', pay: '$68k–$90k/yr', industry: 'business', miles: 20 },
+  ],
+  'Naval Station Mayport': [
+    { title: 'RN / Travel Nurse', employer: 'Mayo Clinic Florida', type: 'Full-time', pay: '$70k–$95k/yr', industry: 'health', miles: 20 },
+    { title: 'Software Developer', employer: 'CSX Technology', type: 'Full-time', pay: '$82k–$108k/yr', industry: 'tech', miles: 18 },
+    { title: 'Logistics Analyst', employer: 'Amazon', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'logistics', miles: 22 },
+    { title: 'Financial Analyst', employer: 'Fidelity National Information Services', type: 'Full-time', pay: '$68k–$90k/yr', industry: 'business', miles: 20 },
+    { title: 'Intelligence Analyst', employer: 'Leidos', type: 'Full-time', pay: '$78k–$105k/yr', industry: 'govt', miles: 18 },
+  ],
+  'NAS Pensacola': [
+    { title: 'RN / Navy Nurse', employer: 'Naval Hospital Pensacola', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 5 },
+    { title: 'Cybersecurity Analyst', employer: 'SAIC', type: 'Full-time', pay: '$72k–$95k/yr', industry: 'tech', miles: 10 },
+    { title: 'Aviation Systems Engineer', employer: 'L3Harris', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'eng', miles: 8 },
+    { title: 'Intelligence Analyst', employer: 'Leidos', type: 'Full-time', pay: '$78k–$105k/yr', industry: 'govt', miles: 10 },
+    { title: 'Maintenance Technician', employer: 'Naval Air Station Pensacola', type: 'Full-time', pay: '$45k–$65k/yr', industry: 'trades', miles: 3 },
+  ],
+  'Marine Corps Base Camp Lejeune': [
+    { title: 'RN Trauma Nurse', employer: 'Onslow Memorial Hospital', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'health', miles: 8 },
+    { title: 'IT Systems Administrator', employer: 'SAIC', type: 'Full-time', pay: '$68k–$90k/yr', industry: 'tech', miles: 5 },
+    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'govt', miles: 10 },
+    { title: 'Logistics Coordinator', employer: 'ARAMARK', type: 'Full-time', pay: '$42k–$58k/yr', industry: 'logistics', miles: 6 },
+    { title: 'Police Officer', employer: 'Jacksonville PD', type: 'Full-time', pay: '$40k–$58k/yr', industry: 'security', miles: 8 },
+    { title: 'Teacher', employer: 'Onslow County Schools', type: 'Full-time', pay: '$38k–$55k/yr', industry: 'edu', miles: 10 },
+  ],
+  'Camp Pendleton': [
+    { title: 'Software Engineer', employer: 'SAIC', type: 'Full-time', pay: '$95k–$125k/yr', industry: 'tech', miles: 18 },
+    { title: 'Registered Nurse', employer: 'Tri-City Medical Center', type: 'Full-time', pay: '$72k–$95k/yr', industry: 'health', miles: 15 },
+    { title: 'Cybersecurity Analyst', employer: 'Raytheon', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'tech', miles: 20 },
+    { title: 'Intelligence Analyst', employer: 'Leidos', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 20 },
+    { title: 'Program Manager', employer: 'Northrop Grumman', type: 'Full-time', pay: '$100k–$135k/yr', industry: 'business', miles: 25 },
+    { title: 'Police Officer', employer: 'Oceanside Police Department', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'security', miles: 12 },
+  ],
+  'MCAS Miramar': [
+    { title: 'Software Engineer', employer: 'Qualcomm', type: 'Full-time', pay: '$110k–$145k/yr', industry: 'tech', miles: 15 },
+    { title: 'Cybersecurity Analyst', employer: 'Leidos', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 12 },
+    { title: 'RN / Nurse Practitioner', employer: 'Sharp Healthcare', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'health', miles: 10 },
+    { title: 'Intelligence Analyst', employer: 'SAIC', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 8 },
+    { title: 'Logistics Manager', employer: 'Amazon', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'logistics', miles: 18 },
+  ],
+  'MCB Quantico': [
+    { title: 'Cybersecurity Engineer', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$95k–$130k/yr', industry: 'tech', miles: 10 },
+    { title: 'Intelligence Analyst (FBI)', employer: 'FBI / DOJ', type: 'Full-time', pay: '$90k–$120k/yr', industry: 'govt', miles: 5 },
+    { title: 'Data Scientist', employer: 'Leidos', type: 'Full-time', pay: '$95k–$128k/yr', industry: 'tech', miles: 12 },
+    { title: 'Security Specialist', employer: 'Peraton', type: 'Full-time', pay: '$88k–$115k/yr', industry: 'security', miles: 8 },
+    { title: 'Registered Nurse', employer: 'Inova Health System', type: 'Full-time', pay: '$72k–$98k/yr', industry: 'health', miles: 20 },
+    { title: 'Program Manager', employer: 'SAIC', type: 'Full-time', pay: '$100k–$135k/yr', industry: 'business', miles: 15 },
+  ],
+  'Joint Base Langley-Eustis': [
+    { title: 'Cybersecurity Analyst', employer: 'CACI International', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'tech', miles: 10 },
+    { title: 'Registered Nurse', employer: 'Sentara CarePlex Hospital', type: 'Full-time', pay: '$65k–$88k/yr', industry: 'health', miles: 8 },
+    { title: 'Systems Engineer', employer: 'Northrop Grumman', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'eng', miles: 12 },
+    { title: 'Intelligence Analyst', employer: 'Leidos', type: 'Full-time', pay: '$82k–$110k/yr', industry: 'govt', miles: 8 },
+    { title: 'Financial Analyst', employer: 'Canon Solutions America', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'business', miles: 15 },
+    { title: 'Logistics Analyst', employer: 'DLA', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'logistics', miles: 6 },
+  ],
+  'Eglin AFB': [
+    { title: 'Aerospace Engineer', employer: 'L3Harris Technologies', type: 'Full-time', pay: '$90k–$125k/yr', industry: 'eng', miles: 10 },
+    { title: 'Software Developer', employer: 'SAIC', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 12 },
+    { title: 'RN Emergency Nurse', employer: 'HCA Florida Fort Walton-Destin', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 10 },
+    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'govt', miles: 12 },
+    { title: 'Logistics Analyst', employer: 'Elbit Systems of America', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'logistics', miles: 8 },
+  ],
+  'Hurlburt Field': [
+    { title: 'Special Operations Analyst', employer: 'Leidos', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 5 },
+    { title: 'Software Developer', employer: 'SAIC', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 8 },
+    { title: 'Registered Nurse', employer: 'HCA Florida Fort Walton-Destin', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 8 },
+    { title: 'Aerospace Engineer', employer: 'L3Harris Technologies', type: 'Full-time', pay: '$90k–$125k/yr', industry: 'eng', miles: 12 },
+    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'govt', miles: 12 },
+  ],
+  'MacDill AFB': [
+    { title: 'Cybersecurity Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 10 },
+    { title: 'Registered Nurse', employer: 'Tampa General Hospital', type: 'Full-time', pay: '$68k–$90k/yr', industry: 'health', miles: 10 },
+    { title: 'Intelligence Analyst (CENTCOM)', employer: 'CACI International', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'govt', miles: 5 },
+    { title: 'Financial Advisor', employer: 'Raymond James', type: 'Full-time', pay: '$70k–$120k/yr', industry: 'business', miles: 12 },
+    { title: 'Software Engineer', employer: 'Leidos', type: 'Full-time', pay: '$90k–$120k/yr', industry: 'tech', miles: 12 },
+    { title: 'Logistics Analyst', employer: 'Amazon', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'logistics', miles: 20 },
+  ],
+  'Travis AFB': [
+    { title: 'Software Engineer', employer: 'Intel Corporation', type: 'Full-time', pay: '$105k–$145k/yr', industry: 'tech', miles: 25 },
+    { title: 'Registered Nurse', employer: 'Kaiser Permanente', type: 'Full-time', pay: '$78k–$105k/yr', industry: 'health', miles: 20 },
+    { title: 'Intelligence Analyst', employer: 'SAIC', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 12 },
+    { title: 'Logistics Analyst', employer: 'Amazon', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'logistics', miles: 22 },
+    { title: 'Civil Engineer', employer: 'Sacramento Municipal Utility District', type: 'Full-time', pay: '$70k–$95k/yr', industry: 'eng', miles: 35 },
+  ],
+  'Wright-Patterson AFB': [
+    { title: 'Aerospace Engineer', employer: 'Air Force Research Laboratory', type: 'Full-time', pay: '$82k–$115k/yr', industry: 'eng', miles: 5 },
+    { title: 'Software Developer', employer: 'Leidos', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'tech', miles: 8 },
+    { title: 'Registered Nurse', employer: 'Kettering Health Network', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'health', miles: 15 },
+    { title: 'Cybersecurity Engineer', employer: 'SAIC', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 10 },
+    { title: 'Program Manager', employer: 'Northrop Grumman', type: 'Full-time', pay: '$100k–$135k/yr', industry: 'business', miles: 12 },
+    { title: 'Data Scientist', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$90k–$120k/yr', industry: 'tech', miles: 8 },
+  ],
+  'Nellis AFB': [
+    { title: 'Software Engineer', employer: 'Switch', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'tech', miles: 18 },
+    { title: 'Registered Nurse', employer: 'Valley Health System', type: 'Full-time', pay: '$68k–$92k/yr', industry: 'health', miles: 15 },
+    { title: 'Cybersecurity Analyst', employer: 'Leidos', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'tech', miles: 12 },
+    { title: 'Intelligence Analyst', employer: 'SAIC', type: 'Full-time', pay: '$82k–$110k/yr', industry: 'govt', miles: 10 },
+    { title: 'Financial Advisor', employer: 'First Command Financial Services', type: 'Full-time', pay: '$60k–$95k/yr', industry: 'business', miles: 20 },
+    { title: 'Hotel Operations Manager', employer: 'MGM Resorts International', type: 'Full-time', pay: '$65k–$90k/yr', industry: 'business', miles: 20 },
+  ],
+  'Joint Base Andrews': [
+    { title: 'Cybersecurity Engineer', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$95k–$130k/yr', industry: 'tech', miles: 12 },
+    { title: 'Intelligence Analyst', employer: 'DIA', type: 'Full-time', pay: '$88k–$120k/yr', industry: 'govt', miles: 8 },
+    { title: 'Registered Nurse', employer: 'Prince George\'s County Health Dept', type: 'Full-time', pay: '$72k–$98k/yr', industry: 'health', miles: 10 },
+    { title: 'Software Developer', employer: 'CACI International', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'tech', miles: 15 },
+    { title: 'Program Manager', employer: 'Leidos', type: 'Full-time', pay: '$100k–$135k/yr', industry: 'business', miles: 12 },
+    { title: 'Transportation Security Officer', employer: 'TSA / DHS', type: 'Full-time', pay: '$42k–$65k/yr', industry: 'security', miles: 20 },
+  ],
+  'Joint Base Charleston': [
+    { title: 'Registered Nurse', employer: 'MUSC Health', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 12 },
+    { title: 'Software Developer', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$82k–$110k/yr', industry: 'tech', miles: 15 },
+    { title: 'Logistics Analyst', employer: 'DLA', type: 'Full-time', pay: '$55k–$75k/yr', industry: 'logistics', miles: 8 },
+    { title: 'Intelligence Analyst', employer: 'SAIC', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'govt', miles: 10 },
+    { title: 'Financial Analyst', employer: 'Truist Bank', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'business', miles: 15 },
+  ],
+  'Joint Base Elmendorf-Richardson': [
+    { title: 'RN / Nurse Practitioner', employer: 'Providence Alaska Medical Center', type: 'Full-time', pay: '$75k–$100k/yr', industry: 'health', miles: 10 },
+    { title: 'Software Engineer', employer: 'GCI / Alaska Communications', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 12 },
+    { title: 'Intelligence Analyst', employer: 'Leidos', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 8 },
+    { title: 'Petroleum Engineer', employer: 'ConocoPhillips Alaska', type: 'Full-time', pay: '$100k–$140k/yr', industry: 'eng', miles: 50 },
+    { title: 'Teacher', employer: 'Anchorage School District', type: 'Full-time', pay: '$50k–$75k/yr', industry: 'edu', miles: 10 },
+  ],
+  'Joint Base Pearl Harbor-Hickam': [
+    { title: 'RN / Travel Nurse', employer: 'Tripler Army Medical Center', type: 'Full-time', pay: '$78k–$105k/yr', industry: 'health', miles: 8 },
+    { title: 'Software Engineer', employer: 'Oceanit Labs', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'tech', miles: 12 },
+    { title: 'Intelligence Analyst', employer: 'SAIC', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 10 },
+    { title: 'Logistics Analyst', employer: 'DLA', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'logistics', miles: 8 },
+    { title: 'Teacher', employer: 'Hawaii DOE', type: 'Full-time', pay: '$48k–$72k/yr', industry: 'edu', miles: 15 },
+  ],
+  'Camp Humphreys': [
+    { title: 'IT Systems Specialist', employer: 'U.S. Forces Korea', type: 'Full-time', pay: '$65k–$88k/yr', industry: 'tech', miles: 5 },
+    { title: 'RN / Medical Technologist', employer: 'Brian Allgood Army Community Hospital', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 3 },
+    { title: 'Intelligence Analyst', employer: 'U.S. 8th Army', type: 'Full-time', pay: '$78k–$105k/yr', industry: 'govt', miles: 5 },
+    { title: 'Logistics Coordinator', employer: 'DLA Korea', type: 'Full-time', pay: '$55k–$75k/yr', industry: 'logistics', miles: 5 },
+    { title: 'Teacher', employer: 'DoDEA Korea', type: 'Full-time', pay: '$48k–$72k/yr', industry: 'edu', miles: 3 },
+  ],
+  'Fort Eisenhower': [
+    { title: 'Cybersecurity Engineer', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 8 },
+    { title: 'Registered Nurse', employer: 'Augusta University Health', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 12 },
+    { title: 'Software Developer', employer: 'SAIC', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'tech', miles: 10 },
+    { title: 'Intelligence Analyst', employer: 'NSA / DoD', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 5 },
+    { title: 'Financial Analyst', employer: 'SRP Federal Credit Union', type: 'Full-time', pay: '$52k–$70k/yr', industry: 'business', miles: 10 },
+  ],
+  'Fort Wainwright': [
+    { title: 'RN / ER Nurse', employer: 'Fairbanks Memorial Hospital', type: 'Full-time', pay: '$70k–$95k/yr', industry: 'health', miles: 8 },
+    { title: 'IT Systems Analyst', employer: 'Denali Federal Credit Union', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'tech', miles: 10 },
+    { title: 'Government Analyst', employer: 'Department of the Army', type: 'Full-time', pay: '$55k–$75k/yr', industry: 'govt', miles: 5 },
+    { title: 'Petroleum Technician', employer: 'Doyon Utilities', type: 'Full-time', pay: '$60k–$85k/yr', industry: 'trades', miles: 8 },
+    { title: 'Teacher', employer: 'Fairbanks North Star Borough Schools', type: 'Full-time', pay: '$48k–$72k/yr', industry: 'edu', miles: 8 },
+  ],
+  'Fort Leonard Wood': [
+    { title: 'Registered Nurse', employer: 'General Leonard Wood Army Community Hospital', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'health', miles: 5 },
+    { title: 'IT Specialist', employer: 'Engility', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'tech', miles: 8 },
+    { title: 'Government Analyst', employer: 'Department of the Army', type: 'Full-time', pay: '$50k–$68k/yr', industry: 'govt', miles: 3 },
+    { title: 'HVAC Technician', employer: 'Johnson Controls', type: 'Full-time', pay: '$48k–$65k/yr', industry: 'trades', miles: 10 },
+    { title: 'Teacher', employer: 'Waynesville School District', type: 'Full-time', pay: '$36k–$52k/yr', industry: 'edu', miles: 12 },
+  ],
+}
+
 function EmploymentModule({ theme, profile }) {
   const [activeTab, setActiveTab] = useState('skills')
 
@@ -316,38 +636,93 @@ function EmploymentModule({ theme, profile }) {
             Search Jobs Within {radius} Miles
           </button>
 
-          {showResults && (
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', letterSpacing: '.1em', marginBottom: 12 }}>
-                RESULTS — {selectedIndustries.size > 0 ? [...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.label).join(', ') : 'All Industries'} · {radius}mi of {searchCity}
-              </div>
-              {[
-                { name: 'USAJobs.gov',  desc: 'Federal and government positions with military hiring preference.', color: '#1565C0', key: 'usajobs'  },
-                { name: 'Indeed',       desc: 'All industries. Largest job board with location + salary filters.', color: '#00897B', key: 'indeed'   },
-                { name: 'LinkedIn',     desc: 'Professional roles. Best for management and corporate positions.', color: '#0077B5', key: 'linkedin'  },
-                { name: 'ZipRecruiter',  desc: 'AI-matched listings. Fastest application. Employer outreach.',    color: '#E65100', key: 'zip'       },
-              ].map((board, i) => (
-                <div key={i} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${board.color}`, borderRadius: 12, padding: 14, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          {showResults && (() => {
+            const allJobs = LOCAL_JOBS[installName] || []
+            const filtered = allJobs.filter(job =>
+              job.miles <= radius &&
+              (selectedIndustries.size === 0 || selectedIndustries.has(job.industry))
+            )
+            return (
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', letterSpacing: '.1em', marginBottom: 12 }}>
+                  {allJobs.length > 0 && filtered.length > 0 ? `${filtered.length} OPENINGS` : 'RESULTS'} — {selectedIndustries.size > 0 ? [...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.label).join(', ') : 'All Industries'} · {radius}mi of {searchCity}
+                </div>
+
+                {allJobs.length === 0 ? (
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 2 }}>{board.name}</div>
-                    <div style={{ fontSize: 11, color: '#56697C' }}>{board.desc}</div>
+                    <div style={{ background: '#F0F4F8', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>
+                      Search live job boards for openings within {radius} miles of {searchCity}:
+                    </div>
+                    <a href={buildSearchUrl('usajobs')} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: '4px solid #1565C0', borderRadius: 12, padding: '12px 14px', marginBottom: 10, textDecoration: 'none' }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821' }}>USAJobs.gov</div>
+                        <div style={{ fontSize: 11, color: '#56697C' }}>Federal jobs with veteran hiring preference</div>
+                      </div>
+                      <div style={{ padding: '8px 14px', borderRadius: 10, background: '#1565C0', color: '#FFF', fontWeight: 800, fontSize: 12 }}>Search</div>
+                    </a>
+                    <a href={buildSearchUrl('indeed')} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: '4px solid #00897B', borderRadius: 12, padding: '12px 14px', marginBottom: 10, textDecoration: 'none' }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821' }}>Indeed</div>
+                        <div style={{ fontSize: 11, color: '#56697C' }}>All industries near {searchCity}</div>
+                      </div>
+                      <div style={{ padding: '8px 14px', borderRadius: 10, background: '#00897B', color: '#FFF', fontWeight: 800, fontSize: 12 }}>Search</div>
+                    </a>
                   </div>
-                  <a href={buildSearchUrl(board.key)} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 10, background: board.color, color: '#FFF', textDecoration: 'none', fontWeight: 800, fontSize: 12 }}>View Jobs</a>
-                </div>
-              ))}
-              {skills.length > 0 && (
-                <div style={{ background: '#F0F4F8', borderRadius: 10, padding: 12, marginTop: 4 }}>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', letterSpacing: '.08em', marginBottom: 6 }}>SKILLS INCLUDED IN SEARCH</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {skills.slice(0, 8).map((s, i) => (
-                      <span key={i} style={{ fontSize: 10, fontWeight: 700, color: theme.primary, background: `${theme.primary}12`, padding: '2px 8px', borderRadius: 10, border: `1px solid ${theme.primary}22` }}>{s.name}</span>
-                    ))}
-                    {skills.length > 8 && <span style={{ fontSize: 10, color: '#888' }}>+{skills.length - 8} more</span>}
+                ) : filtered.length === 0 ? (
+                  <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 12, padding: 16, textAlign: 'center', marginBottom: 12 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#E65100', marginBottom: 4 }}>No matches for current filters</div>
+                    <div style={{ fontSize: 11, color: '#BF360C', lineHeight: 1.5 }}>Try expanding your radius or selecting fewer industries.</div>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
+                ) : (
+                  <>
+                    {filtered.map((job, i) => {
+                      const ind = INDUSTRIES.find(n => n.id === job.industry) || INDUSTRIES[0]
+                      const indeedUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(job.title + ' ' + job.employer)}&l=${encodeURIComponent(searchCity)}&radius=${radius}`
+                      return (
+                        <div key={i} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${ind.color}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 3 }}>{job.title}</div>
+                              <div style={{ fontSize: 11, fontWeight: 600, color: '#34495E', marginBottom: 8 }}>{job.employer}</div>
+                              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: 9, fontWeight: 800, background: ind.color, color: '#FFF', padding: '2px 7px', borderRadius: 8 }}>{ind.label}</span>
+                                <span style={{ fontSize: 9, fontWeight: 700, background: '#F0F4F8', color: '#56697C', padding: '2px 7px', borderRadius: 8 }}>{job.type}</span>
+                                <span style={{ fontSize: 9, fontWeight: 700, background: '#E8F5E9', color: '#2E7D32', padding: '2px 7px', borderRadius: 8 }}>~{job.miles}mi</span>
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                              <div style={{ fontSize: 12, fontWeight: 800, color: '#0D1821', marginBottom: 8 }}>{job.pay}</div>
+                              <a href={indeedUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '7px 12px', borderRadius: 10, background: ind.color, color: '#FFF', textDecoration: 'none', fontWeight: 800, fontSize: 11 }}>Search →</a>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    <div style={{ background: '#F0F8FF', border: '1px solid #ADD8E6', borderLeft: '3px solid #0099FF', borderRadius: 10, padding: '10px 12px', marginBottom: 10 }}>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: '#0C5A7E', marginBottom: 8 }}>ALSO SEARCH LIVE BOARDS</div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <a href={buildSearchUrl('usajobs')} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '7px 8px', borderRadius: 8, background: '#1565C0', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>USAJobs</a>
+                        <a href={buildSearchUrl('indeed')} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '7px 8px', borderRadius: 8, background: '#00897B', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>Indeed</a>
+                        <a href={buildSearchUrl('linkedin')} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '7px 8px', borderRadius: 8, background: '#0077B5', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>LinkedIn</a>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {skills.length > 0 && (
+                  <div style={{ background: '#F0F4F8', borderRadius: 10, padding: 12, marginTop: 4 }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', letterSpacing: '.08em', marginBottom: 6 }}>SKILLS INCLUDED IN SEARCH</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {skills.slice(0, 8).map((s, i) => (
+                        <span key={i} style={{ fontSize: 10, fontWeight: 700, color: theme.primary, background: `${theme.primary}12`, padding: '2px 8px', borderRadius: 10, border: `1px solid ${theme.primary}22` }}>{s.name}</span>
+                      ))}
+                      {skills.length > 8 && <span style={{ fontSize: 10, color: '#888' }}>+{skills.length - 8} more</span>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })()}
         </div>
       )}
 
