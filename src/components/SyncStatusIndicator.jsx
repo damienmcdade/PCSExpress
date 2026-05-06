@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 
-export default function SyncStatusIndicator({ label = 'Encrypted and saved locally' }) {
+export default function SyncStatusIndicator({ label = 'Saved locally on this device' }) {
   const [online, setOnline] = useState(() => navigator.onLine);
   const [savedAt, setSavedAt] = useState(() => new Date());
 
@@ -26,7 +26,7 @@ export default function SyncStatusIndicator({ label = 'Encrypted and saved local
   return (
     <div className="sync-status" aria-live="polite">
       <span className={`sync-status__dot ${online ? 'is-online' : 'is-offline'}`} />
-      <span>{online ? label : 'Comms-dark mode: encrypted locally'}</span>
+      <span>{online ? label : 'Comms-dark mode: saved locally on this device'}</span>
       <span className="sync-status__time">{savedAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>
     </div>
   );

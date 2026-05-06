@@ -2630,7 +2630,7 @@ function OrdersTab({ theme, profile }) {
           <div style={{ fontSize: 36, marginBottom: 10 }}>📋</div>
           <div style={{ fontSize: 15, fontWeight: 800, color: '#FFF', marginBottom: 8 }}>Upload Your PCS Orders</div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 16, lineHeight: 1.5 }}>
-            Upload your orders only if you want local extraction support. The file is read locally; only the fields you save are encrypted on this device.
+            Upload your orders only if you want local extraction support. The file is read locally; only the fields you save are kept in local device storage.
           </div>
           <label style={{ display: 'block', padding: '12px', borderRadius: 10, background: theme.accent, color: theme.secondary, fontWeight: 800, fontSize: 13, cursor: 'pointer', marginBottom: 10 }}>
             {uploading ? 'Reading…' : '📎 Select Orders File (PDF / Image)'}
@@ -4459,7 +4459,7 @@ function App() {
 
   const DEMO_TIPS = [
     { tab: 'home', title: 'Security & Public Data',
-      body: 'PCS Express displays official public U.S. government, military, and public-source information only. User profile entries, checklist progress, document checklist state, employment skills, translation history, route saves, and relocation records are stored locally and protected with encrypted local storage when supported. The app uses privacy shielding, local-first storage, audit logging for key actions, and public-data warnings to align with DoD/DISA expectations and NIST secure-development practices; it is not a formal DoD ATO or DISA certification.' },
+      body: 'PCS Express displays official public U.S. government, military, and public-source information only. User profile entries, checklist progress, document checklist state, employment skills, translation history, route saves, and relocation records are stored locally on the user device. The previous browser secure-storage wrapper has been removed to prevent refresh failures. The app still uses privacy shielding, local-first storage, audit logging for key actions, and public-data warnings to align with DoD/DISA expectations and NIST secure-development practices; it is not a formal DoD ATO or DISA certification.' },
     { tab: 'home', title: 'Onboarding - Branch & Profile',
       body: 'Onboarding starts with Branch & Profile because the app needs your branch, name, service status, pay grade, and preferred language to personalize rank labels, branch-specific forms, EFMP guidance, translation support, and resource recommendations. These entries stay on your device and should not include restricted, controlled, mission, or non-public government details.' },
     { tab: 'home', title: 'Onboarding - Bases & Unit',
@@ -4543,7 +4543,7 @@ function App() {
     { tab: 'veterans', title: 'Veterans - Directory Sections',
       body: 'Veterans sections include local veteran-owned business listings where available, category filtering, national directories, SBA veteran business resources, and public search links when local entries are limited.' },
     { tab: 'home', title: 'Tour Complete - Thank You',
-      body: 'You have reached the end of the PCS Express tour. Every category is designed to help you plan with official public information, keep personal PCS data local and encrypted where supported, and move through the PCS process with fewer surprises. Thank you for your service.' },
+      body: 'You have reached the end of the PCS Express tour. Every category is designed to help you plan with official public information, keep personal PCS data local to your device, and move through the PCS process with fewer surprises. Thank you for your service.' },
   ];
 
   const BOTTOM_NAV = [

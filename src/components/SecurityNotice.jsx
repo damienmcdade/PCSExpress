@@ -1,5 +1,5 @@
 /*
- * Purpose: Reusable public-data and local-encryption notices for sensitive PCS workflows.
+ * Purpose: Reusable public-data and local-storage notices for sensitive PCS workflows.
  * Third-party dependencies: React only.
  */
 
@@ -18,9 +18,9 @@ export function PublicDataNotice({ theme, compact = false }) {
 export function LocalEncryptedDataNotice({ theme, compact = false }) {
   return (
     <div className="security-notice security-notice--encrypted" style={{ borderColor: `${theme?.accent || '#2E7D32'}66` }}>
-      <strong>Local encrypted storage</strong>
+      <strong>Local device storage</strong>
       <span>
-        Uploaded documents and user-entered PCS data are stored locally on this device using encrypted local storage when supported by the browser or the iOS Keychain in the native app. They are not intentionally uploaded to PCS Express servers for storage.
+        User-entered PCS data is stored locally on this device and is not intentionally uploaded to PCS Express servers for storage. The previous browser secure-storage wrapper has been removed to prevent refresh failures; the native iOS app may still use Apple Keychain-backed storage for supported document features.
       </span>
       {!compact && <small>For the highest protection, keep the device locked, updated, and enrolled in your organization-approved security controls.</small>}
     </div>

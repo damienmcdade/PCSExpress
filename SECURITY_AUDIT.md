@@ -24,12 +24,12 @@ The app now displays public-data notices explaining that reference content is li
 
 Result: HARDENED
 
-Active web persistence now routes through `secureLocalStore`, which uses AES-GCM encryption with a generated non-extractable Web Crypto key stored in browser-managed IndexedDB when supported. Native iOS document blobs continue to use the iOS Keychain through `SecureDocumentPlugin`.
+Active web persistence now routes through `secureLocalStore`, which uses plain browser localStorage JSON. The prior browser secure-storage wrapper was removed because it caused refresh failures for some saved profiles. Native iOS document blobs may continue to use the iOS Keychain through `SecureDocumentPlugin`.
 
 Documents uploaded through the PCS Documents workflow are stored locally:
 
-- iOS native: Keychain-backed secure storage.
-- Web: encrypted local browser storage when Web Crypto and IndexedDB are available.
+- iOS native: Keychain-backed secure storage for supported native document features.
+- Web: local browser storage on the user's device.
 
 The Orders upload flow no longer sends extracted orders text to the AI endpoint. It reads the file locally and asks the user to review and save only the minimum fields needed.
 
@@ -48,4 +48,3 @@ This document is not a formal DoD authorization, ATO, DISA certification, or com
 - `node scripts/public-data-scan.mjs`
 - `npm run build`
 - `npx cap sync ios`
-
