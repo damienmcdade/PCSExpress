@@ -4341,7 +4341,7 @@ function App() {
   }, []);
   useEffect(() => {
     secureLocalStore.get('pcs_profile', null).then(saved => {
-      if (saved) setProfile(saved);
+      if (saved?.branch) setProfile(saved);
     });
     secureLocalStore.get('pcs_checklist_checks', null).then(saved => {
       if (saved) setChecklistItems(saved);
@@ -4351,7 +4351,9 @@ function App() {
   // isNative is true only inside the Capacitor iOS/Android shell — never in a web browser
   const isNative = typeof window !== 'undefined' && !!window.Capacitor?.isNativePlatform?.();
 
-  const theme = profile ? BRANCH_THEMES[profile.branch] : BRANCH_THEMES.Army;
+  const safeProfile = profile && profile.branch ? profile : null;
+  const theme = BRANCH_THEMES[safeProfile?.branch] || BRANCH_THEMES.Army;
+  const selectedUnitProfile = findPublicUnitProfile(profile);
 
   // Compute pending alerts based on departure date and checklist completion
   const daysUntilDeparture = profile?.departingDate ? getDaysUntilDeparture(profile.departingDate) : null;
@@ -4379,7 +4381,7 @@ function App() {
     setShowNotifs(false);
   };
 
-  if (!profile) {
+  if (!profile?.branch) {
     return <Onboarding onComplete={(p) => {
       setProfile(p);
       store.set('pcs_profile', p);
