@@ -4250,41 +4250,29 @@ function Onboarding({ onComplete }) {
             <>
               <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Family & Preferences</div>
 
-              {/* Toggles */}
-              {[['hasDependents', 'Spouse / Dependents traveling with me'], ['hasChildren', 'I have children']].map(([key, label]) => (
-                <div key={key} onClick={() => upd(key, !p[key])} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, marginBottom: 10, background: p[key] ? `${theme.accent}20` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${p[key] ? `${theme.accent}66` : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer' }}>
-                  <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${p[key] ? theme.accent : 'rgba(255,255,255,0.25)'}`, background: p[key] ? theme.accent : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {p[key] && <span style={{ color: theme.secondary, fontSize: 13, fontWeight: 900 }}>✓</span>}
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>{label}</div>
+              {/* Dependent travel */}
+              <div onClick={() => upd('hasDependents', !p.hasDependents)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, marginBottom: 10, background: p.hasDependents ? `${theme.accent}20` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${p.hasDependents ? `${theme.accent}66` : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer' }}>
+                <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${p.hasDependents ? theme.accent : 'rgba(255,255,255,0.25)'}`, background: p.hasDependents ? theme.accent : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {p.hasDependents && <span style={{ color: theme.secondary, fontSize: 13, fontWeight: 900 }}>✓</span>}
                 </div>
-              ))}
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>Spouse / Dependents traveling with me</div>
+              </div>
 
               {/* Children ages */}
-              {p.hasChildren && (
-                <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 14, marginBottom: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent }}>CHILDREN'S AGES</label>
-                    <button onClick={() => upd('childAges', [...p.childAges, ''])} style={{ padding: '5px 12px', borderRadius: 8, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>+ Add Child</button>
-                  </div>
-                  {p.childAges.length === 0 && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '6px 0' }}>No children added yet</div>}
-                  {p.childAges.map((age, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', minWidth: 60 }}>Child {idx + 1}</div>
-                      <input type="number" min="0" max="25" value={age} onChange={e => { const a = [...p.childAges]; a[idx] = e.target.value; upd('childAges', a); }} placeholder="Age" style={{ ...inputSt, width: 80, flexShrink: 0 }} />
-                      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>yrs</span>
-                      <button onClick={() => upd('childAges', p.childAges.filter((_, i) => i !== idx))} style={{ marginLeft: 'auto', padding: '4px 9px', borderRadius: 7, background: 'rgba(255,80,80,0.2)', border: '1px solid rgba(255,80,80,0.35)', color: '#FF8080', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>✕</button>
-                    </div>
-                  ))}
+              <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 14, marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent }}>CHILDREN'S AGES</label>
+                  <button onClick={() => upd('childAges', [...p.childAges, ''])} style={{ padding: '5px 12px', borderRadius: 8, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>+ Add Child</button>
                 </div>
-              )}
-
-              {/* Bedrooms */}
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>BEDROOMS NEEDED</label>
-                <select value={p.bedrooms} onChange={e => upd('bedrooms', e.target.value)} style={inputSt}>
-                  {['N/A', '1', '2', '3', '4', '5+'].map(b => <option key={b}>{b}</option>)}
-                </select>
+                {p.childAges.length === 0 && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '6px 0' }}>No children added yet</div>}
+                {p.childAges.map((age, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', minWidth: 60 }}>Child {idx + 1}</div>
+                    <input type="number" min="0" max="25" value={age} onChange={e => { const a = [...p.childAges]; a[idx] = e.target.value; upd('childAges', a); }} placeholder="Age" style={{ ...inputSt, width: 80, flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>yrs</span>
+                    <button onClick={() => upd('childAges', p.childAges.filter((_, i) => i !== idx))} style={{ marginLeft: 'auto', padding: '4px 9px', borderRadius: 7, background: 'rgba(255,80,80,0.2)', border: '1px solid rgba(255,80,80,0.35)', color: '#FF8080', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>✕</button>
+                  </div>
+                ))}
               </div>
 
               {/* Religious preference */}
@@ -4303,6 +4291,7 @@ function Onboarding({ onComplete }) {
                 <button
                   onClick={() => onComplete({
                     ...p,
+                    hasChildren: p.childAges.some(a => a !== '' && !isNaN(Number(a))),
                     childAges: p.childAges.filter(a => a !== '' && !isNaN(Number(a))).map(Number),
                     childrenAges: p.childAges.filter(a => a !== '' && !isNaN(Number(a))).map(Number).join(', '),
                   })}
@@ -4479,21 +4468,27 @@ function App() {
   ];
 
   const BOTTOM_NAV = [
-    { id: 'home',        label: 'Home',          icon: 'HQ',  iosIcon: '🏠' },
-    { id: 'checklist',   label: 'Checklist',     icon: 'PCK', iosIcon: '✅' },
-    { id: 'documents',   label: 'Documents',     icon: 'DOC', iosIcon: '📁' },
-    { id: 'orders',      label: 'Orders',        icon: 'ORD', iosIcon: '📋' },
-    { id: 'schools',     label: 'Schools',       icon: 'SCH', iosIcon: '🎓' },
-    { id: 'nav',         label: 'Navigation',    icon: 'NAV', iosIcon: '🗺️' },
-    { id: 'veterans',    label: 'Veterans',      icon: 'VET', iosIcon: '⭐' },
-    { id: 'employment',  label: 'Employment',    icon: 'EMP', iosIcon: '💼' },
-    { id: 'education',   label: 'Education',     icon: 'EDU', iosIcon: '📚' },
-    { id: 'spouse',      label: 'Deployment',    icon: 'DEP', iosIcon: '🪖' },
-    { id: 'religion',    label: 'Faith',         icon: 'CHP', iosIcon: '⛪' },
-    { id: 'translation', label: 'Translate',     icon: 'TRL', iosIcon: '🌐' },
-    { id: 'immigration', label: 'Perm. Resident', icon: 'IMM', iosIcon: '🏛️' },
-    { id: 'resources',   label: 'Resources',     icon: 'RES', iosIcon: '🔗' },
+    { id: 'home',        label: 'Home',              icon: 'HQ',  iosIcon: '🏠', color: '#0D1821' },
+    { id: 'checklist',   label: 'Checklist',         icon: 'PCK', iosIcon: '✅', color: '#1565C0' },
+    { id: 'spouse',      label: 'Deployment',        icon: 'DEP', iosIcon: '🪖', color: '#F57F17' },
+    { id: 'documents',   label: 'Documents',         icon: 'DOC', iosIcon: '📁', color: '#5D4037' },
+    { id: 'education',   label: 'Education',         icon: 'EDU', iosIcon: '📚', color: '#1565C0' },
+    { id: 'efmp',        label: 'EFMP',              icon: 'EFM', iosIcon: '♿', color: '#5B2A86' },
+    { id: 'employment',  label: 'Employment',        icon: 'EMP', iosIcon: '💼', color: '#4A5E2A' },
+    { id: 'religion',    label: 'Faith',             icon: 'CHP', iosIcon: '⛪', color: '#37474F' },
+    { id: 'home-relocation', label: 'Home Relocation', icon: 'HME', iosIcon: '🏠', color: '#455A64' },
+    { id: 'moving-assistance', label: 'Move Aid',    icon: 'AID', iosIcon: '💵', color: '#6A4C1B' },
+    { id: 'nav',         label: 'Navigation',        icon: 'NAV', iosIcon: '🗺️', color: '#00695C' },
+    { id: 'orders',      label: 'Orders',            icon: 'ORD', iosIcon: '📋', color: '#2E7D32' },
+    { id: 'immigration', label: 'Perm. Resident',    icon: 'IMM', iosIcon: '🏛️', color: '#0D47A1' },
+    { id: 'pet-relocation', label: 'Pets',           icon: 'PET', iosIcon: '🐾', color: '#00897B' },
+    { id: 'resources',   label: 'Resources',         icon: 'RES', iosIcon: '🔗', color: '#C62828' },
+    { id: 'schools',     label: 'Schools',           icon: 'SCH', iosIcon: '🎓', color: '#7B1FA2' },
+    { id: 'translation', label: 'Translate',         icon: 'TRL', iosIcon: '🌐', color: '#1976D2' },
+    { id: 'unit-info',   label: 'Unit Info',         icon: 'UNT', iosIcon: '🎖️', color: '#3F51B5' },
+    { id: 'veterans',    label: 'Veterans',          icon: 'VET', iosIcon: '⭐', color: '#E65100' },
   ];
+  const HOME_CATEGORIES = BOTTOM_NAV.filter(item => item.id !== 'home');
 
   // iOS bottom tab bar: 4 primary + More button
   const IOS_TAB_BAR = [
@@ -4508,6 +4503,7 @@ function App() {
   if (activeTab === 'translation') {
     return (
       <div style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: '#f0f4f8', fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
+        <PrivacyShield />
         {isDesktop && (
           <div style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', minHeight: '100dvh', borderRight: `2px solid ${theme.accent}30`, flexShrink: 0 }}>
             <div style={{ padding: '20px 16px 12px', borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
@@ -4606,6 +4602,7 @@ function App() {
 
   return (
     <div style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: '#f0f4f8', fontFamily: 'system-ui', display: 'flex', flexDirection: 'column' }}>
+      <PrivacyShield />
       {/* HEADER — paddingTop uses env(safe-area-inset-top) for notch/Dynamic Island.
           Requires viewport-fit=cover in the HTML meta and contentInsetAdjustmentBehavior=never
           in capacitor.config.json to receive non-zero values from the OS. */}
@@ -4731,23 +4728,10 @@ function App() {
               <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: theme.accent, borderRadius: '16px 0 0 16px' }} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {[
-                { abbr: 'PCK', label: 'PCS Checklist',   id: 'checklist', color: '#1565C0' },
-                { abbr: 'ORD', label: 'Orders',           id: 'orders',    color: '#2E7D32' },
-                { abbr: 'EMP', label: 'Employment',       id: 'employment',color: '#4A5E2A' },
-                { abbr: 'SCH', label: 'Schools',          id: 'schools',   color: '#7B1FA2' },
-                { abbr: 'VET', label: 'Vet Owned Biz',    id: 'veterans',  color: '#E65100' },
-                { abbr: 'EDU', label: 'Education',        id: 'education', color: '#1565C0' },
-                { abbr: 'CHP', label: 'Faith',            id: 'religion',  color: '#37474F' },
-                { abbr: 'DEP', label: 'Deployment Guide', id: 'spouse',    color: '#F57F17' },
-                { abbr: 'NAV', label: 'Navigation',       id: 'nav',       color: '#00695C' },
-                { abbr: 'RES', label: 'Resources',        id: 'resources', color: '#C62828' },
-                { abbr: 'TRL', label: 'Translate',        id: 'translation',color: '#1976D2' },
-                { abbr: 'IMM', label: 'Perm. Resident',   id: 'immigration',color: '#0D47A1' },
-              ].map((item) => (
+              {HOME_CATEGORIES.map((item) => (
                 <div key={item.id} onClick={() => goTo(item.id)} style={{ background: '#FFFFFF', border: `1px solid #E0E6EE`, borderRadius: 12, padding: '14px 10px', cursor: 'pointer', textAlign: 'center', boxShadow: '0 1px 6px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                   <div style={{ width: 42, height: 30, borderRadius: 8, background: `${item.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${item.color}25` }}>
-                    <span style={{ fontSize: 10, fontWeight: 900, color: item.color, letterSpacing: '.06em' }}>{item.abbr}</span>
+                    <span style={{ fontSize: 10, fontWeight: 900, color: item.color, letterSpacing: '.06em' }}>{item.icon}</span>
                   </div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#0D1821', lineHeight: 1.2 }}>{item.label}</div>
                 </div>
@@ -4769,11 +4753,16 @@ function App() {
 
         {activeTab === 'checklist' && <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />}
         {activeTab === 'documents' && <PCSDocumentsModule theme={theme} profile={profile} />}
+        {activeTab === 'efmp' && <EFMPTab theme={theme} profile={profile} />}
         {activeTab === 'orders' && <OrdersTab theme={theme} profile={profile} />}
+        {activeTab === 'unit-info' && <UnitInfoScreen theme={theme} profile={profile} unit={selectedUnitProfile} />}
         {activeTab === 'schools' && <SchoolsTab theme={theme} profile={profile} />}
         {activeTab === 'veterans' && <VeteranBusinessesTab theme={theme} profile={profile} />}
         {activeTab === 'employment' && <EmploymentModule theme={theme} profile={profile} />}
         {activeTab === 'education' && <EducationBenefitsTab theme={theme} profile={profile} />}
+        {activeTab === 'moving-assistance' && <MovingFinancialAssistanceTab theme={theme} profile={profile} />}
+        {activeTab === 'pet-relocation' && <PetRelocationChecklistTab theme={theme} profile={profile} />}
+        {activeTab === 'home-relocation' && <HomeRelocationTab theme={theme} profile={profile} />}
         {activeTab === 'nav' && <NavigationModule theme={theme} profile={profile} />}
         {activeTab === 'spouse' && <SpouseDeploymentGuide theme={theme} profile={profile} />}
         {activeTab === 'religion' && <ReligiousServicesModuleWrapped theme={theme} profile={profile} />}

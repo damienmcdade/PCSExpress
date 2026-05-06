@@ -518,7 +518,7 @@ function EmploymentModule({ theme, profile }) {
     { id: 'search',          label: 'Job Search'      },
     { id: 'recommendations', label: 'Recommendations' },
     { id: 'resume',          label: 'Resume'          },
-    { id: 'jobboards',       label: 'Job Boards'      },
+    { id: 'jobboards',       label: 'Job Resources'   },
   ]
 
   const tb = (t) => ({
@@ -852,10 +852,10 @@ function EmploymentModule({ theme, profile }) {
         </div>
       )}
 
-      {/* ── JOB BOARDS ── */}
+      {/* ── JOB RESOURCES ── */}
       {activeTab === 'jobboards' && (
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>Job Boards & Career Resources</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>Job Resources & Career Support</div>
           <div style={{ fontSize: 11, color: '#56697C', marginBottom: 16, lineHeight: 1.5 }}>Curated job boards and career portals for military members and spouses. Federal hiring preference applies on USAJobs.gov.</div>
 
           {JOB_BOARDS.map((board, i) => (
