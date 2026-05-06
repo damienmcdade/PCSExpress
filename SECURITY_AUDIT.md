@@ -26,6 +26,8 @@ Result: HARDENED
 
 Active web persistence now routes through `secureLocalStore`, which uses plain browser localStorage JSON. The prior browser secure-storage wrapper was removed because it caused refresh failures for some saved profiles. Native iOS document blobs may continue to use the iOS Keychain through `SecureDocumentPlugin`.
 
+Browser deployment hardening now includes a restrictive Content Security Policy, frame blocking, MIME sniffing protection, strict referrer policy, permissions policy, cross-origin isolation headers where compatible, no-store caching for the app shell, immutable caching for hashed assets, and app-level recovery for unsafe saved profile data.
+
 Documents uploaded through the PCS Documents workflow are stored locally:
 
 - iOS native: Keychain-backed secure storage for supported native document features.

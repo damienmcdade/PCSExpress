@@ -4,6 +4,7 @@
  */
 
 const AUDIT_KEY = 'pcs_audit_log';
+const MAX_LOCAL_VALUE_BYTES = 750_000;
 
 function isLegacySecureEnvelope(value) {
   return !!(value && typeof value === 'object' && value.alg === 'AES-256-GCM' && value.iv && value.data);
@@ -14,10 +15,23 @@ export function readLegacyJson(key, fallback = null) {
     const raw = localStorage.getItem(key);
     if (!raw) return fallback;
     const parsed = JSON.parse(raw);
-    return isLegacySecureEnvelope(parsed) ? fallback : parsed;
+    if (isLegacySecureEnvelope(parsed)) {
+      localStorage.removeItem(key);
+      window.dispatchEvent(new CustomEvent('pcs-local-storage-reset', { detail: { key } }));
+      return fallback;
+    }
+    return parsed;
   } catch {
     return fallback;
   }
+}
+
+function safeSerialize(value) {
+  const serialized = JSON.stringify(value);
+  if (serialized.length > MAX_LOCAL_VALUE_BYTES) {
+    throw new Error('Local storage value exceeds PCS Express safety limit');
+  }
+  return serialized;
 }
 
 export const secureLocalStore = {
@@ -27,7 +41,7 @@ export const secureLocalStore = {
 
   async set(key, value) {
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+      localStorage.setItem(key, safeSerialize(value));
       window.dispatchEvent(new CustomEvent('pcs-local-sync', { detail: { key } }));
       return true;
     } catch {

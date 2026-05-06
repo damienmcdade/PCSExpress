@@ -13,9 +13,43 @@ const app = express()
 // CRITICAL: Use PORT environment variable provided by Railway
 // Railway injects PORT automatically - must listen on 0.0.0.0
 const PORT = process.env.PORT || 3001
-const HOST = '0.0.0.0'
+const HOST = process.env.HOST || '0.0.0.0'
 const API_KEY = process.env.ANTHROPIC_API_KEY
 const distPath = path.join(__dirname, '..', 'dist')
+const allowedOrigins = new Set([
+  'https://pcs-express.vercel.app',
+  'https://pcsexpress-production.up.railway.app',
+  'http://localhost:3001',
+  'http://localhost:4173',
+  'http://127.0.0.1:3001',
+  'http://127.0.0.1:4173',
+])
+const securityHeaders = {
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline' https://unpkg.com",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://router.project-osrm.org https://nominatim.openstreetmap.org",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    'upgrade-insecure-requests',
+  ].join('; '),
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Resource-Policy': 'same-origin',
+  'Origin-Agent-Cluster': '?1',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), magnetometer=(), gyroscope=(), accelerometer=()',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'X-Content-Type-Options': 'nosniff',
+  'X-DNS-Prefetch-Control': 'off',
+  'X-Download-Options': 'noopen',
+  'X-Frame-Options': 'DENY',
+  'X-Permitted-Cross-Domain-Policies': 'none',
+}
 
 console.log('[SERVER] ════════════════════════════════════════════════════════')
 console.log('[SERVER] PCS Express - Node.js Backend Server')
@@ -28,7 +62,20 @@ console.log(`[SERVER] FRONTEND: ${fs.existsSync(distPath) ? 'BUILT' : 'MISSING'}
 console.log('[SERVER] ════════════════════════════════════════════════════════')
 
 // === MIDDLEWARE ===
-app.use(cors())
+app.disable('x-powered-by')
+app.use((req, res, next) => {
+  for (const [key, value] of Object.entries(securityHeaders)) res.setHeader(key, value)
+  next()
+})
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin)) return callback(null, true)
+    return callback(null, false)
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+  maxAge: 86400,
+}))
 app.use(express.json({ limit: '1mb' }))
 
 // === HEALTH ENDPOINTS ===
@@ -87,10 +134,22 @@ app.post('/api/ai', async (req, res) => {
 // === FRONTEND SERVING (AFTER ALL API ROUTES) ===
 if (fs.existsSync(distPath)) {
   // Serve static assets with caching
-  app.use(express.static(distPath, { maxAge: '1h' }))
+  app.use('/assets', express.static(path.join(distPath, 'assets'), {
+    immutable: true,
+    maxAge: '1y',
+  }))
+  app.use(express.static(distPath, {
+    maxAge: '1h',
+    setHeaders(res, filePath) {
+      if (filePath.endsWith('index.html')) {
+        res.setHeader('Cache-Control', 'no-store')
+      }
+    },
+  }))
 
   // SPA fallback: serve index.html for all non-API routes
   app.get('*', (req, res) => {
+    res.setHeader('Cache-Control', 'no-store')
     res.sendFile(path.join(distPath, 'index.html'))
   })
 

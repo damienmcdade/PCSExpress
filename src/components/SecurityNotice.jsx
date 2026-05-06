@@ -20,7 +20,7 @@ export function LocalEncryptedDataNotice({ theme, compact = false }) {
     <div className="security-notice security-notice--encrypted" style={{ borderColor: `${theme?.accent || '#2E7D32'}66` }}>
       <strong>Local device storage</strong>
       <span>
-        User-entered PCS data is stored locally on this device and is not intentionally uploaded to PCS Express servers for storage. The previous browser secure-storage wrapper has been removed to prevent refresh failures; the native iOS app may still use Apple Keychain-backed storage for supported document features.
+        User-entered PCS data is stored locally on this device and is not intentionally uploaded to PCS Express servers for storage. The previous browser secure-storage wrapper has been removed to prevent refresh failures; browser protections now rely on strict security headers, privacy shielding, local-only storage, and app-level recovery safeguards.
       </span>
       {!compact && <small>For the highest protection, keep the device locked, updated, and enrolled in your organization-approved security controls.</small>}
     </div>
