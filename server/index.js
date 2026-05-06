@@ -28,7 +28,6 @@ console.log(`[SERVER] FRONTEND: ${fs.existsSync(distPath) ? 'BUILT' : 'MISSING'}
 console.log('[SERVER] ════════════════════════════════════════════════════════')
 
 // === MIDDLEWARE ===
-app.disable('x-powered-by')
 app.use(cors())
 app.use(express.json({ limit: '1mb' }))
 
@@ -87,31 +86,10 @@ app.post('/api/ai', async (req, res) => {
 
 // === FRONTEND SERVING (AFTER ALL API ROUTES) ===
 if (fs.existsSync(distPath)) {
-  // Serve static assets with caching
-  app.use('/assets', express.static(path.join(distPath, 'assets'), {
-    immutable: true,
-    maxAge: '1y',
-  }))
-  app.get(/^\/.+\/assets\/(.+)$/, (req, res, next) => {
-    const assetPath = req.params[0]
-    if (!assetPath || assetPath.includes('..')) return next()
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
-    res.sendFile(path.join(distPath, 'assets', assetPath), (err) => {
-      if (err && !res.headersSent) next()
-    })
-  })
-  app.use(express.static(distPath, {
-    maxAge: '1h',
-    setHeaders(res, filePath) {
-      if (filePath.endsWith('index.html')) {
-        res.setHeader('Cache-Control', 'no-store')
-      }
-    },
-  }))
+  app.use(express.static(distPath))
 
   // SPA fallback: serve index.html for all non-API routes
   app.get('*', (req, res) => {
-    res.setHeader('Cache-Control', 'no-store')
     res.sendFile(path.join(distPath, 'index.html'))
   })
 

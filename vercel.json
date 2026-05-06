@@ -4,7 +4,6 @@
   "installCommand": "npm install",
   "framework": null,
   "rewrites": [
-    { "source": "/:path*/assets/:file*", "destination": "/assets/:file*" },
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ]
 }
