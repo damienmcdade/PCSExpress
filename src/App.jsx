@@ -21,7 +21,7 @@ import PrivacyShield from './components/PrivacyShield'
 import SyncStatusIndicator from './components/SyncStatusIndicator'
 import UnitInfoScreen from './components/UnitInfoScreen'
 import { PublicDataNotice, LocalEncryptedDataNotice } from './components/SecurityNotice'
-import { AuditLogger, secureLocalStore, readLegacyJson } from './security/SecurityExtensions'
+import { AuditLogger, LAST_LOCAL_SAVE_KEY, secureLocalStore, readLegacyJson } from './security/SecurityExtensions'
 import { ALL_BASES } from './components/BaseMapModule'
 import MILITARY_UNITS from './data/militaryUnits'
 
@@ -2622,7 +2622,6 @@ function OrdersTab({ theme, profile }) {
     <div style={{ padding: 16 }}>
       <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Military Orders</div>
       <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>Upload your PCS orders to track timelines and deadlines automatically</div>
-      <LocalEncryptedDataNotice theme={theme} />
 
       {/* No orders: upload prompt */}
       {mode === 'view' && !orders && (
@@ -4388,6 +4387,7 @@ function Onboarding({ onComplete }) {
 
 function App() {
   const [profile, setProfile] = useState(() => normalizeProfile(store.get('pcs_profile')));
+  const [lastLocalSaveAt, setLastLocalSaveAt] = useState(() => readLegacyJson(LAST_LOCAL_SAVE_KEY, null));
   const [activeTab, setActiveTab] = useState('home');
   const [navOpen, setNavOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -4413,6 +4413,11 @@ function App() {
     secureLocalStore.get('pcs_checklist_checks', null).then(saved => {
       if (saved) setChecklistItems(saved);
     });
+  }, []);
+  useEffect(() => {
+    const onSync = (event) => setLastLocalSaveAt(event.detail?.savedAt || readLegacyJson(LAST_LOCAL_SAVE_KEY, null));
+    window.addEventListener('pcs-local-sync', onSync);
+    return () => window.removeEventListener('pcs-local-sync', onSync);
   }, []);
   const isDesktop = screenW >= 900;
   // isNative is true only inside the Capacitor iOS/Android shell — never in a web browser
@@ -4613,10 +4618,6 @@ function App() {
             <h1>{item?.label || currentLabel}</h1>
             <p>{CATEGORY_DESCRIPTIONS[tabId] || 'Review official public information and locally saved PCS planning tools for this category.'}</p>
           </div>
-        </div>
-        <div className="category-screen__notices">
-          <PublicDataNotice theme={theme} compact />
-          <LocalEncryptedDataNotice theme={theme} compact />
         </div>
         <div className="category-screen__body">
           {children}
@@ -4831,6 +4832,10 @@ function App() {
           <div style={{ padding: '16px', position: 'relative' }}>
             <PublicDataNotice theme={theme} compact />
             <LocalEncryptedDataNotice theme={theme} compact />
+            <div className="home-storage-status">
+              <strong>Last local save</strong>
+              <span>{lastLocalSaveAt ? new Date(lastLocalSaveAt).toLocaleString() : 'No local save recorded yet'}</span>
+            </div>
             {/* Branch Hero Banner */}
             <div style={{ background: `linear-gradient(135deg, ${theme.secondary} 0%, ${theme.primary} 100%)`, borderRadius: 16, padding: '20px 16px', marginBottom: 16, position: 'relative', overflow: 'hidden', border: `1px solid ${theme.accent}40`, boxShadow: '0 4px 20px rgba(0,0,0,0.18)' }}>
               {/* Background branch acronym watermark */}

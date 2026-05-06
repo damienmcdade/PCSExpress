@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react'
-import { LocalEncryptedDataNotice } from './SecurityNotice'
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
 
 const store = {
@@ -178,7 +177,6 @@ export default function TranslationModule({ theme, profile }) {
           {isOconus ? '📍 OCONUS Assignment — AI-powered translation + common military phrases in 20 languages.' : 'AI-powered translation and essential military phrases for every assignment.'}
         </div>
       </div>
-      <LocalEncryptedDataNotice theme={theme} compact />
 
       {/* Sub-tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>

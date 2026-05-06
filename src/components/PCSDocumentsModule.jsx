@@ -5,7 +5,6 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import SyncStatusIndicator from './SyncStatusIndicator';
-import { LocalEncryptedDataNotice, PublicDataNotice } from './SecurityNotice';
 import { AuditLogger, secureLocalStore, readLegacyJson } from '../security/SecurityExtensions';
 
 // ─── Secure storage helpers ──────────────────────────────────────────────────
@@ -384,11 +383,6 @@ export default function PCSDocumentsModule({ theme, profile }) {
           </span>
         </div>
       </div>
-      <div style={{ padding: '0 14px' }}>
-        <PublicDataNotice theme={theme} compact />
-        <LocalEncryptedDataNotice theme={theme} />
-      </div>
-
       {/* ── Missing-documents notification banner ── */}
       {missingRequired.length > 0 && (
         <div style={{ background: '#7F1D1D', borderBottom: '1px solid #991B1B', padding: '10px 16px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>

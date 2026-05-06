@@ -4,6 +4,7 @@
  */
 
 const AUDIT_KEY = 'pcs_audit_log';
+export const LAST_LOCAL_SAVE_KEY = 'pcs_last_local_save_at';
 const MAX_LOCAL_VALUE_BYTES = 750_000;
 
 function isLegacySecureEnvelope(value) {
@@ -42,7 +43,10 @@ export const secureLocalStore = {
   async set(key, value) {
     try {
       localStorage.setItem(key, safeSerialize(value));
-      window.dispatchEvent(new CustomEvent('pcs-local-sync', { detail: { key } }));
+      if (key !== LAST_LOCAL_SAVE_KEY) {
+        localStorage.setItem(LAST_LOCAL_SAVE_KEY, safeSerialize(new Date().toISOString()));
+      }
+      window.dispatchEvent(new CustomEvent('pcs-local-sync', { detail: { key, savedAt: readLegacyJson(LAST_LOCAL_SAVE_KEY, null) } }));
       return true;
     } catch {
       window.dispatchEvent(new CustomEvent('pcs-local-storage-error', { detail: { key } }));

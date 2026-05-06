@@ -4,7 +4,6 @@
  */
 
 import { useMemo, useState } from 'react'
-import { PublicDataNotice } from './SecurityNotice'
 
 const officialSearchUrl = (query) =>
   `https://www.google.com/search?q=${encodeURIComponent(`${query} official public site:.mil OR site:.gov`)}`
@@ -54,7 +53,6 @@ export default function UnitInfoScreen({ profile, theme, unit }) {
     return (
       <div className="tab-content">
         <h2 style={{ color: theme.primary }}>Unit Information</h2>
-        <PublicDataNotice theme={theme} compact />
         <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 12, padding: '14px 16px' }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: '#E65100' }}>No unit selected yet</div>
           <div style={{ fontSize: 11, color: '#7A4A00', marginTop: 6 }}>
@@ -75,7 +73,6 @@ export default function UnitInfoScreen({ profile, theme, unit }) {
   return (
     <div className="tab-content">
       <h2 style={{ color: theme.primary }}>{unitName}</h2>
-      <PublicDataNotice theme={theme} compact />
       <div style={{ background: `${theme.primary}12`, border: `1px solid ${theme.primary}30`, borderLeft: `4px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
         <div style={{ fontSize: 11, fontWeight: 900, color: theme.primary, letterSpacing: '.08em', marginBottom: 5 }}>PUBLIC UNIT PROFILE</div>
         <div style={{ fontSize: 12, color: '#34495E', lineHeight: 1.5 }}>

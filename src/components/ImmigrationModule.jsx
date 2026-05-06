@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { PublicDataNotice, LocalEncryptedDataNotice } from './SecurityNotice'
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
 
 const store = {
@@ -356,8 +355,6 @@ export default function ImmigrationModule({ theme }) {
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>Official USCIS information for military spouses and families. Free legal assistance is available through your installation JAG office.</div>
         <a href="https://www.uscis.gov/military" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 10, padding: '6px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.15)', color: '#FFF', fontSize: 11, fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(255,255,255,0.3)' }}>USCIS Military Page →</a>
       </div>
-      <PublicDataNotice theme={theme} compact />
-      <LocalEncryptedDataNotice theme={theme} compact />
 
       {/* Sub-tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import BaseMapModule from './BaseMapModule'
-import { PublicDataNotice, LocalEncryptedDataNotice } from './SecurityNotice'
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
 
 function NavigationModule({ theme, profile }) {
@@ -219,8 +218,6 @@ function NavigationModule({ theme, profile }) {
   return (
     <div style={{ padding: 16 }}>
       <h2 style={{ color: theme.primary, padding: '0 16px', marginTop: 16, marginBottom: 8 }}>Navigation</h2>
-      <PublicDataNotice theme={theme} compact />
-      <LocalEncryptedDataNotice theme={theme} compact />
 
       {/* TABS */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', padding: '0 16px' }}>
