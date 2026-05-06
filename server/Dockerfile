@@ -23,8 +23,11 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY package*.json ./
 COPY . .
 
+# Build the React frontend
+RUN npm run build
+
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:3001/api/health || exit 1
 
-CMD ["node", "api.js"]
+CMD ["npm", "start"]
