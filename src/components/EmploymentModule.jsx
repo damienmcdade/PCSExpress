@@ -83,6 +83,90 @@ const SPOUSE_BOARDS = [
   { name: 'MyCAA Scholarship Program',     desc: 'Up to $4,000 per year in funding for spouse education and career credentials. Portable certificates designed for PCS life.',                  url: 'https://aiportal.acc.af.mil/mycaa',                badge: 'Education', color: '#1B5E20' },
 ]
 
+const SPOUSE_JOB_SEARCHES = [
+  {
+    title: 'Remote Customer Success Specialist',
+    industries: ['business', 'hr', 'tech'],
+    remote: true,
+    incentive: 'MSEP / portable career',
+    source: 'Live job boards',
+    desc: 'Client support, onboarding, account follow-up, and problem solving. Remote-first customer success roles are often portable through PCS moves and frequently appear with MSEP employers.',
+    keywords: 'military spouse remote customer success specialist MSEP hiring',
+  },
+  {
+    title: 'Remote Project Coordinator',
+    industries: ['business', 'govt', 'tech'],
+    remote: true,
+    incentive: 'Military spouse encouraged',
+    source: 'Live job boards',
+    desc: 'Coordinates schedules, deliverables, documentation, and stakeholder updates. Good fit for spouses with admin, operations, logistics, or unit volunteer leadership experience.',
+    keywords: 'military spouse remote project coordinator jobs',
+  },
+  {
+    title: 'Human Resources / Talent Coordinator',
+    industries: ['hr', 'business'],
+    remote: true,
+    incentive: 'Spouse-friendly employer',
+    source: 'Live job boards',
+    desc: 'Supports recruiting, onboarding, personnel records, benefits, and employee communications. Many roles are hybrid or remote and align well with portable HR certifications.',
+    keywords: 'military spouse remote human resources talent coordinator jobs',
+  },
+  {
+    title: 'Federal Program Support Specialist',
+    industries: ['govt', 'business'],
+    remote: false,
+    incentive: 'USAJOBS military spouse hiring path',
+    source: 'USAJOBS + live job boards',
+    desc: 'Administrative, program analysis, mission support, and customer-service roles near installations. Prioritizes announcements open to military spouses and federal agencies near the gaining area.',
+    keywords: 'site:usajobs.gov military spouse program support specialist',
+  },
+  {
+    title: 'Medical Administrative Assistant',
+    industries: ['health', 'business'],
+    remote: false,
+    incentive: 'Portable healthcare career',
+    source: 'Live job boards',
+    desc: 'Front desk, patient scheduling, referral coordination, records, and billing support at clinics or hospitals near the installation. Often compatible with MyCAA-supported training.',
+    keywords: 'military spouse medical administrative assistant jobs',
+  },
+  {
+    title: 'Cybersecurity Analyst',
+    industries: ['tech', 'govt', 'security'],
+    remote: true,
+    incentive: 'Clearance / defense spouse-friendly',
+    source: 'ClearanceJobs + live job boards',
+    desc: 'Security monitoring, vulnerability tracking, compliance support, and help desk escalation. Prioritizes remote or hybrid cyber roles and defense employers that value military community experience.',
+    keywords: 'military spouse remote cybersecurity analyst defense jobs',
+  },
+  {
+    title: 'Education & Training Coordinator',
+    industries: ['edu', 'hr', 'business'],
+    remote: true,
+    incentive: 'Portable education role',
+    source: 'Live job boards',
+    desc: 'Builds training calendars, learning content, student support, or workforce development programs. Good fit for spouses with teaching, FRG, volunteer, or training background.',
+    keywords: 'military spouse remote education training coordinator jobs',
+  },
+  {
+    title: 'Logistics Coordinator',
+    industries: ['logistics', 'business'],
+    remote: false,
+    incentive: 'Installation-area demand',
+    source: 'Live job boards',
+    desc: 'Shipment tracking, vendor coordination, warehouse support, dispatch, and supply-chain operations. Prioritizes employers around bases and defense logistics hubs.',
+    keywords: 'military spouse logistics coordinator jobs near military base',
+  },
+  {
+    title: 'Facilities Maintenance Technician',
+    industries: ['trades', 'security'],
+    remote: false,
+    incentive: 'Base-area hiring demand',
+    source: 'Live job boards',
+    desc: 'Maintenance, HVAC, electrical, repair, or facilities support near installations. Useful for spouses with trades credentials or portable technical certifications.',
+    keywords: 'military spouse facilities maintenance technician jobs',
+  },
+]
+
 function EmploymentModule({ theme, profile }) {
   const [activeTab, setActiveTab] = useState('skills')
 
@@ -128,19 +212,38 @@ function EmploymentModule({ theme, profile }) {
     setShowResults(false)
   }
 
-  const buildSearchUrl = (board) => {
+  const getSearchText = (job) => {
     const industryKw = [...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.keywords || '').join(' ')
     const skillKw = skills.map(s => s.name).join(' ')
-    const kw = encodeURIComponent([industryKw, skillKw].filter(Boolean).join(' ').trim() || 'jobs')
-    const loc = encodeURIComponent(searchCity)
-    switch (board) {
-      case 'usajobs':  return `https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}`
-      case 'indeed':   return `https://www.indeed.com/jobs?q=${kw}&l=${loc}&radius=${radius}`
-      case 'linkedin': return `https://www.linkedin.com/jobs/search/?keywords=${kw}&location=${loc}&distance=${radius}`
-      case 'zip':      return `https://www.ziprecruiter.com/jobs-search?search=${kw}&location=${loc}&radius=${radius}`
-      default: return 'https://www.usajobs.gov'
-    }
+    const mobility = job.remote ? 'remote military spouse' : `${searchCity} ${radius} miles`
+    return [job.keywords, industryKw, skillKw, mobility].filter(Boolean).join(' ').trim()
   }
+
+  const buildJobSearchLinks = (jobOrKeyword) => {
+    const query = typeof jobOrKeyword === 'string' ? jobOrKeyword : getSearchText(jobOrKeyword)
+    const kw = encodeURIComponent(query || 'military spouse jobs')
+    const loc = encodeURIComponent(searchCity)
+    const fallback = (site) => `https://www.google.com/search?q=${encodeURIComponent(`site:${site} ${query} ${searchCity} jobs`)}`
+    return [
+      { label: 'LinkedIn', url: `https://www.linkedin.com/jobs/search/?keywords=${kw}&location=${loc}&distance=${radius}`, color: '#0077B5', fallback: fallback('linkedin.com/jobs') },
+      { label: 'Indeed', url: `https://www.indeed.com/jobs?q=${kw}&l=${loc}&radius=${radius}`, color: '#00897B', fallback: fallback('indeed.com') },
+      { label: 'ClearanceJobs', url: `https://www.clearancejobs.com/jobs?keywords=${kw}&location=${loc}&radius=${radius}`, color: '#558B2F', fallback: fallback('clearancejobs.com/jobs') },
+      { label: 'USAJOBS', url: `https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}&hp=ms`, color: '#1565C0', fallback: fallback('usajobs.gov') },
+    ]
+  }
+
+  const buildUsaJobsSpouseUrl = () => {
+    const industryKw = [...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.keywords || '').join(' ')
+    const skillKw = skills.map(s => s.name).join(' ')
+    const kw = encodeURIComponent([industryKw, skillKw, 'military spouse'].filter(Boolean).join(' ').trim() || 'military spouse')
+    const loc = encodeURIComponent(searchCity)
+    return `https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}&hp=ms`
+  }
+
+  const filteredSpouseJobs = SPOUSE_JOB_SEARCHES.filter(job => {
+    if (selectedIndustries.size === 0) return true
+    return job.industries.some(id => selectedIndustries.has(id))
+  })
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
@@ -190,7 +293,7 @@ function EmploymentModule({ theme, profile }) {
     { id: 'search',          label: 'Job Search'      },
     { id: 'recommendations', label: 'Recommendations' },
     { id: 'resume',          label: 'Resume'          },
-    { id: 'jobboards',       label: 'Job Boards'      },
+    { id: 'jobboards',       label: 'Job Resources'   },
   ]
 
   const tb = (t) => ({
@@ -321,20 +424,43 @@ function EmploymentModule({ theme, profile }) {
               <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', letterSpacing: '.1em', marginBottom: 12 }}>
                 RESULTS — {selectedIndustries.size > 0 ? [...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.label).join(', ') : 'All Industries'} · {radius}mi of {searchCity}
               </div>
-              {[
-                { name: 'USAJobs.gov',  desc: 'Federal and government positions with military hiring preference.', color: '#1565C0', key: 'usajobs'  },
-                { name: 'Indeed',       desc: 'All industries. Largest job board with location + salary filters.', color: '#00897B', key: 'indeed'   },
-                { name: 'LinkedIn',     desc: 'Professional roles. Best for management and corporate positions.', color: '#0077B5', key: 'linkedin'  },
-                { name: 'ZipRecruiter',  desc: 'AI-matched listings. Fastest application. Employer outreach.',    color: '#E65100', key: 'zip'       },
-              ].map((board, i) => (
-                <div key={i} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${board.color}`, borderRadius: 12, padding: 14, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 2 }}>{board.name}</div>
-                    <div style={{ fontSize: 11, color: '#56697C' }}>{board.desc}</div>
+              <div style={{ background: '#E8F5E9', border: '1px solid #A5D6A7', borderLeft: '4px solid #2E7D32', borderRadius: 12, padding: 14, marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', marginBottom: 6 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#1B5E20' }}>Military Spouse Priority Search</div>
+                  <span style={{ background: '#2E7D32', color: '#FFF', borderRadius: 999, padding: '3px 8px', fontSize: 9, fontWeight: 900, whiteSpace: 'nowrap' }}>OFFICIAL FILTER</span>
+                </div>
+                <div style={{ fontSize: 11, color: '#2E7D32', lineHeight: 1.5, marginBottom: 10 }}>USAJOBS supports location and keyword searches, and the app now uses live job-board search paths instead of stale Google Jobs cards. If a board blocks embedded query parameters, use the matching Google site-search fallback beside that board.</div>
+                <a href={buildUsaJobsSpouseUrl()} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '9px 14px', borderRadius: 10, background: '#2E7D32', color: '#FFF', textDecoration: 'none', fontWeight: 800, fontSize: 12 }}>Open USAJOBS Military Spouse Search</a>
+              </div>
+
+              {filteredSpouseJobs.map((job, i) => (
+                <div key={i} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${job.remote ? '#1565C0' : theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 6 }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 4 }}>{job.title}</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        <span style={{ fontSize: 9, fontWeight: 900, color: '#FFF', background: job.remote ? '#1565C0' : '#56697C', padding: '3px 7px', borderRadius: 999 }}>{job.remote ? 'REMOTE' : `WITHIN ${radius}MI`}</span>
+                        <span style={{ fontSize: 9, fontWeight: 900, color: '#880E4F', background: '#FCE4EC', padding: '3px 7px', borderRadius: 999 }}>{job.incentive}</span>
+                        <span style={{ fontSize: 9, fontWeight: 900, color: '#344255', background: '#F0F4F8', padding: '3px 7px', borderRadius: 999 }}>{job.source}</span>
+                      </div>
+                    </div>
                   </div>
-                  <a href={buildSearchUrl(board.key)} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 10, background: board.color, color: '#FFF', textDecoration: 'none', fontWeight: 800, fontSize: 12 }}>View Jobs</a>
+                  <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{job.desc}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 }}>
+                    {buildJobSearchLinks(job).map(link => (
+                      <div key={link.label} style={{ display: 'grid', gap: 5 }}>
+                        <a href={link.url} target="_blank" rel="noopener noreferrer" style={{ padding: '8px', borderRadius: 8, background: link.color, color: '#FFF', textDecoration: 'none', fontWeight: 800, fontSize: 10, textAlign: 'center' }}>{link.label}</a>
+                        <a href={link.fallback} target="_blank" rel="noopener noreferrer" style={{ padding: '7px', borderRadius: 8, background: '#F0F4F8', color: '#344255', textDecoration: 'none', fontWeight: 700, fontSize: 9, textAlign: 'center', border: '1px solid #E0E6EE' }}>Google {link.label}</a>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
+              {filteredSpouseJobs.length === 0 && (
+                <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 12, padding: 14, color: '#7A4A00', fontSize: 12, fontWeight: 700 }}>
+                  No prioritized spouse job templates match that industry filter. Clear filters or select a broader industry.
+                </div>
+              )}
               {skills.length > 0 && (
                 <div style={{ background: '#F0F4F8', borderRadius: 10, padding: 12, marginTop: 4 }}>
                   <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', letterSpacing: '.08em', marginBottom: 6 }}>SKILLS INCLUDED IN SEARCH</div>
@@ -360,9 +486,8 @@ function EmploymentModule({ theme, profile }) {
           {skills.length > 0 ? (
             <>
               {skills.map((skill, i) => {
-                const kw = encodeURIComponent(skill.name)
-                const loc = encodeURIComponent(searchCity)
                 const cat = SKILL_CATS.find(c => c.id === skill.cat) || SKILL_CATS[0]
+                const boardLinks = buildJobSearchLinks(skill.name)
                 return (
                   <div key={i} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${cat.color}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
@@ -378,10 +503,10 @@ function EmploymentModule({ theme, profile }) {
                     <div style={{ fontSize: 11, color: '#556', lineHeight: 1.5, marginBottom: 10 }}>
                       Current openings matching your "{skill.name}" skill. Tap a board to view real-time listings.
                     </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <a href={`https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#1565C0', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>USAJobs</a>
-                      <a href={`https://www.indeed.com/jobs?q=${kw}&l=${loc}&radius=${radius}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#00897B', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>Indeed</a>
-                      <a href={`https://www.linkedin.com/jobs/search/?keywords=${kw}&location=${loc}&distance=${radius}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#0077B5', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>LinkedIn</a>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                      {boardLinks.map(link => (
+                        <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer" style={{ padding: '8px', borderRadius: 8, background: link.color, color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>{link.label}</a>
+                      ))}
                     </div>
                   </div>
                 )
@@ -464,11 +589,11 @@ function EmploymentModule({ theme, profile }) {
         </div>
       )}
 
-      {/* ── JOB BOARDS ── */}
+      {/* ── JOB RESOURCES ── */}
       {activeTab === 'jobboards' && (
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>Job Boards & Career Resources</div>
-          <div style={{ fontSize: 11, color: '#56697C', marginBottom: 16, lineHeight: 1.5 }}>Curated job boards and career portals for military members and spouses. Federal hiring preference applies on USAJobs.gov.</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>Job Resources & Career Portals</div>
+          <div style={{ fontSize: 11, color: '#56697C', marginBottom: 16, lineHeight: 1.5 }}>Curated career portals, coaching programs, and official employment resources for military members and spouses. Federal hiring preference applies on USAJobs.gov.</div>
 
           {JOB_BOARDS.map((board, i) => (
             <div key={i} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${board.color}`, borderRadius: 12, padding: 14, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>

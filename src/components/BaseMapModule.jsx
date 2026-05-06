@@ -26,6 +26,23 @@ const FACILITY_TYPES = {
   childcare:  { icon: '🧒', label: 'Child Development',       color: '#E91E63' },
 };
 
+const PUBLIC_FACILITY_TYPE_KEYS = new Set([
+  'gate',
+  'medical',
+  'commissary',
+  'exchange',
+  'chapel',
+  'gym',
+  'housing',
+  'education',
+  'finance',
+  'gas',
+  'visitor',
+  'legal',
+  'recreation',
+  'childcare',
+]);
+
 // ─── All military installations with center coords ─────────────────────────
 export const ALL_BASES = [
   // ARMY · CONUS
@@ -1049,6 +1066,8 @@ const getFacilities = (name) => {
   return key ? FACILITIES[key] : [];
 };
 
+const getPublicFacilities = (name) => getFacilities(name).filter(f => PUBLIC_FACILITY_TYPE_KEYS.has(f.type));
+
 const getBaseData = (installationLabel) => {
   // installationLabel may be "Fort Liberty, NC" format
   const baseName = (installationLabel || '').split(',')[0].trim();
@@ -1079,9 +1098,13 @@ export default function BaseMapModule({ theme, profile }) {
   const mapInstanceRef = useRef(null);
   const layerGroupsRef = useRef({});
   const [selectedBase, setSelectedBase] = useState('');
-  const [activeFilters, setActiveFilters] = useState(() => new Set(Object.keys(FACILITY_TYPES)));
+  const publicFacilityEntries = Object.entries(FACILITY_TYPES).filter(([key]) => PUBLIC_FACILITY_TYPE_KEYS.has(key));
+  const publicFacilityKeys = publicFacilityEntries.map(([key]) => key);
+  const [activeFilters, setActiveFilters] = useState(() => new Set(publicFacilityKeys));
   const [showLegend, setShowLegend] = useState(false);
   const [noData, setNoData] = useState(false);
+  const [manualBase, setManualBase] = useState('');
+  const [customBase, setCustomBase] = useState(null);
 
   // Sync selected base from profile gaining installation
   useEffect(() => {
@@ -1104,7 +1127,7 @@ export default function BaseMapModule({ theme, profile }) {
       layerGroupsRef.current = {};
     }
 
-    const baseInfo = getBaseData(selectedBase);
+    const baseInfo = customBase?.name === selectedBase ? customBase : getBaseData(selectedBase);
     if (!baseInfo) {
       setNoData(true);
       return;
@@ -1137,7 +1160,7 @@ export default function BaseMapModule({ theme, profile }) {
     layerGroupsRef.current = groups;
 
     // Add facility markers
-    const facilities = getFacilities(selectedBase);
+    const facilities = getPublicFacilities(selectedBase);
     facilities.forEach(f => {
       const ft = FACILITY_TYPES[f.type] || FACILITY_TYPES.hq;
       const marker = L.marker([f.lat, f.lng], { icon: makeIcon(ft.icon, ft.color) })
@@ -1148,7 +1171,7 @@ export default function BaseMapModule({ theme, profile }) {
     if (facilities.length === 0) {
       L.popup()
         .setLatLng([baseInfo.lat, baseInfo.lng])
-        .setContent(`<b>${baseInfo.name}</b><br/>${baseInfo.branch} · ${baseInfo.state}<br/><small>For full installation maps and facility directories, visit:<br/><a href="https://www.militaryinstallations.dod.mil/" target="_blank">militaryinstallations.dod.mil</a></small>`)
+        .setContent(`<b>${baseInfo.name}</b><br/>${baseInfo.branch} · ${baseInfo.state}<br/><small>Official U.S. government and military public approved information for this base is not available at this time.<br/><a href="https://installations.militaryonesource.mil/" target="_blank">Search MilitaryINSTALLATIONS</a></small>`)
         .openOn(map);
     }
 
@@ -1162,7 +1185,7 @@ export default function BaseMapModule({ theme, profile }) {
         layerGroupsRef.current = {};
       }
     };
-  }, [selectedBase]);
+  }, [selectedBase, customBase]);
 
   // Toggle layer visibility when filter changes
   useEffect(() => {
@@ -1186,15 +1209,44 @@ export default function BaseMapModule({ theme, profile }) {
   };
 
   const toggleAll = () => {
-    if (activeFilters.size === Object.keys(FACILITY_TYPES).length) {
+    if (activeFilters.size === publicFacilityKeys.length) {
       setActiveFilters(new Set());
     } else {
-      setActiveFilters(new Set(Object.keys(FACILITY_TYPES)));
+      setActiveFilters(new Set(publicFacilityKeys));
     }
   };
 
-  const baseInfo = getBaseData(selectedBase);
-  const facilityCount = getFacilities(selectedBase).length;
+  const lookupManualBase = async () => {
+    const query = manualBase.trim();
+    if (!query) return;
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ' military installation')}&format=json&limit=1`, {
+        headers: { Accept: 'application/json' },
+      });
+      const results = await res.json();
+      const first = results?.[0];
+      const fallback = {
+        name: query,
+        state: 'Public lookup',
+        branch: profile?.branch || 'Military',
+        lat: 39.8283,
+        lng: -98.5795,
+        zoom: 5,
+      };
+      const next = first
+        ? { ...fallback, lat: Number(first.lat), lng: Number(first.lon), zoom: 13 }
+        : fallback;
+      setCustomBase(next);
+      setSelectedBase(next.name);
+    } catch {
+      const next = { name: query, state: 'Public lookup', branch: profile?.branch || 'Military', lat: 39.8283, lng: -98.5795, zoom: 5 };
+      setCustomBase(next);
+      setSelectedBase(next.name);
+    }
+  };
+
+  const baseInfo = customBase?.name === selectedBase ? customBase : getBaseData(selectedBase);
+  const facilityCount = getPublicFacilities(selectedBase).length;
   const sortedBases = [...ALL_BASES].sort((a, b) => a.name.localeCompare(b.name));
   const conus = sortedBases.filter(b => !b.country);
   const oconus = sortedBases.filter(b => b.country);
@@ -1225,11 +1277,25 @@ export default function BaseMapModule({ theme, profile }) {
               <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>{facilityCount > 0 ? `${facilityCount} facilities mapped` : 'Base location only'}</span>
               {baseInfo.country && <span style={{ fontSize: 10, background: '#E74C3C', color: '#FFF', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>OCONUS</span>}
             </div>
-            <a href="https://www.militaryinstallations.dod.mil/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', fontSize: 10, color: theme.accent, fontWeight: 700, textDecoration: 'none', letterSpacing: '.04em' }}>
+            <a href="https://installations.militaryonesource.mil/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', fontSize: 10, color: theme.accent, fontWeight: 700, textDecoration: 'none', letterSpacing: '.04em' }}>
               Official Installation Directory →
             </a>
           </div>
         )}
+        <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${theme.accent}25` }}>
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.72)', lineHeight: 1.4, marginBottom: 8 }}>
+            Public map only: support services, visitor-facing facilities, and official public directories. No restricted areas, force protection details, internal layouts, or sensitive operational data.
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <input value={manualBase} onChange={e => setManualBase(e.target.value)} placeholder="Enter base not listed..." style={{ flex: 1, minWidth: 0, padding: '8px 10px', borderRadius: 8, border: `1px solid ${theme.accent}40`, fontSize: 12 }} />
+            <button onClick={lookupManualBase} style={{ padding: '8px 10px', borderRadius: 8, border: 'none', background: theme.accent, color: theme.secondary, fontSize: 11, fontWeight: 900, cursor: 'pointer' }}>Find</button>
+          </div>
+          {manualBase && (
+            <a href={`https://www.google.com/search?q=${encodeURIComponent(`${manualBase} official public installation directory services site:.mil OR site:.gov`)}`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 8, fontSize: 10, color: theme.accent, fontWeight: 800, textDecoration: 'none' }}>
+              Search official public base information →
+            </a>
+          )}
+        </div>
       </div>
 
       {/* Map container */}
@@ -1244,8 +1310,8 @@ export default function BaseMapModule({ theme, profile }) {
           {facilityCount > 0 ? `📍 ${facilityCount} facilities` : '📍 Base location only'}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={toggleAll} style={{ fontSize: 10, padding: '4px 10px', background: activeFilters.size === Object.keys(FACILITY_TYPES).length ? theme.primary : '#E0E6EE', color: activeFilters.size === Object.keys(FACILITY_TYPES).length ? '#FFF' : '#556', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>
-            {activeFilters.size === Object.keys(FACILITY_TYPES).length ? 'Hide All' : 'Show All'}
+          <button onClick={toggleAll} style={{ fontSize: 10, padding: '4px 10px', background: activeFilters.size === publicFacilityKeys.length ? theme.primary : '#E0E6EE', color: activeFilters.size === publicFacilityKeys.length ? '#FFF' : '#556', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>
+            {activeFilters.size === publicFacilityKeys.length ? 'Hide All' : 'Show All'}
           </button>
           <button onClick={() => setShowLegend(v => !v)} style={{ fontSize: 10, padding: '4px 10px', background: showLegend ? theme.accent : '#E0E6EE', color: showLegend ? '#0D1821' : '#556', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>
             {showLegend ? '▲ Legend' : '▼ Legend'}
@@ -1258,7 +1324,7 @@ export default function BaseMapModule({ theme, profile }) {
         <div style={{ background: '#FFFFFF', padding: '10px 14px', borderBottom: '1px solid #E0E6EE' }}>
           <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', marginBottom: 8, letterSpacing: '.08em' }}>TAP TO TOGGLE FACILITY LAYERS</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-            {Object.entries(FACILITY_TYPES).map(([key, ft]) => (
+            {publicFacilityEntries.map(([key, ft]) => (
               <button
                 key={key}
                 onClick={() => toggleFilter(key)}
@@ -1280,10 +1346,10 @@ export default function BaseMapModule({ theme, profile }) {
       )}
 
       {/* Quick reference list */}
-      {getFacilities(selectedBase).length > 0 && (
+      {getPublicFacilities(selectedBase).length > 0 && (
         <div style={{ padding: '12px 14px' }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: '#56697C', marginBottom: 10, letterSpacing: '.08em' }}>KEY LOCATIONS</div>
-          {getFacilities(selectedBase).filter(f => activeFilters.has(f.type)).map((f, i) => {
+          {getPublicFacilities(selectedBase).filter(f => activeFilters.has(f.type)).map((f, i) => {
             const ft = FACILITY_TYPES[f.type] || FACILITY_TYPES.hq;
             return (
               <div key={i} style={{ background: '#FFFFFF', borderRadius: 10, padding: '10px 12px', marginBottom: 8, borderLeft: `3px solid ${ft.color}`, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1298,11 +1364,24 @@ export default function BaseMapModule({ theme, profile }) {
         </div>
       )}
 
+      {baseInfo && facilityCount === 0 && (
+        <div style={{ padding: '12px 14px' }}>
+          <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderLeft: '4px solid #F9A825', borderRadius: 12, padding: 14, color: '#6D4C00' }}>
+            <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 5 }}>Official public base map data unavailable</div>
+            <div style={{ fontSize: 11, lineHeight: 1.5 }}>Official U.S. government and military public approved information for this base is not available at this time.</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+              <a href="https://installations.militaryonesource.mil/" target="_blank" rel="noopener noreferrer" style={{ padding: '8px 10px', borderRadius: 8, background: '#6D4C00', color: '#FFF', textDecoration: 'none', fontSize: 10, fontWeight: 800 }}>MilitaryINSTALLATIONS</a>
+              <a href={`https://www.google.com/search?q=${encodeURIComponent(`${selectedBase} official installation map visitor center site:.mil OR site:.gov`)}`} target="_blank" rel="noopener noreferrer" style={{ padding: '8px 10px', borderRadius: 8, background: '#F0F4F8', color: '#344255', textDecoration: 'none', fontSize: 10, fontWeight: 800, border: '1px solid #E0E6EE' }}>Official Site Search</a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {noData && (
         <div style={{ padding: 24, textAlign: 'center', color: '#888', fontSize: 12 }}>
           <div style={{ fontSize: 32, marginBottom: 8 }}>📍</div>
           <div style={{ fontWeight: 700 }}>Base not found in database</div>
-          <div style={{ fontSize: 11, marginTop: 4 }}>Try selecting a base from the dropdown above</div>
+          <div style={{ fontSize: 11, marginTop: 4 }}>Official U.S. government and military public approved information for this base is not available at this time.</div>
         </div>
       )}
     </div>
