@@ -22,4 +22,5 @@ Thumbs.db
 .idea/
 *.swp
 .vercel
+.vercel-session/
 .env*.local
