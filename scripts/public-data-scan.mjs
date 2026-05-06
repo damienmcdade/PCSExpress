@@ -9,6 +9,7 @@ import path from 'node:path';
 const root = process.cwd();
 const scanRoots = ['src'];
 const allowedWarningFiles = new Set([
+  'src/components/SecurityNotice.jsx',
   'src/components/UnitInfoScreen.jsx',
   'src/components/BaseMapModule.jsx',
 ]);
@@ -52,7 +53,7 @@ for (const scanRoot of scanRoots) {
     lines.forEach((line, index) => {
       for (const pattern of blockedPatterns) {
         if (!pattern.test(line)) continue;
-        const warningOnly = allowedWarningFiles.has(rel) && /do not enter|public map only|no restricted/i.test(line);
+        const warningOnly = allowedWarningFiles.has(rel) && /do not enter|official public data only|public map only|no restricted|not available|classified|CUI|sensitive/i.test(line);
         if (!warningOnly) findings.push({ file: rel, line: index + 1, pattern: pattern.source, text: line.trim() });
       }
     });

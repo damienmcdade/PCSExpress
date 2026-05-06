@@ -1,8 +1,10 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { LocalEncryptedDataNotice } from './SecurityNotice'
+import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
 
 const store = {
-  get: (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
-  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  get: (k) => readLegacyJson(k, null),
+  set: (k, v) => { secureLocalStore.set(k, v); },
 };
 
 const LANGUAGES = [
@@ -130,6 +132,12 @@ export default function TranslationModule({ theme, profile }) {
   const [phraseCategory, setPhraseCategory] = useState('emergency');
   const [saved, setSaved] = useState(() => store.get('translations_saved') || []);
 
+  useEffect(() => {
+    secureLocalStore.get('translations_saved', null).then(savedItems => {
+      if (Array.isArray(savedItems)) setSaved(savedItems);
+    });
+  }, []);
+
   const selectedLang = LANGUAGES.find(l => l.code === targetLang) || LANGUAGES[0];
   const isOconus = profile?.isOverseas;
 
@@ -170,6 +178,7 @@ export default function TranslationModule({ theme, profile }) {
           {isOconus ? '📍 OCONUS Assignment — AI-powered translation + common military phrases in 20 languages.' : 'AI-powered translation and essential military phrases for every assignment.'}
         </div>
       </div>
+      <LocalEncryptedDataNotice theme={theme} compact />
 
       {/* Sub-tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>

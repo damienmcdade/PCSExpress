@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import BaseMapModule from './BaseMapModule'
+import { PublicDataNotice, LocalEncryptedDataNotice } from './SecurityNotice'
+import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
 
 function NavigationModule({ theme, profile }) {
   const [activeTab, setActiveTab] = useState('routes')
@@ -14,11 +16,7 @@ function NavigationModule({ theme, profile }) {
   const [routeInfo, setRouteInfo] = useState(null)
   const [routeError, setRouteError] = useState('')
   const [savedDirections, setSavedDirections] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('pcs_saved_directions')) || []
-    } catch {
-      return []
-    }
+    return readLegacyJson('pcs_saved_directions', [])
   })
   const [expandedDirectionId, setExpandedDirectionId] = useState(null)
 
@@ -82,11 +80,7 @@ function NavigationModule({ theme, profile }) {
   const saveDirectionsToStorage = (directions) => {
     const updated = [directions, ...savedDirections].slice(0, 20);
     setSavedDirections(updated);
-    try {
-      localStorage.setItem('pcs_saved_directions', JSON.stringify(updated));
-    } catch (e) {
-      // storage unavailable
-    }
+    secureLocalStore.set('pcs_saved_directions', updated);
   };
 
   // Plan route using OSRM
@@ -188,11 +182,7 @@ function NavigationModule({ theme, profile }) {
   const deleteDirection = (id) => {
     const updated = savedDirections.filter(d => d.id !== id);
     setSavedDirections(updated);
-    try {
-      localStorage.setItem('pcs_saved_directions', JSON.stringify(updated));
-    } catch (e) {
-      // storage unavailable
-    }
+    secureLocalStore.set('pcs_saved_directions', updated);
     if (expandedDirectionId === id) setExpandedDirectionId(null);
   };
 
@@ -223,6 +213,8 @@ function NavigationModule({ theme, profile }) {
   return (
     <div style={{ padding: 16 }}>
       <h2 style={{ color: theme.primary, padding: '0 16px', marginTop: 16, marginBottom: 8 }}>Navigation</h2>
+      <PublicDataNotice theme={theme} compact />
+      <LocalEncryptedDataNotice theme={theme} compact />
 
       {/* TABS */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', padding: '0 16px' }}>
@@ -526,3 +518,8 @@ function NavigationModule({ theme, profile }) {
 }
 
 export default NavigationModule;
+  useEffect(() => {
+    secureLocalStore.get('pcs_saved_directions', null).then(saved => {
+      if (Array.isArray(saved)) setSavedDirections(saved)
+    })
+  }, [])

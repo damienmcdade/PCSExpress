@@ -20,13 +20,14 @@ import HomeRelocationTab from './components/HomeRelocationTab'
 import PrivacyShield from './components/PrivacyShield'
 import SyncStatusIndicator from './components/SyncStatusIndicator'
 import UnitInfoScreen from './components/UnitInfoScreen'
-import { AuditLogger } from './security/SecurityExtensions'
+import { PublicDataNotice, LocalEncryptedDataNotice } from './components/SecurityNotice'
+import { AuditLogger, secureLocalStore, readLegacyJson } from './security/SecurityExtensions'
 import { ALL_BASES } from './components/BaseMapModule'
 import MILITARY_UNITS from './data/militaryUnits'
 
 const store = {
-  get: (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
-  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  get: (k) => readLegacyJson(k, null),
+  set: (k, v) => { secureLocalStore.set(k, v); },
 };
 
 const normLookup = (value) => (value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -858,9 +859,8 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
     const key = `${phase}-${idx}`;
     setChecklistItems(prev => {
       const next = { ...prev, [key]: !prev[key] };
-      try { localStorage.setItem('pcs_checklist_checks', JSON.stringify(next)); } catch {}
+      secureLocalStore.set('pcs_checklist_checks', next);
       AuditLogger.record('pcs_milestone_status_change', { phase, index: idx, complete: !!next[key] });
-      window.dispatchEvent(new CustomEvent('pcs-local-sync', { detail: { key: 'pcs_checklist_checks' } }));
       return next;
     });
   };
@@ -2260,6 +2260,12 @@ function OrdersTab({ theme, profile }) {
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState('');
 
+  useEffect(() => {
+    secureLocalStore.get('pcs_orders', null).then(saved => {
+      if (saved) setOrders(saved);
+    });
+  }, []);
+
   const upd = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
 
   const saveOrders = (data) => {
@@ -2274,7 +2280,7 @@ function OrdersTab({ theme, profile }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    setUploadMsg('Reading file…');
+    setUploadMsg('Reading locally on this device. The source file is not stored on PCS Express servers.');
     const reader = new FileReader();
     reader.onload = async (ev) => {
       const raw = ev.target.result || '';
@@ -2286,47 +2292,7 @@ function OrdersTab({ theme, profile }) {
         setMode('manual');
         return;
       }
-      setUploadMsg('Analyzing orders with AI…');
-      try {
-        const res = await fetch('/api/ai', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system: 'Parse U.S. military PCS orders text. Return ONLY valid JSON, no other text: {"ordersNumber":"","reportDate":"YYYY-MM-DD or null","gainingUnit":"","gainingInstallation":"","losingInstallation":"","authorizedDependents":true,"tdyEnRoute":false,"tdyLocation":"","pcsAllowances":""}',
-            user: readable.slice(0, 3500),
-          }),
-        });
-        if (res.ok) {
-          const { text } = await res.json();
-          const match = text.match(/\{[\s\S]*?\}/);
-          if (match) {
-            try {
-              const parsed = JSON.parse(match[0]);
-              setForm(prev => ({
-                ...prev,
-                ordersNumber: parsed.ordersNumber || prev.ordersNumber,
-                reportDate: parsed.reportDate || prev.reportDate,
-                gainingUnit: parsed.gainingUnit || prev.gainingUnit,
-                gainingInstallation: parsed.gainingInstallation || prev.gainingInstallation,
-                losingInstallation: parsed.losingInstallation || prev.losingInstallation,
-                authorizedDependents: parsed.authorizedDependents ?? prev.authorizedDependents,
-                tdyEnRoute: parsed.tdyEnRoute ?? prev.tdyEnRoute,
-                tdyLocation: parsed.tdyLocation || prev.tdyLocation,
-                pcsAllowances: parsed.pcsAllowances || prev.pcsAllowances,
-              }));
-              setUploadMsg('Orders analyzed — review fields below and save.');
-            } catch {
-              setUploadMsg('Partially parsed. Fill in any missing fields below.');
-            }
-          } else {
-            setUploadMsg('AI response unclear. Fill in fields manually.');
-          }
-        } else {
-          setUploadMsg('AI unavailable. Enter fields manually below.');
-        }
-      } catch {
-        setUploadMsg('Could not reach server. Enter fields manually.');
-      }
+      setUploadMsg('Text extracted locally. Review and enter only the minimum information needed below.');
       setUploading(false);
       setMode('manual');
     };
@@ -2352,6 +2318,7 @@ function OrdersTab({ theme, profile }) {
     <div style={{ padding: 16 }}>
       <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Military Orders</div>
       <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>Upload your PCS orders to track timelines and deadlines automatically</div>
+      <LocalEncryptedDataNotice theme={theme} />
 
       {/* No orders: upload prompt */}
       {mode === 'view' && !orders && (
@@ -2359,7 +2326,7 @@ function OrdersTab({ theme, profile }) {
           <div style={{ fontSize: 36, marginBottom: 10 }}>📋</div>
           <div style={{ fontSize: 15, fontWeight: 800, color: '#FFF', marginBottom: 8 }}>Upload Your PCS Orders</div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 16, lineHeight: 1.5 }}>
-            Upload your orders PDF to automatically extract key dates, unit info, and report deadlines.
+            Upload your orders only if you want local extraction support. The file is read locally; only the fields you save are encrypted on this device.
           </div>
           <label style={{ display: 'block', padding: '12px', borderRadius: 10, background: theme.accent, color: theme.secondary, fontWeight: 800, fontSize: 13, cursor: 'pointer', marginBottom: 10 }}>
             {uploading ? 'Reading…' : '📎 Select Orders File (PDF / Image)'}
@@ -3305,7 +3272,7 @@ function App() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
   const [checklistItems, setChecklistItems] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('pcs_checklist_checks')) || {}; } catch { return {}; }
+    return readLegacyJson('pcs_checklist_checks', {});
   });
   const [demoTip, setDemoTip] = useState(() => {
     const p = store.get('pcs_profile');
@@ -3316,6 +3283,14 @@ function App() {
     const handler = () => setScreenW(window.innerWidth);
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
+  }, []);
+  useEffect(() => {
+    secureLocalStore.get('pcs_profile', null).then(saved => {
+      if (saved) setProfile(saved);
+    });
+    secureLocalStore.get('pcs_checklist_checks', null).then(saved => {
+      if (saved) setChecklistItems(saved);
+    });
   }, []);
   const isDesktop = screenW >= 900;
   // isNative is true only inside the Capacitor iOS/Android shell — never in a web browser
@@ -3677,6 +3652,8 @@ function App() {
       <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isNative && !isDesktop ? 'calc(58px + env(safe-area-inset-bottom))' : 'env(safe-area-inset-bottom)' }}>
         {activeTab === 'home' && (
           <div style={{ padding: '16px', position: 'relative' }}>
+            <PublicDataNotice theme={theme} compact />
+            <LocalEncryptedDataNotice theme={theme} compact />
             {/* Branch Hero Banner */}
             <div style={{ background: `linear-gradient(135deg, ${theme.secondary} 0%, ${theme.primary} 100%)`, borderRadius: 16, padding: '20px 16px', marginBottom: 16, position: 'relative', overflow: 'hidden', border: `1px solid ${theme.accent}40`, boxShadow: '0 4px 20px rgba(0,0,0,0.18)' }}>
               {/* Background branch acronym watermark */}
