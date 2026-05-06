@@ -1006,6 +1006,456 @@ body {
   border-radius: 8px;
 }
 
+.assistance-page,
+.efmp-page,
+.pet-page,
+.home-relocation-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.assistance-header,
+.efmp-header,
+.pet-header,
+.home-relocation-header {
+  align-items: flex-start;
+  background: #ffffff;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  box-shadow: 0 1px 8px rgba(13, 24, 33, 0.05);
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.assistance-kicker {
+  color: #667587;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.assistance-header h2,
+.efmp-header h2,
+.pet-header h2,
+.home-relocation-header h2,
+.assistance-band h3,
+.efmp-branch-card h3,
+.pet-resources h3,
+.claims-deadline-card h3,
+.inventory-card h3,
+.replacement-card h3 {
+  color: #0d1821;
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1.2;
+  margin: 0 0 6px;
+}
+
+.assistance-header p,
+.efmp-header p,
+.pet-header p,
+.home-relocation-header p,
+.assistance-card p,
+.efmp-source-note span,
+.efmp-branch-card p,
+.inventory-card p,
+.replacement-card p,
+.claims-deadline-grid p,
+.pet-resources span {
+  color: #56697c;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.assistance-band,
+.efmp-source-note,
+.efmp-branch-card,
+.pcs-progress-card,
+.pet-resources,
+.claims-deadline-card,
+.inventory-card,
+.replacement-card {
+  background: #ffffff;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  box-shadow: 0 1px 8px rgba(13, 24, 33, 0.05);
+  padding: 16px;
+}
+
+.assistance-band__title,
+.efmp-source-note strong {
+  color: #0d1821;
+  display: block;
+  font-size: 13px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.assistance-grid,
+.assistance-list {
+  display: grid;
+  gap: 12px;
+}
+
+.assistance-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.assistance-list {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.assistance-card {
+  background: #ffffff;
+  border: 1px solid #d8e0ea;
+  border-left: 4px solid var(--category-color, #1565c0);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 14px;
+}
+
+.assistance-band .assistance-card {
+  background: #f8fbff;
+}
+
+.assistance-card__top {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.assistance-card h3 {
+  color: #0d1821;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.assistance-card__top span {
+  border-radius: 999px;
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  padding: 5px 7px;
+  text-align: center;
+}
+
+.assistance-card__audience,
+.efmp-field span,
+.claims-deadline-grid span,
+.replacement-grid span,
+.inventory-item span {
+  color: #667587;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.assistance-card a,
+.efmp-branch-card a {
+  align-self: flex-start;
+  border-radius: 7px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 9px 12px;
+  text-decoration: none;
+}
+
+.efmp-field {
+  background: #f8fbff;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  margin: 12px 0;
+  padding: 12px;
+}
+
+.efmp-field strong,
+.claims-deadline-grid strong,
+.replacement-grid strong,
+.inventory-item strong {
+  color: #0d1821;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.efmp-list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.efmp-list div {
+  background: #ffffff;
+  border: 1px solid #d8e0ea;
+  border-radius: 7px;
+  color: #27384a;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 9px 10px;
+}
+
+.pcs-progress-card {
+  display: grid;
+  gap: 10px;
+}
+
+.pcs-progress-card__row {
+  align-items: center;
+  color: #27384a;
+  display: flex;
+  font-size: 12px;
+  justify-content: space-between;
+}
+
+.pcs-progress-card__row strong {
+  color: #0d1821;
+  font-size: 13px;
+}
+
+.pcs-progress-card__bar {
+  background: #e8edf3;
+  border-radius: 999px;
+  height: 9px;
+  overflow: hidden;
+}
+
+.pcs-progress-card__bar div {
+  border-radius: inherit;
+  height: 100%;
+  transition: width .2s ease;
+}
+
+.pet-phase-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pet-phase-tabs button {
+  border: 1px solid #d8e0ea;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 900;
+  min-height: 36px;
+  padding: 8px 11px;
+}
+
+.pet-task-list {
+  display: grid;
+  gap: 10px;
+}
+
+.pet-task {
+  align-items: flex-start;
+  background: #ffffff;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  color: #27384a;
+  cursor: pointer;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 24px 1fr;
+  padding: 13px;
+  text-align: left;
+}
+
+.pet-task span {
+  align-items: center;
+  background: #f0f4f8;
+  border: 1px solid #d8e0ea;
+  border-radius: 6px;
+  color: #2e7d32;
+  display: flex;
+  font-size: 13px;
+  font-weight: 900;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.pet-task strong {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.pet-task.is-done {
+  background: #f7fff8;
+  border-color: #a5d6a7;
+}
+
+.pet-resources {
+  display: grid;
+  gap: 10px;
+}
+
+.pet-resources a {
+  background: #f8fbff;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  color: #27384a;
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  text-decoration: none;
+}
+
+.pet-resources a strong {
+  color: #0d1821;
+  font-size: 13px;
+}
+
+.claims-deadline-card,
+.inventory-card,
+.replacement-card {
+  display: grid;
+  gap: 12px;
+}
+
+.claims-deadline-card label {
+  color: #27384a;
+  display: grid;
+  font-size: 12px;
+  font-weight: 900;
+  gap: 6px;
+}
+
+.claims-deadline-card input,
+.inventory-add-row input {
+  background: #ffffff;
+  border: 1px solid #cfd8e3;
+  border-radius: 7px;
+  color: #0d1821;
+  font-size: 16px;
+  min-height: 40px;
+  padding: 9px 10px;
+  width: 100%;
+}
+
+.claims-deadline-grid,
+.replacement-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.claims-deadline-grid > div,
+.replacement-grid > div {
+  background: #f8fbff;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+}
+
+.inventory-add-row {
+  display: grid;
+  gap: 9px;
+  grid-template-columns: minmax(180px, 1.4fr) minmax(150px, 1fr) minmax(120px, .8fr) minmax(110px, .7fr) auto;
+}
+
+.inventory-add-row button {
+  border: 0;
+  border-radius: 7px;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+  min-height: 40px;
+  padding: 9px 13px;
+}
+
+.inventory-list {
+  display: grid;
+  gap: 10px;
+}
+
+.inventory-item {
+  align-items: center;
+  background: #f8fbff;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(170px, 1.4fr) minmax(150px, 1fr) auto auto;
+  padding: 12px;
+}
+
+.inventory-item > div:first-child,
+.inventory-values {
+  display: grid;
+  gap: 4px;
+}
+
+.inventory-item label {
+  align-items: center;
+  color: #27384a;
+  display: flex;
+  font-size: 12px;
+  font-weight: 800;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.inventory-item input[type="checkbox"] {
+  accent-color: #2e7d32;
+  height: 18px;
+  width: 18px;
+}
+
+@media (max-width: 900px) {
+  .inventory-add-row,
+  .inventory-item {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .assistance-header,
+  .efmp-header,
+  .pet-header,
+  .home-relocation-header {
+    display: grid;
+  }
+
+  .assistance-list,
+  .assistance-grid,
+  .claims-deadline-grid,
+  .replacement-grid,
+  .inventory-add-row,
+  .inventory-item {
+    grid-template-columns: 1fr;
+  }
+
+  .pet-phase-tabs {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .pet-phase-tabs button,
+  .assistance-card a,
+  .efmp-branch-card a,
+  .inventory-add-row button {
+    width: 100%;
+  }
+}
+
 @media (min-width: 900px) {
   .category-screen {
     padding: 20px 24px;
