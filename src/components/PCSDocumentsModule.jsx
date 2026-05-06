@@ -1,4 +1,12 @@
+/*
+ * Purpose: PCS document checklist, local document attachment handling, and document progress tracking.
+ * Third-party dependencies: React, Capacitor bridge when running native.
+ */
+
 import { useState, useRef, useCallback, useEffect } from 'react';
+import SyncStatusIndicator from './SyncStatusIndicator';
+import { LocalEncryptedDataNotice, PublicDataNotice } from './SecurityNotice';
+import { AuditLogger, secureLocalStore, readLegacyJson } from '../security/SecurityExtensions';
 
 // ─── Secure storage helpers ──────────────────────────────────────────────────
 // Uses iOS Keychain via SecureDocumentPlugin (Capacitor native) or localStorage (web).
@@ -212,8 +220,10 @@ function getDocsForBranch(branch, isOconus) {
 // ─── Persistent state ────────────────────────────────────────────────────────
 
 const STATE_KEY = 'pcs_doc_states';
-const loadStates = () => { try { return JSON.parse(localStorage.getItem(STATE_KEY)) || {}; } catch { return {}; } };
-const saveStates = (s) => { try { localStorage.setItem(STATE_KEY, JSON.stringify(s)); } catch {} };
+const loadStates = () => readLegacyJson(STATE_KEY, {});
+const saveStates = (s) => {
+  secureLocalStore.set(STATE_KEY, s);
+};
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
@@ -229,6 +239,12 @@ export default function PCSDocumentsModule({ theme, profile }) {
   const [toast,       setToast]       = useState(null);   // { msg, ok }
   const fileInputRef = useRef(null);
   const pendingDocId = useRef(null);
+
+  useEffect(() => {
+    secureLocalStore.get(STATE_KEY, null).then(saved => {
+      if (saved) setStates(saved);
+    });
+  }, []);
 
   // Calculate per-category and overall progress
   const categoryProgress = useCallback(() => {
@@ -367,6 +383,10 @@ export default function PCSDocumentsModule({ theme, profile }) {
             {missingRequired.length > 0 ? `${missingRequired.length} required doc${missingRequired.length !== 1 ? 's' : ''} outstanding` : '✓ All required docs obtained'}
           </span>
         </div>
+      </div>
+      <div style={{ padding: '0 14px' }}>
+        <PublicDataNotice theme={theme} compact />
+        <LocalEncryptedDataNotice theme={theme} />
       </div>
 
       {/* ── Missing-documents notification banner ── */}

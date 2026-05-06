@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { LocalEncryptedDataNotice, PublicDataNotice } from './SecurityNotice'
+import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
 
 const BASE_CITY = {
   'Fort Liberty': 'Fayetteville, NC', 'Fort Bragg': 'Fayetteville, NC',
@@ -407,7 +409,7 @@ function EmploymentModule({ theme, profile }) {
   const [activeTab, setActiveTab] = useState('skills')
 
   const [skills, setSkills] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('pcs_employment_skills')) || [] } catch { return [] }
+    return readLegacyJson('pcs_employment_skills', [])
   })
   const [newSkill, setNewSkill] = useState('')
   const [newSkillCat, setNewSkillCat] = useState('technical')
@@ -424,8 +426,14 @@ function EmploymentModule({ theme, profile }) {
   const [selectedPosition, setSelectedPosition] = useState(null)
 
   useEffect(() => {
-    localStorage.setItem('pcs_employment_skills', JSON.stringify(skills))
+    secureLocalStore.set('pcs_employment_skills', skills)
   }, [skills])
+
+  useEffect(() => {
+    secureLocalStore.get('pcs_employment_skills', null).then(saved => {
+      if (Array.isArray(saved)) setSkills(saved)
+    })
+  }, [])
 
   const installName = (profile?.gainingInstallation || '').split(',')[0].trim()
   const searchCity = BASE_CITY[installName] || (installName ? `${installName} area` : 'your area')
@@ -526,6 +534,7 @@ function EmploymentModule({ theme, profile }) {
     <div style={{ padding: 16 }}>
       <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 2 }}>Employment & Career Center</div>
       <div style={{ fontSize: 11, color: '#56697C', marginBottom: 16 }}>Service members & military spouses · {searchCity}</div>
+      <PublicDataNotice theme={theme} compact />
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' }}>
         {TABS.map(t => <button key={t.id} onClick={() => setActiveTab(t.id)} style={tb(t)}>{t.label}</button>)}
@@ -781,6 +790,10 @@ function EmploymentModule({ theme, profile }) {
       {/* ── RESUME ── */}
       {activeTab === 'resume' && (
         <div>
+          <LocalEncryptedDataNotice theme={theme} />
+          <div style={{ fontSize: 11, color: '#7A4A00', background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: 10, marginBottom: 12 }}>
+            Resume files and pasted resume text can contain sensitive personal data. They are processed in the browser session and are not intentionally stored by PCS Express unless you save related skills locally.
+          </div>
           {resumeAnalysis && (
             <div style={{ background: '#E8F5E9', border: '1.5px solid #4CAF50', borderRadius: 12, padding: 14, marginBottom: 14 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: '#2E7D32', marginBottom: 8 }}>Resume AI Analysis</div>
