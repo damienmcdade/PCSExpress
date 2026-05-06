@@ -125,7 +125,7 @@ export default function PetRelocationChecklistTab({ theme, profile }) {
               className={`pet-task ${checked ? 'is-done' : ''}`}
               onClick={() => toggleTask(activePhase, index)}
               aria-label={`${checked ? 'Mark incomplete' : 'Mark complete'}: ${task}`}
-              aria-hint="Updates pet relocation checklist progress"
+              aria-description="Updates pet relocation checklist progress"
             >
               <span>{checked ? '✓' : ''}</span>
               <strong>{task}</strong>

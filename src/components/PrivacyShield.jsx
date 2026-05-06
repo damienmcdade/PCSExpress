@@ -10,16 +10,11 @@ export default function PrivacyShield() {
 
   useEffect(() => {
     const applyShield = () => setShielded(document.hidden);
-    const blurShield = () => setShielded(true);
-    const removeShield = () => setShielded(false);
 
     document.addEventListener('visibilitychange', applyShield);
-    window.addEventListener('blur', blurShield);
-    window.addEventListener('focus', removeShield);
+    applyShield();
     return () => {
       document.removeEventListener('visibilitychange', applyShield);
-      window.removeEventListener('blur', blurShield);
-      window.removeEventListener('focus', removeShield);
     };
   }, []);
 

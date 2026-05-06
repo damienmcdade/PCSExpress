@@ -18,9 +18,9 @@ export function PublicDataNotice({ theme, compact = false }) {
 export function LocalEncryptedDataNotice({ theme, compact = false }) {
   return (
     <div className="security-notice security-notice--encrypted" style={{ borderColor: `${theme?.accent || '#2E7D32'}66` }}>
-      <strong>Local device storage</strong>
+      <strong>Protected local device storage</strong>
       <span>
-        User-entered PCS data is stored locally on this device and is not intentionally uploaded to PCS Express servers for storage. The previous browser secure-storage wrapper has been removed to prevent refresh failures; browser protections now rely on strict security headers, privacy shielding, local-only storage, and app-level recovery safeguards.
+        User-entered PCS data is stored locally on this device and is not intentionally uploaded to PCS Express servers for storage. Browser protections use compatible DoD/DISA-style hardening headers, privacy shielding when the app is backgrounded, local-only storage, audit logging, and startup recovery safeguards.
       </span>
       {!compact && <small>For the highest protection, keep the device locked, updated, and enrolled in your organization-approved security controls.</small>}
     </div>

@@ -11,6 +11,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "node server/index.js",
+    "smoke": "playwright test scripts/smoke-check.spec.cjs --browser=chromium --reporter=line",
     "ios:build": "npm run build && npx cap sync ios && echo 'iOS build synced. Open with: open ios/App/App.xcworkspace'",
     "ios:open": "open ios/App/App.xcworkspace",
     "cap:sync": "npx cap sync ios"
@@ -27,6 +28,7 @@
     "@capacitor/cli": "^8.3.1",
     "@capacitor/core": "^8.3.1",
     "@capacitor/ios": "^8.3.1",
+    "@playwright/test": "^1.59.1",
     "@vitejs/plugin-react": "^4.3.1",
     "concurrently": "^8.2.2",
     "leaflet": "^1.9.4",

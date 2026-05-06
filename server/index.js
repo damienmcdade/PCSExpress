@@ -16,6 +16,19 @@ const PORT = process.env.PORT || 3001
 const HOST = process.env.HOST || '0.0.0.0'
 const API_KEY = process.env.ANTHROPIC_API_KEY
 const distPath = path.join(__dirname, '..', 'dist')
+const csp = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://*.tile.openstreetmap.org",
+  "frame-src 'self' blob: data:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self'",
+].join('; ')
 
 console.log('[SERVER] ════════════════════════════════════════════════════════')
 console.log('[SERVER] PCS Express - Node.js Backend Server')
@@ -28,6 +41,14 @@ console.log(`[SERVER] FRONTEND: ${fs.existsSync(distPath) ? 'BUILT' : 'MISSING'}
 console.log('[SERVER] ════════════════════════════════════════════════════════')
 
 // === MIDDLEWARE ===
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', csp)
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=()')
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN')
+  next()
+})
 app.use(cors())
 app.use(express.json({ limit: '1mb' }))
 

@@ -20,6 +20,12 @@ function NavigationModule({ theme, profile }) {
   })
   const [expandedDirectionId, setExpandedDirectionId] = useState(null)
 
+  useEffect(() => {
+    secureLocalStore.get('pcs_saved_directions', null).then(saved => {
+      if (Array.isArray(saved)) setSavedDirections(saved)
+    })
+  }, [])
+
   // Mock base maps data
   const BASE_MAPS = {
     'Fort Liberty NC': {
@@ -518,8 +524,3 @@ function NavigationModule({ theme, profile }) {
 }
 
 export default NavigationModule;
-  useEffect(() => {
-    secureLocalStore.get('pcs_saved_directions', null).then(saved => {
-      if (Array.isArray(saved)) setSavedDirections(saved)
-    })
-  }, [])

@@ -1,10 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix Leaflet default icon paths broken by Vite bundling
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({ iconUrl: null, iconRetinaUrl: null, shadowUrl: null });
+let leafletReady = null;
+
+async function loadLeaflet() {
+  if (!leafletReady) {
+    leafletReady = import('leaflet').then((mod) => {
+      const L = mod.default || mod;
+      if (L?.Icon?.Default?.prototype?._getIconUrl) {
+        delete L.Icon.Default.prototype._getIconUrl;
+      }
+      L?.Icon?.Default?.mergeOptions?.({ iconUrl: null, iconRetinaUrl: null, shadowUrl: null });
+      return L;
+    });
+  }
+  return leafletReady;
+}
 
 // ─── Facility type definitions ─────────────────────────────────────────────
 const FACILITY_TYPES = {
@@ -1057,7 +1068,7 @@ const getBaseData = (installationLabel) => {
 };
 
 // ─── Create emoji divIcon ────────────────────────────────────────────────────
-const makeIcon = (emoji, color) => L.divIcon({
+const makeIcon = (L, emoji, color) => L.divIcon({
   html: `<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));text-align:center;">${emoji}</div>`,
   className: '',
   iconSize: [28, 28],
@@ -1065,7 +1076,7 @@ const makeIcon = (emoji, color) => L.divIcon({
   popupAnchor: [0, -14],
 });
 
-const makeBaseIcon = () => L.divIcon({
+const makeBaseIcon = (L) => L.divIcon({
   html: `<div style="background:#0A1628;border:3px solid #C8A84B;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,0.5);">🎖️</div>`,
   className: '',
   iconSize: [28, 28],
@@ -1082,6 +1093,7 @@ export default function BaseMapModule({ theme, profile }) {
   const [activeFilters, setActiveFilters] = useState(() => new Set(Object.keys(FACILITY_TYPES)));
   const [showLegend, setShowLegend] = useState(false);
   const [noData, setNoData] = useState(false);
+  const [mapError, setMapError] = useState('');
 
   // Sync selected base from profile gaining installation
   useEffect(() => {
@@ -1096,6 +1108,7 @@ export default function BaseMapModule({ theme, profile }) {
   // Build / rebuild map when selected base changes
   useEffect(() => {
     if (!mapRef.current || !selectedBase) return;
+    let cancelled = false;
 
     // Destroy old map
     if (mapInstanceRef.current) {
@@ -1110,52 +1123,62 @@ export default function BaseMapModule({ theme, profile }) {
       return;
     }
     setNoData(false);
+    setMapError('');
 
-    const map = L.map(mapRef.current, {
-      center: [baseInfo.lat, baseInfo.lng],
-      zoom: baseInfo.zoom || 13,
-      zoomControl: true,
-      attributionControl: true,
-    });
-    mapInstanceRef.current = map;
+    loadLeaflet()
+      .then((L) => {
+        if (cancelled || !mapRef.current) return;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 19,
-    }).addTo(map);
+        const map = L.map(mapRef.current, {
+          center: [baseInfo.lat, baseInfo.lng],
+          zoom: baseInfo.zoom || 13,
+          zoomControl: true,
+          attributionControl: true,
+        });
+        mapInstanceRef.current = map;
 
-    // Base center marker
-    L.marker([baseInfo.lat, baseInfo.lng], { icon: makeBaseIcon() })
-      .bindPopup(`<b>${baseInfo.name}</b><br/>${baseInfo.branch} · ${baseInfo.state}`)
-      .addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 19,
+        }).addTo(map);
 
-    // Create layer groups per facility type
-    const groups = {};
-    Object.keys(FACILITY_TYPES).forEach(t => {
-      groups[t] = L.layerGroup().addTo(map);
-    });
-    layerGroupsRef.current = groups;
+        // Base center marker
+        L.marker([baseInfo.lat, baseInfo.lng], { icon: makeBaseIcon(L) })
+          .bindPopup(`<b>${baseInfo.name}</b><br/>${baseInfo.branch} · ${baseInfo.state}`)
+          .addTo(map);
 
-    // Add facility markers
-    const facilities = getFacilities(selectedBase);
-    facilities.forEach(f => {
-      const ft = FACILITY_TYPES[f.type] || FACILITY_TYPES.hq;
-      const marker = L.marker([f.lat, f.lng], { icon: makeIcon(ft.icon, ft.color) })
-        .bindPopup(`<b>${ft.icon} ${f.name}</b><br/><span style="font-size:11px;color:#555;">${ft.label}</span>`);
-      groups[f.type]?.addLayer(marker);
-    });
+        // Create layer groups per facility type
+        const groups = {};
+        Object.keys(FACILITY_TYPES).forEach(t => {
+          groups[t] = L.layerGroup().addTo(map);
+        });
+        layerGroupsRef.current = groups;
 
-    if (facilities.length === 0) {
-      L.popup()
-        .setLatLng([baseInfo.lat, baseInfo.lng])
-        .setContent(`<b>${baseInfo.name}</b><br/>${baseInfo.branch} · ${baseInfo.state}<br/><small>For full installation maps and facility directories, visit:<br/><a href="https://www.militaryinstallations.dod.mil/" target="_blank">militaryinstallations.dod.mil</a></small>`)
-        .openOn(map);
-    }
+        // Add facility markers
+        const facilities = getFacilities(selectedBase);
+        facilities.forEach(f => {
+          const ft = FACILITY_TYPES[f.type] || FACILITY_TYPES.hq;
+          const marker = L.marker([f.lat, f.lng], { icon: makeIcon(L, ft.icon, ft.color) })
+            .bindPopup(`<b>${ft.icon} ${f.name}</b><br/><span style="font-size:11px;color:#555;">${ft.label}</span>`);
+          groups[f.type]?.addLayer(marker);
+        });
 
-    // Force redraw after container becomes visible
-    setTimeout(() => { if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize(); }, 150);
+        if (facilities.length === 0) {
+          L.popup()
+            .setLatLng([baseInfo.lat, baseInfo.lng])
+            .setContent(`<b>${baseInfo.name}</b><br/>${baseInfo.branch} · ${baseInfo.state}<br/><small>For full installation maps and facility directories, visit:<br/><a href="https://www.militaryinstallations.dod.mil/" target="_blank">militaryinstallations.dod.mil</a></small>`)
+            .openOn(map);
+        }
+
+        // Force redraw after container becomes visible
+        setTimeout(() => { if (!cancelled && mapInstanceRef.current) mapInstanceRef.current.invalidateSize(); }, 150);
+      })
+      .catch(() => {
+        if (!cancelled) setMapError('Public base map could not load on this device. Official public installation data remains available below.');
+      });
 
     return () => {
+      cancelled = true;
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
@@ -1235,8 +1258,15 @@ export default function BaseMapModule({ theme, profile }) {
       {/* Map container */}
       <div
         ref={mapRef}
-        style={{ width: '100%', height: '52vh', background: '#e8f0f8', position: 'relative' }}
-      />
+        style={{ width: '100%', height: '52vh', background: '#e8f0f8', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      >
+        {mapError && (
+          <div style={{ maxWidth: 360, background: '#FFFFFF', border: `1px solid ${theme.accent}55`, borderRadius: 12, padding: 14, color: '#27384a', fontSize: 12, lineHeight: 1.5, boxShadow: '0 6px 20px rgba(13,24,33,0.12)' }}>
+            <strong style={{ display: 'block', color: '#0D1821', marginBottom: 6 }}>Map view unavailable</strong>
+            {mapError}
+          </div>
+        )}
+      </div>
 
       {/* Legend toggle button */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#FFFFFF', borderBottom: '1px solid #E0E6EE' }}>
