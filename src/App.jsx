@@ -3326,10 +3326,6 @@ const INSTALLATION_UNITS = {
     Navy: ['Patrol and Reconnaissance Wing 11', 'VP-16 War Eagles', 'VP-30 Pro Patria (FRS)', 'VP-45 Pelicans', 'Helicopter Maritime Strike Wing Atlantic', 'NAVSUP Fleet Logistics Center Jacksonville'],
     Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
   },
-  'NAS Jacksonville': {
-    Navy: ['Patrol and Reconnaissance Wing 11', 'VP-30 (Maritime Patrol FRS)', 'VP-16, VP-45', 'Helicopter Maritime Strike Wing Atlantic'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
   'Naval Air Station Key West': {
     Navy: ['Naval Air Facility Key West', 'Fighter Squadron Composite 13 (VFC-13)', 'Helicopter Sea Combat Squadron 28 (HSC-28)', 'Joint Interagency Task Force South'],
     Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
@@ -3937,10 +3933,6 @@ const INSTALLATION_UNITS = {
   },
   'USCG Sector Jacksonville': {
     'Coast Guard': ['Sector Jacksonville', 'Station Mayport', 'Station Fort Pierce', 'Station Ponce de Leon Inlet'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Sector Miami': {
-    'Coast Guard': ['Sector Miami', 'Station Islamorada', 'Station Fort Lauderdale', 'Maritime Drug Law Enforcement Operations'],
     Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
   },
   'USCG Sector San Diego': {
