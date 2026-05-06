@@ -3,7 +3,7 @@
  * Third-party dependencies: React, Leaflet through child map modules, Capacitor bridge when running native.
  */
 
-import { useState, useEffect } from 'react'
+import { Component, useState, useEffect } from 'react'
 import './App.css'
 import EmploymentModule from './components/EmploymentModule'
 import NavigationModule from './components/NavigationModule'
@@ -29,6 +29,91 @@ const store = {
   get: (k) => readLegacyJson(k, null),
   set: (k, v) => { secureLocalStore.set(k, v); },
 };
+
+const PROFILE_DEFAULTS = {
+  firstName: '',
+  lastName: '',
+  branch: 'Army',
+  component: 'Active Duty',
+  paygrade: 'E-5',
+  losingInstallation: '',
+  gainingInstallation: '',
+  departingDate: '',
+  unit: '',
+  isOverseas: false,
+  hasDependents: false,
+  hasChildren: false,
+  childAges: [],
+  childrenAges: '',
+  language: 'en',
+  religiousPreference: 'No Preference',
+};
+
+function normalizeProfile(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const branch = BRANCH_THEMES[raw.branch] ? raw.branch : PROFILE_DEFAULTS.branch;
+  const childAges = Array.isArray(raw.childAges)
+    ? raw.childAges.filter(a => a !== '' && !isNaN(Number(a))).map(Number)
+    : String(raw.childrenAges || '').split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+
+  return {
+    ...PROFILE_DEFAULTS,
+    ...raw,
+    branch,
+    firstName: String(raw.firstName || ''),
+    lastName: String(raw.lastName || ''),
+    component: raw.component || PROFILE_DEFAULTS.component,
+    paygrade: raw.paygrade || PROFILE_DEFAULTS.paygrade,
+    losingInstallation: String(raw.losingInstallation || ''),
+    gainingInstallation: String(raw.gainingInstallation || ''),
+    departingDate: String(raw.departingDate || ''),
+    unit: String(raw.unit || ''),
+    childAges,
+    childrenAges: childAges.join(', '),
+    hasChildren: childAges.length > 0,
+    language: raw.language || PROFILE_DEFAULTS.language,
+    religiousPreference: raw.religiousPreference || raw.religion || PROFILE_DEFAULTS.religiousPreference,
+  };
+}
+
+function clearLocalProfileAndReload() {
+  try {
+    localStorage.removeItem('pcs_profile');
+  } catch {}
+  window.location.assign(window.location.origin);
+}
+
+class AppErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, info) {
+    console.error('PCS Express startup error', error, info);
+  }
+
+  render() {
+    if (!this.state.hasError) return this.props.children;
+    return (
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: '#F0F4F8', fontFamily: 'system-ui' }}>
+        <div style={{ maxWidth: 420, width: '100%', background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 14, padding: 18, boxShadow: '0 8px 28px rgba(13,24,33,0.12)' }}>
+          <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 8 }}>PCS Express needs to refresh your saved profile</div>
+          <div style={{ fontSize: 12, color: '#56697C', lineHeight: 1.6, marginBottom: 14 }}>
+            A saved browser profile from an older version could not be loaded safely. Your uploaded documents are not sent to PCS Express servers. Resetting the local profile returns you to onboarding and prevents a blank screen on refresh.
+          </div>
+          <button onClick={clearLocalProfileAndReload} style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: 'none', background: '#1565C0', color: '#FFFFFF', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>
+            Reset Local Profile
+          </button>
+        </div>
+      </div>
+    );
+  }
+}
 
 const normLookup = (value) => (value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -4302,7 +4387,7 @@ function Onboarding({ onComplete }) {
 }
 
 function App() {
-  const [profile, setProfile] = useState(() => store.get('pcs_profile'));
+  const [profile, setProfile] = useState(() => normalizeProfile(store.get('pcs_profile')));
   const [activeTab, setActiveTab] = useState('home');
   const [navOpen, setNavOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -4311,7 +4396,7 @@ function App() {
     return readLegacyJson('pcs_checklist_checks', {});
   });
   const [demoTip, setDemoTip] = useState(() => {
-    const p = store.get('pcs_profile');
+    const p = normalizeProfile(store.get('pcs_profile'));
     return (p?.firstName === 'Marcus' && p?.lastName === 'Thompson') ? 0 : -1;
   });
   const [screenW, setScreenW] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 480);
@@ -4322,7 +4407,8 @@ function App() {
   }, []);
   useEffect(() => {
     secureLocalStore.get('pcs_profile', null).then(saved => {
-      if (saved?.branch) setProfile(saved);
+      const normalized = normalizeProfile(saved);
+      if (normalized?.branch) setProfile(normalized);
     });
     secureLocalStore.get('pcs_checklist_checks', null).then(saved => {
       if (saved) setChecklistItems(saved);
@@ -4364,9 +4450,10 @@ function App() {
 
   if (!profile?.branch) {
     return <Onboarding onComplete={(p) => {
-      setProfile(p);
-      store.set('pcs_profile', p);
-      if (p?.firstName === 'Marcus' && p?.lastName === 'Thompson') setDemoTip(0);
+      const normalized = normalizeProfile(p);
+      setProfile(normalized);
+      store.set('pcs_profile', normalized);
+      if (normalized?.firstName === 'Marcus' && normalized?.lastName === 'Thompson') setDemoTip(0);
     }} />;
   }
 
@@ -4873,4 +4960,10 @@ function ReligiousServicesModuleWrapped({ theme, profile }) {
   );
 }
 
-export default App;
+export default function AppWithRecovery() {
+  return (
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
+  );
+}
