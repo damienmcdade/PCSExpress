@@ -4578,6 +4578,52 @@ function App() {
   ];
 
   const currentLabel = BOTTOM_NAV.find(n => n.id === activeTab)?.label || 'Home';
+  const activeNavItem = BOTTOM_NAV.find(n => n.id === activeTab);
+  const CATEGORY_DESCRIPTIONS = {
+    checklist: 'Track PCS requirements by phase, keep milestone progress visible, and save checklist updates locally for offline use.',
+    documents: 'Organize PCS records, upload-review reminders, and required document checklists without sending files to PCS Express servers.',
+    efmp: 'Review branch-tailored EFMP actions for medical, education, assignment coordination, and arrival planning.',
+    orders: 'Capture essential PCS order details so the rest of the application can tailor timelines, resources, and installation guidance.',
+    'unit-info': 'View public unit information, official lookup paths, history, and contact resources based on onboarding selections.',
+    schools: 'Plan school, childcare, CDC, DoDEA, and school-liaison actions near the gaining installation.',
+    veterans: 'Find veteran-owned business resources, public directories, and local search paths near the gaining location.',
+    employment: 'Build a military-family career plan with spouse-supportive job searches, skills, resume support, and official job resources.',
+    education: 'Review official education benefits, GI Bill pathways, MyCAA, college searches, and school-planning resources.',
+    'moving-assistance': 'Find financial assistance, grants, free support, entitlement education, and housing or land resources that may reduce PCS strain.',
+    'pet-relocation': 'Prepare pets for PCS travel with records, health certificates, lodging, airline, and OCONUS checklist support.',
+    'home-relocation': 'Document household goods, preserve evidence, track claims deadlines, and estimate replacement value for move claims.',
+    nav: 'Plan routes, save directions, and view public installation map information without restricted or non-public base details.',
+    spouse: 'Prepare families for deployment-related stress, communication planning, legal readiness, and support resources.',
+    religion: 'Locate chaplain, counseling, worship, and community support resources tied to the user’s optional faith preference.',
+    resources: 'Use one organized hub for official public military, government, family, financial, healthcare, PCS, and career resources.',
+    immigration: 'Review permanent resident, USCIS, citizenship, and military legal-help information for PCS-aware family planning.',
+    translation: 'Translate common PCS, housing, medical, school, transportation, and daily-life phrases for CONUS or OCONUS moves.',
+  };
+
+  const renderCategoryFrame = (tabId, children) => {
+    const item = BOTTOM_NAV.find(n => n.id === tabId) || activeNavItem;
+    return (
+      <section className="category-screen" style={{ '--category-color': item?.color || theme.primary }}>
+        <div className="category-screen__header" style={{ borderColor: `${theme.accent}55` }}>
+          <div className="category-screen__mark" style={{ background: `${item?.color || theme.primary}14`, borderColor: `${item?.color || theme.primary}35`, color: item?.color || theme.primary }}>
+            {item?.icon || theme.abbr}
+          </div>
+          <div>
+            <div className="category-screen__eyebrow">PCS EXPRESS CATEGORY</div>
+            <h1>{item?.label || currentLabel}</h1>
+            <p>{CATEGORY_DESCRIPTIONS[tabId] || 'Review official public information and locally saved PCS planning tools for this category.'}</p>
+          </div>
+        </div>
+        <div className="category-screen__notices">
+          <PublicDataNotice theme={theme} compact />
+          <LocalEncryptedDataNotice theme={theme} compact />
+        </div>
+        <div className="category-screen__body">
+          {children}
+        </div>
+      </section>
+    );
+  };
 
   if (activeTab === 'translation') {
     return (
@@ -4607,7 +4653,7 @@ function App() {
             <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>Translation</div>
           </div>
           <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isNative && !isDesktop ? 'calc(58px + env(safe-area-inset-bottom))' : 0 }}>
-            <TranslationModule theme={theme} profile={profile} />
+            {renderCategoryFrame('translation', <TranslationModule theme={theme} profile={profile} />)}
           </div>
         </div>
         {/* iOS bottom tab bar on translation route */}
@@ -4830,23 +4876,23 @@ function App() {
           </div>
         )}
 
-        {activeTab === 'checklist' && <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />}
-        {activeTab === 'documents' && <PCSDocumentsModule theme={theme} profile={profile} />}
-        {activeTab === 'efmp' && <EFMPTab theme={theme} profile={profile} />}
-        {activeTab === 'orders' && <OrdersTab theme={theme} profile={profile} />}
-        {activeTab === 'unit-info' && <UnitInfoScreen theme={theme} profile={profile} unit={selectedUnitProfile} />}
-        {activeTab === 'schools' && <SchoolsTab theme={theme} profile={profile} />}
-        {activeTab === 'veterans' && <VeteranBusinessesTab theme={theme} profile={profile} />}
-        {activeTab === 'employment' && <EmploymentModule theme={theme} profile={profile} />}
-        {activeTab === 'education' && <EducationBenefitsTab theme={theme} profile={profile} />}
-        {activeTab === 'moving-assistance' && <MovingFinancialAssistanceTab theme={theme} profile={profile} />}
-        {activeTab === 'pet-relocation' && <PetRelocationChecklistTab theme={theme} profile={profile} />}
-        {activeTab === 'home-relocation' && <HomeRelocationTab theme={theme} profile={profile} />}
-        {activeTab === 'nav' && <NavigationModule theme={theme} profile={profile} />}
-        {activeTab === 'spouse' && <SpouseDeploymentGuide theme={theme} profile={profile} />}
-        {activeTab === 'religion' && <ReligiousServicesModuleWrapped theme={theme} profile={profile} />}
-        {activeTab === 'resources' && <ResourcesTab theme={theme} profile={profile} />}
-        {activeTab === 'immigration' && <ImmigrationModule theme={theme} profile={profile} />}
+        {activeTab === 'checklist' && renderCategoryFrame('checklist', <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />)}
+        {activeTab === 'documents' && renderCategoryFrame('documents', <PCSDocumentsModule theme={theme} profile={profile} />)}
+        {activeTab === 'efmp' && renderCategoryFrame('efmp', <EFMPTab theme={theme} profile={profile} />)}
+        {activeTab === 'orders' && renderCategoryFrame('orders', <OrdersTab theme={theme} profile={profile} />)}
+        {activeTab === 'unit-info' && renderCategoryFrame('unit-info', <UnitInfoScreen theme={theme} profile={profile} unit={selectedUnitProfile} />)}
+        {activeTab === 'schools' && renderCategoryFrame('schools', <SchoolsTab theme={theme} profile={profile} />)}
+        {activeTab === 'veterans' && renderCategoryFrame('veterans', <VeteranBusinessesTab theme={theme} profile={profile} />)}
+        {activeTab === 'employment' && renderCategoryFrame('employment', <EmploymentModule theme={theme} profile={profile} />)}
+        {activeTab === 'education' && renderCategoryFrame('education', <EducationBenefitsTab theme={theme} profile={profile} />)}
+        {activeTab === 'moving-assistance' && renderCategoryFrame('moving-assistance', <MovingFinancialAssistanceTab theme={theme} profile={profile} />)}
+        {activeTab === 'pet-relocation' && renderCategoryFrame('pet-relocation', <PetRelocationChecklistTab theme={theme} profile={profile} />)}
+        {activeTab === 'home-relocation' && renderCategoryFrame('home-relocation', <HomeRelocationTab theme={theme} profile={profile} />)}
+        {activeTab === 'nav' && renderCategoryFrame('nav', <NavigationModule theme={theme} profile={profile} />)}
+        {activeTab === 'spouse' && renderCategoryFrame('spouse', <SpouseDeploymentGuide theme={theme} profile={profile} />)}
+        {activeTab === 'religion' && renderCategoryFrame('religion', <ReligiousServicesModuleWrapped theme={theme} profile={profile} />)}
+        {activeTab === 'resources' && renderCategoryFrame('resources', <ResourcesTab theme={theme} profile={profile} />)}
+        {activeTab === 'immigration' && renderCategoryFrame('immigration', <ImmigrationModule theme={theme} profile={profile} />)}
       </div>
       </div>{/* end body container */}
 
