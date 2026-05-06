@@ -18,7 +18,7 @@ function capacitorHtmlFix() {
 
       // Pull every assets bundle script out of wherever Vite put it
       const scriptTags = []
-      html = html.replace(/<script[^>]+src="\.\/assets\/[^"]+\.js"[^>]*><\/script>/g, (match) => {
+      html = html.replace(/<script[^>]+src="(?:\.\/|\/)assets\/[^"]+\.js"[^>]*><\/script>/g, (match) => {
         scriptTags.push(match)
         return ''
       })
@@ -34,7 +34,7 @@ function capacitorHtmlFix() {
 }
 
 export default defineConfig({
-  base: './',
+  base: '/',
   plugins: [react(), capacitorHtmlFix()],
   server: {
     // Development server on port 3000

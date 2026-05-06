@@ -138,6 +138,14 @@ if (fs.existsSync(distPath)) {
     immutable: true,
     maxAge: '1y',
   }))
+  app.get(/^\/.+\/assets\/(.+)$/, (req, res, next) => {
+    const assetPath = req.params[0]
+    if (!assetPath || assetPath.includes('..')) return next()
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+    res.sendFile(path.join(distPath, 'assets', assetPath), (err) => {
+      if (err && !res.headersSent) next()
+    })
+  })
   app.use(express.static(distPath, {
     maxAge: '1h',
     setHeaders(res, filePath) {
