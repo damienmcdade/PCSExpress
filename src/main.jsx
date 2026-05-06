@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 
-const STARTUP_VERSION = '2026-05-06-cache-reset-recovery'
+const STARTUP_VERSION = '2026-05-06-root-clear-recovery'
 
 function showStartupFailure(error) {
   const root = document.getElementById('root')
@@ -29,6 +29,7 @@ function mount() {
   window.__PCS_EXPRESS_BOOT_VERSION__ = STARTUP_VERSION
   const root = document.getElementById('root')
   if (!root) throw new Error('PCS Express root element is missing')
+  root.replaceChildren()
   ReactDOM.createRoot(root).render(
     <React.StrictMode>
       <App />
