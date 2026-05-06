@@ -34,7 +34,7 @@ function capacitorHtmlFix() {
 }
 
 export default defineConfig({
-  base: '/',
+  base: './',
   plugins: [react(), capacitorHtmlFix()],
   server: {
     // Development server on port 3000
