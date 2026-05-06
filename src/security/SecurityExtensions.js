@@ -10,6 +10,10 @@ const KEY_DB = 'pcs-express-secure-key-db';
 const KEY_STORE = 'keys';
 const KEY_ID = 'pcs-express-local-aes-gcm-v2';
 
+function isEncryptedEnvelope(value) {
+  return !!(value && typeof value === 'object' && value.alg === 'AES-256-GCM' && value.iv && value.data);
+}
+
 function hasCrypto() {
   return typeof crypto !== 'undefined' && crypto.subtle && crypto.getRandomValues;
 }
@@ -99,7 +103,7 @@ export function readLegacyJson(key, fallback = null) {
     const raw = localStorage.getItem(key);
     if (!raw) return fallback;
     const parsed = JSON.parse(raw);
-    return parsed?.alg === 'AES-256-GCM' ? fallback : parsed;
+    return isEncryptedEnvelope(parsed) ? fallback : parsed;
   } catch {
     return fallback;
   }
@@ -113,7 +117,9 @@ export const secureLocalStore = {
     } catch {
       try {
         const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return isEncryptedEnvelope(parsed) ? fallback : parsed;
       } catch {
         return fallback;
       }
