@@ -111,6 +111,20 @@ class AppErrorBoundary extends Component {
   }
 }
 
+const BRANCH_HOME_INSIGNIA = {
+  Army: 'USA',
+  Navy: 'USN',
+  'Marine Corps': 'USMC',
+  'Air Force': 'USAF',
+  'Space Force': 'USSF',
+  'Coast Guard': 'USCG',
+};
+
+function getHomeBranchInsignia(branch) {
+  const theme = BRANCH_THEMES[branch] || BRANCH_THEMES.Army;
+  return BRANCH_HOME_INSIGNIA[branch] || theme.insignia || theme.abbr || 'PCS';
+}
+
 const BRANCH_THEMES = {
   Army:           { primary: "#4A5E2A", secondary: "#2C3A14", accent: "#C8A84B", motto: "HOOAH",          tagline: "This We'll Defend",            insignia: "USA",  abbr: "USA"  },
   Navy:           { primary: "#1A2A5E", secondary: "#0D1838", accent: "#C8A84B", motto: "BRAVO ZULU",     tagline: "A Global Force for Good",      insignia: "USN",  abbr: "USN"  },
@@ -2972,6 +2986,7 @@ function App() {
 
   const safeProfile = profile && profile.branch ? profile : null;
   const theme = BRANCH_THEMES[safeProfile?.branch] || BRANCH_THEMES.Army;
+  const homeInsignia = getHomeBranchInsignia(profile?.branch);
 
   // Compute pending alerts based on departure date and checklist completion
   const daysUntilDeparture = profile?.departingDate ? getDaysUntilDeparture(profile.departingDate) : null;
@@ -3340,14 +3355,14 @@ function App() {
         {activeTab === 'home' && (
           <div style={{ padding: isDesktop ? '22px 24px 28px' : '16px', position: 'relative', overflow: 'hidden', minHeight: '100%', background: `radial-gradient(circle at 12% 4%, ${theme.primary}55 0, transparent 30%), radial-gradient(circle at 88% 14%, ${theme.accent}24 0, transparent 28%), linear-gradient(150deg, #08111C 0%, #101D2B 52%, ${theme.secondary} 100%)`, borderRadius: isDesktop ? 24 : 0 }}>
             <div aria-hidden="true" style={{ position: 'absolute', right: isDesktop ? -24 : -58, top: isDesktop ? 112 : 150, fontSize: isDesktop ? 430 : 285, fontWeight: 900, opacity: 0.16, userSelect: 'none', pointerEvents: 'none', color: theme.accent, letterSpacing: isDesktop ? '-18px' : '-12px', lineHeight: 0.82, zIndex: 0, textShadow: `0 0 60px ${theme.accent}55` }}>
-              {theme.insignia || theme.abbr}
+              {homeInsignia}
             </div>
             <div style={{ position: 'relative', zIndex: 1 }}>
             {/* Branch Hero Banner */}
             <div style={{ background: `linear-gradient(135deg, rgba(8,17,28,0.96) 0%, ${theme.secondary} 48%, ${theme.primary} 100%)`, borderRadius: 18, padding: isDesktop ? '24px 22px' : '20px 16px', marginBottom: 16, position: 'relative', overflow: 'hidden', border: `1px solid ${theme.accent}66`, boxShadow: `0 18px 48px rgba(0,0,0,0.38), inset 0 1px 0 ${theme.accent}22` }}>
               {/* Background branch acronym watermark */}
               <div style={{ position: 'absolute', right: -8, bottom: -12, fontSize: 90, fontWeight: 900, opacity: 0.07, userSelect: 'none', pointerEvents: 'none', color: theme.accent, letterSpacing: '-4px', lineHeight: 1 }}>
-                {theme.insignia || theme.abbr}
+                {homeInsignia}
               </div>
               {/* Branch label */}
               <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.22em', color: theme.accent, marginBottom: 4, textTransform: 'uppercase' }}>
