@@ -257,9 +257,6 @@ export default function PCSDocumentsModule({ theme, profile }) {
         </div>
       </div>
 
-      <div style={{ background: '#FFF8E1', borderBottom: '1px solid #FFE082', padding: '10px 16px', fontSize: 11, color: '#7A4A00', lineHeight: 1.5 }}>
-        High-security mode is active. PCS Express no longer accepts document attachments. Use the square checklist controls to track whether records are gathered and keep originals outside the app.
-      </div>
 
       {missingRequired.length > 0 && (
         <div style={{ background: '#7F1D1D', borderBottom: '1px solid #991B1B', padding: '10px 16px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
