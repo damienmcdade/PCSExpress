@@ -137,6 +137,15 @@ class AppErrorBoundary extends Component {
   }
 }
 
+const BRANCH_MARK_SOURCE_NOTES = {
+  Army: 'https://www.army.mil/socialmedia/operations/index.html',
+  Navy: 'https://www.navy.mil/TRADEMARKS/',
+  'Marine Corps': 'https://www.trademark.marines.mil/',
+  'Air Force': 'https://www.trademark.af.mil/Branding/Air-Force-Symbol/',
+  'Space Force': 'https://www.spaceforce.mil/About-Us/',
+  'Coast Guard': 'https://www.uscg.mil/',
+};
+
 const BRANCH_HOME_INSIGNIA = {
   Army: 'USA',
   Navy: 'USN',
@@ -150,6 +159,20 @@ function getHomeBranchInsignia(branch) {
   const theme = BRANCH_THEMES[branch] || BRANCH_THEMES.Army;
   return BRANCH_HOME_INSIGNIA[branch] || theme.insignia || theme.abbr || 'PCS';
 }
+
+const UI_PALETTE = {
+  page: '#F7F4EA',
+  pageAlt: '#EFE8D6',
+  surface: '#FFFFFF',
+  surfaceSoft: '#FBFAF5',
+  text: '#111827',
+  muted: '#56616F',
+  line: '#DDD5C2',
+  tactical: '#4F5D35',
+  tacticalDark: '#26351F',
+  gold: '#B8943A',
+  danger: '#7F1D1D',
+};
 
 const BRANCH_THEMES = {
   Army:           { primary: "#4A5E2A", secondary: "#2C3A14", accent: "#C8A84B", motto: "HOOAH",          tagline: "This We'll Defend",            insignia: "USA",  abbr: "USA"  },
@@ -2734,7 +2757,7 @@ function Onboarding({ onComplete }) {
                 <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>Used for translation services and language-specific resources</div>
               </div>
 
-              <button onClick={() => setStep(-1)} style={{ width: '100%', padding: '10px', marginBottom: 10, borderRadius: 10, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={() => setStep(-1)} style={{ width: '100%', padding: '10px', marginBottom: 10, borderRadius: 10, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: UI_PALETTE.muted, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                 See Demo First →
               </button>
               <button onClick={() => setStep(1)} disabled={!canGo1} style={{ width: '100%', padding: '13px', borderRadius: 12, background: canGo1 ? theme.accent : 'rgba(255,255,255,0.1)', color: canGo1 ? theme.secondary : 'rgba(255,255,255,0.3)', border: 'none', fontWeight: 900, cursor: canGo1 ? 'pointer' : 'not-allowed', fontSize: 14 }}>
@@ -2919,8 +2942,8 @@ function VAHomeLoanPanel({ theme, profile }) {
   return (
     <div>
       <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, marginBottom: 14, borderLeft: `3px solid ${theme.accent}` }}>
-        <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 4 }}>VA HOME LOAN</div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)', lineHeight: 1.6 }}>
+        <div style={{ fontSize: 10, fontWeight: 900, color: theme.primary, letterSpacing: '.14em', marginBottom: 4 }}>VA HOME LOAN</div>
+        <div style={{ fontSize: 12, color: UI_PALETTE.muted, lineHeight: 1.6 }}>
           Use this checklist to prepare for VA-backed homebuying near {profile?.gainingInstallation || 'your gaining installation'}. Verify all loan terms directly with the VA and the lender before committing.
         </div>
       </div>
@@ -2963,7 +2986,7 @@ function HomeRelocationUnifiedTab({ theme, profile }) {
 function HomeLegalBanners({ theme }) {
   return (
     <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
-      <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, borderLeft: `4px solid ${theme.accent}`, color: '#FFFFFF' }}>
+      <div style={{ background: UI_PALETTE.surface, borderRadius: 12, padding: 14, border: `1px solid ${UI_PALETTE.line}`, borderLeft: `4px solid ${theme.primary}`, color: UI_PALETTE.text }}>
         <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 6 }}>SECURITY CONTROLS</div>
         <div style={{ fontSize: 11, lineHeight: 1.6, color: 'rgba(255,255,255,0.78)' }}>
           PCS Express uses a no-document-upload design, hardened browser headers, privacy shielding, and disabled device permissions to reduce sensitive-data exposure. User-entered planning data is intended to stay local to the device unless the user opens an external public source or platform feature. Do not enter classified information, CUI, restricted government data, rosters, deployment details, or non-public mission information.
@@ -3190,7 +3213,7 @@ function App() {
 
   if (activeTab === 'translation') {
     return (
-      <div style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: '#08111C', fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
+      <div style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
         <PrivacyShield />
         {isDesktop && (
           <div style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', minHeight: '100dvh', borderRight: `2px solid ${theme.accent}30`, flexShrink: 0 }}>
@@ -3289,7 +3312,7 @@ function App() {
   }
 
   return (
-    <div style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: '#08111C', fontFamily: 'system-ui', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: 'column' }}>
       <PrivacyShield />
       {/* HEADER — paddingTop uses env(safe-area-inset-top) for notch/Dynamic Island.
           Requires viewport-fit=cover in the HTML meta and contentInsetAdjustmentBehavior=never
@@ -3391,24 +3414,24 @@ function App() {
       {/* CONTENT */}
       <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isNative && !isDesktop ? 'calc(58px + env(safe-area-inset-bottom))' : 'env(safe-area-inset-bottom)' }}>
         {activeTab === 'home' && (
-          <div style={{ padding: isDesktop ? '22px 24px 28px' : '16px', position: 'relative', overflow: 'hidden', minHeight: '100%', background: `radial-gradient(circle at 12% 4%, ${theme.primary}55 0, transparent 30%), radial-gradient(circle at 88% 14%, ${theme.accent}24 0, transparent 28%), linear-gradient(150deg, #08111C 0%, #101D2B 52%, ${theme.secondary} 100%)`, borderRadius: isDesktop ? 24 : 0 }}>
-            <div aria-hidden="true" style={{ position: 'absolute', right: isDesktop ? -24 : -58, top: isDesktop ? 112 : 150, fontSize: isDesktop ? 430 : 285, fontWeight: 900, opacity: 0.16, userSelect: 'none', pointerEvents: 'none', color: theme.accent, letterSpacing: isDesktop ? '-18px' : '-12px', lineHeight: 0.82, zIndex: 0, textShadow: `0 0 60px ${theme.accent}55` }}>
+          <div style={{ padding: isDesktop ? '24px 28px 32px' : '16px', position: 'relative', overflow: 'hidden', minHeight: '100%', background: `linear-gradient(135deg, ${UI_PALETTE.page} 0%, ${UI_PALETTE.surfaceSoft} 46%, ${UI_PALETTE.pageAlt} 100%)`, borderRadius: isDesktop ? 24 : 0, color: UI_PALETTE.text }}>
+            <div aria-hidden="true" style={{ position: 'absolute', right: isDesktop ? -28 : -52, top: isDesktop ? 112 : 156, fontSize: isDesktop ? 450 : 292, fontWeight: 950, opacity: 0.14, userSelect: 'none', pointerEvents: 'none', color: theme.primary, letterSpacing: isDesktop ? '-18px' : '-12px', lineHeight: 0.82, zIndex: 0 }}>
               {homeInsignia}
             </div>
             <div style={{ position: 'relative', zIndex: 1 }}>
             {/* Branch Hero Banner */}
-            <div style={{ background: `linear-gradient(135deg, rgba(8,17,28,0.96) 0%, ${theme.secondary} 48%, ${theme.primary} 100%)`, borderRadius: 18, padding: isDesktop ? '24px 22px' : '20px 16px', marginBottom: 16, position: 'relative', overflow: 'hidden', border: `1px solid ${theme.accent}66`, boxShadow: `0 18px 48px rgba(0,0,0,0.38), inset 0 1px 0 ${theme.accent}22` }}>
+            <div style={{ background: `linear-gradient(135deg, ${UI_PALETTE.surface} 0%, #F6F1E4 100%)`, borderRadius: 18, padding: isDesktop ? '24px 22px' : '20px 16px', marginBottom: 16, position: 'relative', overflow: 'hidden', border: `1px solid ${UI_PALETTE.line}`, boxShadow: '0 18px 42px rgba(38,53,31,0.13)' }}>
               {/* Background branch acronym watermark */}
               <div style={{ position: 'absolute', right: -8, bottom: -12, fontSize: 90, fontWeight: 900, opacity: 0.07, userSelect: 'none', pointerEvents: 'none', color: theme.accent, letterSpacing: '-4px', lineHeight: 1 }}>
                 {homeInsignia}
               </div>
               {/* Branch label */}
-              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.22em', color: theme.accent, marginBottom: 4, textTransform: 'uppercase' }}>
+              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.22em', color: theme.primary, marginBottom: 4, textTransform: 'uppercase' }}>
                 UNITED STATES {profile.branch.toUpperCase()}
               </div>
-              <div style={{ fontSize: 10, color: `${theme.accent}CC`, fontStyle: 'italic', marginBottom: 12 }}>{theme.tagline}</div>
+              <div style={{ fontSize: 10, color: UI_PALETTE.muted, fontStyle: 'italic', marginBottom: 12 }}>{theme.tagline}</div>
               {/* Soldier info */}
-              <div style={{ fontSize: 13, fontWeight: 800, color: 'rgba(255,255,255,0.95)' }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: UI_PALETTE.text }}>
                 {getRankDisplay(profile.branch, profile.paygrade)} {profile.firstName} {profile.lastName}
               </div>
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 2 }}>
@@ -3419,7 +3442,7 @@ function App() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {HOME_CATEGORIES.map((item) => (
-                <div key={item.id} onClick={() => goTo(item.id)} style={{ background: 'rgba(255,255,255,0.82)', border: `1px solid ${theme.accent}33`, borderRadius: 14, padding: isDesktop ? '18px 12px' : '15px 10px', cursor: 'pointer', textAlign: 'center', boxShadow: '0 14px 34px rgba(0,0,0,0.24)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: isDesktop ? 118 : 104, backdropFilter: 'blur(14px)', position: 'relative', overflow: 'hidden' }}>
+                <div key={item.id} onClick={() => goTo(item.id)} style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderTop: `4px solid ${item.color}`, borderRadius: 14, padding: isDesktop ? '18px 12px' : '15px 10px', cursor: 'pointer', textAlign: 'center', boxShadow: '0 12px 28px rgba(38,53,31,0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: isDesktop ? 118 : 104, position: 'relative', overflow: 'hidden' }}>
                   <div style={{ width: 50, height: 36, borderRadius: 10, background: `${item.color}16`, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${item.color}35`, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.45)` }}>
                     <span style={{ fontSize: 11, fontWeight: 900, color: item.color, letterSpacing: '.08em' }}>{item.icon}</span>
                   </div>
@@ -3429,8 +3452,8 @@ function App() {
             </div>
 
             {/* Quick profile summary */}
-            <div style={{ background: 'rgba(8,17,28,0.78)', border: `1px solid ${theme.accent}33`, borderRadius: 14, padding: 14, marginTop: 16, color: '#FFF', backdropFilter: 'blur(14px)', boxShadow: '0 12px 34px rgba(0,0,0,0.24)' }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: theme.accent, marginBottom: 8 }}>YOUR PROFILE</div>
+            <div style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderRadius: 14, padding: 14, marginTop: 16, color: UI_PALETTE.text, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
+              <div style={{ fontSize: 11, fontWeight: 900, color: theme.primary, marginBottom: 8, letterSpacing: '.12em' }}>YOUR PROFILE</div>
               <div style={{ fontSize: 12, lineHeight: 1.8 }}>
                 <div>Branch: {profile.branch} · {getRankDisplay(profile.branch, profile.paygrade)} ({profile.paygrade})</div>
                 {profile.gainingInstallation && <div>Gaining: {profile.gainingInstallation}</div>}

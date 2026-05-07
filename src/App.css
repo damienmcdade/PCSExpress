@@ -1453,3 +1453,88 @@ body {
     height: 30px;
   }
 }
+
+
+/* Option 3: Light Tactical Professional readability pass */
+:root {
+  --pcs-page: #F7F4EA;
+  --pcs-page-alt: #EFE8D6;
+  --pcs-surface: #FFFFFF;
+  --pcs-text: #111827;
+  --pcs-muted: #56616F;
+  --pcs-line: #DDD5C2;
+  --pcs-tactical: #4F5D35;
+  --pcs-tactical-dark: #26351F;
+  --pcs-gold: #B8943A;
+}
+
+html, body, #root {
+  background: var(--pcs-page);
+  color: var(--pcs-text);
+}
+
+body {
+  color: var(--pcs-text);
+}
+
+.category-screen {
+  width: 100%;
+  min-height: 100%;
+  padding: 16px;
+  background:
+    linear-gradient(135deg, var(--pcs-page) 0%, #FBFAF5 48%, var(--pcs-page-alt) 100%) !important;
+  color: var(--pcs-text);
+}
+
+.category-screen__header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  background: var(--pcs-surface) !important;
+  border: 1px solid var(--pcs-line) !important;
+  border-left: 5px solid var(--category-color, var(--pcs-tactical)) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  box-shadow: 0 12px 28px rgba(38, 53, 31, 0.10) !important;
+}
+
+.category-screen__mark {
+  width: 46px;
+  height: 36px;
+  border: 1px solid currentColor;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  flex-shrink: 0;
+  background: #F8F6EE !important;
+}
+
+.category-screen__eyebrow {
+  color: var(--pcs-muted) !important;
+}
+
+.category-screen__header h1 {
+  color: var(--pcs-text) !important;
+  letter-spacing: 0;
+}
+
+.category-screen__header p {
+  color: var(--pcs-muted) !important;
+}
+
+.category-screen__body {
+  color: var(--pcs-text);
+}
+
+.category-screen__body > div {
+  border-radius: 12px;
+}
+
+input, select, textarea {
+  color: var(--pcs-text);
+}
