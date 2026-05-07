@@ -8,12 +8,12 @@ export const generatePCSTasks = (user, order) => {
 
   // Orders Tasks (Day 1-30)
   tasks.push({
-    id: `${order.id}-orders-upload`,
-    task_name: 'Upload Orders',
+    id: `${order.id}-orders-review`,
+    task_name: 'Review Orders',
     task_type: 'orders',
     deadline: addDays(baseDate, 7),
     priority: 'high',
-    description: 'Upload official PCS orders to system',
+    description: 'Review official PCS order details and enter only required profile fields',
     rank_required: null,
     dependents_required: 0,
     is_oconus: false,
@@ -30,7 +30,7 @@ export const generatePCSTasks = (user, order) => {
     rank_required: null,
     dependents_required: 0,
     is_oconus: false,
-    dependencies: [`${order.id}-orders-upload`]
+    dependencies: [`${order.id}-orders-review`]
   });
 
   // HHG Tasks (Day 15-45)
@@ -264,7 +264,7 @@ export const identifyRisks = (tasks, completedTasks, order) => {
   });
 
   // Check critical path
-  const criticalTasks = ['orders-upload', 'hhg-schedule', 'travel-book'];
+  const criticalTasks = ['orders-review', 'hhg-schedule', 'travel-book'];
   const incompleteCritical = tasks.filter(t =>
     criticalTasks.some(ct => t.id.includes(ct)) && !completedTasks.includes(t.id)
   );

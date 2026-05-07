@@ -419,8 +419,6 @@ function EmploymentModule({ theme, profile }) {
 
   const [resumeText, setResumeText] = useState('')
   const [resumeAnalysis, setResumeAnalysis] = useState(null)
-  const [fileLoading, setFileLoading] = useState(false)
-  const [fileMsg, setFileMsg] = useState('')
   const [refinedResume, setRefinedResume] = useState('')
   const [selectedPosition, setSelectedPosition] = useState(null)
 
@@ -466,49 +464,6 @@ function EmploymentModule({ theme, profile }) {
       case 'linkedin': return `https://www.linkedin.com/jobs/search/?keywords=${kw}&location=${loc}&distance=${radius}`
       case 'zip':      return `https://www.ziprecruiter.com/jobs-search?search=${kw}&location=${loc}&radius=${radius}`
       default: return 'https://www.usajobs.gov'
-    }
-  }
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-    const ext = file.name.split('.').pop().toLowerCase()
-    setFileLoading(true)
-    setFileMsg('Reading file...')
-    setResumeAnalysis(null)
-    const reader = new FileReader()
-    const processText = async (text) => {
-      setResumeText(text)
-      setFileMsg('Analyzing with AI...')
-      try {
-        const res = await fetch('/api/ai', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system: 'Analyze this resume and extract: name, years of experience, top 5 skills, highest education level, and 3 most relevant job titles. Return JSON only: {name, experience_years, skills, education, suggested_titles}',
-            user: text,
-          }),
-        })
-        if (!res.ok) throw new Error('AI error')
-        const data = await res.json()
-        try {
-          const raw = data.text || JSON.stringify(data)
-          const m = raw.match(/\{[\s\S]*\}/)
-          if (m) setResumeAnalysis(JSON.parse(m[0]))
-        } catch (_) {}
-        setFileMsg('Analysis complete')
-      } catch {
-        setFileMsg('Resume loaded')
-      } finally {
-        setFileLoading(false)
-      }
-    }
-    if (ext === 'pdf') {
-      reader.onload = ev => processText((ev.target.result.match(/[ -~\n\r\t]{8,}/g) || []).join('\n'))
-      reader.readAsBinaryString(file)
-    } else {
-      reader.onload = ev => processText(ev.target.result || '')
-      reader.readAsText(file)
     }
   }
 
@@ -789,7 +744,7 @@ function EmploymentModule({ theme, profile }) {
       {activeTab === 'resume' && (
         <div>
           <div style={{ fontSize: 11, color: '#7A4A00', background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: 10, marginBottom: 12 }}>
-            Resume files and pasted resume text can contain sensitive personal data. They are processed in the browser session and are not intentionally stored by PCS Express unless you save related skills locally.
+            Resume text can contain sensitive personal data. File upload is disabled; paste only the minimum text needed for career planning. Pasted text is processed in the browser session and is not intentionally stored unless you save related skills locally.
           </div>
           {resumeAnalysis && (
             <div style={{ background: '#E8F5E9', border: '1.5px solid #4CAF50', borderRadius: 12, padding: 14, marginBottom: 14 }}>
@@ -809,19 +764,13 @@ function EmploymentModule({ theme, profile }) {
           )}
 
           <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#0D1821', marginBottom: 8 }}>Upload or Paste Resume</div>
-            {fileMsg && (
-              <div style={{ background: fileLoading ? '#FFF8E1' : resumeAnalysis ? '#E8F5E9' : '#E3F2FD', border: `1px solid ${fileLoading ? '#FFE082' : resumeAnalysis ? '#4CAF50' : '#90CAF9'}`, borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, fontWeight: 700, color: fileLoading ? '#E65100' : resumeAnalysis ? '#2E7D32' : '#1565C0' }}>
-                {fileMsg}
-              </div>
-            )}
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#0D1821', marginBottom: 8 }}>Paste Resume Text</div>
             <textarea
               value={resumeText}
               onChange={e => setResumeText(e.target.value)}
-              placeholder="Paste resume text here, or upload a file below..."
+              placeholder="Paste resume text here. File upload is disabled for security."
               style={{ width: '100%', minHeight: 280, padding: 12, borderRadius: 8, border: '1px solid #E0E6EE', fontSize: 12, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box' }}
             />
-            <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={handleFileChange} disabled={fileLoading} style={{ marginTop: 10, display: 'block', fontSize: 12 }} />
           </div>
 
           {selectedPosition && (

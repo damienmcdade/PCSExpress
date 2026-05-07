@@ -23,11 +23,12 @@ const csp = [
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
   "connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://*.tile.openstreetmap.org",
-  "frame-src 'self' blob: data:",
+  "frame-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'self'",
+  "upgrade-insecure-requests",
 ].join('; ')
 
 console.log('[SERVER] ════════════════════════════════════════════════════════')
@@ -47,9 +48,25 @@ app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=()')
   res.setHeader('X-Frame-Options', 'SAMEORIGIN')
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin')
+  res.setHeader('X-DNS-Prefetch-Control', 'off')
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none')
+  if ((process.env.NODE_ENV || '').toLowerCase() === 'production') res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
   next()
 })
-app.use(cors())
+const allowedOrigins = (process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)
+app.use(cors({
+  origin(origin, cb) {
+    if (!origin) return cb(null, true)
+    if (allowedOrigins.includes(origin)) return cb(null, true)
+    return cb(null, false)
+  },
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  maxAge: 86400,
+}))
 app.use(express.json({ limit: '1mb' }))
 
 // === HEALTH ENDPOINTS ===

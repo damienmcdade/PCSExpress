@@ -14,7 +14,10 @@
     "smoke": "playwright test scripts/smoke-check.spec.cjs --browser=chromium --reporter=line",
     "ios:build": "npm run build && npx cap sync ios && echo 'iOS build synced. Open with: open ios/App/App.xcworkspace'",
     "ios:open": "open ios/App/App.xcworkspace",
-    "cap:sync": "npx cap sync ios"
+    "cap:sync": "npx cap sync ios",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:bundle": "npm run build && npx cap sync android && cd android && ./gradlew bundleRelease"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -25,6 +28,7 @@
     "rollup": "^4.60.2"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.3.1",
     "@capacitor/cli": "^8.3.1",
     "@capacitor/core": "^8.3.1",
     "@capacitor/ios": "^8.3.1",
