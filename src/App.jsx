@@ -2988,7 +2988,7 @@ function HomeLegalBanners({ theme }) {
     <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
       <div style={{ background: UI_PALETTE.surface, borderRadius: 12, padding: 14, border: `1px solid ${UI_PALETTE.line}`, borderLeft: `4px solid ${theme.primary}`, color: UI_PALETTE.text }}>
         <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 6 }}>SECURITY CONTROLS</div>
-        <div style={{ fontSize: 11, lineHeight: 1.6, color: 'rgba(255,255,255,0.78)' }}>
+        <div style={{ fontSize: 11, lineHeight: 1.6, color: '#1F2937', fontWeight: 600 }}>
           PCS Express uses a no-document-upload design, hardened browser headers, privacy shielding, and disabled device permissions to reduce sensitive-data exposure. User-entered planning data is intended to stay local to the device unless the user opens an external public source or platform feature. Do not enter classified information, CUI, restricted government data, rosters, deployment details, or non-public mission information.
         </div>
       </div>
