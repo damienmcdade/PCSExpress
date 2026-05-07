@@ -2763,7 +2763,7 @@ function OrdersTab({ theme, profile }) {
 }
 
 // ─── Onboarding constants ──────────────────────────────────────────────────
-const COMPONENT_TYPES = ['Active Duty', 'Reserve', 'National Guard', 'AGR', 'FTNG', 'Spouse', 'Dependent'];
+const COMPONENT_TYPES = ['Active Duty', 'Reserve', 'National Guard', 'AGR', 'Dependent'];
 
 const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English',              native: 'English'    },
@@ -4204,7 +4204,7 @@ function Onboarding({ onComplete }) {
                 <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>COMPONENT</label>
                 <select value={p.component} onChange={e => {
                   const comp = e.target.value;
-                  if (['Spouse', 'Dependent'].includes(comp)) {
+                  if (comp === 'Dependent') {
                     setP(prev => ({ ...prev, component: comp, paygrade: 'N/A' }));
                   } else {
                     setP(prev => ({ ...prev, component: comp, paygrade: prev.paygrade === 'N/A' ? 'E-5' : prev.paygrade }));
@@ -4215,7 +4215,7 @@ function Onboarding({ onComplete }) {
               </div>
 
               {/* Pay grade */}
-              {['Spouse', 'Dependent'].includes(p.component) ? (
+              {p.component === 'Dependent' ? (
                 <div style={{ marginBottom: 12, padding: '11px 14px', borderRadius: 10, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>
                   Pay Grade &amp; Rank — N/A ({p.component})
                 </div>
