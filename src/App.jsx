@@ -28,6 +28,33 @@ const store = {
   set: (k, v) => { secureLocalStore.set(k, v); },
 };
 
+const DEMO_PROFILE_KEY = 'pcs_demo_profile';
+
+function getSessionDemoProfile() {
+  try {
+    const raw = sessionStorage.getItem(DEMO_PROFILE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveSessionDemoProfile(profile) {
+  try {
+    sessionStorage.setItem(DEMO_PROFILE_KEY, JSON.stringify(profile));
+  } catch {}
+}
+
+function clearSessionDemoProfile() {
+  try {
+    sessionStorage.removeItem(DEMO_PROFILE_KEY);
+  } catch {}
+}
+
+function prepareInteractiveDemoLaunch() {
+  clearSessionDemoProfile();
+}
+
 const PROFILE_DEFAULTS = {
   firstName: '',
   lastName: '',
@@ -69,14 +96,13 @@ function normalizeProfile(raw) {
     hasChildren: childAges.length > 0,
     language: raw.language || PROFILE_DEFAULTS.language,
     religiousPreference: raw.religiousPreference || raw.religion || PROFILE_DEFAULTS.religiousPreference,
+    demoMode: raw.demoMode === true || raw.isDemo === true,
   };
 }
 
-function clearLocalProfileAndReload() {
-  try {
-    localStorage.removeItem('pcs_profile');
-  } catch {}
-  window.location.assign(window.location.origin);
+function recoverWithoutDeletingProgress() {
+  clearSessionDemoProfile();
+  window.location.reload();
 }
 
 class AppErrorBoundary extends Component {
@@ -98,12 +124,12 @@ class AppErrorBoundary extends Component {
     return (
       <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: '#F0F4F8', fontFamily: 'system-ui' }}>
         <div style={{ maxWidth: 420, width: '100%', background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 14, padding: 18, boxShadow: '0 8px 28px rgba(13,24,33,0.12)' }}>
-          <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 8 }}>PCS Express needs to refresh your saved profile</div>
+          <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 8 }}>PCS Express needs to reload this screen</div>
           <div style={{ fontSize: 12, color: '#56697C', lineHeight: 1.6, marginBottom: 14 }}>
-            A saved browser profile from an older version could not be loaded safely. PCS Express no longer supports document upload, and resetting the local profile returns you to onboarding to prevent a blank screen on refresh.
+            PCS Express hit a temporary screen error. Reloading clears only the demo session preview and does not delete your saved PCS profile or checklist progress.
           </div>
-          <button onClick={clearLocalProfileAndReload} style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: 'none', background: '#1565C0', color: '#FFFFFF', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>
-            Reset Local Profile
+          <button onClick={recoverWithoutDeletingProgress} style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: 'none', background: '#1565C0', color: '#FFFFFF', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>
+            Reload Without Deleting Progress
           </button>
         </div>
       </div>
@@ -2519,6 +2545,7 @@ const RELIGIOUS_PREFERENCES = [
 ];
 
 const DEMO_PROFILE = {
+  demoMode: true,
   firstName: 'Marcus', lastName: 'Thompson',
   branch: 'Army', component: 'Active Duty', paygrade: 'E-7',
   losingInstallation: 'Fort Liberty', gainingInstallation: 'Camp Humphreys',
@@ -2628,7 +2655,7 @@ function Onboarding({ onComplete }) {
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <button onClick={() => onComplete(DEMO_PROFILE)} style={{ padding: '13px', borderRadius: 12, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 14, fontWeight: 900, cursor: 'pointer' }}>Launch Demo</button>
+                <button onClick={() => { prepareInteractiveDemoLaunch(); onComplete(DEMO_PROFILE); }} style={{ padding: '13px', borderRadius: 12, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 14, fontWeight: 900, cursor: 'pointer' }}>Launch Demo</button>
                 <button onClick={() => setStep(0)} style={{ padding: '13px', borderRadius: 12, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#FFF', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>My Profile</button>
               </div>
             </>
@@ -2953,7 +2980,7 @@ function HomeLegalBanners({ theme }) {
 }
 
 function App() {
-  const [profile, setProfile] = useState(() => normalizeProfile(store.get('pcs_profile')));
+  const [profile, setProfile] = useState(() => normalizeProfile(getSessionDemoProfile() || store.get('pcs_profile')));
   const [activeTab, setActiveTab] = useState('home');
   const [navOpen, setNavOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -2962,8 +2989,8 @@ function App() {
     return readLegacyJson('pcs_checklist_checks', {});
   });
   const [demoTip, setDemoTip] = useState(() => {
-    const p = normalizeProfile(store.get('pcs_profile'));
-    return (p?.firstName === 'Marcus' && p?.lastName === 'Thompson') ? 0 : -1;
+    const p = normalizeProfile(getSessionDemoProfile() || store.get('pcs_profile'));
+    return (p?.demoMode || (p?.firstName === 'Marcus' && p?.lastName === 'Thompson')) ? 0 : -1;
   });
   const [screenW, setScreenW] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 480);
   useEffect(() => {
@@ -2974,7 +3001,9 @@ function App() {
   useEffect(() => {
     secureLocalStore.get('pcs_profile', null).then(saved => {
       const normalized = normalizeProfile(saved);
-      if (normalized?.branch) setProfile(normalized);
+      if (normalized?.branch) {
+        setProfile(current => current?.demoMode ? current : normalized);
+      }
     });
     secureLocalStore.get('pcs_checklist_checks', null).then(saved => {
       if (saved) setChecklistItems(saved);
@@ -3031,8 +3060,17 @@ function App() {
     return <Onboarding onComplete={(p) => {
       const normalized = normalizeProfile(p);
       setProfile(normalized);
-      store.set('pcs_profile', normalized);
-      if (normalized?.firstName === 'Marcus' && normalized?.lastName === 'Thompson') setDemoTip(0);
+      if (normalized?.demoMode) {
+        saveSessionDemoProfile(normalized);
+        setActiveTab('home');
+        setNavOpen(false);
+        setMoreOpen(false);
+        setShowNotifs(false);
+        setDemoTip(0);
+      } else {
+        clearSessionDemoProfile();
+        store.set('pcs_profile', normalized);
+      }
     }} />;
   }
 
@@ -3169,7 +3207,7 @@ function App() {
                 </button>
               ))}
             </div>
-            <button onClick={() => { setProfile(null); store.set('pcs_profile', null); }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.1)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,100,100,0.85)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>Reset / Re-onboard</button>
+            <button onClick={() => { clearSessionDemoProfile(); setProfile(null); }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.1)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,100,100,0.85)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>Reset / Re-onboard</button>
           </div>
         )}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -3294,7 +3332,7 @@ function App() {
               </button>
             ))}
           </div>
-          <button onClick={() => { setProfile(null); store.set('pcs_profile', null); }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.15)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,100,100,0.9)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
+          <button onClick={() => { clearSessionDemoProfile(); setProfile(null); }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.15)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,100,100,0.9)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
             Reset / Re-onboard
           </button>
         </div>
@@ -3346,7 +3384,7 @@ function App() {
                 </button>
               ))}
             </div>
-            <button onClick={() => { setProfile(null); store.set('pcs_profile', null); }} style={{ width: '100%', padding: '9px', background: 'rgba(255,0,0,0.08)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,100,100,0.8)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>Reset / Re-onboard</button>
+            <button onClick={() => { clearSessionDemoProfile(); setProfile(null); }} style={{ width: '100%', padding: '9px', background: 'rgba(255,0,0,0.08)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,100,100,0.8)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>Reset / Re-onboard</button>
           </div>
         )}
 
@@ -3488,7 +3526,7 @@ function App() {
               ))}
             </div>
             <div style={{ padding: '10px 12px 4px' }}>
-              <button onClick={() => { setProfile(null); store.set('pcs_profile', null); setMoreOpen(false); }} style={{ width: '100%', padding: '12px', background: 'rgba(255,60,60,0.12)', border: '1px solid rgba(255,60,60,0.2)', borderRadius: 12, color: 'rgba(255,100,100,0.9)', fontSize: 13, cursor: 'pointer', fontWeight: 700 }}>
+              <button onClick={() => { clearSessionDemoProfile(); setProfile(null); setMoreOpen(false); }} style={{ width: '100%', padding: '12px', background: 'rgba(255,60,60,0.12)', border: '1px solid rgba(255,60,60,0.2)', borderRadius: 12, color: 'rgba(255,100,100,0.9)', fontSize: 13, cursor: 'pointer', fontWeight: 700 }}>
                 Reset / Re-onboard
               </button>
             </div>
