@@ -18,14 +18,10 @@ import PetRelocationChecklistTab from './components/PetRelocationChecklistTab'
 import EFMPTab from './components/EFMPTab'
 import HomeRelocationTab from './components/HomeRelocationTab'
 import HomeLocatorTab from './components/HomeLocatorTab'
-import SecurityCategoryTab from './components/SecurityCategoryTab'
 import PrivacyShield from './components/PrivacyShield'
 import SyncStatusIndicator from './components/SyncStatusIndicator'
-import UnitInfoScreen from './components/UnitInfoScreen'
-import { PublicDataNotice, LocalEncryptedDataNotice } from './components/SecurityNotice'
-import { AuditLogger, LAST_LOCAL_SAVE_KEY, secureLocalStore, readLegacyJson } from './security/SecurityExtensions'
+import { AuditLogger, secureLocalStore, readLegacyJson } from './security/SecurityExtensions'
 import { ALL_BASES } from './components/BaseMapModule'
-import MILITARY_UNITS from './data/militaryUnits'
 
 const store = {
   get: (k) => readLegacyJson(k, null),
@@ -41,7 +37,6 @@ const PROFILE_DEFAULTS = {
   losingInstallation: '',
   gainingInstallation: '',
   departingDate: '',
-  unit: '',
   isOverseas: false,
   hasDependents: false,
   hasChildren: false,
@@ -69,7 +64,6 @@ function normalizeProfile(raw) {
     losingInstallation: String(raw.losingInstallation || ''),
     gainingInstallation: String(raw.gainingInstallation || ''),
     departingDate: String(raw.departingDate || ''),
-    unit: String(raw.unit || ''),
     childAges,
     childrenAges: childAges.join(', '),
     hasChildren: childAges.length > 0,
@@ -106,7 +100,7 @@ class AppErrorBoundary extends Component {
         <div style={{ maxWidth: 420, width: '100%', background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 14, padding: 18, boxShadow: '0 8px 28px rgba(13,24,33,0.12)' }}>
           <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 8 }}>PCS Express needs to refresh your saved profile</div>
           <div style={{ fontSize: 12, color: '#56697C', lineHeight: 1.6, marginBottom: 14 }}>
-            A saved browser profile from an older version could not be loaded safely. Your uploaded documents are not sent to PCS Express servers. Resetting the local profile returns you to onboarding and prevents a blank screen on refresh.
+            A saved browser profile from an older version could not be loaded safely. PCS Express no longer supports document upload, and resetting the local profile returns you to onboarding to prevent a blank screen on refresh.
           </div>
           <button onClick={clearLocalProfileAndReload} style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: 'none', background: '#1565C0', color: '#FFFFFF', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>
             Reset Local Profile
@@ -115,70 +109,6 @@ class AppErrorBoundary extends Component {
       </div>
     );
   }
-}
-
-const normLookup = (value) => (value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-
-function findPublicUnitProfile(profile) {
-  const selectedUnit = profile?.unit || '';
-  const selectedBase = (profile?.gainingInstallation || '').split(',')[0].trim();
-  if (!selectedUnit) return null;
-
-  const possibleKeys = [
-    profile?.gainingInstallation,
-    selectedBase,
-    `${selectedBase} ${profile?.branch || ''}`,
-    `${selectedBase} ${(profile?.gainingInstallation || '').split(',')[1] || ''}`,
-  ].filter(Boolean);
-
-  const candidates = Object.entries(MILITARY_UNITS).flatMap(([key, units]) => {
-    const keyMatch = possibleKeys.some(candidate => normLookup(key).includes(normLookup(candidate)) || normLookup(candidate).includes(normLookup(key)));
-    return keyMatch ? units : [];
-  });
-
-  return candidates.find(unit => normLookup(unit.name) === normLookup(selectedUnit))
-    || candidates.find(unit => normLookup(unit.name).includes(normLookup(selectedUnit)) || normLookup(selectedUnit).includes(normLookup(unit.name)))
-    || makePublicLookupUnitProfile(profile);
-}
-
-const publicSearchUrl = (query) => `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-const militaryInstallationsUrl = 'https://installations.militaryonesource.mil/';
-
-const PUBLIC_BRANCH_UNIFORMS = {
-  Army: ['Army Combat Uniform (ACU)', 'Army Green Service Uniform (AGSU)', 'Army Service Uniform (ASU)', 'Army Physical Fitness Uniform (APFU)'],
-  Navy: ['Navy Working Uniform Type III', 'Service Khaki', 'Service Dress Blue', 'Navy Physical Training Uniform'],
-  'Marine Corps': ['Marine Corps Combat Utility Uniform (MCCUU)', 'Service Alpha / Bravo / Charlie', 'Dress Blue', 'USMC physical training uniform'],
-  'Air Force': ['Operational Camouflage Pattern (OCP)', 'Service Dress', 'Blues uniform', 'Air Force physical training gear'],
-  'Space Force': ['Operational Camouflage Pattern (OCP)', 'Service Dress / Blues', 'Space Force physical training gear'],
-  'Coast Guard': ['Operational Dress Uniform (ODU)', 'Tropical Blue', 'Service Dress Blue', 'Coast Guard physical fitness clothing'],
-};
-
-const getBranchUniforms = (branch) => PUBLIC_BRANCH_UNIFORMS[branch] || ['Daily duty uniform', 'Service uniform', 'Physical training uniform'];
-
-function makePublicLookupUnitProfile(profile = {}) {
-  const unitName = profile?.unit || `${profile?.branch || 'Military'} gaining unit`;
-  const baseName = (profile?.gainingInstallation || '').split(',')[0].trim() || 'gaining installation';
-  const branch = profile?.branch || 'Military';
-  const publicQuery = `${unitName} ${baseName} official public`;
-  return {
-    id: `PUBLIC-${normLookup(unitName).slice(0, 24) || 'UNIT'}`,
-    name: unitName,
-    branch,
-    nickname: 'Public-source lookup profile',
-    established: 'Verify through official unit history or lineage page',
-    motto: 'Verify through official public command page',
-    website: publicSearchUrl(`${publicQuery} website`),
-    social: {},
-    history: `${unitName} at ${baseName} is populated through the public lookup fallback. Use the official links below to verify the command page, public affairs releases, DVIDS imagery/news, and approved public social media before relying on details.`,
-    uniforms: getBranchUniforms(branch),
-    contacts: [
-      { label: 'MilitaryINSTALLATIONS directory', url: militaryInstallationsUrl },
-      { label: 'Google official unit page', url: publicSearchUrl(`${publicQuery} site:.mil OR site:.gov`) },
-      { label: 'Google public affairs / DVIDS', url: publicSearchUrl(`${unitName} ${baseName} DVIDS public affairs`) },
-      { label: 'Google staff duty / quarterdeck public contact', url: publicSearchUrl(`${unitName} ${baseName} staff duty quarterdeck public contact`) },
-    ],
-    sourceStatus: 'Generated public lookup profile',
-  };
 }
 
 const BRANCH_THEMES = {
@@ -2789,1274 +2719,11 @@ const RELIGIOUS_PREFERENCES = [
   'Prefer not to say', 'Other',
 ];
 
-const INSTALLATION_UNITS = {
-  // ── ARMY ──────────────────────────────────────────────────────────────────
-  'Fort Liberty': {
-    Army: ['XVIII Airborne Corps HQ', '82nd Airborne Division', '1st Special Forces Command (Airborne)', '525th Expeditionary Military Intelligence Brigade', '16th Military Police Brigade', '20th CBRNE Command'],
-    'Air Force': ['43rd Airlift Wing'], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Bragg': {
-    Army: ['XVIII Airborne Corps HQ', '82nd Airborne Division', '1st Special Forces Command (Airborne)', '525th Expeditionary Military Intelligence Brigade'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Campbell': {
-    Army: ['101st Airborne Division (Air Assault)', '5th Special Forces Group (Airborne)', '160th Special Operations Aviation Regiment', '431st Chemical Brigade'],
-    'Air Force': ['101st Airborne Division Aviation'], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Cavazos': {
-    Army: ['III Corps', '1st Cavalry Division', '3rd Cavalry Regiment', '13th Sustainment Command (Expeditionary)', '36th Engineer Brigade', '504th Military Intelligence Brigade', '89th Military Police Brigade'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Hood': {
-    Army: ['III Corps', '1st Cavalry Division', '3rd Cavalry Regiment', '13th Sustainment Command (Expeditionary)'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Carson': {
-    Army: ['4th Infantry Division', '10th Special Forces Group (Airborne)', '71st Ordnance Group (EOD)', '4th Security Force Assistance Brigade', '43rd Sustainment Brigade'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Bliss': {
-    Army: ['1st Armored Division', '32nd Army Air and Missile Defense Command', '7th Special Forces Group (Airborne)', '402nd Army Field Support Brigade'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Drum': {
-    Army: ['10th Mountain Division (LI)', '10th Combat Aviation Brigade', '10th Mountain Division Sustainment Brigade'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Sill': {
-    Army: ['Fires Center of Excellence', '75th Field Artillery Brigade', '31st Air Defense Artillery Brigade', '434th Field Artillery Brigade'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Moore': {
-    Army: ['Maneuver Center of Excellence', '198th Infantry Brigade', '29th Infantry Regiment', '316th Cavalry Brigade'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Benning': {
-    Army: ['Maneuver Center of Excellence', '75th Ranger Regiment', '3rd Infantry Regiment (The Old Guard training)'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Eisenhower': {
-    Army: ['Cyber Center of Excellence', '780th Military Intelligence Brigade (Cyber)', '15th Cyber Warfare Battalion'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Gordon': {
-    Army: ['Cyber Center of Excellence', '780th Military Intelligence Brigade (Cyber)'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Stewart': {
-    Army: ['3rd Infantry Division', '3rd Combat Aviation Brigade', '3rd Sustainment Brigade'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Knox': {
-    Army: ['Armor School', 'Army Human Resources Command (HRC)', '3rd Recruiting Brigade', '1st Theater Sustainment Command'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Jackson': {
-    Army: ['193rd Infantry Brigade', 'U.S. Army Drill Sergeant School', 'Adjutant General School'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Leonard Wood': {
-    Army: ['Maneuver Support Center of Excellence', '14th Chemical Brigade', '554th Engineer Battalion', 'Military Police School', 'Engineer School'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Leavenworth': {
-    Army: ['Combined Arms Center', 'Command and General Staff College', 'U.S. Army Intelligence Center', '902nd Military Intelligence Group', 'Army Corrections Command'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Riley': {
-    Army: ['1st Infantry Division (Big Red One)', '937th Engineer Group', '1st Infantry Division Combat Aviation Brigade'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Wainwright': {
-    Army: ['1st Stryker Brigade Combat Team (25th ID)', '11th Airborne Division', 'Arctic Warriors'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Gregg-Adams': {
-    Army: ['Combined Arms Support Command', 'Army Quartermaster School', 'Army Ordnance School', 'Transportation Corps School'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Lee': {
-    Army: ['Combined Arms Support Command', 'Army Quartermaster School', 'Army Ordnance School'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Meade': {
-    Army: ['U.S. Cyber Command', 'NSA/CSS', '704th Military Intelligence Brigade', '780th Military Intelligence Brigade'],
-    Navy: ['Defense Information Systems Agency (DISA)'],
-    'Air Force': ['Air Force Cyber Operations'], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Hamilton': {
-    Army: ['Recruitment Battalion', 'Military Entrance Processing Command', 'Northeast USARC'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'West Point (USMA)': {
-    Army: ['United States Military Academy', 'USMA Corps of Cadets', 'Headquarters USMA'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Aberdeen Proving Ground': {
-    Army: ['Army Test and Evaluation Command (ATEC)', 'Army Research Laboratory', 'Signal Center of Excellence', '20th CBRNE Command', 'Cyber School'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Belvoir': {
-    Army: ['Defense Threat Reduction Agency (DTRA)', 'National Geospatial-Intelligence Agency (NGA)', 'Army Intelligence and Security Command (INSCOM)', 'Defense Contract Audit Agency'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Myer (JBM-HH)': {
-    Army: ['3rd U.S. Infantry Regiment (The Old Guard)', 'U.S. Army Band (Pershing\'s Own)', 'Military District of Washington'],
-    'Marine Corps': ['Marine Barracks Washington Detachment'],
-    Navy: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Schofield Barracks': {
-    Army: ['25th Infantry Division (Tropic Lightning)', '8th Theater Sustainment Command', '500th Military Intelligence Brigade'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Shafter': {
-    Army: ['U.S. Army Pacific (USARPAC)', 'U.S. Army Hawaii', '311th Signal Command'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // Korea
-  'Camp Humphreys': {
-    Army: ['United States Forces Korea (USFK)', '8th Army HQ', '2nd Infantry Division', '19th Expeditionary Sustainment Command', 'Area I Support Activity'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Humphreys': {
-    Army: ['8th Army HQ', '2nd Infantry Division', '19th Expeditionary Sustainment Command'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // Germany
-  'USAG Stuttgart': {
-    Army: ['U.S. European Command (EUCOM)', 'U.S. Africa Command (AFRICOM)', 'Special Operations Command Europe (SOCEUR)', '5th Special Forces Group Europe'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Wiesbaden': {
-    Army: ['U.S. Army Europe and Africa (USAREUR-AF)', 'V Corps Forward', '12th Combat Aviation Brigade', '1st Armored Division Forward'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Bavaria (Grafenwöhr)': {
-    Army: ['7th Army Training Command', 'Joint Multinational Readiness Center (JMRC)', '12th Combat Aviation Brigade', '2nd Cavalry Regiment'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Rheinland-Pfalz (Kaiserslautern)': {
-    Army: ['21st Theater Sustainment Command', '405th Army Field Support Brigade'],
-    'Air Force': ['86th Airlift Wing (Ramstein)'], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // ── NAVY ──────────────────────────────────────────────────────────────────
-  'Naval Station Norfolk': {
-    Navy: ['U.S. Fleet Forces Command', 'Naval Air Force Atlantic', 'Naval Surface Force Atlantic', 'Carrier Strike Groups (CSG-2, CSG-8)', 'COMNAVAIRLANT', 'Navy Region Mid-Atlantic'],
-    'Marine Corps': ['2nd Marine Aircraft Wing (MAW)'],
-    Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Base San Diego': {
-    Navy: ['Navy Region Southwest', 'Third Fleet', 'Naval Surface Force Pacific', 'Carrier Strike Groups (CSG-1, CSG-3)', 'Naval Special Warfare Command'],
-    'Marine Corps': ['1st Marine Division', 'Marine Corps Recruit Depot San Diego'],
-    Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Station Mayport': {
-    Navy: ['Naval Station Mayport', 'Destroyer Squadron 6', 'SEAL Team 4', 'Helicopter Sea Combat Squadron'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'NAS Pensacola': {
-    Navy: ['Naval Air Station Pensacola', 'Naval Education and Training Command', 'Blue Angels', 'Aviation Officer Candidate School'],
-    'Marine Corps': ['Marine Aviation Training Support Group'],
-    Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Base Kitsap': {
-    Navy: ['Naval Base Kitsap', 'Strategic Weapons Facility Pacific', 'Submarine Group 9', 'Trident submarines (ballistic missile)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'NAS Jacksonville': {
-    Navy: ['VP-30 (Maritime Patrol)', 'VP-16', 'Patrol and Reconnaissance Wing 11', 'NAVSUP Fleet Logistics Center'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Submarine Base Kings Bay': {
-    Navy: ['Submarine Group 10', 'SSBN (Ohio-class ballistic missile submarines)', 'Trident Training Facility'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Base Coronado': {
-    Navy: ['Naval Special Warfare Command', 'SEAL Teams 1, 3, 5, 7, 17, 18', 'SWCC', 'Naval Air Station North Island', 'Carrier Air Wing (CVW-9, CVW-11)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Station Great Lakes': {
-    Navy: ['Naval Service Training Command (NSTC)', 'Recruit Training Command (Boot Camp)', 'Nuclear Power School', 'NETC'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Joint Base Pearl Harbor-Hickam': {
-    Navy: ['U.S. Pacific Fleet HQ', 'Submarine Force Pacific', 'Navy Region Hawaii', 'Pearl Harbor Naval Shipyard'],
-    'Air Force': ['Pacific Air Forces (PACAF) HQ', '15th Wing', 'Air Mobility Command Pacific'],
-    Army: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': ['14th Coast Guard District'],
-  },
-  'NAS Whidbey Island': {
-    Navy: ['Electronic Attack Wing Pacific', 'VAQ squadrons (EA-18G Growlers)', 'VP squadrons (P-8 Poseidon)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Commander Fleet Activities Yokosuka': {
-    Navy: ['7th Fleet HQ', 'Task Force 70', 'Carrier Strike Group 5', 'USS Ronald Reagan (CVN-76)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Commander Fleet Activities Sasebo': {
-    Navy: ['CTF-76 (Amphibious Force)', 'Amphibious Squadron 11', 'Mine Countermeasures Force 7th Fleet'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Station Sigonella': {
-    Navy: ['NAVEUR', 'VP-4 Skinny Dragons', 'P-8 Poseidon patrol squadrons', 'Drone operations support'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Naples': {
-    Navy: ['Commander Naval Forces Europe-Africa (NAVEUR-NAVAF)', '6th Fleet HQ', 'Task Force 60'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Station Rota': {
-    Navy: ['Navy Region Europe-Africa Southwest', 'Commander Task Force 65', 'Destroyer Squadron 60', 'DDG Aegis destroyers forward-deployed'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // ── MARINE CORPS ──────────────────────────────────────────────────────────
-  'Marine Corps Base Camp Lejeune': {
-    'Marine Corps': ['II Marine Expeditionary Force (II MEF)', '2nd Marine Division', '2nd Marine Logistics Group', '2nd Marine Aircraft Wing (MAW)', 'Marine Corps Forces Special Operations Command (MARSOC)'],
-    Navy: ['Naval Medical Center Camp Lejeune'],
-    Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Camp Lejeune': {
-    'Marine Corps': ['II Marine Expeditionary Force (II MEF)', '2nd Marine Division', '2nd Marine Logistics Group'],
-    Navy: ['Naval Medical Center Camp Lejeune'],
-    Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Camp Pendleton': {
-    'Marine Corps': ['I Marine Expeditionary Force (I MEF)', '1st Marine Division', '1st Marine Logistics Group', 'Marine Aircraft Group 39 (MAG-39)', '5th Marine Regiment'],
-    Navy: ['Naval Hospital Camp Pendleton', 'SEAL Team 5'],
-    Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MCAS Miramar': {
-    'Marine Corps': ['3rd Marine Aircraft Wing (3rd MAW)', 'Marine Fighter Attack Training Squadron 101', 'Marine Air Control Group 38'],
-    Navy: [], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MCAS Cherry Point': {
-    'Marine Corps': ['2nd Marine Aircraft Wing', 'Marine Aircraft Group 14 (MAG-14)', 'VMFA squadrons (F/A-18)', 'Marine Corps Air Station Cherry Point'],
-    Navy: ['Fleet Readiness Center East'],
-    Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MCB Quantico': {
-    'Marine Corps': ['Marine Corps Combat Development Command', 'Marine Corps University', 'FBI Academy', 'Officer Candidates School (OCS)', 'The Basic School (TBS)', 'Marine Corps Intelligence Activity'],
-    'Air Force': [], Army: [], Navy: [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Marine Corps Base Quantico': {
-    'Marine Corps': ['Marine Corps Combat Development Command', 'Officer Candidates School', 'The Basic School'],
-    Army: [], Navy: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MCRD Parris Island': {
-    'Marine Corps': ['Marine Corps Recruit Depot Parris Island', 'Eastern Recruiting Region', '4th Recruit Training Battalion'],
-    Army: [], Navy: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Camp Butler (Okinawa)': {
-    'Marine Corps': ['III Marine Expeditionary Force (III MEF)', '3rd Marine Division', '1st Marine Aircraft Wing', '3rd Marine Logistics Group'],
-    Army: [], Navy: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MCAS Iwakuni': {
-    'Marine Corps': ['Marine Aircraft Group 12 (MAG-12)', 'VMFA-121 (F-35B)', 'Marine Air Control Group 18'],
-    Navy: ['Carrier Air Wing 5 (CVW-5)'],
-    Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // ── AIR FORCE ─────────────────────────────────────────────────────────────
-  'Joint Base Langley-Eustis': {
-    'Air Force': ['1st Fighter Wing (F-22 Raptors)', 'Air Combat Command HQ', '480th Intelligence, Surveillance, and Reconnaissance Wing'],
-    Army: ['7th Transportation Brigade (Expeditionary)', '128th Aviation Brigade'],
-    Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Eglin AFB': {
-    'Air Force': ['Air Force Materiel Command', '96th Test Wing', '33rd Fighter Wing (F-35A)', '7th Special Forces Group (Airborne) − AFSOC', '1st Special Operations Wing', 'Air Force Research Laboratory Munitions Directorate'],
-    Army: ['7th Special Forces Group (Airborne)'],
-    Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MacDill AFB': {
-    'Air Force': ['6th Air Refueling Wing (KC-135)', 'Air Force Special Operations Command (AFSOC)'],
-    Army: ['U.S. Central Command (CENTCOM)', 'U.S. Special Operations Command (SOCOM)'],
-    Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Joint Base Andrews': {
-    'Air Force': ['11th Wing', '316th Wing', 'Air Force One (1st Airlift Squadron)', '89th Airlift Wing', 'District of Columbia Air National Guard'],
-    'Marine Corps': ['Marine Helicopter Squadron One (HMX-1)'],
-    Army: [], Navy: [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Offutt AFB': {
-    'Air Force': ['U.S. Strategic Command (STRATCOM) HQ', '55th Wing (RC-135 Rivet Joint)', 'Air Force Global Strike Command component'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Ramstein AB': {
-    'Air Force': ['U.S. Air Forces in Europe (USAFE) HQ', '86th Airlift Wing (C-130J)', 'Air Mobility Command Europe', '435th Air Ground Operations Wing'],
-    Army: ['U.S. Army Europe and Africa HQ (nearby Wiesbaden)'],
-    Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Kadena AB': {
-    'Air Force': ['18th Wing (F-15 Eagles)', 'Pacific Air Forces', 'Marine Aircraft Group 36 (MAG-36)'],
-    'Marine Corps': ['Marine Aircraft Group 36'],
-    Army: [], Navy: [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Osan AB': {
-    'Air Force': ['7th Air Force HQ', '51st Fighter Wing (F-16, A-10)', 'Combined Air Operations Center Korea'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'RAF Lakenheath': {
-    'Air Force': ['48th Fighter Wing (F-15C/D/E)', 'USAFE-AFAFRICA', '492nd Fighter Squadron', '494th Fighter Squadron', 'F-35A transition ongoing'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Nellis AFB': {
-    'Air Force': ['Air Force Warfare Center', 'USAF Weapons School', '57th Wing', 'Thunderbirds (Air Force Demonstration Squadron)', 'F-35, F-16, F-15 combat training'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Travis AFB': {
-    'Air Force': ['60th Air Mobility Wing (C-17, C-5)', 'David Grant USAF Medical Center'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Scott AFB': {
-    'Air Force': ['U.S. Transportation Command (TRANSCOM) HQ', 'Air Mobility Command (AMC) HQ', '375th Air Mobility Wing', 'Defense Information Systems Agency (DISA) West'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Wright-Patterson AFB': {
-    'Air Force': ['Air Force Materiel Command (AFMC) HQ', 'Air Force Research Laboratory (AFRL)', '88th Air Base Wing', 'National Air and Space Intelligence Center (NASIC)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Tinker AFB': {
-    'Air Force': ['Air Force Sustainment Center', 'Oklahoma City Air Logistics Complex (OC-ALC)', '552nd Air Control Wing (E-3 AWACS)', 'B-52 and KC-135 maintenance'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Barksdale AFB': {
-    'Air Force': ['Air Force Global Strike Command (AFGSC) HQ', '2nd Bomb Wing (B-52H Stratofortress)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Minot AFB': {
-    'Air Force': ['5th Bomb Wing (B-52H)', '91st Missile Wing (Minuteman III ICBMs)', 'Air Force Global Strike Command'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Whiteman AFB': {
-    'Air Force': ['509th Bomb Wing (B-2 Spirit Stealth Bomber)', '131st Bomb Wing (Missouri ANG)', 'Air Force Global Strike Command'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // ── SPACE FORCE ───────────────────────────────────────────────────────────
-  'Peterson SFB': {
-    'Space Force': ['Space Operations Command (SpOC) HQ', 'Space Delta 2 (Space Domain Awareness)', 'Space Delta 3 (Space Electronic Warfare)', 'NORAD/USNORTHCOM HQ'],
-    'Air Force': ['NORAD and USNORTHCOM'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Coast Guard': [],
-  },
-  'Schriever SFB': {
-    'Space Force': ['Space Delta 6 (Cyberspace Operations)', 'Space Delta 8 (Satellite Command and Control)', 'Space Delta 9 (Orbital Warfare)', '50th Space Wing'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Coast Guard': [],
-  },
-  'Vandenberg SFB': {
-    'Space Force': ['Space Launch Delta 30', 'Space Delta 7 (Space Intelligence)', '30th Space Wing missions'],
-    'Air Force': ['30th Space Wing (launches)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Coast Guard': [],
-  },
-  'Cape Canaveral Space Force Station': {
-    'Space Force': ['Space Launch Delta 45', '45th Space Wing missions', 'Eastern Range launch operations'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Coast Guard': [],
-  },
-  'Buckley SFB': {
-    'Space Force': ['Space Delta 4 (Missile Warning)', 'Space Delta 5 (Command and Control)', 'National Reconnaissance Office operations'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Coast Guard': [],
-  },
-  // ── JOINT BASES ───────────────────────────────────────────────────────────
-  'Joint Base Lewis-McChord': {
-    Army: ['I Corps', '7th Infantry Division', '2nd Infantry Division (ROK/US Combined)', '62nd Medical Brigade', '17th Fires Brigade', '593rd Expeditionary Sustainment Command'],
-    'Air Force': ['62nd Airlift Wing (C-17)', '446th Airlift Wing (Reserve)', 'Western Air Defense Sector'],
-    Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Joint Base San Antonio': {
-    'Air Force': ['37th Training Wing (Basic Military Training)', 'Air Education and Training Command (AETC) HQ', '59th Medical Wing', '502nd Air Base Wing', 'JBSA-Lackland / JBSA-Randolph / JBSA-Sam Houston'],
-    Army: ['Army Futures Command HQ', 'U.S. Army Medical Center of Excellence'],
-    Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Joint Base Charleston': {
-    'Air Force': ['437th Airlift Wing (C-17)', '315th Airlift Wing (Reserve)'],
-    Navy: ['Naval Weapons Station Charleston', 'Naval Nuclear Power Training Command'],
-    Army: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Joint Base McGuire-Dix-Lakehurst': {
-    'Air Force': ['305th Air Mobility Wing (C-17)', '87th Air Base Wing'],
-    Army: ['10th Mountain Division (FORSCOM unit)', '84th Training Division'],
-    Navy: ['Naval Air Engineering Station Lakehurst'],
-    'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Joint Base Elmendorf-Richardson': {
-    'Air Force': ['3rd Wing (F-22A)', '176th Wing (Alaska ANG)', '11th Air Force'],
-    Army: ['4th Brigade Combat Team (25th ID)', 'U.S. Army Alaska'],
-    Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // ── COAST GUARD ───────────────────────────────────────────────────────────
-  'USCG Training Center Cape May': {
-    'Coast Guard': ['Recruit Training', 'Basic Training Command', 'Maritime Law Enforcement Training Center'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Base Kodiak': {
-    'Coast Guard': ['17th Coast Guard District (Alaska)', 'CGC Munro (WMSL)', 'CGC Alex Haley', 'Sector Anchorage', 'Aviation Training Center component'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Sector New York': {
-    'Coast Guard': ['Sector New York', 'Station New York', 'Marine Safety Unit Tuckerton', 'Activities New York'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Sector Miami': {
-    'Coast Guard': ['Sector Miami', 'Maritime Drug Law Enforcement Operations', 'Caribbean migrant operations'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Sector Puget Sound': {
-    'Coast Guard': ['Sector Puget Sound', 'Station Seattle', 'Station Port Angeles', 'Aids to Navigation Team'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  // ── ARMY · CONUS (additional) ─────────────────────────────────────────────
-  'Anniston Army Depot': {
-    Army: ['Chemical Materials Activity', 'Conventional Ammunition Demilitarization Group', 'Anniston Army Depot Command'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Novosel': {
-    Army: ['U.S. Army Aviation Center of Excellence (USAACE)', '1st Aviation Brigade', 'Warrant Officer Career College', '110th Aviation Brigade', '110th Theater Aviation Brigade'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Rucker': {
-    Army: ['U.S. Army Aviation Center of Excellence (USAACE)', '1st Aviation Brigade', 'Warrant Officer Career College', '110th Aviation Brigade'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Redstone Arsenal': {
-    Army: ['Army Aviation and Missile Command (AMCOM)', 'Army Space and Missile Defense Command (SMDC)', 'AMCOM Logistics Center', 'Program Executive Office Missiles and Space'],
-    'Air Force': ['Air Force Materiel Command component'], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Huachuca': {
-    Army: ['U.S. Army Intelligence Center of Excellence (USAICoE)', '111th Military Intelligence Brigade', '304th Military Intelligence Battalion', 'Network Enterprise Technology Command (NETCOM)'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Yuma Proving Ground': {
-    Army: ['U.S. Army Yuma Test Center (YTC)', 'Army Test and Evaluation Command (ATEC)'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Pine Bluff Arsenal': {
-    Army: ['Chemical Materials Activity – Pine Bluff', 'Army Materiel Command support'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Camp Parks': {
-    Army: ['91st Training Division (USAR)', '63rd Readiness Division (USAR)', '9th Mission Support Command'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Hunter Liggett': {
-    Army: ['91st Training Division', 'Army Reserve regional training support'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Irwin': {
-    Army: ['National Training Center (NTC)', '11th Armored Cavalry Regiment (OPFOR)', '916th Support Brigade', 'Operations Group NTC'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Presidio of Monterey (DLI)': {
-    Army: ['Defense Language Institute Foreign Language Center (DLIFLC)', '229th Military Intelligence Brigade', 'Presidio of Monterey Garrison'],
-    Navy: ['Fleet Numerical Meteorology and Oceanography Center (tenant)'], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Miami': {
-    Army: ['U.S. Southern Command (SOUTHCOM) support', 'U.S. Army South (ARSOUTH)', 'Special Operations Command South'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Hunter Army Airfield': {
-    Army: ['3rd Combat Aviation Brigade (3rd ID)', 'General Support Aviation Battalion', '603rd Aviation Support Battalion'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Rock Island Arsenal': {
-    Army: ['U.S. Army Rock Island Arsenal', 'Joint Manufacturing and Technology Center (JMTC)', 'Army Contracting Command – Rock Island', 'TACOM Life Cycle Management Command'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Johnson': {
-    Army: ['Joint Readiness Training Center (JRTC)', '10th Mountain Division (rotational)', '519th Military Police Battalion', '115th Field Artillery Brigade', '2nd Battalion 5th Infantry (JRTC OpFor)'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Polk': {
-    Army: ['Joint Readiness Training Center (JRTC)', '10th Mountain Division (rotational)', '519th Military Police Battalion'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Detrick': {
-    Army: ['U.S. Army Medical Research and Development Command (USAMRDC)', 'U.S. Army Medical Research Institute of Infectious Diseases (USAMRIID)', 'National Interagency Biodefense Campus', 'Chemical and Biological Center of Excellence'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort George G. Meade': {
-    Army: ['U.S. Cyber Command', 'NSA/CSS', '704th Military Intelligence Brigade', '780th Military Intelligence Brigade'],
-    Navy: ['Defense Information Systems Agency (DISA)'],
-    'Air Force': ['Air Force Cyber Operations'], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Natick Soldier Systems Center': {
-    Army: ['Program Executive Office Soldier', 'DEVCOM Soldier Center (NSSC)', 'Combat Capabilities Development Command'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Detroit Arsenal': {
-    Army: ['TACOM Life Cycle Management Command', 'Army Contracting Command – Warren', 'Ground Vehicle Systems Center (DEVCOM)', 'Program Executive Office Ground Combat Systems'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Picatinny Arsenal': {
-    Army: ['DEVCOM Armaments Center', 'Program Executive Office Ammunition (PEO AMMO)', 'Armament Research Development and Engineering Center (ARDEC)'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'White Sands Missile Range': {
-    Army: ['White Sands Test Center', 'Army Test and Evaluation Command (ATEC)', '32nd Army Air and Missile Defense Command (det)'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Pope Army Airfield': {
-    Army: ['18th Air Support Operations Group', '43rd Airlift Wing (host Air Force)'],
-    'Air Force': ['43rd Airlift Wing (C-130J)', '440th Airlift Wing (AFRC)'], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'McAlester Army Ammunition Plant': {
-    Army: ['McAlester Army Ammunition Plant', 'Production Base Modernization Agency'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Carlisle Barracks': {
-    Army: ['U.S. Army War College (USAWC)', 'Army Heritage and Education Center', 'Strategic Studies Institute', 'Peacekeeping and Stability Operations Institute'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Tobyhanna Army Depot': {
-    Army: ['Tobyhanna Army Depot', 'Communications-Electronics Command (CECOM)'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Buchanan': {
-    Army: ['U.S. Army Reserve Command Puerto Rico', '76th Operational Response Command', '9th Mission Support Command'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Sam Houston': {
-    Army: ['Army Medical Center of Excellence (MEDCoE)', '1st Medical Brigade', 'San Antonio Military Medical Center (SAMMC)', 'Brooke Army Medical Center (BAMC)', 'Army Nurse Corps School'],
-    'Air Force': ['59th Medical Wing (JBSA tenant)'], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Red River Army Depot': {
-    Army: ['Red River Army Depot', 'TACOM Life Cycle Management Command', 'Combat Vehicle and Special Equipment repair'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Dugway Proving Ground': {
-    Army: ['West Desert Test Center', 'Army Test and Evaluation Command (ATEC)', 'Chemical and Biological Defense test'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort McCoy': {
-    Army: ['Fort McCoy Garrison', '88th Readiness Division', 'Regional Training Site-Maintenance', 'Cold Regions Test Center support'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Richardson': {
-    Army: ['U.S. Army Alaska (USARAK)', '4th Brigade Combat Team (25th ID)', 'Headquarters USARAK'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fort Greely': {
-    Army: ['49th Missile Defense Battalion', 'Ground-Based Midcourse Defense (GMD)', 'Missile Defense Agency', 'Alaska Missile Defense Element'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // ── ARMY · OCONUS (additional) ────────────────────────────────────────────
-  'USAG Daegu': {
-    Army: ['Area IV Support Activity', '19th Expeditionary Sustainment Command (det)', 'Camp Henry Garrison', 'Korea Army Support Group'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Yongsan-Casey': {
-    Army: ['Area I Support Activity', '210th Field Artillery Brigade', 'Camp Casey Garrison', 'U.S. Army Garrison Yongsan'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Camp Walker': {
-    Army: ['Area IV Support Activity', 'U.S. Army Garrison Daegu detachments'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Camp Red Cloud': {
-    Army: ['Area I Support Activity', '2nd Infantry Division detachments', 'Area I Command HQ'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Japan (Camp Zama)': {
-    Army: ['U.S. Army Japan (USARJ)', '78th Signal Battalion', 'Camp Zama Garrison', 'U.S. Army Corps of Engineers Japan District'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Torii Station (USAG Okinawa)': {
-    Army: ['1st Battalion 1st Special Forces Group (Airborne)', 'Special Operations Command Pacific (det)', 'Torii Station Garrison'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Ansbach': {
-    Army: ['12th Combat Aviation Brigade (det)', 'Ansbach Garrison', 'Army Prepositioned Stocks 2 support'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Baumholder': {
-    Army: ['Baumholder Garrison', 'Army Prepositioned Stocks 2 support', '8th Theater Sustainment Command (det)'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Hohenfels': {
-    Army: ['Joint Multinational Readiness Center (JMRC)', '1st Battalion 4th Infantry Regiment (OPFOR)', 'Training Support Brigade Europe'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Garmisch': {
-    Army: ['George C. Marshall European Center for Security Studies', 'Defense Language Institute European Branch'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Belgium (SHAPE)': {
-    Army: ['Supreme Headquarters Allied Powers Europe (SHAPE)', 'NATO Allied Command Operations (ACO)', 'U.S. Delegation to NATO (USDEL NATO)', 'V Corps (main)'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG BENELUX-Brussels': {
-    Army: ['U.S. Army Garrison Benelux Brussels', 'NATO HQ support elements'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG BENELUX Brunssum': {
-    Army: ['Allied Joint Force Command Brunssum (JFC Brunssum)', 'U.S. Army Garrison Benelux'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Italy (Vicenza)': {
-    Army: ['173rd Airborne Brigade', 'Southern European Task Force Africa (SETAF-AF)', 'U.S. Army Africa (USARAF)', '12th Combat Aviation Brigade (det)'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Italy (Livorno)': {
-    Army: ['USAG Italy – Livorno Garrison', 'Camp Darby logistics activity'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAG Poland': {
-    Army: ['V Corps Forward Command Post', 'Battle Group Poland (Atlantic Resolve)', '82nd Airborne Division (rotational)', 'Army Prepositioned Stocks Europe'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Camp Bondsteel': {
-    Army: ['Task Force Falcon (KFOR)', 'Kosovo Force (KFOR) – U.S. element', 'Regional Command East HQ'],
-    Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // ── NAVY · CONUS (additional) ─────────────────────────────────────────────
-  'Naval Submarine Base New London': {
-    Navy: ['Submarine Group 2', 'Submarine Development Squadron 12', 'Naval Submarine School', 'Multiple SSN attack submarines', 'Undersea Warfare Development Center'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Station Jacksonville': {
-    Navy: ['Patrol and Reconnaissance Wing 11', 'VP-16 War Eagles', 'VP-30 Pro Patria (FRS)', 'VP-45 Pelicans', 'Helicopter Maritime Strike Wing Atlantic', 'NAVSUP Fleet Logistics Center Jacksonville'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Station Key West': {
-    Navy: ['Naval Air Facility Key West', 'Fighter Squadron Composite 13 (VFC-13)', 'Helicopter Sea Combat Squadron 28 (HSC-28)', 'Joint Interagency Task Force South'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Station Pensacola': {
-    Navy: ['Naval Education and Training Command (NETC)', 'Blue Angels Flight Demonstration Squadron', 'Aviation Officer Candidate School (AOCS)', 'Naval Aviation Schools Command'],
-    'Marine Corps': ['Marine Aviation Training Support Group 21'], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Station Whiting Field': {
-    Navy: ['Training Air Wing Five (TW-5)', 'HT-8 Eightballers (TH-57)', 'HT-18 Vigilant Eagles', 'Primary Fixed Wing Training (T-6)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Orlando': {
-    Navy: ['Naval Air Warfare Center Training Systems Division (NAWCTSD)', 'NAVFAC Southeast', 'Reserve Center Orlando'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Panama City': {
-    Navy: ['Naval Surface Warfare Center Panama City Division (NSWC PCD)', 'Naval Experimental Diving Unit (NEDU)', 'Mine Warfare Center'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Crane': {
-    Navy: ['Naval Surface Warfare Center Crane Division (NSWC Crane)', 'Weapons and Electronics Systems Engineering', 'Explosive Ordnance Disposal Technology'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'NAS JRB New Orleans': {
-    Navy: ['Fleet Logistics Support Squadron 54 (VR-54)', 'NAVSUP Fleet Logistics Center'],
-    'Air Force': ['926th Wing (AFRC)'], 'Marine Corps': ['MAG-49 Detachment'], Army: [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Station JRB New Orleans': {
-    Navy: ['Fleet Logistics Support Squadron 54 (VR-54)', 'NAVSUP Fleet Logistics Center'],
-    'Air Force': ['926th Wing (AFRC)'], Army: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Portsmouth Naval Shipyard': {
-    Navy: ['Portsmouth Naval Shipyard', 'NAVSEA Shipyard Command', 'Submarine maintenance and overhaul'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Station Patuxent River': {
-    Navy: ['Naval Air Systems Command (NAVAIR)', 'Naval Test Wing Atlantic', 'Air Test and Evaluation Squadron VX-1', 'Air Test and Evaluation Squadron VX-23', 'U.S. Naval Test Pilot School'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'NAS Patuxent River': {
-    Navy: ['Naval Air Systems Command (NAVAIR)', 'Naval Test Wing Atlantic', 'VX-1 Pioneers', 'VX-23 Salty Dogs', 'U.S. Naval Test Pilot School'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Annapolis (USNA)': {
-    Navy: ['United States Naval Academy (USNA)', 'Brigade of Midshipmen', 'Naval Academy Athletic Association'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Bethesda': {
-    Navy: ['Walter Reed National Military Medical Center (WRNMMC)', 'Naval Medical Center Bethesda', 'Navy Medicine East'],
-    Army: ['Walter Reed Army Medical Center element'], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity South Potomac': {
-    Navy: ['Naval Surface Warfare Center Dahlgren Division (NSWCDD)', 'Indian Head EOD Technology Division', 'Naval Research Laboratory (det)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Station Meridian': {
-    Navy: ['Training Air Wing One (TW-1)', 'VT-7 Eagles (T-45 Goshawk)', 'VT-9 Tigers'],
-    'Marine Corps': ['Marine Attack Training Squadron 203 (VMAT-203)'], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Construction Battalion Center Gulfport': {
-    Navy: ['Naval Construction Group 2 (NCG-2)', 'Naval Mobile Construction Battalion (NMCB-133)', 'NMCB-40', 'NAVSUP Fleet Logistics Center'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Stennis Space Center': {
-    Navy: ['Naval Oceanographic Office (NAVOCEANO)', 'Space and Naval Warfare Systems Command (SPAWAR) det', 'Naval Research Laboratory (NRL) det'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Station Fallon': {
-    Navy: ['Naval Strike and Air Warfare Center (NSAWC)', 'Navy Fighter Weapons School (TOPGUN)', 'Air Wing Fallon Training', 'VFA Fleet Replacement Squadron exercises'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Weapons Station Earle': {
-    Navy: ['Naval Weapons Station Earle', 'Navy Munitions Command East', 'Explosive Ordnance Disposal support'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Saratoga Springs': {
-    Navy: ['Defense Finance and Accounting Service (DFAS)', 'Navy Reserve Center', 'Navy Recruiting District Albany (support)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Station Newport': {
-    Navy: ['Naval War College (NWC)', 'Naval Undersea Warfare Center (NUWC)', 'Surface Warfare Officers School (SWOS)', 'Officer Development School (ODS)', 'Destroyer Squadron 30'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Mid-South': {
-    Navy: ['Defense Finance and Accounting Service (DFAS)', 'NAVSUP Fleet Logistics Center', 'Military Sealift Command (det)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Mid-South (Millington)': {
-    Navy: ['Navy Personnel Command (NAVPERSCOM/MyNavy Career Center)', 'Defense Finance and Accounting Service', 'NAVSUP Fleet Logistics Center Millington'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Station Corpus Christi': {
-    Navy: ['Training Air Wing Four (TW-4)', 'VT-27 Boomers', 'VT-28 Rangers', 'Naval Air Depot Corpus Christi (NADEP CC)'],
-    'Coast Guard': ['Air Station Corpus Christi (tenant)'], Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'NAS Corpus Christi': {
-    Navy: ['Training Air Wing Four (TW-4)', 'VT-27 Boomers', 'VT-28 Rangers'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Station JRB Fort Worth': {
-    Navy: ['Fleet Logistics Support Squadron 59 (VR-59)', 'NAVSUP Fleet Logistics Center'],
-    'Air Force': ['301st Fighter Wing (AFRC – F-16)'], 'Marine Corps': ['Marine Fighter Attack Squadron 112 (VMFA-112 Cowboys)'],
-    Army: [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Station Kingsville': {
-    Navy: ['Training Air Wing Two (TW-2)', 'VT-21 Red Hawks (T-45)', 'VT-22 Golden Eagles (T-45)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Station Oceana': {
-    Navy: ['Naval Air Force Atlantic (AIRLANT)', 'Strike Fighter Wing Atlantic', 'Carrier Air Wing One (CVW-1)', 'CVW-3', 'CVW-7', 'Multiple VFA squadrons (F/A-18E/F)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'NAS Oceana': {
-    Navy: ['Naval Air Force Atlantic (AIRLANT)', 'Strike Fighter Wing Atlantic', 'Multiple Carrier Air Wings', 'VFA squadrons (F/A-18E/F)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Medical Center Portsmouth': {
-    Navy: ['Naval Medical Center Portsmouth (NMCP)', 'Navy Medicine East HQ', 'Fleet Surgical Teams', 'Naval Hospital Corps School'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Hampton Roads': {
-    Navy: ['Commander Naval Surface Force Atlantic (SURFLANT)', 'Navy Region Mid-Atlantic', 'Surface Ship Support'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Weapons Station Yorktown': {
-    Navy: ['Naval Weapons Station Yorktown', 'Navy Munitions Command East', 'EOD support'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Norfolk Naval Shipyard': {
-    Navy: ['Norfolk Naval Shipyard (NNSY)', 'Aircraft carrier overhaul', 'Submarine repair', 'NAVSEA Shipyard Command'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Station Everett': {
-    Navy: ['Carrier Strike Group 9 (CSG-9)', 'Destroyer Squadron 9', 'Cruiser-Destroyer Group Pacific (det)', 'Strike Fighter Wing Pacific (det)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Facility El Centro': {
-    Navy: ['Naval Air Facility El Centro Garrison', 'Blue Angels winter training site', 'VFA Fleet Replacement winter detachments'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Station Lemoore': {
-    Navy: ['Strike Fighter Wing Pacific (SFWP)', 'Multiple VFA squadrons (F/A-18E/F Super Hornet)', 'VFA-94 Mighty Shrikes', 'VFA-113 Stingers', 'VFA-97 Warhawks'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Weapons Station China Lake': {
-    Navy: ['Naval Air Warfare Center Weapons Division (NAWCWD)', 'Air-to-air and air-to-ground weapons testing', 'Electronic Combat and Sensor Systems'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Base Point Loma': {
-    Navy: ['Submarine Group 3', 'Submarine Development Squadron 5', 'Naval Mine and Anti-Submarine Warfare Command', 'Submarine Repair (SIMA)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Base Ventura County': {
-    Navy: ['Naval Air Station Point Mugu', 'Pacific Missile Test Center', 'Naval Facilities Engineering Systems Command SW', 'Naval Surface Warfare Center Port Hueneme Division'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Monterey': {
-    Navy: ['Naval Postgraduate School (NPS)', 'Fleet Numerical Meteorology and Oceanography Center'],
-    Army: ['Defense Language Institute (DLIFLC tenant)'], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Weapons Station Seal Beach': {
-    Navy: ['Naval Weapons Station Seal Beach', 'Navy Munitions Command Pacific', 'West Coast ammunition logistics'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Washington': {
-    Navy: ['Chief of Naval Operations (CNO)', 'Office of the Secretary of the Navy (SECNAV)', 'Naval District Washington (NDW)', 'Washington Navy Yard'],
-    'Marine Corps': ['Marine Barracks Washington (8th & I)'], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // ── NAVY · OCONUS (additional) ────────────────────────────────────────────
-  'Naval Support Activity Bahrain': {
-    Navy: ['U.S. Naval Forces Central Command (NAVCENT)', '5th Fleet HQ', 'Combined Maritime Forces (CMF)', 'Task Force 50 (Carrier)', 'Task Force 53 (Logistics)', 'Task Force 56 (Explosive Ordnance Disposal)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'NSA Bahrain': {
-    Navy: ['5th Fleet HQ', 'NAVCENT', 'Combined Maritime Forces Command'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Navy Support Facility Diego Garcia': {
-    Navy: ['Diego Garcia Garrison Command', 'Maritime Prepositioning Ships Squadron 2', 'Submarine transit support', 'P-8 Poseidon patrol operations'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Station Guantanamo Bay': {
-    Navy: ['Joint Task Force Guantanamo (JTF-GTMO)', 'Naval Station GTMO Garrison', 'Detainee operations support'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Souda Bay': {
-    Navy: ['Commander Task Force 67 (CTF-67)', 'P-8 Poseidon patrol detachments', 'NAVEUR-NAVAF support'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Base Guam': {
-    Navy: ['Commander Naval Forces Marianas (COMNAVMAR)', 'Submarine Group 7 (SUBGRU 7)', 'Task Force 74 (Submarine)', 'USS Frank Cable (AS-40)', 'VP-47 Golden Swordsmen (P-8 Poseidon)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Air Facility Atsugi': {
-    Navy: ['Carrier Air Wing 5 (CVW-5)', 'VAQ-136 Gauntlets', 'VAW-115 Liberty Bells', 'Fleet Logistics Support Squadron 59 (VR-59) det'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Singapore': {
-    Navy: ['Logistics Group Western Pacific (COMLOG WESTPAC)', 'Commander Task Force 73', 'Military Sealift Command Pacific (det)'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Naval Support Activity Stavanger': {
-    Navy: ['NATO Maritime Component Command', 'Maritime Prepositioning support', 'NAVEUR logistics element'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Commander Fleet Activities Chinhae': {
-    Navy: ['Naval Forces Korea (COMNAVFORKOREA)', 'Commander Task Force 78', 'Korea Fleet Activities support'],
-    Army: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // ── MARINE CORPS · CONUS (additional) ────────────────────────────────────
-  'MCAS Yuma': {
-    'Marine Corps': ['Marine Aviation Weapons and Tactics Squadron One (MAWTS-1)', 'Weapons and Tactics Instructor (WTI) Course', '3rd MAW detachments', 'Marine Wing Support Squadron 371'],
-    Army: [], Navy: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Marine Corps Air Station Miramar': {
-    'Marine Corps': ['3rd Marine Aircraft Wing (3rd MAW)', 'Marine Fighter Attack Training Squadron 101 (VMFAT-101)', 'Marine Air Control Group 38'],
-    Navy: [], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MCAGCC Twentynine Palms': {
-    'Marine Corps': ['Marine Corps Air Ground Combat Center (MCAGCC)', '7th Marine Regiment', 'Marine Air Ground Task Force Training Command (MAGTFTC)', 'I MEF (rotational exercise units)', 'Combat Center Air Traffic Control'],
-    Navy: [], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Twentynine Palms': {
-    'Marine Corps': ['Marine Corps Air Ground Combat Center (MCAGCC)', '7th Marine Regiment', 'MAGTFTC', 'I MEF rotational units'],
-    Navy: [], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MCLB Barstow': {
-    'Marine Corps': ['Marine Corps Logistics Base Barstow', 'Marine Depot Maintenance Command', 'Combat Logistics Battalion support'],
-    Navy: [], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MCRD San Diego': {
-    'Marine Corps': ['Marine Corps Recruit Depot San Diego (MCRD SD)', 'Western Recruiting Region', '3rd Recruit Training Battalion', '4th Recruit Training Battalion'],
-    Navy: [], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Marine Corps Mountain Warfare Training Center': {
-    'Marine Corps': ['Mountain Warfare Training Center (MWTC Bridgeport)', 'Cold Weather and Mountain Training', 'MWTC Garrison'],
-    Navy: [], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Marine Corps Logistics Base Albany': {
-    'Marine Corps': ['Marine Corps Logistics Base Albany', 'Marine Depot Maintenance Command', 'MCLB Albany Garrison'],
-    Navy: [], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MCLB Albany': {
-    'Marine Corps': ['Marine Corps Logistics Base Albany', 'Marine Depot Maintenance Command'],
-    Navy: [], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MCAS New River': {
-    'Marine Corps': ['Marine Aircraft Group 26 (MAG-26)', 'HMM-365 Blue Knights (CH-53)', 'HMLA-167 Warriors', 'Marine Expeditionary Unit aviation elements (24th MEU, 26th MEU)'],
-    Navy: [], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MCAS Beaufort': {
-    'Marine Corps': ['Marine Aircraft Group 31 (MAG-31)', 'VMFA-115 Silver Eagles (F/A-18)', 'VMFA-122 Flying Leathernecks (F-35B)', 'Marine Fighter Attack Training Squadron 501 (VMFAT-501)'],
-    Navy: [], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Henderson Hall': {
-    'Marine Corps': ['Headquarters U.S. Marine Corps (HQMC)', 'Marine Corps Combat Development & Integration', 'Commandant of the Marine Corps staff'],
-    Army: [], Navy: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MCB Hawaii Kaneohe Bay': {
-    'Marine Corps': ['3rd Marine Regiment', 'Marine Aircraft Group 24 (MAG-24)', 'Marine Air Control Group 24', '1st Battalion 12th Marines'],
-    Navy: [], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MCB Hawaii': {
-    'Marine Corps': ['3rd Marine Regiment', 'Marine Aircraft Group 24 (MAG-24)', 'Marine Corps Base Hawaii Garrison'],
-    Navy: [], Army: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // ── MARINE CORPS · OCONUS (additional) ───────────────────────────────────
-  'Camp Foster': {
-    'Marine Corps': ['Marine Corps Installations Pacific (MCIPAC) HQ', 'III MEF Support Group', 'Marine Corps Base Camp Smedley D. Butler HQ'],
-    Army: [], Navy: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Camp Kinser': {
-    'Marine Corps': ['3rd Marine Logistics Group (3rd MLG) HQ', 'Combat Logistics Regiment 37', 'Maintenance Battalion 3rd MLG'],
-    Army: [], Navy: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Camp Courtney': {
-    'Marine Corps': ['3rd Marine Division HQ', '12th Marine Regiment (Artillery)', '3rd Radio Battalion'],
-    Army: [], Navy: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Camp Hansen': {
-    'Marine Corps': ['4th Marine Regiment', '3rd Reconnaissance Battalion', '1st Battalion 12th Marines'],
-    Army: [], Navy: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Camp Schwab': {
-    'Marine Corps': ['4th Marine Regiment (BLT elements)', 'Combined Arms Training Center (det)', 'III MEF infantry training'],
-    Army: [], Navy: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'MCAS Futenma': {
-    'Marine Corps': ['Marine Aircraft Group 36 (MAG-36)', 'VMM-265 Dragons (MV-22B Osprey)', 'Marine Aerial Refueler Transport Squadron 152'],
-    Army: [], Navy: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // ── AIR FORCE · CONUS (additional) ───────────────────────────────────────
-  'Maxwell AFB': {
-    'Air Force': ['Air University (AU)', 'Air War College (AWC)', 'Air Command and Staff College (ACSC)', 'Squadron Officer School (SOS)', '42nd Air Base Wing'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Davis-Monthan AFB': {
-    'Air Force': ['355th Wing (A-10 Thunderbolt II, HH-60)', '563rd Rescue Group', '309th Aerospace Maintenance and Regeneration Group (AMARG)', '12th Air Force (Air Forces Southern) HQ'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Luke AFB': {
-    'Air Force': ['56th Fighter Wing (F-35A Lightning II)', '61st Fighter Squadron', '62nd Fighter Squadron', '63rd Fighter Squadron', '944th Fighter Wing (AFRC)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Beale AFB': {
-    'Air Force': ['9th Reconnaissance Wing (U-2 Dragon Lady, RQ-4 Global Hawk)', '940th Air Refueling Wing (KC-135, AFRC)', 'Air Combat Command Beale'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Edwards AFB': {
-    'Air Force': ['412th Test Wing', 'Air Force Test Center (AFTC)', 'Air Force Research Laboratory (AFRL) Aerospace Systems', 'F-35, B-21 Raider, and next-generation aircraft testing'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'March ARB': {
-    'Air Force': ['452nd Air Mobility Wing (C-17, KC-135, AFRC)', 'March Air Reserve Base Command'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'USAF Academy': {
-    'Air Force': ['Headquarters USAF Academy', '10th Air Base Wing', 'Cadet Wing (Cadets)', '306th Flying Training Group', 'Center for Character and Leadership Development'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Dover AFB': {
-    'Air Force': ['436th Airlift Wing (C-5M Super Galaxy)', '512th Airlift Wing (C-5, AFRC)', 'Air Force Mortuary Affairs Operations (AFMAO)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Hurlburt Field': {
-    'Air Force': ['Air Force Special Operations Command (AFSOC) HQ', '1st Special Operations Wing (SOW)', 'AC-130J Ghostrider', 'MC-130J Commando II', '24th Special Operations Wing'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Tyndall AFB': {
-    'Air Force': ['325th Fighter Wing (F-35A Lightning II)', '53rd Weapons Evaluation Group', 'AFCEC Tyndall recovery command'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Moody AFB': {
-    'Air Force': ['23rd Wing (A-10, HH-60)', '347th Rescue Group', 'Air Combat Command Moody', '74th Fighter Squadron'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Robins AFB': {
-    'Air Force': ['Air Force Sustainment Center (AFSC)', 'Warner Robins Air Logistics Complex (WR-ALC)', '402nd Maintenance Wing', '116th Air Control Wing (JSTARS, Georgia ANG)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Mountain Home AFB': {
-    'Air Force': ['366th Fighter Wing (F-15E Strike Eagle)', '366th Operations Group', 'Air Combat Command Mountain Home'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'McConnell AFB': {
-    'Air Force': ['22nd Air Refueling Wing (KC-46A Pegasus)', '931st Air Refueling Wing (KC-46A, AFRC)', 'Air Mobility Command McConnell'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Hanscom AFB': {
-    'Air Force': ['Air Force Life Cycle Management Center (AFLCMC)', 'Air Force Research Laboratory (AFRL) – Information Directorate', 'Electronic Systems Center'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Westover ARB': {
-    'Air Force': ['439th Airlift Wing (C-5M Super Galaxy, AFRC)', 'Air Mobility Command Reserve Westover'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Malmstrom AFB': {
-    'Air Force': ['341st Missile Wing (Minuteman III ICBM)', 'Air Force Global Strike Command Malmstrom', '43rd Missile Squadron', '10th Missile Squadron'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Creech AFB': {
-    'Air Force': ['432nd Wing (MQ-9 Reaper)', '432nd Air Expeditionary Wing', 'Air Combat Command RPA operations'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Cannon AFB': {
-    'Air Force': ['27th Special Operations Wing (SOW)', 'MC-130J Commando II', 'AC-130W Stinger II', 'MQ-9 Reaper operations'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Holloman AFB': {
-    'Air Force': ['49th Wing (F-16CM, T-38C, MQ-9)', 'German Air Force F-16 training', 'ACC Holloman', '7th Special Forces Group (det)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Kirtland AFB': {
-    'Air Force': ['377th Air Base Wing', 'Air Force Nuclear Weapons Center (AFNWC)', 'Air Force Research Laboratory Directed Energy (AFRL/RD)', 'Defense Nuclear Weapons School', 'Air Force Operational Test and Evaluation Center'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Seymour Johnson AFB': {
-    'Air Force': ['4th Fighter Wing (F-15E Strike Eagle)', 'ACC Seymour Johnson', '916th Air Refueling Wing (KC-135, AFRC)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Grand Forks AFB': {
-    'Air Force': ['319th Air Base Wing', 'RQ-4 Global Hawk operations (ISR)', '69th Reconnaissance Group (AMC)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Altus AFB': {
-    'Air Force': ['97th Air Mobility Wing (AMC)', 'C-17 Globemaster III pilot training', 'KC-135 and KC-46 aircrew training', 'AETC Altus'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Vance AFB': {
-    'Air Force': ['71st Flying Training Wing (T-6A, T-38C, T-1A)', 'Euro-NATO Joint Jet Pilot Training (ENJJPT)', 'AETC Vance'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Shaw AFB': {
-    'Air Force': ['20th Fighter Wing (F-16CM/DM)', 'Air Forces Central (AFCENT) Forward HQ', 'ACC Shaw', '55th Fighter Squadron'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Ellsworth AFB': {
-    'Air Force': ['28th Bomb Wing (B-21 Raider / B-1B Lancer)', 'Air Force Global Strike Command Ellsworth', '37th Bomb Squadron'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Arnold AFB': {
-    'Air Force': ['Arnold Engineering Development Complex (AEDC)', 'Air Force Test Center', 'Propulsion and aerodynamic wind tunnel testing'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Dyess AFB': {
-    'Air Force': ['7th Bomb Wing (B-1B Lancer)', '317th Airlift Wing (C-130J, AFRC)', 'Air Force Global Strike Command Dyess'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Goodfellow AFB': {
-    'Air Force': ['17th Training Wing (AETC)', 'Intelligence training', 'Fire Protection training', 'Cryptologic training', 'Special Investigations course'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Laughlin AFB': {
-    'Air Force': ['47th Flying Training Wing (T-6A Texan II)', 'Undergraduate Pilot Training', 'AETC Laughlin'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Sheppard AFB': {
-    'Air Force': ['82nd Training Wing (AETC)', 'Euro-NATO Joint Jet Pilot Training (ENJJPT) support', 'Maintenance and technical training', 'F-16 pilot training (German air force)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Hill AFB': {
-    'Air Force': ['388th Fighter Wing (F-35A Lightning II)', 'Ogden Air Logistics Complex (OO-ALC)', 'Air Force Sustainment Center', '419th Fighter Wing (F-35A, AFRC)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Fairchild AFB': {
-    'Air Force': ['92nd Air Refueling Wing (KC-135 Stratotanker)', '141st Air Refueling Wing (KC-135, ANG)', 'SERE School (336th Training Group)', 'Air Mobility Command Fairchild'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'F.E. Warren AFB': {
-    'Air Force': ['90th Missile Wing (Minuteman III ICBM)', 'Air Force Global Strike Command Warren', '319th Missile Squadron', '320th Missile Squadron'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Eielson AFB': {
-    'Air Force': ['354th Fighter Wing (F-35A Lightning II)', 'Pacific Air Forces (PACAF) Eielson', 'Red Flag-Alaska exercises', '18th Aggressor Squadron'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Keesler AFB': {
-    'Air Force': ['81st Training Wing (AETC)', 'Air Force Technical Training Center', '403rd Wing (C-130J, WC-130J)', '53rd Weather Reconnaissance Squadron (Hurricane Hunters)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Columbus AFB': {
-    'Air Force': ['14th Flying Training Wing (T-6A, T-38C, T-1A)', 'Undergraduate Pilot Training', 'AETC Columbus'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Little Rock AFB': {
-    'Air Force': ['19th Airlift Wing (C-130H/J)', '314th Airlift Wing (C-130, AFRC/Training)', 'C-130 training (largest in the world)', 'Air Mobility Command Little Rock'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Travis Air Force Base': {
-    'Air Force': ['60th Air Mobility Wing (C-17, C-5)', 'David Grant USAF Medical Center', 'Air Mobility Command Travis'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // ── AIR FORCE · OCONUS (additional) ──────────────────────────────────────
-  'Spangdahlem AB': {
-    'Air Force': ['52nd Fighter Wing (F-16CM, A-10)', 'USAFE-AFAFRICA Spangdahlem', '52nd Air Base Wing'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Aviano AB': {
-    'Air Force': ['31st Fighter Wing (F-16C/D)', 'USAFE-AFAFRICA Aviano', 'Allied Air Command support', '510th Fighter Squadron', '555th Fighter Squadron'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Incirlik AB': {
-    'Air Force': ['39th Air Base Wing', 'USAFE Incirlik', 'NATO Support Operations', 'Air Operations Center support'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Misawa AB': {
-    'Air Force': ['35th Fighter Wing (F-16CJ – SEAD)', 'PACAF Misawa', 'Joint Intelligence Support Element', '13th Fighter Squadron', '14th Fighter Squadron'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Yokota AB': {
-    'Air Force': ['374th Airlift Wing (C-130J Super Hercules)', 'Fifth Air Force HQ', 'U.S. Forces Japan (USFJ) HQ', '730th Air Mobility Squadron'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Kunsan AB': {
-    'Air Force': ['8th Fighter Wing (F-16CM – Wolf Pack)', 'PACAF Kunsan', '35th Fighter Squadron', '80th Fighter Squadron'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'RAF Mildenhall': {
-    'Air Force': ['100th Air Refueling Wing (KC-135 Stratotanker)', 'USAFE-AFAFRICA RAF Mildenhall', '352nd Special Operations Wing (CV-22B, MC-130J)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'RAF Alconbury': {
-    'Air Force': ['501st Combat Support Wing', 'USAFE administrative and support units'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'RAF Croughton': {
-    'Air Force': ['422nd Air Base Group', 'USAFE communications and intelligence hub'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Andersen AFB (Guam)': {
-    'Air Force': ['36th Wing (PACAF)', 'Strategic bomber rotational force (B-52, B-2, B-1)', '734th Air Mobility Squadron', 'Joint Region Marianas Air Component'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Morón AB': {
-    'Air Force': ['496th Air Base Squadron', 'USAFE-AFAFRICA Morón', 'Air Mobility Command Atlantic transit hub'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Geilenkirchen NATO Air Base': {
-    'Air Force': ['NATO E-3A Component (AWACS)', '700th Munitions Support Squadron (USAF)', 'NATO Air Command & Control'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Lajes Field': {
-    'Air Force': ['65th Air Base Wing', 'USAFE-AFAFRICA Lajes', 'Air Mobility Command Atlantic transit hub'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // ── SPACE FORCE (additional) ──────────────────────────────────────────────
-  'Los Angeles SFB': {
-    'Space Force': ['Space Systems Command (SSC)', 'Space and Missile Systems Center (SMC)', 'Program Executive Office Space Sensing', 'Space Delta 1 (Space Acquisition)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Coast Guard': [],
-  },
-  'Vandenberg Space Force Base': {
-    'Space Force': ['Space Launch Delta 30', 'Space Delta 7 (Space Intelligence)', 'Space Missile Systems Center (launch operations)', '30th Space Wing legacy missions'],
-    'Air Force': ['30th Space Wing (launch support)'], Army: [], Navy: [], 'Marine Corps': [], 'Coast Guard': [],
-  },
-  'Patrick SFB': {
-    'Space Force': ['Space Launch Delta 45', '45th Space Wing legacy', 'Eastern Range launch operations', 'Space Force Florida support units'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Coast Guard': [],
-  },
-  'Cheyenne Mountain Space Force Station': {
-    'Space Force': ['NORAD Space Operations Center', 'Missile Warning', 'USNORTHCOM Space component'],
-    'Air Force': ['NORAD/USNORTHCOM operations'], Army: [], Navy: [], 'Marine Corps': [], 'Coast Guard': [],
-  },
-  'Cavalier Space Force Station': {
-    'Space Force': ['21st Space Wing detachment', 'Space Delta 2 element', 'Ground-Based Electro-Optical Deep Space Surveillance (GEODSS)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Coast Guard': [],
-  },
-  'Clear Space Force Station': {
-    'Space Force': ['12th Space Warning Squadron', 'Missile warning radar operations', 'Space Delta 4 detachment'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Coast Guard': [],
-  },
-  'Thule Air Base / Pituffik Space Base': {
-    'Space Force': ['821st Space Base Group', 'Ballistic Missile Early Warning System (BMEWS)', 'Space Warning Squadron', 'Space Delta 4 element'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Coast Guard': [],
-  },
-  // ── JOINT BASES (additional) ──────────────────────────────────────────────
-  'Joint Base Anacostia-Bolling': {
-    'Air Force': ['11th Wing', 'Defense Intelligence Agency HQ', 'Air Force District of Washington'],
-    Navy: ['Naval Support Facility Anachosia', 'U.S. Navy Band', 'Office of Naval Intelligence (ONI)'],
-    Army: ['Defense Intelligence Agency (DIA)'], 'Marine Corps': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Joint Expeditionary Base Little Creek-Fort Story': {
-    Navy: ['Naval Amphibious Base Little Creek', 'SEAL Team 2, 4, 8, 10', 'Naval Special Warfare Command Atlantic', 'Amphibious Construction Battalion 2 (ACB-2)', 'Expeditionary Combat Command'],
-    Army: ['11th Transportation Battalion', 'Fort Story Garrison'], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Pentagon': {
-    Army: ['Headquarters Department of the Army (HQDA)', 'Army Staff Principals', 'Office of the Secretary of Defense (OSD)'],
-    Navy: ['Chief of Naval Operations (CNO) staff', 'Secretary of the Navy (SECNAV) staff'],
-    'Marine Corps': ['Commandant of the Marine Corps (CMC) staff'],
-    'Air Force': ['Headquarters Air Force (HAF)', 'Chief of Staff of the Air Force staff'],
-    'Space Force': ['Chief of Space Operations (CSO) staff'], 'Coast Guard': [],
-  },
-  'NSA Washington': {
-    Navy: ['Naval Support Activity Washington (NSA Washington)', 'Washington Navy Yard', 'Chief of Naval Operations (CNO) support'],
-    Army: ['Army Staff (OSD support)'], 'Marine Corps': [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Defense Intelligence Agency (DIA)': {
-    Army: ['Defense Intelligence Agency (DIA)', 'Joint Intelligence Support Element'],
-    Navy: ['DIA Navy element'], 'Marine Corps': ['DIA Marine element'], 'Air Force': ['DIA Air Force element'],
-    'Space Force': [], 'Coast Guard': [],
-  },
-  'Joint Base Myer-Henderson Hall': {
-    Army: ['3rd U.S. Infantry Regiment (The Old Guard)', 'U.S. Army Band (Pershing\'s Own)', 'Military District of Washington'],
-    'Marine Corps': ['Marine Barracks Washington (8th & I)', 'Marine Helicopter Squadron One (HMX-1) det'],
-    Navy: [], 'Air Force': [], 'Space Force': [], 'Coast Guard': [],
-  },
-  'Joint Region Marianas': {
-    Navy: ['Commander Naval Forces Marianas', 'Naval Base Guam', 'Joint Region Marianas HQ'],
-    'Air Force': ['36th Wing elements (Andersen AFB)'],
-    'Marine Corps': ['III MEF rotational elements'],
-    Army: [], 'Space Force': [], 'Coast Guard': [],
-  },
-  // ── COAST GUARD (additional sectors, bases, stations) ─────────────────────
-  'USCG Training Center Petaluma': {
-    'Coast Guard': ['Training Center Petaluma', 'Enlisted specialty training', 'Health services and legal training'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Training Center Yorktown': {
-    'Coast Guard': ['Training Center Yorktown', 'Damage Controlman training', 'Marine Safety training', 'Naval Engineering'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Base Alameda': {
-    'Coast Guard': ['USCG Base Alameda', 'Maintenance and Logistics Command Pacific', 'National Strike Force Pacific Strike Team'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Base Boston': {
-    'Coast Guard': ['USCG Base Boston', 'Sector Boston support', 'Activities Boston'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Base Elizabeth City': {
-    'Coast Guard': ['USCG Base Elizabeth City', 'Aircraft Repair and Supply Center (ARSC)', 'Aviation logistics support'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Base Portsmouth': {
-    'Coast Guard': ['USCG Base Portsmouth', 'Sector Virginia support', 'Activities Mid-Atlantic'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Base Seattle': {
-    'Coast Guard': ['USCG Base Seattle', 'Maintenance and Logistics Command Pacific (det)', 'Sector Puget Sound support'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Sector Boston': {
-    'Coast Guard': ['Sector Boston', 'Station Boston', 'Station Gloucester', 'Station Merrimack River'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Sector Jacksonville': {
-    'Coast Guard': ['Sector Jacksonville', 'Station Mayport', 'Station Fort Pierce', 'Station Ponce de Leon Inlet'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Sector San Diego': {
-    'Coast Guard': ['Sector San Diego', 'Station San Diego', 'Station Dana Point', 'Maritime Safety and Security Team (MSST)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Sector Los Angeles-Long Beach': {
-    'Coast Guard': ['Sector Los Angeles-Long Beach', 'Station Los Angeles', 'Station Two Harbors', 'Maritime Safety and Security Team'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Sector Honolulu': {
-    'Coast Guard': ['Sector Honolulu', 'Station Maui', 'Station Hilo', 'Air Station Barbers Point (tenant)'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Sector Virginia': {
-    'Coast Guard': ['Sector Virginia', 'Station Cape Charles', 'Station Little Creek', 'Marine Safety Unit Hampton Roads'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Sector New Orleans': {
-    'Coast Guard': ['Sector New Orleans', 'Station Grand Isle', 'Aids to Navigation Team New Orleans', 'Marine Safety Unit Lake Charles'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Sector Houston-Galveston': {
-    'Coast Guard': ['Sector Houston-Galveston', 'Station Galveston', 'Station Freeport', 'Marine Safety Unit Port Arthur'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-  'USCG Sector Anchorage': {
-    'Coast Guard': ['Sector Anchorage', 'Station Homer', 'Station Juneau (area)', 'Air Station Kodiak support'],
-    Army: [], Navy: [], 'Marine Corps': [], 'Air Force': [], 'Space Force': [],
-  },
-};
-
 const DEMO_PROFILE = {
   firstName: 'Marcus', lastName: 'Thompson',
   branch: 'Army', component: 'Active Duty', paygrade: 'E-7',
   losingInstallation: 'Fort Liberty', gainingInstallation: 'Camp Humphreys',
   departingDate: '2026-06-15',
-  unit: '8th Army',
   isOverseas: true, hasDependents: true, hasChildren: true,
   childAges: [14, 11, 8], bedrooms: '4',
   language: 'en', religiousPreference: 'Protestant / Christian',
@@ -4077,11 +2744,11 @@ function Onboarding({ onComplete }) {
   const updBranch = (branch) => {
     const newRanks = BRANCH_RANKS[branch] || [];
     const gradeValid = p.paygrade === 'N/A' || newRanks.some(r => r.grade === p.paygrade);
-    setP(prev => ({ ...prev, branch, unit: '', paygrade: gradeValid ? prev.paygrade : 'E-5' }));
+    setP(prev => ({ ...prev, branch, paygrade: gradeValid ? prev.paygrade : 'E-5' }));
   };
   const updGaining = (name) => {
     const sel = MILITARY_DUTY_STATIONS.find(s => s.name === name);
-    setP(prev => ({ ...prev, gainingInstallation: name, unit: '', isOverseas: sel?.country ? true : false }));
+    setP(prev => ({ ...prev, gainingInstallation: name, isOverseas: sel?.country ? true : false }));
   };
 
   const theme = BRANCH_THEMES[p.branch];
@@ -4102,9 +2769,6 @@ function Onboarding({ onComplete }) {
         MILITARY_DUTY_STATIONS.filter(b => b.name.toLowerCase().includes(gainingSearch.toLowerCase())),
         p.branch
       ).slice(0, 10)
-    : [];
-  const availableUnits = p.gainingInstallation
-    ? (INSTALLATION_UNITS[p.gainingInstallation]?.[p.branch] || [])
     : [];
 
   const inputSt = {
@@ -4171,10 +2835,10 @@ function Onboarding({ onComplete }) {
             </>
           )}
 
-          {/* Step 0 — Component & Profile */}
+          {/* Step 0 — Branch & Profile */}
           {step === 0 && (
             <>
-              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Component & Profile</div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Branch & Profile</div>
 
               {/* Branch buttons */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
@@ -4253,10 +2917,10 @@ function Onboarding({ onComplete }) {
             </>
           )}
 
-          {/* Step 1 — Bases & Unit */}
+          {/* Step 1 — Bases */}
           {step === 1 && (
             <>
-              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Your Bases & Unit</div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Your Bases</div>
 
               {/* Losing installation */}
               <div style={{ marginBottom: 14 }}>
@@ -4287,33 +2951,6 @@ function Onboarding({ onComplete }) {
               <div style={{ marginBottom: 14 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>DEPARTING DATE</label>
                 <input type="date" value={p.departingDate} onChange={e => upd('departingDate', e.target.value)} style={{ ...inputSt, colorScheme: 'dark' }} />
-              </div>
-
-              {/* Unit assignment */}
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
-                  UNIT ASSIGNMENT{p.gainingInstallation ? ` AT ${p.gainingInstallation.toUpperCase()}` : ''}
-                </label>
-                <select value={p.unit} onChange={e => upd('unit', e.target.value)} style={inputSt} disabled={!p.gainingInstallation}>
-                  <option value="">{p.gainingInstallation ? 'Select unit...' : 'Select a gaining installation first'}</option>
-                  {availableUnits.length > 0
-                    ? availableUnits.map(u => <option key={u} value={u}>{u}</option>)
-                    : p.gainingInstallation && <option value="" disabled>No {p.branch} units listed — enter manually below</option>
-                  }
-                </select>
-                {p.gainingInstallation && availableUnits.length === 0 && (
-                  <div>
-                    <input value={p.unit} onChange={e => upd('unit', e.target.value)} placeholder="Enter unit name manually..." style={{ ...inputSt, marginTop: 8 }} />
-                    <button
-                      type="button"
-                      onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(p.branch + ' units at ' + p.gainingInstallation)}`, '_blank')}
-                      style={{ marginTop: 8, width: '100%', padding: '9px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: 700, cursor: 'pointer', textAlign: 'left' }}
-                    >
-                      🔍 Search Google for {p.branch} units at {p.gainingInstallation} →
-                    </button>
-                  </div>
-                )}
-                {availableUnits.length > 0 && <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{availableUnits.length} {p.branch} unit{availableUnits.length !== 1 ? 's' : ''} available</div>}
               </div>
 
               <div style={{ display: 'flex', gap: 10 }}>
@@ -4387,9 +3024,137 @@ function Onboarding({ onComplete }) {
   );
 }
 
+function CategoryTabShell({ theme, tabs, activeTab, onChange, children }) {
+  return (
+    <div style={{ padding: 16 }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => onChange(tab.id)}
+            style={{
+              padding: '8px 11px',
+              borderRadius: 8,
+              border: `1.5px solid ${activeTab === tab.id ? theme.primary : '#E0E6EE'}`,
+              background: activeTab === tab.id ? theme.primary : '#FFFFFF',
+              color: activeTab === tab.id ? '#FFFFFF' : '#56697C',
+              fontSize: 10,
+              fontWeight: 800,
+              cursor: 'pointer',
+              letterSpacing: '.04em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function FamilyCategoryTab({ theme, profile }) {
+  const tabs = [
+    { id: 'deployment', label: 'Deployment' },
+    { id: 'efmp', label: 'EFMP' },
+    { id: 'employment', label: 'Employment' },
+    { id: 'permanent-resident', label: 'Permanent Resident' },
+    { id: 'pets', label: 'Pets' },
+    { id: 'schools', label: 'Schools' },
+  ];
+  const [tab, setTab] = useState('deployment');
+  return (
+    <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
+      {tab === 'deployment' && <SpouseDeploymentGuide theme={theme} profile={profile} />}
+      {tab === 'efmp' && <EFMPTab theme={theme} profile={profile} />}
+      {tab === 'employment' && <EmploymentModule theme={theme} profile={profile} />}
+      {tab === 'permanent-resident' && <ImmigrationModule theme={theme} profile={profile} />}
+      {tab === 'pets' && <PetRelocationChecklistTab theme={theme} profile={profile} />}
+      {tab === 'schools' && <SchoolsTab theme={theme} profile={profile} />}
+    </CategoryTabShell>
+  );
+}
+
+function VAHomeLoanPanel({ theme, profile }) {
+  const steps = [
+    'Confirm VA loan eligibility through VA.gov or a VA-approved lender.',
+    'Request a Certificate of Eligibility before making an offer when possible.',
+    'Compare VA funding fee, interest rate, closing cost, and lender credit estimates.',
+    'Ask each lender how they support PCS timelines, remote closings, and military income.',
+    'Keep inspection, appraisal, and final closing dates aligned with report date and household goods delivery.',
+  ];
+  const lenders = [
+    { name: 'VA Lender Search', url: 'https://www.benefits.va.gov/homeloans/lenders.asp', note: 'Official VA lender information and program guidance.' },
+    { name: 'Navy Federal Credit Union', url: 'https://www.navyfederal.org/loans-cards/mortgage.html', note: 'Military-focused mortgage products and VA loan education.' },
+    { name: 'USAA Mortgage', url: 'https://www.usaa.com/inet/wc/bank-real-estate-mortgage-loans', note: 'Military community lender with PCS-aware mortgage resources.' },
+    { name: 'Veterans United', url: 'https://www.veteransunited.com/va-loans/', note: 'VA-loan education and nationwide military homebuyer support.' },
+  ];
+  return (
+    <div>
+      <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, marginBottom: 14, borderLeft: `3px solid ${theme.accent}` }}>
+        <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 4 }}>VA HOME LOAN</div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)', lineHeight: 1.6 }}>
+          Use this checklist to prepare for VA-backed homebuying near {profile?.gainingInstallation || 'your gaining installation'}. Verify all loan terms directly with the VA and the lender before committing.
+        </div>
+      </div>
+      <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
+        {steps.map((step, index) => (
+          <label key={step} style={{ display: 'flex', gap: 10, padding: '10px 0', borderBottom: index === steps.length - 1 ? 'none' : '1px solid #EEF2F6', color: '#0D1821', fontSize: 12, lineHeight: 1.5 }}>
+            <input type="checkbox" style={{ width: 18, height: 18, accentColor: theme.primary, flexShrink: 0 }} />
+            <span>{step}</span>
+          </label>
+        ))}
+      </div>
+      {lenders.map(lender => (
+        <a key={lender.name} href={lender.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 10, textDecoration: 'none' }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 4 }}>{lender.name}</div>
+          <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{lender.note}</div>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+function HomeRelocationUnifiedTab({ theme, profile }) {
+  const tabs = [
+    { id: 'home-locator', label: 'Home Locator' },
+    { id: 'inventory-claims', label: 'Inventory & Claims' },
+    { id: 'move-aid', label: 'Move Aid' },
+    { id: 'va-loan', label: 'VA Loan' },
+  ];
+  const [tab, setTab] = useState('home-locator');
+  return (
+    <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
+      {tab === 'home-locator' && <HomeLocatorTab theme={theme} profile={profile} />}
+      {tab === 'inventory-claims' && <HomeRelocationTab theme={theme} profile={profile} />}
+      {tab === 'move-aid' && <MovingFinancialAssistanceTab theme={theme} profile={profile} />}
+      {tab === 'va-loan' && <VAHomeLoanPanel theme={theme} profile={profile} />}
+    </CategoryTabShell>
+  );
+}
+
+function HomeLegalBanners({ theme }) {
+  return (
+    <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
+      <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, borderLeft: `4px solid ${theme.accent}`, color: '#FFFFFF' }}>
+        <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 6 }}>SECURITY CONTROLS</div>
+        <div style={{ fontSize: 11, lineHeight: 1.6, color: 'rgba(255,255,255,0.78)' }}>
+          PCS Express uses a no-document-upload design, hardened browser headers, privacy shielding, and disabled device permissions to reduce sensitive-data exposure. User-entered planning data is intended to stay local to the device unless the user opens an external public source or platform feature. Do not enter classified information, CUI, restricted government data, rosters, deployment details, or non-public mission information.
+        </div>
+      </div>
+      <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, color: '#34495E', fontSize: 11, lineHeight: 1.6 }}>
+        <strong>Official public data disclaimer:</strong> Base, resource, housing, and benefit information is limited to official public U.S. government, military, and public-source references where available; users must verify details with the official source before acting.
+      </div>
+      <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 12, padding: 14, color: '#6D4C00', fontSize: 11, lineHeight: 1.6 }}>
+        <strong>Independent application notice:</strong> PCS Express is privately developed and is not owned, operated, endorsed, certified, or approved by the Department of Defense, DISA, any military branch, or any U.S. government agency.
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [profile, setProfile] = useState(() => normalizeProfile(store.get('pcs_profile')));
-  const [lastLocalSaveAt, setLastLocalSaveAt] = useState(() => readLegacyJson(LAST_LOCAL_SAVE_KEY, null));
   const [activeTab, setActiveTab] = useState('home');
   const [navOpen, setNavOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -4416,18 +3181,12 @@ function App() {
       if (saved) setChecklistItems(saved);
     });
   }, []);
-  useEffect(() => {
-    const onSync = (event) => setLastLocalSaveAt(event.detail?.savedAt || readLegacyJson(LAST_LOCAL_SAVE_KEY, null));
-    window.addEventListener('pcs-local-sync', onSync);
-    return () => window.removeEventListener('pcs-local-sync', onSync);
-  }, []);
   const isDesktop = screenW >= 900;
   // isNative is true only inside the Capacitor iOS/Android shell — never in a web browser
   const isNative = typeof window !== 'undefined' && !!window.Capacitor?.isNativePlatform?.();
 
   const safeProfile = profile && profile.branch ? profile : null;
   const theme = BRANCH_THEMES[safeProfile?.branch] || BRANCH_THEMES.Army;
-  const selectedUnitProfile = findPublicUnitProfile(profile);
 
   // Compute pending alerts based on departure date and checklist completion
   const daysUntilDeparture = profile?.departingDate ? getDaysUntilDeparture(profile.departingDate) : null;
@@ -4450,7 +3209,20 @@ function App() {
 
   // Close nav/notifs on tab change
   const goTo = (tab) => {
-    setActiveTab(tab);
+    const legacyRoutes = {
+      spouse: 'family',
+      efmp: 'family',
+      employment: 'family',
+      immigration: 'family',
+      'pet-relocation': 'family',
+      schools: 'family',
+      'home-locator': 'home-relocation',
+      'moving-assistance': 'home-relocation',
+      orders: 'home',
+      security: 'home',
+      'unit-info': 'home',
+    };
+    setActiveTab(legacyRoutes[tab] || tab);
     setNavOpen(false);
     setShowNotifs(false);
   };
@@ -4465,82 +3237,72 @@ function App() {
   }
 
   const DEMO_TIPS = [
-    { tab: 'home', title: 'Security & Public Data',
-      body: 'PCS Express displays official public U.S. government, military, and public-source information only. The app removes document upload capability, keeps planning data local where possible, disables risky browser permissions, uses privacy shielding, and warns users not to enter classified, CUI, restricted, mission, roster, or non-public government information.' },
+    { tab: 'home', title: 'Security, Public Data, and Legal Notice',
+      body: 'PCS Express uses public U.S. government, military, and public-source information where available, removes document-upload capability, and warns users not to enter classified, CUI, roster, deployment, or mission-sensitive information. The home screen explains the no-upload security posture, public-data limits, and independent non-DoD affiliation notice.' },
     { tab: 'home', title: 'Onboarding - Branch & Profile',
-      body: 'Onboarding starts with Branch & Profile because the app needs branch, service status, pay grade, and preferred language to personalize rank labels, branch-specific checklists, EFMP guidance, translation support, and resource recommendations.' },
-    { tab: 'home', title: 'Onboarding - Bases & Unit',
-      body: 'The losing installation, gaining installation, departing date, and actual gaining unit power the PCS timeline, base map, school and childcare lookup, job-search location, unit information, OCONUS indicators, route planning, and record checklist reminders.' },
+      body: 'Branch, component, rank, name, and language help PCS Express tailor rank labels, branch-specific guidance, checklist timing, translation support, and resource recommendations.' },
+    { tab: 'home', title: 'Onboarding - Bases',
+      body: 'Losing installation, gaining installation, and departure date drive the PCS timeline, public base resources, route planning, housing searches, school planning, and checklist reminders.' },
     { tab: 'home', title: 'Onboarding - Family & Preferences',
-      body: 'Family & Preferences captures dependent travel, child ages, and optional faith preference. Child ages help surface school and youth-transition resources; dependent travel affects PCS planning prompts.' },
-    { tab: 'home', title: 'Home - Alphabetical Categories',
-      body: 'The home selector and navigation are organized alphabetically: Checklist, Deployment, Documents, Education, EFMP, Employment, Faith, Home Locator, Home Relocation, Move Aid, Navigation, Orders, Permanent Resident, Pets, Resources, Schools, Security, Translate, Unit Info, and Veterans.' },
+      body: 'Dependent travel, children ages, and optional spiritual preference help tailor family readiness, school, EFMP, childcare, chaplain, and community support resources.' },
+    { tab: 'home', title: 'Home - Category Selector',
+      body: 'The home screen now lists categories alphabetically: Checklist, Documents, Education, Family, Home Relocation, Navigation, Resources, Spiritual Readiness, Translate, and Veterans.' },
     { tab: 'checklist', title: 'Checklist',
-      body: 'Checklist turns PCS requirements into phase-based tasks from orders through in-processing. Users tap square controls to track progress locally.' },
-    { tab: 'spouse', title: 'Deployment',
-      body: 'Deployment helps families prepare legal, financial, communication, childcare, school, and support actions around deployment-related stressors.' },
+      body: 'Checklist organizes PCS actions by phase and lets users tap square controls to track progress without uploading documents.' },
     { tab: 'documents', title: 'Documents',
-      body: 'Documents is now a checklist-only record tracker. Users tap square controls to mark records gathered; the app does not provide document attachment controls.' },
+      body: 'Documents is a checklist-only tracker for records users should gather or verify; there is no ability to upload, attach, or store document files in the app.' },
     { tab: 'education', title: 'Education',
-      body: 'Education explains official benefit pathways, GI Bill chapters, MyCAA, school searches, and college-planning resources.' },
-    { tab: 'efmp', title: 'EFMP',
-      body: 'EFMP guides families through branch-tailored medical, education, assignment coordination, and gaining-location preparation steps.' },
-    { tab: 'employment', title: 'Employment',
-      body: 'Employment supports skills, job searches, recommendations, pasted resume text, and military-family job resources without file upload.' },
-    { tab: 'religion', title: 'Faith',
-      body: 'Faith surfaces public chapel, counseling, and community support resources based on optional user preference.' },
-    { tab: 'home-locator', title: 'Home Locator',
-      body: 'Home Locator uses the gaining installation to open live Zillow, Redfin, Homes.mil, and Google housing searches. Users can filter by home type, landlord type, rent or buy, and manually enter an address, base, city, or ZIP.' },
-    { tab: 'home-relocation', title: 'Home Relocation',
-      body: 'Home Relocation helps users track inventory notes, claims deadlines, replacement value estimates, and DPS resources without attaching evidence files to the app.' },
-    { tab: 'moving-assistance', title: 'Move Aid',
-      body: 'Move Aid explains grants, free assistance, entitlement education, SCRA protections, VA housing assistance, and public financial resources for PCS strain.' },
-    { tab: 'nav', title: 'Navigation',
-      body: 'Navigation supports route planning and public base map information while excluding restricted, force-protection, internal, or non-public installation details.' },
-    { tab: 'orders', title: 'Orders',
-      body: 'Orders captures only essential PCS details manually so the app can tailor timelines, checklists, resources, and gaining-location guidance.' },
-    { tab: 'immigration', title: 'Permanent Resident',
-      body: 'Permanent Resident organizes official USCIS and military legal-help information for military families managing immigration questions during PCS.' },
-    { tab: 'pet-relocation', title: 'Pets',
-      body: 'Pets provides a checklist for vet records, health certificates, microchips, airlines, lodging, OCONUS rules, and pet reimbursement planning.' },
-    { tab: 'resources', title: 'Resources',
-      body: 'Resources is an official/public source hub for healthcare, military portals, family support, financial assistance, PCS, housing, education, careers, and legal support.' },
-    { tab: 'schools', title: 'Schools',
+      body: 'Education explains official education benefits, GI Bill pathways, MyCAA, college planning, and school-search resources.' },
+    { tab: 'family', title: 'Family - Overview',
+      body: 'Family combines Deployment, EFMP, Employment, Permanent Resident, Pets, and Schools into one category so family-impact planning stays together.' },
+    { tab: 'family', title: 'Family - Deployment',
+      body: 'Deployment helps families prepare communication, legal, financial, childcare, school, and support actions around deployment-related stressors.' },
+    { tab: 'family', title: 'Family - EFMP',
+      body: 'EFMP provides branch-tailored checklist support for medical, education, assignment coordination, and gaining-location preparation.' },
+    { tab: 'family', title: 'Family - Employment',
+      body: 'Employment supports skills, military-family job searches, recommendations, and public job resources without a resume tab or file upload.' },
+    { tab: 'family', title: 'Family - Permanent Resident',
+      body: 'Permanent Resident organizes official USCIS and military legal-help information for families managing immigration questions during PCS.' },
+    { tab: 'family', title: 'Family - Pets',
+      body: 'Pets guides vet records, health certificates, microchips, travel rules, lodging, airline planning, and reimbursement readiness.' },
+    { tab: 'family', title: 'Family - Schools',
       body: 'Schools uses gaining installation and child ages to surface school liaison, DoDEA, local district, CDC, and childcare planning resources.' },
-    { tab: 'security', title: 'Security',
-      body: 'Security explains the no-upload posture, local-first storage, browser hardening headers, disabled device permissions, privacy shield, public-data limits, and DoD/DISA-style alignment.' },
+    { tab: 'home-relocation', title: 'Home Relocation - Overview',
+      body: 'Home Relocation combines Home Locator, Inventory & Claims, Move Aid, and VA Loan guidance into one housing and move-support category.' },
+    { tab: 'home-relocation', title: 'Home Relocation - Home Locator',
+      body: 'Home Locator opens public housing search paths near the gaining installation and supports manual address, base, city, or ZIP searches.' },
+    { tab: 'home-relocation', title: 'Home Relocation - Inventory & Claims',
+      body: 'Inventory & Claims helps users track before-and-after evidence notes, 180-day loss or damage reports, 9-month full replacement value deadlines, and replacement value estimates.' },
+    { tab: 'home-relocation', title: 'Home Relocation - Move Aid',
+      body: 'Move Aid explains grants, free assistance, entitlement education, SCRA protections, VA housing assistance, and public financial resources for PCS strain.' },
+    { tab: 'home-relocation', title: 'Home Relocation - VA Loan',
+      body: 'VA Loan provides checklist steps, official VA guidance, and lender research links for military homebuying near the gaining installation.' },
+    { tab: 'nav', title: 'Navigation',
+      body: 'Navigation supports route planning and public installation map information while excluding restricted, force-protection, internal, or non-public base details.' },
+    { tab: 'resources', title: 'Resources',
+      body: 'Resources is an organized hub for official public military, government, family, financial, healthcare, PCS, housing, education, career, and legal resources.' },
+    { tab: 'religion', title: 'Spiritual Readiness',
+      body: 'Spiritual Readiness surfaces public chaplain, counseling, worship, and community support resources based on optional preference.' },
     { tab: 'translation', title: 'Translate',
       body: 'Translate supports housing, school, medical, emergency, transportation, shopping, and daily-life phrases for CONUS and OCONUS moves.' },
-    { tab: 'unit-info', title: 'Unit Info',
-      body: 'Unit Info displays public unit information only and excludes rosters, internal contact lists, schedules, deployment details, CUI, restricted information, and non-public mission data.' },
     { tab: 'veterans', title: 'Veterans',
       body: 'Veterans helps users find veteran-owned business resources and public directories near the gaining installation.' },
     { tab: 'home', title: 'Tour Complete - Thank You',
-      body: 'You have reached the end of the PCS Express tour. Every category is designed to help you plan with official public information, keep personal PCS data local where possible, and move through PCS with fewer surprises. Thank you for your service.' },
+      body: 'You have reached the end of the PCS Express tour. Every category is designed to help you plan with official public information, avoid sensitive-data entry, and move through PCS with fewer surprises. Thank you for your service.' },
   ];
 
   const BOTTOM_NAV = [
-    { id: 'home',        label: 'Home',              icon: 'HQ',  iosIcon: '🏠', color: '#0D1821' },
-    { id: 'checklist',   label: 'Checklist',         icon: 'PCK', iosIcon: '✅', color: '#1565C0' },
-    { id: 'spouse',      label: 'Deployment',        icon: 'DEP', iosIcon: '🪖', color: '#F57F17' },
-    { id: 'documents',   label: 'Documents',         icon: 'DOC', iosIcon: '📋', color: '#5D4037' },
-    { id: 'education',   label: 'Education',         icon: 'EDU', iosIcon: '📚', color: '#1565C0' },
-    { id: 'efmp',        label: 'EFMP',              icon: 'EFM', iosIcon: '♿', color: '#5B2A86' },
-    { id: 'employment',  label: 'Employment',        icon: 'EMP', iosIcon: '💼', color: '#4A5E2A' },
-    { id: 'religion',    label: 'Faith',             icon: 'CHP', iosIcon: '⛪', color: '#37474F' },
-    { id: 'home-locator', label: 'Home Locator',     icon: 'LOC', iosIcon: '🏘️', color: '#00695C' },
-    { id: 'home-relocation', label: 'Home Relocation', icon: 'HME', iosIcon: '🏠', color: '#455A64' },
-    { id: 'moving-assistance', label: 'Move Aid',    icon: 'AID', iosIcon: '💵', color: '#6A4C1B' },
-    { id: 'nav',         label: 'Navigation',        icon: 'NAV', iosIcon: '🗺️', color: '#00695C' },
-    { id: 'orders',      label: 'Orders',            icon: 'ORD', iosIcon: '📋', color: '#2E7D32' },
-    { id: 'immigration', label: 'Perm. Resident',    icon: 'IMM', iosIcon: '🏛️', color: '#0D47A1' },
-    { id: 'pet-relocation', label: 'Pets',           icon: 'PET', iosIcon: '🐾', color: '#00897B' },
-    { id: 'resources',   label: 'Resources',         icon: 'RES', iosIcon: '🔗', color: '#C62828' },
-    { id: 'schools',     label: 'Schools',           icon: 'SCH', iosIcon: '🎓', color: '#7B1FA2' },
-    { id: 'security',    label: 'Security',          icon: 'SEC', iosIcon: '🔒', color: '#263238' },
-    { id: 'translation', label: 'Translate',         icon: 'TRL', iosIcon: '🌐', color: '#1976D2' },
-    { id: 'unit-info',   label: 'Unit Info',         icon: 'UNT', iosIcon: '🎖️', color: '#3F51B5' },
-    { id: 'veterans',    label: 'Veterans',          icon: 'VET', iosIcon: '⭐', color: '#E65100' },
+    { id: 'home',        label: 'Home',                 icon: 'HQ',  iosIcon: '🏠', color: '#0D1821' },
+    { id: 'checklist',   label: 'Checklist',            icon: 'PCK', iosIcon: '✅', color: '#1565C0' },
+    { id: 'documents',   label: 'Documents',            icon: 'DOC', iosIcon: '📋', color: '#5D4037' },
+    { id: 'education',   label: 'Education',            icon: 'EDU', iosIcon: '📚', color: '#1565C0' },
+    { id: 'family',      label: 'Family',               icon: 'FAM', iosIcon: '👪', color: '#5B2A86' },
+    { id: 'home-relocation', label: 'Home Relocation',  icon: 'HME', iosIcon: '🏠', color: '#455A64' },
+    { id: 'nav',         label: 'Navigation',           icon: 'NAV', iosIcon: '🗺️', color: '#00695C' },
+    { id: 'resources',   label: 'Resources',            icon: 'RES', iosIcon: '🔗', color: '#C62828' },
+    { id: 'religion',    label: 'Spiritual Readiness',  icon: 'SPR', iosIcon: '✦', color: '#37474F' },
+    { id: 'translation', label: 'Translate',            icon: 'TRL', iosIcon: '🌐', color: '#1976D2' },
+    { id: 'veterans',    label: 'Veterans',             icon: 'VET', iosIcon: '⭐', color: '#E65100' },
   ];
   const HOME_CATEGORIES = BOTTOM_NAV.filter(item => item.id !== 'home');
 
@@ -4548,32 +3310,22 @@ function App() {
   const IOS_TAB_BAR = [
     { id: 'home',       label: 'Home',      iosIcon: '🏠' },
     { id: 'checklist',  label: 'Checklist', iosIcon: '✅' },
-    { id: 'orders',     label: 'Orders',    iosIcon: '📋' },
-    { id: 'resources',  label: 'Resources', iosIcon: '🔗' },
+    { id: 'family',     label: 'Family',    iosIcon: '👪' },
+    { id: 'home-relocation', label: 'Homes', iosIcon: '🏠' },
   ];
 
   const currentLabel = BOTTOM_NAV.find(n => n.id === activeTab)?.label || 'Home';
   const activeNavItem = BOTTOM_NAV.find(n => n.id === activeTab);
   const CATEGORY_DESCRIPTIONS = {
-    checklist: 'Track PCS requirements by phase, keep milestone progress visible, and save checklist updates locally for offline use.',
-    spouse: 'Prepare families for deployment-related stress, communication planning, legal readiness, and support resources.',
-    documents: 'Track required PCS records with checklist squares only. Document attachment and upload capability has been removed for security.',
-    education: 'Review official education benefits, GI Bill pathways, MyCAA, college searches, and school-planning resources.',
-    efmp: 'Review branch-tailored EFMP actions for medical, education, assignment coordination, and arrival planning.',
-    employment: 'Build a military-family career plan with spouse-supportive job searches, skills, pasted resume text, and official job resources.',
-    religion: 'Locate chaplain, counseling, worship, and community support resources tied to the user’s optional faith preference.',
-    'home-locator': 'Find housing search paths near the gaining installation with Zillow, Redfin, Homes.mil, Google lookup, landlord filters, home-type filters, and VA loan guidance.',
-    'home-relocation': 'Track household goods inventory notes, claims deadlines, and replacement value estimates without attaching evidence files to the app.',
-    'moving-assistance': 'Find financial assistance, grants, free support, entitlement education, and housing or land resources that may reduce PCS strain.',
+    checklist: 'Track PCS requirements by phase, keep milestone progress visible, and tap square controls to save progress without uploading documents.',
+    documents: 'Use checklist-only record tracking for PCS documents users need to gather, verify, or carry. File upload and attachment capability has been removed.',
+    education: 'Review official education benefits, GI Bill pathways, MyCAA, college planning, and school-search resources.',
+    family: 'Plan family-impact PCS needs across Deployment, EFMP, Employment, Permanent Resident, Pets, and Schools in one organized category.',
+    'home-relocation': 'Find housing, move aid, VA loan guidance, inventory tracking, claims deadlines, and replacement value planning in one relocation category.',
     nav: 'Plan routes, save directions, and view public installation map information without restricted or non-public base details.',
-    orders: 'Capture essential PCS order details manually so the rest of the application can tailor timelines, resources, and installation guidance.',
-    immigration: 'Review permanent resident, USCIS, citizenship, and military legal-help information for PCS-aware family planning.',
-    'pet-relocation': 'Prepare pets for PCS travel with records, health certificates, lodging, airline, and OCONUS checklist support.',
     resources: 'Use one organized hub for official public military, government, family, financial, healthcare, PCS, and career resources.',
-    schools: 'Plan school, childcare, CDC, DoDEA, and school-liaison actions near the gaining installation.',
-    security: 'Review no-upload controls, local-first storage, browser hardening, privacy safeguards, and DoD/DISA-style alignment.',
+    religion: 'Locate chaplain, counseling, worship, and community support resources tied to the user’s optional spiritual preference.',
     translation: 'Translate common PCS, housing, medical, school, transportation, and daily-life phrases for CONUS or OCONUS moves.',
-    'unit-info': 'View public unit information, official lookup paths, history, and contact resources based on onboarding selections.',
     veterans: 'Find veteran-owned business resources, public directories, and local search paths near the gaining location.',
   };
 
@@ -4801,13 +3553,11 @@ function App() {
       {/* CONTENT */}
       <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isNative && !isDesktop ? 'calc(58px + env(safe-area-inset-bottom))' : 'env(safe-area-inset-bottom)' }}>
         {activeTab === 'home' && (
-          <div style={{ padding: '16px', position: 'relative' }}>
-            <PublicDataNotice theme={theme} compact />
-            <LocalEncryptedDataNotice theme={theme} compact />
-            <div className="home-storage-status">
-              <strong>Last local save</strong>
-              <span>{lastLocalSaveAt ? new Date(lastLocalSaveAt).toLocaleString() : 'No local save recorded yet'}</span>
+          <div style={{ padding: '16px', position: 'relative', overflow: 'hidden' }}>
+            <div aria-hidden="true" style={{ position: 'absolute', right: -44, top: 128, fontSize: 220, fontWeight: 900, opacity: 0.035, userSelect: 'none', pointerEvents: 'none', color: theme.primary, letterSpacing: '-10px', lineHeight: 1, zIndex: 0 }}>
+              {theme.insignia || theme.abbr}
             </div>
+            <div style={{ position: 'relative', zIndex: 1 }}>
             {/* Branch Hero Banner */}
             <div style={{ background: `linear-gradient(135deg, ${theme.secondary} 0%, ${theme.primary} 100%)`, borderRadius: 16, padding: '20px 16px', marginBottom: 16, position: 'relative', overflow: 'hidden', border: `1px solid ${theme.accent}40`, boxShadow: '0 4px 20px rgba(0,0,0,0.18)' }}>
               {/* Background branch acronym watermark */}
@@ -4850,28 +3600,20 @@ function App() {
                 {profile.religiousPreference && profile.religiousPreference !== 'Prefer not to say' && <div>Faith: {profile.religiousPreference}</div>}
               </div>
             </div>
+            <HomeLegalBanners theme={theme} />
+            </div>
           </div>
         )}
 
         {activeTab === 'checklist' && renderCategoryFrame('checklist', <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />)}
-        {activeTab === 'home-locator' && renderCategoryFrame('home-locator', <HomeLocatorTab theme={theme} profile={profile} />)}
         {activeTab === 'documents' && renderCategoryFrame('documents', <PCSDocumentsModule theme={theme} profile={profile} />)}
-        {activeTab === 'efmp' && renderCategoryFrame('efmp', <EFMPTab theme={theme} profile={profile} />)}
-        {activeTab === 'orders' && renderCategoryFrame('orders', <OrdersTab theme={theme} profile={profile} />)}
-        {activeTab === 'unit-info' && renderCategoryFrame('unit-info', <UnitInfoScreen theme={theme} profile={profile} unit={selectedUnitProfile} />)}
-        {activeTab === 'schools' && renderCategoryFrame('schools', <SchoolsTab theme={theme} profile={profile} />)}
-        {activeTab === 'veterans' && renderCategoryFrame('veterans', <VeteranBusinessesTab theme={theme} profile={profile} />)}
-        {activeTab === 'employment' && renderCategoryFrame('employment', <EmploymentModule theme={theme} profile={profile} />)}
         {activeTab === 'education' && renderCategoryFrame('education', <EducationBenefitsTab theme={theme} profile={profile} />)}
-        {activeTab === 'moving-assistance' && renderCategoryFrame('moving-assistance', <MovingFinancialAssistanceTab theme={theme} profile={profile} />)}
-        {activeTab === 'pet-relocation' && renderCategoryFrame('pet-relocation', <PetRelocationChecklistTab theme={theme} profile={profile} />)}
-        {activeTab === 'home-relocation' && renderCategoryFrame('home-relocation', <HomeRelocationTab theme={theme} profile={profile} />)}
+        {activeTab === 'family' && renderCategoryFrame('family', <FamilyCategoryTab theme={theme} profile={profile} />)}
+        {activeTab === 'home-relocation' && renderCategoryFrame('home-relocation', <HomeRelocationUnifiedTab theme={theme} profile={profile} />)}
         {activeTab === 'nav' && renderCategoryFrame('nav', <NavigationModule theme={theme} profile={profile} />)}
-        {activeTab === 'spouse' && renderCategoryFrame('spouse', <SpouseDeploymentGuide theme={theme} profile={profile} />)}
         {activeTab === 'religion' && renderCategoryFrame('religion', <ReligiousServicesModuleWrapped theme={theme} profile={profile} />)}
         {activeTab === 'resources' && renderCategoryFrame('resources', <ResourcesTab theme={theme} profile={profile} />)}
-        {activeTab === 'security' && renderCategoryFrame('security', <SecurityCategoryTab theme={theme} profile={profile} />)}
-        {activeTab === 'immigration' && renderCategoryFrame('immigration', <ImmigrationModule theme={theme} profile={profile} />)}
+        {activeTab === 'veterans' && renderCategoryFrame('veterans', <VeteranBusinessesTab theme={theme} profile={profile} />)}
       </div>
       </div>{/* end body container */}
 

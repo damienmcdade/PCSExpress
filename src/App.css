@@ -903,31 +903,8 @@ body {
   background: #f7fff8;
 }
 
-.home-storage-status {
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid #d8e0ea;
-  border-radius: 8px;
-  color: #56697c;
-  display: flex;
-  font-size: 11px;
-  gap: 8px;
-  justify-content: space-between;
-  line-height: 1.4;
-  margin: 0 0 12px;
-  padding: 9px 12px;
-}
 
-.home-storage-status strong {
-  color: #0d1821;
-  flex-shrink: 0;
-  font-size: 11px;
-  font-weight: 900;
-}
 
-.home-storage-status span {
-  text-align: right;
-}
 
 .category-screen {
   width: 100%;

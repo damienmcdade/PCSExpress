@@ -417,10 +417,6 @@ function EmploymentModule({ theme, profile }) {
   const [selectedIndustries, setSelectedIndustries] = useState(new Set())
   const [showResults, setShowResults] = useState(false)
 
-  const [resumeText, setResumeText] = useState('')
-  const [resumeAnalysis, setResumeAnalysis] = useState(null)
-  const [refinedResume, setRefinedResume] = useState('')
-  const [selectedPosition, setSelectedPosition] = useState(null)
 
   useEffect(() => {
     secureLocalStore.set('pcs_employment_skills', skills)
@@ -471,7 +467,6 @@ function EmploymentModule({ theme, profile }) {
     { id: 'skills',          label: 'Skills Profile'  },
     { id: 'search',          label: 'Job Search'      },
     { id: 'recommendations', label: 'Recommendations' },
-    { id: 'resume',          label: 'Resume'          },
     { id: 'jobboards',       label: 'Job Resources'   },
   ]
 
@@ -736,64 +731,6 @@ function EmploymentModule({ theme, profile }) {
               <div style={{ fontSize: 11, color: '#56697C', marginBottom: 14 }}>Add your skills in the Skills Profile tab to see personalized job matches.</div>
               <button onClick={() => setActiveTab('skills')} style={{ padding: '10px 24px', borderRadius: 10, background: theme.primary, color: '#FFF', border: 'none', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>Add Skills →</button>
             </div>
-          )}
-        </div>
-      )}
-
-      {/* ── RESUME ── */}
-      {activeTab === 'resume' && (
-        <div>
-          <div style={{ fontSize: 11, color: '#7A4A00', background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: 10, marginBottom: 12 }}>
-            Resume text can contain sensitive personal data. File upload is disabled; paste only the minimum text needed for career planning. Pasted text is processed in the browser session and is not intentionally stored unless you save related skills locally.
-          </div>
-          {resumeAnalysis && (
-            <div style={{ background: '#E8F5E9', border: '1.5px solid #4CAF50', borderRadius: 12, padding: 14, marginBottom: 14 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#2E7D32', marginBottom: 8 }}>Resume AI Analysis</div>
-              {resumeAnalysis.name && <div style={{ fontSize: 12, color: '#1B5E20', marginBottom: 4 }}><strong>Name:</strong> {resumeAnalysis.name}</div>}
-              {resumeAnalysis.experience_years !== undefined && <div style={{ fontSize: 12, color: '#1B5E20', marginBottom: 4 }}><strong>Experience:</strong> {resumeAnalysis.experience_years} years</div>}
-              {resumeAnalysis.education && <div style={{ fontSize: 12, color: '#1B5E20', marginBottom: 8 }}><strong>Education:</strong> {resumeAnalysis.education}</div>}
-              {resumeAnalysis.skills?.length > 0 && (
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: '#2E7D32', marginBottom: 6, letterSpacing: '.1em' }}>DETECTED SKILLS</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {resumeAnalysis.skills.map((s, i) => <span key={i} style={{ background: '#C8E6C9', color: '#1B5E20', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 12 }}>{s}</span>)}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#0D1821', marginBottom: 8 }}>Paste Resume Text</div>
-            <textarea
-              value={resumeText}
-              onChange={e => setResumeText(e.target.value)}
-              placeholder="Paste resume text here. File upload is disabled for security."
-              style={{ width: '100%', minHeight: 280, padding: 12, borderRadius: 8, border: '1px solid #E0E6EE', fontSize: 12, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box' }}
-            />
-          </div>
-
-          {selectedPosition && (
-            <>
-              <div style={{ background: `${theme.primary}18`, border: `1px solid ${theme.primary}40`, borderRadius: 12, padding: 12, marginBottom: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: theme.primary, marginBottom: 3 }}>Tailoring for: {selectedPosition.title}</div>
-                <div style={{ fontSize: 11, color: '#56697C' }}>Auto-tailor aligns your resume keywords to this position.</div>
-              </div>
-              <button onClick={() => setRefinedResume(`TAILORED FOR: ${selectedPosition.title}\n\n${resumeText}\n\nMATCHED SKILLS:\n${(resumeAnalysis?.skills || []).join('\n')}`)} style={{ width: '100%', padding: 12, borderRadius: 12, background: theme.primary, color: '#FFF', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 13, marginBottom: 12 }}>
-                Auto-Tailor Resume
-              </button>
-            </>
-          )}
-
-          {refinedResume && (
-            <>
-              <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 10, maxHeight: 300, overflowY: 'auto', whiteSpace: 'pre-wrap', fontSize: 11, fontFamily: 'monospace', color: '#34495E', lineHeight: 1.6 }}>
-                {refinedResume}
-              </div>
-              <button onClick={() => navigator.clipboard.writeText(refinedResume).then(() => alert('Copied!'))} style={{ width: '100%', padding: 12, borderRadius: 10, background: '#4CAF50', color: '#FFF', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>
-                Copy to Clipboard
-              </button>
-            </>
           )}
         </div>
       )}
