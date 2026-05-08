@@ -73,7 +73,7 @@ function getBranchSupportCenter(branch) {
       name: 'Fleet & Family Support Center (FFSC)',
       branch: 'Navy',
       description: 'Financial counseling, deployment support, family advocacy, and transition assistance.',
-      url: 'https://www.cnic.navy.mil/ffsp',
+      url: 'https://installations.militaryonesource.mil/',
       phone: '1-800-342-9647',
     }
   }
@@ -82,7 +82,7 @@ function getBranchSupportCenter(branch) {
       name: 'Marine Corps Family Services (MCCS)',
       branch: 'Marine Corps',
       description: 'Family support, counseling, financial readiness, and deployment readiness services.',
-      url: '',
+      url: 'https://www.usmc-mccs.org/services/support/family-care/',
       phone: '1-800-336-4592',
     }
   }
@@ -92,7 +92,7 @@ function getBranchSupportCenter(branch) {
       name: 'Airman & Family Readiness Center (AFRC)',
       branch: isSpace ? 'Space Force' : 'Air Force',
       description: 'Financial counseling, deployment support, family advocacy, employment assistance, and relocation services.',
-      url: 'https://www.afpc.af.mil',
+      url: 'https://installations.militaryonesource.mil/',
       phone: '1-800-342-9647',
     }
   }
@@ -101,7 +101,7 @@ function getBranchSupportCenter(branch) {
       name: 'Work-Life Programs (CG)',
       branch: 'Coast Guard',
       description: 'Work-life balance, family counseling, financial readiness, and support for CG families.',
-      url: 'https://www.dcms.uscg.mil',
+      url: 'https://www.dcms.uscg.mil/Our-Organization/Assistant-Commandant-for-Human-Resources-CG-1/Health-Safety-and-Work-Life-CG-11/',
       phone: '1-800-342-9647',
     }
   }
@@ -109,8 +109,8 @@ function getBranchSupportCenter(branch) {
     name: 'Army Community Service (ACS)',
     branch: 'Army',
     description: 'Financial counseling, deployment support, family advocacy, employment readiness, and relocation assistance.',
-    url: '',
-    phone: '(Installation ACS) – find via MilitaryINSTALLATIONS',
+    url: 'https://installations.militaryonesource.mil/',
+    phone: '(Installation ACS) - find via MilitaryINSTALLATIONS',
   }
 }
 
@@ -201,12 +201,11 @@ const RELIGIOUS_SERVICES = {
 }
 
 const ONLINE_RESOURCES = [
-  { name: 'Military Installations', url: 'https://installations.militaryonesource.mil/', description: 'Find your installation chaplain office and local faith resources' },
-  { name: 'Chapel Locator (Army)', url: '', description: 'Army chapel services, times, and chaplain contacts worldwide' },
-  { name: 'Navy Chaplain Corps', url: 'https://www.navy.mil/NavyData/People/Fields/chaplains/', description: 'Fleet chaplain services and spiritual care resources' },
-  { name: 'USMC Chaplain Directory', url: 'https://www.marines.mil/News/Publications/MCPEL/Marine-Corps-Orders/Article/899309/', description: 'Marine Corps chaplain directory and unit ministry teams' },
-  { name: 'Chaplain Alliance', url: '', description: 'Multi-denomination chaplain resources and endorsing agency contacts' },
-  { name: 'Military OneSource – Faith', url: '', description: 'Spiritual fitness tools and faith-based support for all branches' },
+  { name: 'MilitaryINSTALLATIONS', url: 'https://installations.militaryonesource.mil/', description: 'Find installation chaplain offices, support centers, contacts, and public installation resources.' },
+  { name: 'Army Chaplain Corps', url: 'https://www.army.mil/chaplaincorps/', description: 'Official U.S. Army Chaplain Corps public information.' },
+  { name: 'Navy Chaplain Corps', url: 'https://www.navy.mil/Resources/Navy-Chaplain-Corps/', description: 'Official Navy Chaplain Corps public information for Navy, Marine Corps, and Coast Guard support.' },
+  { name: 'Air Force Chaplain Corps', url: 'https://www.af.mil/About-Us/Fact-Sheets/Display/Article/104584/chaplain-corps/', description: 'Official Air Force Chaplain Corps public information.' },
+  { name: 'Military OneSource Counseling', url: 'https://www.militaryonesource.mil/benefits/confidential-counseling/', description: 'Official confidential non-medical counseling information for eligible military families.' },
 ]
 
 function ReligiousServicesModule({ theme, profile }) {
@@ -439,7 +438,7 @@ function ReligiousServicesModule({ theme, profile }) {
                 ONLINE RESOURCES
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {ONLINE_RESOURCES.map((res, idx) => (
+                {ONLINE_RESOURCES.filter(res => res.url).map((res, idx) => (
                   <a
                     key={idx}
                     href={res.url}

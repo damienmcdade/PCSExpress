@@ -18,35 +18,35 @@ const RESOURCES = [
     type: 'GRANT',
     audience: 'Eligible active duty, veterans, and military families',
     desc: 'Needs-based grants for rent, utilities, food, vehicle expenses, moving-related emergencies, and other critical family costs.',
-    url: '',
+    url: 'https://operationhomefront.org/critical-financial-assistance/',
   },
   {
     name: 'Army Emergency Relief',
     type: 'GRANT',
     audience: 'Army soldiers, retirees, and eligible family members',
     desc: 'Interest-free loans, grants, and scholarships for emergency travel, rent, utilities, vehicle repair, and PCS strain.',
-    url: '',
+    url: 'https://www.armyemergencyrelief.org/',
   },
   {
     name: 'Navy-Marine Corps Relief Society',
     type: 'GRANT',
     audience: 'Navy and Marine Corps families',
     desc: 'Quick Assist Loans, grants, budget counseling, and emergency help for PCS, travel, housing, food, and child needs.',
-    url: '',
+    url: 'https://www.nmcrs.org/',
   },
   {
     name: 'Air Force Aid Society',
     type: 'GRANT',
     audience: 'Air Force and Space Force families',
     desc: 'Emergency assistance, Falcon Loans, grants, and community programs to absorb unexpected relocation costs.',
-    url: '',
+    url: 'https://afas.org/',
   },
   {
     name: 'Coast Guard Mutual Assistance',
     type: 'GRANT',
     audience: 'Coast Guard families',
     desc: 'Loans, grants, PCS support, disaster help, and family assistance for active duty, reserve, retired, and civilian members.',
-    url: '',
+    url: 'https://www.cgmahq.org/',
   },
   {
     name: 'Dislocation Allowance and PCS Travel Entitlements',
@@ -60,7 +60,7 @@ const RESOURCES = [
     type: 'LAND / HOUSING',
     audience: 'Renters, homeowners, and families with PCS orders',
     desc: 'Federal protections for lease termination, interest caps, foreclosure protections, and housing-related legal questions.',
-    url: '',
+    url: 'https://www.justice.gov/servicemembers/servicemembers-civil-relief-act-scra',
   },
   {
     name: 'VA Home Loan and Housing Assistance',
@@ -121,15 +121,19 @@ function ResourceCard({ resource, theme, compact = false }) {
       </div>
       <div className="assistance-card__audience">{resource.audience}</div>
       <p>{resource.desc}</p>
-      <a
-        href={resource.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={`Open ${resource.name}`}
-        style={{ background: theme.primary }}
-      >
-        Open Resource
-      </a>
+      {resource.url ? (
+        <a
+          href={resource.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Open ${resource.name}`}
+          style={{ background: theme.primary }}
+        >
+          Open Resource
+        </a>
+      ) : (
+        <div className="assistance-card__audience">Official link under review</div>
+      )}
     </article>
   );
 }

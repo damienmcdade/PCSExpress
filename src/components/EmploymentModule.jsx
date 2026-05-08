@@ -75,7 +75,7 @@ const SPOUSE_BOARDS = [
   { name: 'MySECO / MSEP Portal', desc: 'Official DoD spouse education and career portal with MSEP employment resources.', url: 'https://myseco.militaryonesource.mil/portal/', badge: 'Spouse', color: '#880E4F' },
   { name: 'Military OneSource SECO', desc: 'Official spouse education and career guidance from Military OneSource.', url: 'https://www.militaryonesource.mil/education-employment/seco/', badge: 'Spouse', color: '#1565C0' },
   { name: 'DOL Military Spouse Employment', desc: 'Official Department of Labor employment information for military spouses.', url: 'https://www.dol.gov/agencies/vets/veterans/military-spouses/employment', badge: 'DOL', color: '#37474F' },
-  { name: 'MyCAA Scholarship Program', desc: 'Official MyCAA portal for eligible spouse education and career credentials.', url: '', badge: 'Education', color: '#1B5E20' },
+  { name: 'MyCAA Scholarship Program', desc: 'Official MyCAA portal for eligible spouse education and career credentials.', url: 'https://aiportal.acc.af.mil/mycaa', badge: 'Education', color: '#1B5E20' },
 ]
 
 const LOCAL_JOBS = {
@@ -588,6 +588,15 @@ function EmploymentModule({ theme, profile }) {
             const selectedLabels = selectedIndustries.size > 0
               ? [...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.label).filter(Boolean).join(', ')
               : 'All Industries';
+            const kw = encodeURIComponent([...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.keywords || '').join(' ') || 'military spouse');
+            const loc = encodeURIComponent(searchCity);
+            const jobCards = [
+              { name: 'Federal jobs near this installation', badge: 'Live USAJOBS', desc: `Current federal positions within ${radius} miles of ${searchCity}.`, url: `https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}`, color: '#1565C0', remote: 'Remote filter available after opening USAJOBS.' },
+              { name: 'Military spouse hiring path', badge: 'Spouse', desc: 'USAJOBS military spouse hiring path entry point for eligible spouses.', url: 'https://milspouse.usajobs.gov/', color: '#6A1B9A', remote: 'Supports remote and local federal searches.' },
+              { name: 'Department of Defense civilian jobs', badge: 'DoD', desc: `Current DoD civilian job searches near ${searchCity}.`, url: `https://www.usajobs.gov/Search/Results?d=DD&LocationName=${loc}&Radius=${radius}&keyword=${kw}`, color: '#283593', remote: 'Use USAJOBS filters for telework and remote roles.' },
+              { name: 'Remote federal opportunities', badge: 'Remote', desc: 'Federal jobs marked remote or virtual, useful during PCS transitions.', url: `https://www.usajobs.gov/Search/Results?RemoteIndicator=true&keyword=${kw}`, color: '#00796B', remote: 'Remote-only search path.' },
+              { name: 'MySECO / MSEP spouse employment', badge: 'MSEP', desc: 'Official DoD spouse career portal and Military Spouse Employment Partnership entry point.', url: 'https://myseco.militaryonesource.mil/portal/', color: '#880E4F', remote: 'Employer listings may include remote-friendly roles.' },
+            ];
             const boards = [
               { id: 'usajobs', name: 'USAJOBS', color: '#1565C0', desc: 'Official federal openings. Use the Military Spouses filter when eligible.', remote: 'Remote filter available on USAJOBS.' },
               { id: 'myseco', name: 'MySECO / MSEP', color: '#880E4F', desc: 'Official DoD spouse employment portal and Military Spouse Employment Partnership entry point.', remote: 'MSEP includes in-person, hybrid, and remote-friendly employer listings.' },
@@ -601,6 +610,22 @@ function EmploymentModule({ theme, profile }) {
                 <div style={{ background: '#F0F8FF', border: '1px solid #ADD8E6', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 11, color: '#0C5A7E', lineHeight: 1.5 }}>
                   PCS Express no longer stores static job cards because openings change quickly. These links open official government and military employment resources using the selected radius, installation area, and industry filters where supported.
                 </div>
+                {jobCards.map(job => (
+                  <a key={job.name} href={job.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${job.color}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                          <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821' }}>{job.name}</div>
+                          <span style={{ fontSize: 9, fontWeight: 900, background: '#E8F5E9', color: '#2E7D32', borderRadius: 999, padding: '2px 7px' }}>{job.badge}</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{job.desc}</div>
+                        <div style={{ fontSize: 10, color: '#7A4A00', marginTop: 7 }}>{job.remote}</div>
+                      </div>
+                      <div style={{ alignSelf: 'center', padding: '8px 12px', borderRadius: 10, background: job.color, color: '#FFF', fontSize: 11, fontWeight: 900 }}>Open</div>
+                    </div>
+                  </a>
+                ))}
+
                 {boards.map(board => (
                   <a key={board.id} href={buildSearchUrl(board.id)} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${board.color}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
@@ -651,8 +676,8 @@ function EmploymentModule({ theme, profile }) {
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <a href={`https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#1565C0', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>USAJobs</a>
-                      <a href={`https://www.usajobs.gov/jobs?q=${kw}&l=${loc}&radius=${radius}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#00897B', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>Indeed</a>
-                      <a href={`https://myseco.militaryonesource.mil/portal/`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#0077B5', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>LinkedIn</a>
+                      <a href={`https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#00897B', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>DoD Jobs</a>
+                      <a href={`https://myseco.militaryonesource.mil/portal/`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#0077B5', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>MySECO</a>
                     </div>
                   </div>
                 )
@@ -661,7 +686,7 @@ function EmploymentModule({ theme, profile }) {
               <div style={{ background: '#E8F5E9', border: '1.5px solid #4CAF50', borderRadius: 12, padding: 14, marginTop: 4 }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: '#1B5E20', marginBottom: 4 }}>Security Clearance Advantage</div>
                 <div style={{ fontSize: 11, color: '#2E7D32', lineHeight: 1.5, marginBottom: 10 }}>Your military service may have granted a clearance — one of the most valuable credentials in the civilian market. Clearance holders typically earn 10–30% more than peers.</div>
-                <a href="https://www.usajobs.gov" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '10px', borderRadius: 10, background: '#2E7D32', color: '#FFF', textDecoration: 'none', fontWeight: 800, fontSize: 12, textAlign: 'center' }}>Browse Clearance Jobs</a>
+                <a href="https://www.usajobs.gov/Search/Results?keyword=security%20clearance" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '10px', borderRadius: 10, background: '#2E7D32', color: '#FFF', textDecoration: 'none', fontWeight: 800, fontSize: 12, textAlign: 'center' }}>Browse Clearance Jobs</a>
               </div>
             </>
           ) : (

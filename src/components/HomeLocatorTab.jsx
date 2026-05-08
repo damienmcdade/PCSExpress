@@ -37,9 +37,9 @@ const INSTALLATION_MARKETS = {
 };
 
 const BRANCH_HOUSING_SOURCES = {
-  Army: { name: 'Army Housing', url: '' },
+  Army: { name: 'Army Housing / MilitaryINSTALLATIONS', url: 'https://installations.militaryonesource.mil/' },
   Navy: { name: 'Navy Housing', url: 'https://ffr.cnic.navy.mil/Navy-Housing/' },
-  'Marine Corps': { name: 'Marine Corps Housing', url: '' },
+  'Marine Corps': { name: 'Marine Corps Housing / MilitaryINSTALLATIONS', url: 'https://installations.militaryonesource.mil/' },
   'Air Force': { name: 'Department of the Air Force Housing', url: 'https://www.housing.af.mil/' },
   'Space Force': { name: 'Department of the Air Force Housing', url: 'https://www.housing.af.mil/' },
   'Coast Guard': { name: 'Coast Guard Housing Program', url: 'https://www.dcms.uscg.mil/Our-Organization/Assistant-Commandant-for-Human-Resources-CG-1/Health-Safety-and-Work-Life-CG-11/Office-of-Work-Life-CG-111/Housing-Program/' },
@@ -100,11 +100,10 @@ const VA_STEPS = [
 ];
 
 const LENDERS = [
-  { name: 'Veterans United Home Loans', note: 'VA-specialized lender. Verify current community reviews before applying.' },
-  { name: 'Navy Federal Credit Union', note: 'Military-focused credit union. Membership required; verify current rates and reviews.' },
-  { name: 'USAA', note: 'Military-family financial institution. Compare VA loan fees and service ratings.' },
-  { name: 'Rocket Mortgage', note: 'Large national lender. Compare VA terms against military-focused lenders.' },
-  { name: 'PenFed Credit Union', note: 'Credit union option for military families. Verify membership, fees, and current reviews.' },
+  { name: 'VA Home Loan Overview', url: 'https://www.va.gov/housing-assistance/home-loans/', note: 'Official VA overview for VA-backed and VA direct home loan benefits.' },
+  { name: 'VA Home Buying Process', url: 'https://www.va.gov/housing-assistance/home-loans/home-buying-process', note: 'Step-by-step VA guidance for buying with a VA-backed loan.' },
+  { name: 'VA Lender Resources', url: 'https://www.benefits.va.gov/homeloans/lenders.asp', note: 'Official VA lender resources and program information. This is not a private lender endorsement.' },
+  { name: 'CFPB Mortgage Tools', url: 'https://www.consumerfinance.gov/owning-a-home/', note: 'Official federal tools for comparing mortgage costs and loan estimates.' },
 ];
 
 function getMarket(profile, manual) {
@@ -185,6 +184,20 @@ export default function HomeLocatorTab({ theme, profile }) {
         <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.6 }}>{activeProfile.note}</div>
       </div>
 
+      <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821', marginBottom: 8 }}>Official housing action cards</div>
+        {[
+          { name: 'Current DoD Housing Search', desc: 'Open HOMES.mil / HEAT for official current housing availability and housing office support.', url: 'https://www.homes.mil/homes/DispatchServlet/HomesEntry' },
+          { name: 'Installation Housing Office', desc: `Open MilitaryINSTALLATIONS for ${market.label} housing office contacts, programs, and local guidance.`, url: 'https://installations.militaryonesource.mil/' },
+          { name: branchSource.name, desc: 'Open the branch housing source tied to the branch selected during onboarding.', url: branchSource.url },
+        ].filter(card => card.url).map(card => (
+          <a key={card.name} href={card.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', border: '1px solid #E6EDF3', borderLeft: `4px solid ${theme.primary}`, borderRadius: 10, padding: 12, marginTop: 8, background: '#F8FAFC' }}>
+            <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821' }}>{card.name}</div>
+            <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginTop: 3 }}>{card.desc}</div>
+          </a>
+        ))}
+      </div>
+
       <div style={{ fontSize: 11, color: '#0D3B66', background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, marginBottom: 12, lineHeight: 1.5 }}>
         Official public housing pages do not provide one universal live listing feed. PCS Express shows branch-specific housing profiles and sends users to official public military housing systems for current availability.
       </div>
@@ -223,7 +236,7 @@ export default function HomeLocatorTab({ theme, profile }) {
           <div key={lender.name} style={{ borderTop: '1px solid #F1F5F9', padding: '10px 0' }}>
             <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821' }}>{lender.name}</div>
             <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{lender.note}</div>
-            <a href={` + ' VA loan community reviews NMLS')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 6, fontSize: 10, fontWeight: 900, color: theme.primary }}>Check current community ratings →</a>
+            <a href={lender.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 6, fontSize: 10, fontWeight: 900, color: theme.primary }}>Open official guidance →</a>
           </div>
         ))}
       </div>
