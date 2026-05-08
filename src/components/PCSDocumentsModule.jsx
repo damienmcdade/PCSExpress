@@ -339,11 +339,6 @@ export default function PCSDocumentsModule({ theme, profile }) {
                 </div>
               </div>
               <div style={{ borderTop: `1px solid ${obtained ? `${cat?.color}20` : '#F1F5F9'}`, padding: '8px 14px', display: 'flex', gap: 8, flexWrap: 'wrap', background: obtained ? `${cat?.color}06` : '#FAFAFA' }}>
-                {doc.formUrl && (
-                  <a href={doc.formUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', fontSize: 11, fontWeight: 700, textDecoration: 'none' }}>
-                    Official source
-                  </a>
-                )}
                 <button onClick={() => { toggleObtained(doc.id); showToast(obtained ? 'Marked not gathered' : 'Marked gathered'); }} style={{ marginLeft: 'auto', padding: '6px 12px', borderRadius: 8, background: `${cat?.color}15`, color: cat?.color, border: `1px solid ${cat?.color}40`, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                   {obtained ? 'Mark Not Gathered' : 'Mark Gathered'}
                 </button>
