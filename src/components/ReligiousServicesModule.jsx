@@ -210,7 +210,7 @@ const ONLINE_RESOURCES = [
 ]
 
 function ReligiousServicesModule({ theme, profile }) {
-  const [activeTab, setActiveTab] = useState('services')
+  const [activeTab, setActiveTab] = useState('counseling')
 
   const getServices = () => {
     const baseKey = (profile?.gainingInstallation || '').split(',')[0].trim()
@@ -240,8 +240,8 @@ function ReligiousServicesModule({ theme, profile }) {
   const instName = (profile?.gainingInstallation || '').split(',')[0].trim() || 'your installation'
 
   const TABS = [
-    { id: 'services', label: 'Services', icon: '⛪' },
     { id: 'counseling', label: 'Counseling', icon: '🤝' },
+    { id: 'services', label: 'Services', icon: '⛪' },
   ]
 
   const tabBtn = (t) => ({

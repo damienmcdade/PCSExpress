@@ -123,7 +123,7 @@ async function callAI(system, user) {
 }
 
 export default function TranslationModule({ theme, profile }) {
-  const [subTab, setSubTab] = useState('translate');
+  const [subTab, setSubTab] = useState('phrases');
   const [inputText, setInputText] = useState('');
   const [targetLang, setTargetLang] = useState('de');
   const [result, setResult] = useState('');
@@ -161,9 +161,9 @@ export default function TranslationModule({ theme, profile }) {
   }, [inputText, selectedLang, saved]);
 
   const SUB_TABS = [
-    { id: 'translate', label: 'Translate', icon: '🌐' },
     { id: 'phrases',   label: 'Common Phrases', icon: '💬' },
     { id: 'saved',     label: `Saved (${saved.length})`, icon: '💾' },
+    { id: 'translate', label: 'Translate', icon: '🌐' },
   ];
 
   const currentPhrases = PHRASE_CATEGORIES.find(c => c.id === phraseCategory);

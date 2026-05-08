@@ -10,13 +10,13 @@ import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions
 // ─── Document categories ─────────────────────────────────────────────────────
 
 const DOC_CATEGORIES = [
-  { id: 'orders',  label: 'Orders',           icon: '📋', color: '#1565C0' },
-  { id: 'travel',  label: 'Travel & Finance', icon: '💰', color: '#2E7D32' },
-  { id: 'hhg',     label: 'Household Goods',  icon: '📦', color: '#E65100' },
-  { id: 'housing', label: 'Housing',          icon: '🏠', color: '#6A1B9A' },
-  { id: 'medical', label: 'Medical',          icon: '🏥', color: '#B71C1C' },
-  { id: 'family',  label: 'Family & Admin',   icon: '👨‍👩‍👧', color: '#1B5E20' },
-  { id: 'oconus',  label: 'OCONUS',           icon: '🌏', color: '#4A148C' },
+  { id: 'family',   label: 'Family & Admin',   icon: '👪', color: '#7B1FA2' },
+  { id: 'housing',  label: 'Housing',          icon: '🏠', color: '#6A1B9A' },
+  { id: 'hhg',      label: 'Household Goods',  icon: '📦', color: '#2E7D32' },
+  { id: 'medical',  label: 'Medical',          icon: '🏥', color: '#C62828' },
+  { id: 'oconus',   label: 'OCONUS',           icon: '🌍', color: '#00838F' },
+  { id: 'travel',   label: 'Travel & Finance', icon: '✈️', color: '#F9A825' },
+  { id: 'orders',   label: 'Unit',             icon: '📋', color: '#1565C0' },
 ];
 
 // ─── Universal document list (all branches) ──────────────────────────────────
@@ -194,7 +194,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
   const allDocs   = getDocsForBranch(branch, isOconus);
 
   const [states, setStates] = useState(() => sanitizeStates(loadStates()));
-  const [activecat, setActivecat] = useState('orders');
+  const [activecat, setActivecat] = useState('family');
   const [toast, setToast] = useState(null);
 
   useEffect(() => {

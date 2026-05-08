@@ -1,5 +1,5 @@
 /*
- * Purpose: Gaining-installation home locator using public Zillow, Redfin, Homes.mil, and Google lookup paths with VA loan checklist support.
+ * Purpose: Official public military housing locator for the gaining installation with interactive housing profile bubbles and VA loan checklist support.
  * Third-party dependencies: React.
  */
 
@@ -36,22 +36,62 @@ const INSTALLATION_MARKETS = {
   'Coast Guard Base Alameda': { city: 'Alameda', state: 'CA', zip: '94501' },
 };
 
-const TYPE_KEYWORDS = {
-  'Single Family': 'single family house',
-  'Condo': 'condo',
-  'Apartment': 'apartment',
-  'Townhouse': 'townhouse',
+const BRANCH_HOUSING_SOURCES = {
+  Army: { name: 'Army Housing', url: 'https://home.army.mil/imcom/index.php/customers/housing' },
+  Navy: { name: 'Navy Housing', url: 'https://ffr.cnic.navy.mil/Navy-Housing/' },
+  'Marine Corps': { name: 'Marine Corps Housing', url: 'https://www.housing.marines.mil/' },
+  'Air Force': { name: 'Department of the Air Force Housing', url: 'https://www.housing.af.mil/' },
+  'Space Force': { name: 'Department of the Air Force Housing', url: 'https://www.housing.af.mil/' },
+  'Coast Guard': { name: 'Coast Guard Housing Program', url: 'https://www.dcms.uscg.mil/Our-Organization/Assistant-Commandant-for-Human-Resources-CG-1/Health-Safety-and-Work-Life-CG-11/Office-of-Work-Life-CG-111/Housing-Program/' },
 };
 
-const LANDLORD_KEYWORDS = {
-  'Private Landlord': 'private landlord for rent by owner',
-  'Corporate Landlord': 'property management apartments',
-  'Government Housing': 'military housing office privatized housing Homes.mil',
+const OFFICIAL_SOURCES = [
+  { name: 'HOMES.mil / HEAT', url: 'https://www.homes.mil/homes/DispatchServlet/HomesEntry', note: 'Official DoD housing entry point and Housing Early Assistance Tool.' },
+  { name: 'MilitaryINSTALLATIONS Housing', url: 'https://installations.militaryonesource.mil/', note: 'Official public installation housing and support information.' },
+];
+
+const HOUSING_PROFILES = {
+  Army: [
+    { type: 'Single Family Home', beds: '2-5', baths: '1.5-3', sqft: '1,050-2,400', proximity: 'On or near post', note: 'Common family housing profile shown on official installation housing pages.' },
+    { type: 'Townhome', beds: '2-4', baths: '1.5-2.5', sqft: '950-1,900', proximity: 'On post or adjoining communities', note: 'Often used for junior and mid-grade family housing where inventory exists.' },
+    { type: 'Apartment or Duplex', beds: '1-3', baths: '1-2', sqft: '650-1,450', proximity: 'Near housing office or surrounding community', note: 'Used for smaller households, waiting-list options, or community housing searches.' },
+    { type: 'Unaccompanied Housing', beds: 'Studio-1', baths: 'Shared or private', sqft: 'Varies by installation', proximity: 'On post', note: 'Availability and eligibility are managed by the local housing office.' },
+  ],
+  Navy: [
+    { type: 'Townhome', beds: '2-4', baths: '1.5-2.5', sqft: '950-1,950', proximity: 'On or near installation', note: 'Navy Housing Service Centers help match priorities to available local options.' },
+    { type: 'Apartment or Flat', beds: '1-3', baths: '1-2', sqft: '650-1,500', proximity: 'Near fleet concentration areas', note: 'Common for community housing, overseas locations, and unaccompanied personnel.' },
+    { type: 'Single Family Home', beds: '3-5', baths: '2-3', sqft: '1,300-2,500', proximity: 'Installation housing area or nearby community', note: 'Availability depends on grade, family composition, and local inventory.' },
+    { type: 'Unaccompanied Housing', beds: 'Studio-1', baths: 'Shared or private', sqft: 'Varies by installation', proximity: 'On installation', note: 'Navy UH supports single and unaccompanied Sailors where available.' },
+  ],
+  'Marine Corps': [
+    { type: 'Single Family Home', beds: '2-5', baths: '1.5-3', sqft: '1,100-2,500', proximity: 'On or near base', note: 'Common family housing profile near Marine Corps installations.' },
+    { type: 'Townhome', beds: '2-4', baths: '1.5-2.5', sqft: '950-1,900', proximity: 'Base housing area or local community', note: 'Often available through installation housing offices or public-private housing partners.' },
+    { type: 'Apartment or Duplex', beds: '1-3', baths: '1-2', sqft: '650-1,450', proximity: 'Near base gates or local communities', note: 'Useful for smaller households or community housing planning.' },
+    { type: 'Bachelor / Unaccompanied Housing', beds: 'Studio-1', baths: 'Shared or private', sqft: 'Varies by installation', proximity: 'On base', note: 'Managed locally for eligible Marines.' },
+  ],
+  'Air Force': [
+    { type: 'Single Family Home', beds: '2-5', baths: '1.5-3', sqft: '1,100-2,500', proximity: 'On or near base', note: 'Department of the Air Force housing pages show family, unaccompanied, and community housing options.' },
+    { type: 'Townhome', beds: '2-4', baths: '1.5-2.5', sqft: '950-1,900', proximity: 'Base housing area or nearby community', note: 'Common at many installations depending on current inventory.' },
+    { type: 'Apartment or Tower Unit', beds: '1-4', baths: '1-2', sqft: '700-1,800', proximity: 'Often on base overseas or in nearby communities', note: 'Some official overseas pages list apartment-style tower units.' },
+    { type: 'Unaccompanied Housing', beds: 'Studio-1', baths: 'Shared or private', sqft: 'Varies by installation', proximity: 'On base', note: 'Managed through the Military Housing Office.' },
+  ],
+  'Space Force': [
+    { type: 'Single Family Home', beds: '2-5', baths: '1.5-3', sqft: '1,100-2,500', proximity: 'On or near installation', note: 'Guardians use Department of the Air Force housing channels at supported installations.' },
+    { type: 'Townhome', beds: '2-4', baths: '1.5-2.5', sqft: '950-1,900', proximity: 'Installation housing area or local community', note: 'Availability is confirmed through the servicing housing office.' },
+    { type: 'Apartment or Flat', beds: '1-3', baths: '1-2', sqft: '650-1,450', proximity: 'Near installation or local community', note: 'Useful for community housing planning near Space Force assignments.' },
+    { type: 'Unaccompanied Housing', beds: 'Studio-1', baths: 'Shared or private', sqft: 'Varies by installation', proximity: 'On installation', note: 'Managed by the servicing housing office.' },
+  ],
+  'Coast Guard': [
+    { type: 'Single Family Home', beds: '2-4', baths: '1.5-2.5', sqft: '1,000-2,100', proximity: 'Near unit or station', note: 'Coast Guard housing availability varies heavily by assignment location.' },
+    { type: 'Townhome', beds: '2-4', baths: '1.5-2.5', sqft: '900-1,800', proximity: 'Near base or local community', note: 'Often considered where local housing is constrained.' },
+    { type: 'Apartment or Duplex', beds: '1-3', baths: '1-2', sqft: '600-1,400', proximity: 'Near station or sector', note: 'Common for smaller households and high-cost areas.' },
+    { type: 'Unaccompanied Housing', beds: 'Studio-1', baths: 'Shared or private', sqft: 'Varies by unit', proximity: 'At or near unit', note: 'Eligibility and availability are confirmed locally.' },
+  ],
 };
 
 const VA_STEPS = [
   'Confirm eligibility for a VA-backed home loan or VA direct loan through VA.gov.',
-  'Request a Certificate of Eligibility (COE), or ask a lender to request it through VA systems.',
+  'Request a Certificate of Eligibility, or ask a lender to request it through VA systems.',
   'Compare at least three lenders using the same loan type, price point, and estimated closing date.',
   'Ask each lender for the VA funding fee estimate, interest rate, APR, lender credits, and closing costs.',
   'Get preapproval before making offers near the gaining installation.',
@@ -72,26 +112,23 @@ function getMarket(profile, manual) {
   if (manualText) return { label: manualText, query: manualText };
   const install = (profile?.gainingInstallation || '').split(',')[0].trim();
   const known = INSTALLATION_MARKETS[install];
-  if (known) return { label: `${install} - ${known.city}, ${known.state}`, query: `${known.city} ${known.state} ${known.zip}` };
+  if (known) return { label: `${install} - ${known.city}, ${known.state}`, query: `${install} ${known.city} ${known.state} ${known.zip}` };
   return { label: install || 'Enter gaining installation, address, city, or ZIP', query: install || '' };
 }
 
-function urlFor(source, query, type, landlord) {
-  const q = encodeURIComponent([query, TYPE_KEYWORDS[type], LANDLORD_KEYWORDS[landlord]].filter(Boolean).join(' '));
-  if (source === 'zillow-rent') return `https://www.zillow.com/homes/for_rent/${encodeURIComponent(query)}_rb/`;
-  if (source === 'zillow-buy') return `https://www.zillow.com/homes/${encodeURIComponent(query)}_rb/`;
-  if (source === 'redfin') return `https://www.redfin.com/stingray/do/location-autocomplete?location=${encodeURIComponent(query)}`;
-  if (source === 'homesmil') return `https://www.homes.mil/homes/DispatchServlet/HomesEntry`;
-  return `https://www.google.com/search?q=${q}`;
+function officialSearchUrl(query, branch) {
+  return `https://www.google.com/search?q=${encodeURIComponent(`${query} official military housing ${branch} site:.mil OR site:militaryonesource.mil OR site:homes.mil`)}`;
 }
 
 export default function HomeLocatorTab({ theme, profile }) {
   const [manual, setManual] = useState('');
-  const [type, setType] = useState('Single Family');
-  const [landlord, setLandlord] = useState('Private Landlord');
-  const [mode, setMode] = useState('Rent');
+  const [selected, setSelected] = useState(0);
   const [vaDone, setVaDone] = useState(() => new Set(JSON.parse(localStorage.getItem('pcs_va_loan_steps') || '[]')));
   const market = useMemo(() => getMarket(profile, manual), [profile, manual]);
+  const branch = profile?.branch || 'Army';
+  const branchSource = BRANCH_HOUSING_SOURCES[branch] || BRANCH_HOUSING_SOURCES.Army;
+  const profiles = HOUSING_PROFILES[branch] || HOUSING_PROFILES.Army;
+  const activeProfile = profiles[selected] || profiles[0];
 
   const toggleVa = index => {
     setVaDone(prev => {
@@ -102,56 +139,62 @@ export default function HomeLocatorTab({ theme, profile }) {
     });
   };
 
-  const sourceCards = [
-    { id: 'zillow-rent', name: 'Zillow Rentals', desc: 'Open live rental listings and apply Zillow filters for price, beds, pet policy, and home type.' },
-    { id: 'zillow-buy', name: 'Zillow Homes', desc: 'Open live for-sale results and refine by price, bedrooms, home type, and commute.' },
-    { id: 'redfin', name: 'Redfin Search', desc: 'Use Redfin for city, ZIP, neighborhood, and address searches with listing filters.' },
-    { id: 'homesmil', name: 'Homes.mil / Government Housing', desc: 'Official public military housing search path for privatized or government housing options.' },
-    { id: 'google', name: 'Google Cross-Check', desc: 'Search the selected market, home type, and landlord category across public web results.' },
-  ];
-
   return (
     <div style={{ padding: 16 }}>
       <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, marginBottom: 14, borderLeft: `3px solid ${theme.accent}` }}>
-        <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 4 }}>GAINING INSTALLATION HOUSING</div>
+        <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 4 }}>OFFICIAL HOUSING LOOKUP</div>
         <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 5 }}>{market.label}</div>
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.76)', lineHeight: 1.6 }}>
-          Housing searches are tailored to the gaining installation from onboarding. If the base is missing, enter an address, base, city, or ZIP to create Zillow, Redfin, Homes.mil, and Google lookup paths.
+          Housing profiles are tailored to the branch selected during onboarding and linked to official public military housing sources. Verify real-time availability, eligibility, wait lists, pet rules, and lease terms directly with the installation housing office.
         </div>
       </div>
 
       <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
         <label style={{ fontSize: 11, fontWeight: 900, color: '#56697C', letterSpacing: '.08em' }}>MANUAL LOCATION</label>
-        <input value={manual} onChange={e => setManual(e.target.value)} placeholder="Base, address, city, or ZIP if not found locally" style={{ width: '100%', marginTop: 8, padding: '10px 12px', borderRadius: 9, border: '1px solid #CBD5E1', boxSizing: 'border-box', fontSize: 13 }} />
+        <input value={manual} onChange={e => { setManual(e.target.value); setSelected(0); }} placeholder="Base, address, city, or ZIP if not found locally" style={{ width: '100%', marginTop: 8, padding: '10px 12px', borderRadius: 9, border: '1px solid #CBD5E1', boxSizing: 'border-box', fontSize: 13 }} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-        <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 900, color: '#56697C', marginBottom: 8 }}>USE</div>
-          {['Rent', 'Buy'].map(v => <button key={v} onClick={() => setMode(v)} style={{ marginRight: 6, marginBottom: 6, padding: '7px 10px', borderRadius: 999, border: `1.5px solid ${mode === v ? theme.primary : '#CBD5E1'}`, background: mode === v ? theme.primary : '#FFF', color: mode === v ? '#FFF' : '#34495E', fontSize: 11, fontWeight: 800 }}>{v}</button>)}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: 10, marginBottom: 14 }}>
+        {profiles.map((item, index) => {
+          const active = index === selected;
+          return (
+            <button key={item.type} onClick={() => setSelected(index)} style={{ textAlign: 'left', background: active ? `${theme.primary}12` : '#FFF', border: `1.5px solid ${active ? theme.primary : '#E0E6EE'}`, borderRadius: 999, padding: '12px 14px', cursor: 'pointer', boxShadow: active ? '0 10px 22px rgba(20,45,72,0.12)' : 'none' }}>
+              <div style={{ fontSize: 12, fontWeight: 900, color: active ? theme.primary : '#0D1821', marginBottom: 3 }}>{item.type}</div>
+              <div style={{ fontSize: 10, color: '#56697C' }}>{item.beds} beds · {item.baths} baths</div>
+            </button>
+          );
+        })}
+      </div>
+
+      <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 14, padding: 16, marginBottom: 14 }}>
+        <div style={{ fontSize: 10, fontWeight: 900, color: theme.primary, letterSpacing: '.14em', marginBottom: 6 }}>SELECTED HOUSING PROFILE</div>
+        <div style={{ fontSize: 18, fontWeight: 900, color: '#0D1821', marginBottom: 12 }}>{activeProfile.type}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10, marginBottom: 12 }}>
+          {[
+            ['Beds', activeProfile.beds],
+            ['Bathrooms', activeProfile.baths],
+            ['Approx. Sq. Ft.', activeProfile.sqft],
+            ['Proximity', activeProfile.proximity],
+          ].map(([label, value]) => (
+            <div key={label} style={{ background: '#F8FAFC', border: '1px solid #E6EDF3', borderRadius: 10, padding: 10 }}>
+              <div style={{ fontSize: 9, fontWeight: 900, color: '#6B7280', letterSpacing: '.1em' }}>{label}</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#1F2937', marginTop: 3 }}>{value}</div>
+            </div>
+          ))}
         </div>
-        <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 900, color: '#56697C', marginBottom: 8 }}>LANDLORD</div>
-          {Object.keys(LANDLORD_KEYWORDS).map(v => <button key={v} onClick={() => setLandlord(v)} style={{ marginRight: 6, marginBottom: 6, padding: '7px 10px', borderRadius: 999, border: `1.5px solid ${landlord === v ? '#6A4C1B' : '#CBD5E1'}`, background: landlord === v ? '#6A4C1B' : '#FFF', color: landlord === v ? '#FFF' : '#34495E', fontSize: 10, fontWeight: 800 }}>{v}</button>)}
-        </div>
+        <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.6 }}>{activeProfile.note}</div>
       </div>
 
-      <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12, marginBottom: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, color: '#56697C', marginBottom: 8 }}>HOME TYPE FILTER</div>
-        {Object.keys(TYPE_KEYWORDS).map(v => <button key={v} onClick={() => setType(v)} style={{ marginRight: 6, marginBottom: 6, padding: '7px 10px', borderRadius: 999, border: `1.5px solid ${type === v ? theme.primary : '#CBD5E1'}`, background: type === v ? theme.primary : '#FFF', color: type === v ? '#FFF' : '#34495E', fontSize: 11, fontWeight: 800 }}>{v}</button>)}
+      <div style={{ fontSize: 11, color: '#0D3B66', background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, marginBottom: 12, lineHeight: 1.5 }}>
+        Official public housing pages do not provide one universal live listing feed. PCS Express shows branch-specific housing profiles and sends users to official public military housing systems for current availability.
       </div>
 
-      <div style={{ fontSize: 11, color: '#7A4A00', background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: 10, marginBottom: 12, lineHeight: 1.5 }}>
-        Listings change constantly. PCS Express opens live public search sources rather than storing private listing data. Verify pricing, availability, commute, school district, pet policies, lease terms, and military clauses directly with the source or landlord.
-      </div>
-
-      {sourceCards.map(card => (
-        <a key={card.id} href={urlFor(card.id, market.query, type, landlord)} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${card.id.includes('zillow') ? '#006AFF' : card.id === 'redfin' ? '#C82021' : card.id === 'homesmil' ? '#2E7D32' : theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
+      {[branchSource, ...OFFICIAL_SOURCES, { name: 'Official Public Web Cross-Check', url: officialSearchUrl(market.query, branch), note: 'Searches public official .mil, Military OneSource, and HOMES.mil pages for the selected location.' }].map((source) => (
+        <a key={source.name} href={source.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821' }}>{card.name}</div>
-              <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginTop: 3 }}>{card.desc}</div>
-              <div style={{ marginTop: 8, fontSize: 10, color: '#7A4A00' }}>{mode} · {type} · {landlord}</div>
+              <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821' }}>{source.name}</div>
+              <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginTop: 3 }}>{source.note}</div>
             </div>
             <div style={{ alignSelf: 'center', padding: '7px 10px', borderRadius: 9, background: theme.primary, color: '#FFF', fontSize: 11, fontWeight: 900 }}>Open</div>
           </div>

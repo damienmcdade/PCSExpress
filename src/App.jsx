@@ -2211,8 +2211,60 @@ const INSTALLATION_COLLEGES = {
   ],
 };
 
+
+function MentalReadinessTab({ theme, profile }) {
+  const [tab, setTab] = useState('counseling');
+  const branch = profile?.branch || 'Army';
+  const tabs = [
+    { id: 'counseling', label: 'Counseling' },
+    { id: 'crisis-support', label: 'Crisis Support' },
+    { id: 'family-support', label: 'Family Support' },
+    { id: 'self-care-tools', label: 'Self-Care Tools' },
+  ];
+  const resources = {
+    'counseling': [
+      { name: 'Military OneSource Counseling', desc: 'Free, confidential, short-term non-medical counseling for service members and eligible family members.', url: 'https://www.militaryonesource.mil/benefits/confidential-counseling/' },
+      { name: 'Military & Family Life Counseling', desc: 'Free confidential counseling, education, and support on or off installation for service members and immediate family members.', url: 'https://www.militaryonesource.mil/programs/military-family-life-counseling/' },
+      { name: 'TRICARE Mental Health Care', desc: 'Official TRICARE information for covered mental health services and provider access.', url: 'https://www.tricare.mil/mentalhealth' },
+    ],
+    'crisis-support': [
+      { name: 'Military Crisis Line', desc: 'Call 988 and press 1, chat online, or text 838255 for 24/7 confidential crisis support.', url: 'https://www.veteranscrisisline.net/' },
+      { name: '988 Suicide & Crisis Lifeline', desc: 'Free 24/7 support for people in emotional distress or suicidal crisis.', url: 'https://988lifeline.org/' },
+      { name: 'The Brandon Act', desc: 'Official information explaining how service members can request mental health support through their chain of command.', url: 'https://www.health.mil/Military-Health-Topics/Centers-of-Excellence/Psychological-Health-Center-of-Excellence/Brandon-Act' },
+    ],
+    'family-support': [
+      { name: 'Military OneSource Mental Health', desc: 'Public mental health resource hub for military personnel and families.', url: 'https://www.militaryonesource.mil/health-wellness/mental-health/' },
+      { name: 'inTransition', desc: 'Free confidential coaching for service members, veterans, and retirees who need mental health care during transitions.', url: 'https://www.health.mil/Military-Health-Topics/Centers-of-Excellence/Psychological-Health-Center-of-Excellence/inTransition' },
+      { name: `${branch} Family Support`, desc: 'Use installation family support offices for relocation stress, parenting, deployment, and local referral help.', url: 'https://installations.militaryonesource.mil/' },
+    ],
+    'self-care-tools': [
+      { name: 'VA PTSD Coach', desc: 'Free VA mobile tool for stress, symptoms, coping skills, and support resources.', url: 'https://mobile.va.gov/app/ptsd-coach' },
+      { name: 'VA Mindfulness Coach', desc: 'Free VA mobile app that teaches mindfulness practices for daily stress management.', url: 'https://mobile.va.gov/app/mindfulness-coach' },
+      { name: 'Moving Forward', desc: 'Free VA problem-solving training tool for stress, transitions, and life challenges.', url: 'https://www.veterantraining.va.gov/movingforward/' },
+    ],
+  };
+  return (
+    <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
+      <div style={{ padding: 16 }}>
+        <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, marginBottom: 14, borderLeft: `3px solid ${theme.accent}` }}>
+          <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 4 }}>FREE READINESS RESOURCES</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)', lineHeight: 1.6 }}>
+            Mental Readiness connects service members and dependents to free official resources for counseling, crisis support, transition stress, and self-care. In an emergency, call 911 or the Military Crisis Line at 988 then press 1.
+          </div>
+        </div>
+        {resources[tab].map(item => (
+          <a key={item.name} href={item.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 10, textDecoration: 'none' }}>
+            <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>{item.name}</div>
+            <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.55 }}>{item.desc}</div>
+          </a>
+        ))}
+      </div>
+    </CategoryTabShell>
+  );
+}
+
 function EducationBenefitsTab({ theme, profile }) {
-  const [activeTab, setActiveTab] = useState('gibill');
+  const [activeTab, setActiveTab] = useState('colleges');
 
   const installName = (profile?.gainingInstallation || '').split(',')[0].trim();
   const COLLEGE_ALIASES = { 'Fort Hood': 'Fort Cavazos', 'Fort Bragg': 'Fort Liberty', 'Fort Rucker': 'Fort Novosel', 'Fort Benning': 'Fort Moore', 'Fort Gordon': 'Fort Eisenhower', 'Fort Lee': 'Fort Gregg-Adams' };
@@ -2358,7 +2410,7 @@ function EducationBenefitsTab({ theme, profile }) {
       <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>Education & scholarship resources for service members and spouses</div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {[{ id: 'gibill', label: 'GI Bill Chapters' }, { id: 'howto', label: 'How to Apply' }, { id: 'tuition', label: 'Tuition Assistance' }, { id: 'colleges', label: 'Colleges' }, { id: 'schools', label: 'Find Schools' }, { id: 'mycaa', label: 'MyCAA (Spouses)' }].map(t => (
+        {[{ id: 'colleges', label: 'Colleges' }, { id: 'gibill', label: 'GI Bill Chapters' }, { id: 'mycaa', label: 'MyCAA (Spouses)' }, { id: 'tuition', label: 'Tuition Assistance' }].map(t => (
           <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ padding: '7px 14px', borderRadius: 20, border: `1.5px solid ${activeTab === t.id ? theme.primary : '#E0E6EE'}`, background: activeTab === t.id ? theme.primary : '#FFF', color: activeTab === t.id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
             {t.label}
           </button>
@@ -2527,17 +2579,17 @@ function EducationBenefitsTab({ theme, profile }) {
 }
 
 function ResourcesTab({ theme, profile }) {
-  const [activeSection, setActiveSection] = useState('healthcare');
+  const [activeSection, setActiveSection] = useState('careers');
   const branch = profile?.branch || 'Army';
 
   const SECTIONS = [
-    { id: 'healthcare',   label: 'Healthcare', icon: '🏥' },
-    { id: 'portals',      label: 'Military Portals', icon: '🖥️' },
+    { id: 'careers',      label: 'Careers', icon: '💼' },
+    { id: 'education',    label: 'Education', icon: '🎓' },
     { id: 'family',       label: 'Family Support', icon: '👨‍👩‍👧' },
     { id: 'financial',    label: 'Financial', icon: '💰' },
+    { id: 'healthcare',   label: 'Healthcare', icon: '🏥' },
+    { id: 'portals',      label: 'Military Portals', icon: '🖥️' },
     { id: 'pcs',          label: 'PCS & Housing', icon: '🏠' },
-    { id: 'education',    label: 'Education', icon: '🎓' },
-    { id: 'careers',      label: 'Careers', icon: '💼' },
   ];
 
   const RESOURCES = {
@@ -3223,57 +3275,87 @@ function App() {
 
   const DEMO_TIPS = [
     { tab: 'home', title: 'Security, Public Data, and Legal Notice',
-      body: 'PCS Express uses public U.S. government, military, and public-source information where available, removes document-upload capability, and warns users not to enter classified, CUI, roster, deployment, or mission-sensitive information. The home screen explains the no-upload security posture, public-data limits, and independent non-DoD affiliation notice.' },
+      body: 'PCS Express uses public U.S. government, military, and verified public-source information where available. The app removes document-upload capability, avoids classified or sensitive data, and asks users not to enter CUI, rosters, deployment details, or mission-sensitive information. User-entered planning progress is intended to remain local unless the user opens an external public source.' },
     { tab: 'home', title: 'Onboarding - Branch & Profile',
-      body: 'Branch, component, rank, name, and language help PCS Express tailor rank labels, branch-specific guidance, checklist timing, translation support, and resource recommendations.' },
+      body: 'Branch, component, rank, name, and language help the app tailor branch-specific resources, rank labels, translation support, and PCS planning guidance.' },
     { tab: 'home', title: 'Onboarding - Bases',
-      body: 'Losing installation, gaining installation, and departure date drive the PCS timeline, public base resources, route planning, housing searches, school planning, and checklist reminders.' },
+      body: 'Losing installation, gaining installation, and departure date help build the PCS timeline, housing guidance, route planning, school planning, and local resource recommendations.' },
     { tab: 'home', title: 'Onboarding - Family & Preferences',
       body: 'Dependent travel, children ages, and optional spiritual preference help tailor family readiness, school, EFMP, childcare, chaplain, and community support resources.' },
     { tab: 'home', title: 'Home - Category Selector',
-      body: 'The home screen now lists categories alphabetically: Checklist, Documents, Education, Family, Home Relocation, Navigation, Resources, Spiritual Readiness, Translate, and Veterans.' },
+      body: 'The home screen lists categories alphabetically: Checklist, Documents, Education, Family Readiness, Home Relocation, Mental Readiness, Navigation, Resources, Spiritual Readiness, Translation, and Veterans.' },
     { tab: 'checklist', title: 'Checklist',
-      body: 'Checklist organizes PCS actions by phase and lets users tap square controls to track progress without uploading documents.' },
+      body: 'Checklist organizes PCS tasks by phase and lets users tap square controls to track progress without uploading any documents.' },
     { tab: 'documents', title: 'Documents',
-      body: 'Documents is a checklist-only tracker for records users should gather or verify; there is no ability to upload, attach, or store document files in the app.' },
-    { tab: 'education', title: 'Education',
-      body: 'Education explains official education benefits, GI Bill pathways, MyCAA, college planning, and school-search resources.' },
-    { tab: 'family', title: 'Family - Overview',
-      body: 'Family combines Deployment, EFMP, Employment, Permanent Resident, Pets, and Schools into one category so family-impact planning stays together.' },
-    { tab: 'family', title: 'Family - Deployment',
-      body: 'Deployment helps families prepare communication, legal, financial, childcare, school, and support actions around deployment-related stressors.' },
-    { tab: 'family', title: 'Family - EFMP',
-      body: 'EFMP provides branch-tailored checklist support for medical, education, assignment coordination, and gaining-location preparation.' },
-    { tab: 'family', title: 'Family - Employment',
-      body: 'Employment supports skills, military-family job searches, recommendations, and public job resources inside the unified Family category.' },
-    { tab: 'family', title: 'Family - Permanent Resident',
+      body: 'Documents is a checklist-only tracker for records users should gather, verify, or carry. The category does not upload, attach, or store document files.' },
+    { tab: 'documents', title: 'Documents - Unit',
+      body: 'Unit keeps the orders-related checklist items users may need to verify with their command or servicing office while keeping the app document-free.' },
+    { tab: 'education', title: 'Education - Colleges',
+      body: 'Colleges highlights nearby and online school options tied to the gaining installation so users can compare education paths during a move.' },
+    { tab: 'education', title: 'Education - GI Bill Chapters',
+      body: 'GI Bill Chapters explains common VA education benefit pathways and links users to official VA application resources.' },
+    { tab: 'education', title: 'Education - MyCAA',
+      body: 'MyCAA explains spouse scholarship support for portable career training and points users to official Military OneSource resources.' },
+    { tab: 'education', title: 'Education - Tuition Assistance',
+      body: 'Tuition Assistance gives branch-specific steps for requesting education funding through the correct official branch education portal.' },
+    { tab: 'family', title: 'Family Readiness - Deployment',
+      body: 'Deployment helps families prepare communication, legal, financial, childcare, school, and support actions before and during deployment-related stress.' },
+    { tab: 'family', title: 'Family Readiness - EFMP',
+      body: 'EFMP provides branch-aware checklist support for medical, education, assignment coordination, and gaining-location preparation.' },
+    { tab: 'family', title: 'Family Readiness - Employment',
+      body: 'Employment provides live job-search links through USAJOBS, LinkedIn, Indeed, and ClearanceJobs using the selected radius and installation area.' },
+    { tab: 'family', title: 'Family Readiness - Permanent Resident',
       body: 'Permanent Resident organizes official USCIS and military legal-help information for families managing immigration questions during PCS.' },
-    { tab: 'family', title: 'Family - Pets',
-      body: 'Pets guides vet records, health certificates, microchips, travel rules, lodging, airline planning, and reimbursement readiness.' },
-    { tab: 'family', title: 'Family - Schools',
-      body: 'Schools uses gaining installation and child ages to surface school liaison, DoDEA, local district, CDC, and childcare planning resources.' },
-    { tab: 'home-relocation', title: 'Home Relocation - Overview',
-      body: 'Home Relocation combines Home Locator, Inventory & Claims, Move Aid, and VA Loan guidance into one housing and move-support category.' },
+    { tab: 'family', title: 'Family Readiness - Pets',
+      body: 'Pets guides veterinary records, health certificates, microchips, travel rules, lodging, airline planning, and reimbursement readiness.' },
+    { tab: 'family', title: 'Family Readiness - Schools',
+      body: 'Schools uses the gaining installation and children ages to surface school liaison, DoDEA, local district, childcare, and transition planning resources.' },
     { tab: 'home-relocation', title: 'Home Relocation - Home Locator',
-      body: 'Home Locator opens public housing search paths near the gaining installation and supports manual address, base, city, or ZIP searches.' },
+      body: 'Home Locator shows branch-tailored official housing profile bubbles and links to public military housing sources for current availability.' },
     { tab: 'home-relocation', title: 'Home Relocation - Inventory & Claims',
-      body: 'Inventory & Claims helps users track before-and-after evidence notes, 180-day loss or damage reports, 9-month full replacement value deadlines, and replacement value estimates.' },
+      body: 'Inventory & Claims helps users track before-and-after evidence notes, 180-day loss or damage reports, 9-month full replacement value deadlines, and replacement estimates.' },
     { tab: 'home-relocation', title: 'Home Relocation - Move Aid',
-      body: 'Move Aid explains grants, free assistance, entitlement education, SCRA protections, VA housing assistance, and public financial resources for PCS strain.' },
+      body: 'Move Aid explains grants, free assistance, entitlement education, SCRA protections, VA housing support, and public financial resources for PCS strain.' },
     { tab: 'home-relocation', title: 'Home Relocation - VA Loan',
       body: 'VA Loan provides checklist steps, official VA guidance, and lender research links for military homebuying near the gaining installation.' },
+    { tab: 'mental-readiness', title: 'Mental Readiness - Counseling',
+      body: 'Counseling connects users to free confidential Military OneSource, Military and Family Life Counseling, and TRICARE mental health resources.' },
+    { tab: 'mental-readiness', title: 'Mental Readiness - Crisis Support',
+      body: 'Crisis Support explains 988, the Military Crisis Line, and official pathways for urgent mental health assistance.' },
+    { tab: 'mental-readiness', title: 'Mental Readiness - Family Support',
+      body: 'Family Support points service members and dependents to free transition, relocation stress, and family support resources.' },
+    { tab: 'mental-readiness', title: 'Mental Readiness - Self-Care Tools',
+      body: 'Self-Care Tools links to free VA and government-backed tools for stress management, mindfulness, coping skills, and transition support.' },
     { tab: 'nav', title: 'Navigation',
       body: 'Navigation supports route planning and public installation map information while excluding restricted, force-protection, internal, or non-public base details.' },
-    { tab: 'resources', title: 'Resources',
-      body: 'Resources is an organized hub for official public military, government, family, financial, healthcare, PCS, housing, education, career, and legal resources.' },
-    { tab: 'religion', title: 'Spiritual Readiness',
-      body: 'Spiritual Readiness surfaces public chaplain, counseling, worship, and community support resources based on optional preference.' },
-    { tab: 'translation', title: 'Translate',
-      body: 'Translate supports housing, school, medical, emergency, transportation, shopping, and daily-life phrases for CONUS and OCONUS moves.' },
+    { tab: 'resources', title: 'Resources - Careers',
+      body: 'Careers gathers official and military-friendly career resources for service members, veterans, and spouses.' },
+    { tab: 'resources', title: 'Resources - Education',
+      body: 'Education resources link to official benefit, scholarship, testing, and school-planning tools.' },
+    { tab: 'resources', title: 'Resources - Family Support',
+      body: 'Family Support lists military family programs, nonprofit support, and installation-based assistance resources.' },
+    { tab: 'resources', title: 'Resources - Financial',
+      body: 'Financial resources help users review pay, BAH, benefits, SCRA protections, savings, and retirement planning.' },
+    { tab: 'resources', title: 'Resources - Healthcare',
+      body: 'Healthcare links users to TRICARE, MHS GENESIS, Military OneSource health resources, and VA health care information.' },
+    { tab: 'resources', title: 'Resources - Military Portals',
+      body: 'Military Portals collects official service and DoD access points that users may need during a PCS.' },
+    { tab: 'resources', title: 'Resources - PCS & Housing',
+      body: 'PCS & Housing collects official move, installation, housing, lease, and VA home loan resources.' },
+    { tab: 'religion', title: 'Spiritual Readiness - Counseling',
+      body: 'Counseling connects users to chaplain, family support, and spiritual-care resources based on optional preference.' },
+    { tab: 'religion', title: 'Spiritual Readiness - Services',
+      body: 'Services helps users locate public worship, chapel, and community support options near the gaining installation.' },
+    { tab: 'translation', title: 'Translation - Common Phrases',
+      body: 'Common Phrases provides practical PCS, housing, medical, school, transportation, and daily-life phrases for CONUS and OCONUS moves.' },
+    { tab: 'translation', title: 'Translation - Saved',
+      body: 'Saved stores frequently used translated phrases locally for quick reference during a move.' },
+    { tab: 'translation', title: 'Translation - Translate',
+      body: 'Translate helps users convert short PCS-related phrases into the selected language when connectivity is available.' },
     { tab: 'veterans', title: 'Veterans',
-      body: 'Veterans helps users find veteran-owned business resources and public directories near the gaining installation.' },
+      body: 'Veterans helps users find veteran-owned business resources, public directories, and local search paths near the gaining location.' },
     { tab: 'home', title: 'Tour Complete - Thank You',
-      body: 'You have reached the end of the PCS Express tour. Every category is designed to help you plan with official public information, avoid sensitive-data entry, and move through PCS with fewer surprises. Thank you for your service.' },
+      body: 'You have reached the end of the PCS Express tour. Every category is designed to help you plan with public information, avoid sensitive-data entry, and move through PCS with fewer surprises. Thank you for your service.' },
   ];
 
   const BOTTOM_NAV = [
@@ -3281,12 +3363,13 @@ function App() {
     { id: 'checklist',   label: 'Checklist',            icon: 'PCK', iosIcon: '✅', color: '#1565C0' },
     { id: 'documents',   label: 'Documents',            icon: 'DOC', iosIcon: '📋', color: '#5D4037' },
     { id: 'education',   label: 'Education',            icon: 'EDU', iosIcon: '📚', color: '#1565C0' },
-    { id: 'family',      label: 'Family',               icon: 'FAM', iosIcon: '👪', color: '#5B2A86' },
+    { id: 'family',      label: 'Family Readiness',     icon: 'FAM', iosIcon: '👪', color: '#5B2A86' },
     { id: 'home-relocation', label: 'Home Relocation',  icon: 'HME', iosIcon: '🏠', color: '#455A64' },
+    { id: 'mental-readiness', label: 'Mental Readiness', icon: 'MNT', iosIcon: '🧠', color: '#00695C' },
     { id: 'nav',         label: 'Navigation',           icon: 'NAV', iosIcon: '🗺️', color: '#00695C' },
     { id: 'resources',   label: 'Resources',            icon: 'RES', iosIcon: '🔗', color: '#C62828' },
     { id: 'religion',    label: 'Spiritual Readiness',  icon: 'SPR', iosIcon: '✦', color: '#37474F' },
-    { id: 'translation', label: 'Translate',            icon: 'TRL', iosIcon: '🌐', color: '#1976D2' },
+    { id: 'translation', label: 'Translation',           icon: 'TRL', iosIcon: '🌐', color: '#1976D2' },
     { id: 'veterans',    label: 'Veterans',             icon: 'VET', iosIcon: '⭐', color: '#E65100' },
   ];
   const HOME_CATEGORIES = BOTTOM_NAV.filter(item => item.id !== 'home');
@@ -3304,11 +3387,12 @@ function App() {
   const CATEGORY_DESCRIPTIONS = {
     checklist: 'Track PCS requirements by phase, keep milestone progress visible, and tap square controls to save progress without uploading documents.',
     documents: 'Use checklist-only record tracking for PCS documents users need to gather, verify, or carry. File upload and attachment capability has been removed.',
-    education: 'Review official education benefits, GI Bill pathways, MyCAA, college planning, and school-search resources.',
+    education: 'Review colleges, GI Bill chapters, MyCAA, and branch-specific Tuition Assistance guidance.',
     family: 'Plan family-impact PCS needs across Deployment, EFMP, Employment, Permanent Resident, Pets, and Schools in one organized category.',
-    'home-relocation': 'Find housing, move aid, VA loan guidance, inventory tracking, claims deadlines, and replacement value planning in one relocation category.',
+    'home-relocation': 'Find official housing resources, move aid, VA loan guidance, inventory tracking, claims deadlines, and replacement value planning.',
+    'mental-readiness': 'Connect service members and dependents to free counseling, crisis support, family support, and self-care resources.',
     nav: 'Plan routes, save directions, and view public installation map information without restricted or non-public base details.',
-    resources: 'Use one organized hub for official public military, government, family, financial, healthcare, PCS, and career resources.',
+    resources: 'Use one organized hub for official public military, government, family, financial, healthcare, PCS, education, and career resources.',
     religion: 'Locate chaplain, counseling, worship, and community support resources tied to the user’s optional spiritual preference.',
     translation: 'Translate common PCS, housing, medical, school, transportation, and daily-life phrases for CONUS or OCONUS moves.',
     veterans: 'Find veteran-owned business resources, public directories, and local search paths near the gaining location.',
@@ -3595,6 +3679,7 @@ function App() {
         {activeTab === 'education' && renderCategoryFrame('education', <EducationBenefitsTab theme={theme} profile={profile} />)}
         {activeTab === 'family' && renderCategoryFrame('family', <FamilyCategoryTab theme={theme} profile={profile} />)}
         {activeTab === 'home-relocation' && renderCategoryFrame('home-relocation', <HomeRelocationUnifiedTab theme={theme} profile={profile} />)}
+        {activeTab === 'mental-readiness' && renderCategoryFrame('mental-readiness', <MentalReadinessTab theme={theme} profile={profile} />)}
         {activeTab === 'nav' && renderCategoryFrame('nav', <NavigationModule theme={theme} profile={profile} />)}
         {activeTab === 'religion' && renderCategoryFrame('religion', <ReligiousServicesModuleWrapped theme={theme} profile={profile} />)}
         {activeTab === 'resources' && renderCategoryFrame('resources', <ResourcesTab theme={theme} profile={profile} />)}

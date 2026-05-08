@@ -405,7 +405,7 @@ const LOCAL_JOBS = {
 }
 
 function EmploymentModule({ theme, profile }) {
-  const [activeTab, setActiveTab] = useState('skills')
+  const [activeTab, setActiveTab] = useState('search')
 
   const [skills, setSkills] = useState(() => {
     return readLegacyJson('pcs_employment_skills', [])
@@ -458,15 +458,13 @@ function EmploymentModule({ theme, profile }) {
       case 'usajobs':  return `https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}`
       case 'indeed':   return `https://www.indeed.com/jobs?q=${kw}&l=${loc}&radius=${radius}`
       case 'linkedin': return `https://www.linkedin.com/jobs/search/?keywords=${kw}&location=${loc}&distance=${radius}`
-      case 'zip':      return `https://www.ziprecruiter.com/jobs-search?search=${kw}&location=${loc}&radius=${radius}`
+      case 'clearance': return `https://www.clearancejobs.com/jobs?keywords=${kw}&location=${loc}`
       default: return 'https://www.usajobs.gov'
     }
   }
 
   const TABS = [
-    { id: 'skills',          label: 'Skills Profile'  },
     { id: 'search',          label: 'Job Search'      },
-    { id: 'recommendations', label: 'Recommendations' },
     { id: 'jobboards',       label: 'Job Resources'   },
   ]
 
@@ -594,89 +592,38 @@ function EmploymentModule({ theme, profile }) {
           </button>
 
           {showResults && (() => {
-            const allJobs = LOCAL_JOBS[installName] || []
-            const filtered = allJobs.filter(job =>
-              job.miles <= radius &&
-              (selectedIndustries.size === 0 || selectedIndustries.has(job.industry))
-            )
+            const selectedLabels = selectedIndustries.size > 0
+              ? [...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.label).filter(Boolean).join(', ')
+              : 'All Industries';
+            const boards = [
+              { id: 'usajobs', name: 'USAJOBS', color: '#1565C0', desc: 'Official federal openings. Use the Military Spouses filter when eligible.', remote: 'Remote filter available on USAJOBS.' },
+              { id: 'linkedin', name: 'LinkedIn Jobs', color: '#0077B5', desc: 'Live private-sector and remote roles near the gaining installation.', remote: 'Remote and hybrid filters available on LinkedIn.' },
+              { id: 'indeed', name: 'Indeed', color: '#00897B', desc: 'Current local job postings across industries and experience levels.', remote: 'Remote keyword and location filters available on Indeed.' },
+              { id: 'clearance', name: 'ClearanceJobs', color: '#2E7D32', desc: 'Clearance-friendly openings for eligible service members and spouses.', remote: 'Remote availability depends on employer and clearance requirements.' },
+            ];
             return (
               <div>
                 <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', letterSpacing: '.1em', marginBottom: 12 }}>
-                  {allJobs.length > 0 && filtered.length > 0 ? `${filtered.length} OPENINGS` : 'RESULTS'} — {selectedIndustries.size > 0 ? [...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.label).join(', ') : 'All Industries'} · {radius}mi of {searchCity}
+                  LIVE JOB SEARCHES - {selectedLabels} · {radius}mi of {searchCity}
                 </div>
-
-                {allJobs.length === 0 ? (
-                  <div>
-                    <div style={{ background: '#F0F4F8', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>
-                      Search live job boards for openings within {radius} miles of {searchCity}:
-                    </div>
-                    <a href={buildSearchUrl('usajobs')} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: '4px solid #1565C0', borderRadius: 12, padding: '12px 14px', marginBottom: 10, textDecoration: 'none' }}>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821' }}>USAJobs.gov</div>
-                        <div style={{ fontSize: 11, color: '#56697C' }}>Federal jobs with veteran hiring preference</div>
-                      </div>
-                      <div style={{ padding: '8px 14px', borderRadius: 10, background: '#1565C0', color: '#FFF', fontWeight: 800, fontSize: 12 }}>Search</div>
-                    </a>
-                    <a href={buildSearchUrl('indeed')} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: '4px solid #00897B', borderRadius: 12, padding: '12px 14px', marginBottom: 10, textDecoration: 'none' }}>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821' }}>Indeed</div>
-                        <div style={{ fontSize: 11, color: '#56697C' }}>All industries near {searchCity}</div>
-                      </div>
-                      <div style={{ padding: '8px 14px', borderRadius: 10, background: '#00897B', color: '#FFF', fontWeight: 800, fontSize: 12 }}>Search</div>
-                    </a>
-                  </div>
-                ) : filtered.length === 0 ? (
-                  <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 12, padding: 16, textAlign: 'center', marginBottom: 12 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#E65100', marginBottom: 4 }}>No matches for current filters</div>
-                    <div style={{ fontSize: 11, color: '#BF360C', lineHeight: 1.5 }}>Try expanding your radius or selecting fewer industries.</div>
-                  </div>
-                ) : (
-                  <>
-                    {filtered.map((job, i) => {
-                      const ind = INDUSTRIES.find(n => n.id === job.industry) || INDUSTRIES[0]
-                      const indeedUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(job.title + ' ' + job.employer)}&l=${encodeURIComponent(searchCity)}&radius=${radius}`
-                      return (
-                        <div key={i} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${ind.color}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 3 }}>{job.title}</div>
-                              <div style={{ fontSize: 11, fontWeight: 600, color: '#34495E', marginBottom: 8 }}>{job.employer}</div>
-                              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: 9, fontWeight: 800, background: ind.color, color: '#FFF', padding: '2px 7px', borderRadius: 8 }}>{ind.label}</span>
-                                <span style={{ fontSize: 9, fontWeight: 700, background: '#F0F4F8', color: '#56697C', padding: '2px 7px', borderRadius: 8 }}>{job.type}</span>
-                                <span style={{ fontSize: 9, fontWeight: 700, background: '#E8F5E9', color: '#2E7D32', padding: '2px 7px', borderRadius: 8 }}>~{job.miles}mi</span>
-                              </div>
-                            </div>
-                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                              <div style={{ fontSize: 12, fontWeight: 800, color: '#0D1821', marginBottom: 8 }}>{job.pay}</div>
-                              <a href={indeedUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '7px 12px', borderRadius: 10, background: ind.color, color: '#FFF', textDecoration: 'none', fontWeight: 800, fontSize: 11 }}>Search →</a>
-                            </div>
-                          </div>
+                <div style={{ background: '#F0F8FF', border: '1px solid #ADD8E6', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 11, color: '#0C5A7E', lineHeight: 1.5 }}>
+                  PCS Express no longer stores static job cards because openings change quickly. These links open active job searches on major employment sites using the selected radius, installation area, and industry filters.
+                </div>
+                {boards.map(board => (
+                  <a key={board.id} href={buildSearchUrl(board.id)} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${board.color}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                          <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821' }}>{board.name}</div>
+                          <span style={{ fontSize: 9, fontWeight: 900, background: '#E8F5E9', color: '#2E7D32', borderRadius: 999, padding: '2px 7px' }}>Live link</span>
                         </div>
-                      )
-                    })}
-                    <div style={{ background: '#F0F8FF', border: '1px solid #ADD8E6', borderLeft: '3px solid #0099FF', borderRadius: 10, padding: '10px 12px', marginBottom: 10 }}>
-                      <div style={{ fontSize: 10, fontWeight: 800, color: '#0C5A7E', marginBottom: 8 }}>ALSO SEARCH LIVE BOARDS</div>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <a href={buildSearchUrl('usajobs')} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '7px 8px', borderRadius: 8, background: '#1565C0', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>USAJobs</a>
-                        <a href={buildSearchUrl('indeed')} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '7px 8px', borderRadius: 8, background: '#00897B', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>Indeed</a>
-                        <a href={buildSearchUrl('linkedin')} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '7px 8px', borderRadius: 8, background: '#0077B5', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>LinkedIn</a>
+                        <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{board.desc}</div>
+                        <div style={{ fontSize: 10, color: '#7A4A00', marginTop: 7 }}>{board.remote}</div>
                       </div>
+                      <div style={{ alignSelf: 'center', padding: '8px 12px', borderRadius: 10, background: board.color, color: '#FFF', fontSize: 11, fontWeight: 900 }}>Open</div>
                     </div>
-                  </>
-                )}
-
-                {skills.length > 0 && (
-                  <div style={{ background: '#F0F4F8', borderRadius: 10, padding: 12, marginTop: 4 }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', letterSpacing: '.08em', marginBottom: 6 }}>SKILLS INCLUDED IN SEARCH</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {skills.slice(0, 8).map((s, i) => (
-                        <span key={i} style={{ fontSize: 10, fontWeight: 700, color: theme.primary, background: `${theme.primary}12`, padding: '2px 8px', borderRadius: 10, border: `1px solid ${theme.primary}22` }}>{s.name}</span>
-                      ))}
-                      {skills.length > 8 && <span style={{ fontSize: 10, color: '#888' }}>+{skills.length - 8} more</span>}
-                    </div>
-                  </div>
-                )}
+                  </a>
+                ))}
               </div>
             )
           })()}
