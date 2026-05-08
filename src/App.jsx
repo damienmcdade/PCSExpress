@@ -2970,6 +2970,514 @@ const SUPPORTED_LANGUAGES = [
   { code: 'vi', name: 'Vietnamese',           native: 'Tiếng Việt' },
 ];
 
+
+const APP_TRANSLATIONS = {
+  en: {
+    tagline: 'Your move, simplified.',
+    branchProfile: 'Branch & Profile',
+    yourBases: 'Your Bases',
+    familyPreferences: 'Family & Preferences',
+    firstName: 'FIRST NAME',
+    lastName: 'LAST NAME',
+    component: 'COMPONENT',
+    payGradeRank: 'PAY GRADE & RANK',
+    optional: 'optional',
+    preferredLanguage: 'PREFERRED LANGUAGE',
+    languageHelp: 'Used for navigation, translation support, and language-specific resources.',
+    seeDemoFirst: 'See Demo First',
+    continue: 'Continue',
+    launchDemo: 'Launch Demo',
+    myProfile: 'My Profile',
+    demoTitle: 'See PCS Express in Action',
+    demoBody: 'Preview a sample PCS move and see how the app organizes key planning categories.',
+    demoProfile: 'DEMO PROFILE',
+    rank: 'Rank',
+    branch: 'Branch',
+    family: 'Family',
+    move: 'Move',
+    from: 'From',
+    to: 'To',
+    home: 'Home',
+    more: 'More',
+    reset: 'Reset / Re-onboard',
+    demoTour: 'DEMO TOUR',
+    skip: 'Skip',
+    back: 'Back',
+    next: 'Next',
+    thankYouButton: 'Thank You for Your Service!',
+    categoryEyebrow: 'PCS EXPRESS CATEGORY',
+    defaultCategoryDescription: 'Review official public information and locally saved PCS planning tools for this category.',
+    unitedStates: 'UNITED STATES',
+    reportingTo: 'Reporting to',
+    setGaining: 'Set gaining installation in onboarding',
+    yourProfile: 'YOUR PROFILE',
+    gaining: 'Gaining',
+    depart: 'Depart',
+    faith: 'Faith',
+    pendingActions: 'Pending Actions',
+    overdueAction: 'Overdue Action',
+    dueNow: 'Due Now',
+    tasksRemaining: 'tasks remaining',
+    nav: {
+      home: 'Home',
+      checklist: 'Checklist',
+      documents: 'Documents',
+      education: 'Education',
+      family: 'Family Readiness',
+      'home-relocation': 'Home Relocation',
+      'mental-readiness': 'Mental Readiness',
+      nav: 'Navigation',
+      resources: 'Resources',
+      religion: 'Spiritual Readiness',
+      translation: 'Translation',
+      veterans: 'Veterans',
+    },
+    desc: {
+      checklist: 'Track PCS requirements by phase, keep milestone progress visible, and tap square controls to save progress without uploading documents.',
+      documents: 'Use checklist-only record tracking for PCS documents users need to gather, verify, or carry. File upload and attachment capability has been removed.',
+      education: 'Review colleges, GI Bill chapters, MyCAA, and branch-specific Tuition Assistance guidance.',
+      family: 'Plan family-impact PCS needs across Deployment, EFMP, Employment, Permanent Resident, Pets, and Schools in one organized category.',
+      'home-relocation': 'Find official housing resources, move aid, VA loan guidance, inventory tracking, claims deadlines, and replacement value planning.',
+      'mental-readiness': 'Connect service members and dependents to free counseling, crisis support, family support, and self-care resources.',
+      nav: 'Plan routes, save directions, and view public installation map information without restricted or non-public base details.',
+      resources: 'Use one organized hub for official public military, government, family, financial, healthcare, PCS, education, and career resources.',
+      religion: 'Locate chaplain, counseling, worship, and community support resources tied to the user’s optional spiritual preference.',
+      translation: 'Translate common PCS, housing, medical, school, transportation, and daily-life phrases for CONUS or OCONUS moves.',
+      veterans: 'Find veteran-owned business resources, public directories, and local search paths near the gaining location.',
+    },
+    demo: {
+      securityTitle: 'Security, Public Data, and Legal Notice',
+      securityBody: 'PCS Express uses public U.S. government, military, and verified public-source information where available. The app removes document-upload capability and asks users not to enter classified, CUI, roster, deployment, or mission-sensitive information.',
+      profileTitle: 'Onboarding - Branch & Profile',
+      profileBody: 'Branch, component, rank, name, and language help the app tailor branch-specific resources, rank labels, translation support, and PCS planning guidance.',
+      basesTitle: 'Onboarding - Bases',
+      basesBody: 'Losing installation, gaining installation, and departure date help build the PCS timeline, housing guidance, route planning, school planning, and local resource recommendations.',
+      familyTitle: 'Onboarding - Family & Preferences',
+      familyBody: 'Dependent travel, children ages, and optional spiritual preference help tailor family readiness, school, EFMP, childcare, chaplain, and community support resources.',
+      selectorTitle: 'Home - Category Selector',
+      selectorBody: 'The home screen lists categories alphabetically so users can quickly find each PCS planning area.',
+      completeTitle: 'Tour Complete - Thank You',
+      completeBody: 'You have reached the end of the PCS Express tour. Thank you for your service.',
+    },
+  },
+};
+
+APP_TRANSLATIONS.es = {
+  ...APP_TRANSLATIONS.en,
+  tagline: 'Su mudanza, simplificada.',
+  branchProfile: 'Rama y perfil',
+  yourBases: 'Sus bases',
+  familyPreferences: 'Familia y preferencias',
+  firstName: 'NOMBRE',
+  lastName: 'APELLIDO',
+  component: 'COMPONENTE',
+  payGradeRank: 'GRADO Y RANGO',
+  optional: 'opcional',
+  preferredLanguage: 'IDIOMA PREFERIDO',
+  languageHelp: 'Se usa para navegación, traducción y recursos específicos del idioma.',
+  seeDemoFirst: 'Ver demostración primero',
+  continue: 'Continuar',
+  launchDemo: 'Iniciar demostración',
+  myProfile: 'Mi perfil',
+  demoTitle: 'Vea PCS Express en acción',
+  demoBody: 'Previsualice una mudanza PCS de ejemplo y vea cómo la app organiza las categorías clave.',
+  demoProfile: 'PERFIL DE DEMO',
+  rank: 'Rango',
+  branch: 'Rama',
+  family: 'Familia',
+  move: 'Mudanza',
+  from: 'Desde',
+  to: 'A',
+  home: 'Inicio',
+  more: 'Más',
+  reset: 'Restablecer / volver a iniciar',
+  demoTour: 'TOUR DEMO',
+  skip: 'Omitir',
+  back: 'Atrás',
+  next: 'Siguiente',
+  thankYouButton: 'Gracias por su servicio',
+  categoryEyebrow: 'CATEGORÍA PCS EXPRESS',
+  defaultCategoryDescription: 'Revise información pública oficial y herramientas de planificación guardadas localmente.',
+  unitedStates: 'ESTADOS UNIDOS',
+  reportingTo: 'Asignado a',
+  setGaining: 'Configure la instalación de destino en el inicio',
+  yourProfile: 'SU PERFIL',
+  gaining: 'Destino',
+  depart: 'Salida',
+  faith: 'Fe',
+  nav: {
+    home: 'Inicio',
+    checklist: 'Lista PCS',
+    documents: 'Documentos',
+    education: 'Educación',
+    family: 'Preparación familiar',
+    'home-relocation': 'Reubicación del hogar',
+    'mental-readiness': 'Preparación mental',
+    nav: 'Navegación',
+    resources: 'Recursos',
+    religion: 'Preparación espiritual',
+    translation: 'Traducción',
+    veterans: 'Veteranos',
+  },
+};
+
+APP_TRANSLATIONS.de = {
+  ...APP_TRANSLATIONS.en,
+  tagline: 'Ihr Umzug, vereinfacht.',
+  branchProfile: 'Teilstreitkraft und Profil',
+  yourBases: 'Ihre Standorte',
+  familyPreferences: 'Familie und Präferenzen',
+  firstName: 'VORNAME',
+  lastName: 'NACHNAME',
+  component: 'KOMPONENTE',
+  payGradeRank: 'BESOLDUNG UND DIENSTGRAD',
+  preferredLanguage: 'BEVORZUGTE SPRACHE',
+  languageHelp: 'Wird für Navigation, Übersetzung und sprachspezifische Ressourcen verwendet.',
+  seeDemoFirst: 'Demo zuerst ansehen',
+  continue: 'Weiter',
+  launchDemo: 'Demo starten',
+  myProfile: 'Mein Profil',
+  home: 'Start',
+  more: 'Mehr',
+  reset: 'Zurücksetzen / neu starten',
+  demoTour: 'DEMO-TOUR',
+  skip: 'Überspringen',
+  back: 'Zurück',
+  next: 'Weiter',
+  thankYouButton: 'Vielen Dank für Ihren Dienst',
+  unitedStates: 'VEREINIGTE STAATEN',
+  reportingTo: 'Meldet sich bei',
+  setGaining: 'Zielstandort im Onboarding festlegen',
+  yourProfile: 'IHR PROFIL',
+  gaining: 'Ziel',
+  depart: 'Abreise',
+  faith: 'Glaube',
+  nav: { home: 'Start', checklist: 'Checkliste', documents: 'Dokumente', education: 'Bildung', family: 'Familienbereitschaft', 'home-relocation': 'Wohnungssuche', 'mental-readiness': 'Mentale Bereitschaft', nav: 'Navigation', resources: 'Ressourcen', religion: 'Spirituelle Bereitschaft', translation: 'Übersetzung', veterans: 'Veteranen' },
+};
+
+APP_TRANSLATIONS.fr = {
+  ...APP_TRANSLATIONS.en,
+  tagline: 'Votre déménagement, simplifié.',
+  branchProfile: 'Branche et profil',
+  yourBases: 'Vos bases',
+  familyPreferences: 'Famille et préférences',
+  firstName: 'PRÉNOM',
+  lastName: 'NOM',
+  component: 'COMPOSANTE',
+  payGradeRank: 'GRADE ET RANG',
+  preferredLanguage: 'LANGUE PRÉFÉRÉE',
+  languageHelp: 'Utilisé pour la navigation, la traduction et les ressources linguistiques.',
+  seeDemoFirst: 'Voir la démo d’abord',
+  continue: 'Continuer',
+  launchDemo: 'Lancer la démo',
+  myProfile: 'Mon profil',
+  home: 'Accueil',
+  more: 'Plus',
+  reset: 'Réinitialiser / recommencer',
+  demoTour: 'VISITE DÉMO',
+  skip: 'Ignorer',
+  back: 'Retour',
+  next: 'Suivant',
+  thankYouButton: 'Merci pour votre service',
+  unitedStates: 'ÉTATS-UNIS',
+  reportingTo: 'Affecté à',
+  setGaining: 'Définissez la base d’arrivée dans l’onboarding',
+  yourProfile: 'VOTRE PROFIL',
+  gaining: 'Arrivée',
+  depart: 'Départ',
+  faith: 'Foi',
+  nav: { home: 'Accueil', checklist: 'Checklist', documents: 'Documents', education: 'Éducation', family: 'Préparation familiale', 'home-relocation': 'Relogement', 'mental-readiness': 'Préparation mentale', nav: 'Navigation', resources: 'Ressources', religion: 'Préparation spirituelle', translation: 'Traduction', veterans: 'Vétérans' },
+};
+
+APP_TRANSLATIONS.ko = {
+  ...APP_TRANSLATIONS.en,
+  tagline: '이동 준비를 간단하게.',
+  branchProfile: '군별 및 프로필',
+  yourBases: '기지 정보',
+  familyPreferences: '가족 및 선호사항',
+  firstName: '이름',
+  lastName: '성',
+  component: '신분',
+  payGradeRank: '계급 및 급여등급',
+  preferredLanguage: '선호 언어',
+  languageHelp: '내비게이션, 번역 지원 및 언어별 자료에 사용됩니다.',
+  seeDemoFirst: '데모 먼저 보기',
+  continue: '계속',
+  launchDemo: '데모 시작',
+  myProfile: '내 프로필',
+  home: '홈',
+  more: '더보기',
+  reset: '재설정 / 다시 시작',
+  demoTour: '데모 안내',
+  skip: '건너뛰기',
+  back: '뒤로',
+  next: '다음',
+  thankYouButton: '복무에 감사드립니다',
+  unitedStates: '미국',
+  reportingTo: '배치 예정',
+  setGaining: '온보딩에서 도착 기지를 설정하세요',
+  yourProfile: '내 프로필',
+  gaining: '도착',
+  depart: '출발',
+  faith: '종교',
+  nav: { home: '홈', checklist: '체크리스트', documents: '문서', education: '교육', family: '가족 준비', 'home-relocation': '주거 이전', 'mental-readiness': '정신 준비', nav: '내비게이션', resources: '자료', religion: '영적 준비', translation: '번역', veterans: '재향군인' },
+};
+
+APP_TRANSLATIONS.ja = {
+  ...APP_TRANSLATIONS.en,
+  tagline: 'PCSをわかりやすく。',
+  branchProfile: '軍種とプロフィール',
+  yourBases: '基地情報',
+  familyPreferences: '家族と設定',
+  firstName: '名',
+  lastName: '姓',
+  component: '区分',
+  payGradeRank: '給与等級と階級',
+  preferredLanguage: '希望言語',
+  languageHelp: 'ナビゲーション、翻訳支援、言語別リソースに使用されます。',
+  seeDemoFirst: '先にデモを見る',
+  continue: '続行',
+  launchDemo: 'デモを開始',
+  myProfile: '自分のプロフィール',
+  home: 'ホーム',
+  more: 'その他',
+  reset: 'リセット / 再開始',
+  demoTour: 'デモツアー',
+  skip: 'スキップ',
+  back: '戻る',
+  next: '次へ',
+  thankYouButton: 'ご奉仕に感謝します',
+  unitedStates: 'アメリカ合衆国',
+  reportingTo: '赴任先',
+  setGaining: 'オンボーディングで赴任先を設定してください',
+  yourProfile: 'プロフィール',
+  gaining: '赴任先',
+  depart: '出発',
+  faith: '信仰',
+  nav: { home: 'ホーム', checklist: 'チェックリスト', documents: '書類', education: '教育', family: '家族準備', 'home-relocation': '住居移転', 'mental-readiness': 'メンタル準備', nav: 'ナビゲーション', resources: 'リソース', religion: 'スピリチュアル準備', translation: '翻訳', veterans: '退役軍人' },
+};
+
+APP_TRANSLATIONS.tl = {
+  ...APP_TRANSLATIONS.en,
+  tagline: 'Mas pinadaling PCS move.',
+  branchProfile: 'Sangay at Profile',
+  yourBases: 'Mga Base',
+  familyPreferences: 'Pamilya at Kagustuhan',
+  firstName: 'PANGALAN',
+  lastName: 'APELYIDO',
+  component: 'KOMPONENTE',
+  payGradeRank: 'PAY GRADE AT RANGGO',
+  preferredLanguage: 'GUSTONG WIKA',
+  languageHelp: 'Ginagamit para sa navigation, translation support, at resources ayon sa wika.',
+  seeDemoFirst: 'Tingnan muna ang demo',
+  continue: 'Magpatuloy',
+  launchDemo: 'Simulan ang demo',
+  myProfile: 'Aking profile',
+  home: 'Home',
+  more: 'Higit pa',
+  reset: 'I-reset / onboarding muli',
+  demoTour: 'DEMO TOUR',
+  skip: 'Laktawan',
+  back: 'Bumalik',
+  next: 'Susunod',
+  thankYouButton: 'Salamat sa iyong serbisyo',
+  unitedStates: 'ESTADOS UNIDOS',
+  reportingTo: 'Naka-assign sa',
+  setGaining: 'Ilagay ang gaining installation sa onboarding',
+  yourProfile: 'IYONG PROFILE',
+  gaining: 'Gaining',
+  depart: 'Alis',
+  faith: 'Pananampalataya',
+  nav: { home: 'Home', checklist: 'Checklist', documents: 'Dokumento', education: 'Edukasyon', family: 'Family Readiness', 'home-relocation': 'Home Relocation', 'mental-readiness': 'Mental Readiness', nav: 'Navigation', resources: 'Resources', religion: 'Spiritual Readiness', translation: 'Translation', veterans: 'Veterans' },
+};
+
+APP_TRANSLATIONS.ar = {
+  ...APP_TRANSLATIONS.en,
+  tagline: 'انتقالك أصبح أسهل.',
+  branchProfile: 'الفرع والملف الشخصي',
+  yourBases: 'القواعد',
+  familyPreferences: 'العائلة والتفضيلات',
+  firstName: 'الاسم الأول',
+  lastName: 'اسم العائلة',
+  component: 'المكوّن',
+  payGradeRank: 'الرتبة ودرجة الراتب',
+  preferredLanguage: 'اللغة المفضلة',
+  languageHelp: 'تُستخدم للتنقل ودعم الترجمة والموارد حسب اللغة.',
+  seeDemoFirst: 'شاهد العرض أولاً',
+  continue: 'متابعة',
+  launchDemo: 'بدء العرض',
+  myProfile: 'ملفي الشخصي',
+  home: 'الرئيسية',
+  more: 'المزيد',
+  reset: 'إعادة الضبط / بدء جديد',
+  demoTour: 'جولة العرض',
+  skip: 'تخطي',
+  back: 'رجوع',
+  next: 'التالي',
+  thankYouButton: 'شكراً لخدمتك',
+  unitedStates: 'الولايات المتحدة',
+  reportingTo: 'التقرير إلى',
+  setGaining: 'حدد القاعدة الجديدة أثناء الإعداد',
+  yourProfile: 'ملفك الشخصي',
+  gaining: 'الوجهة',
+  depart: 'المغادرة',
+  faith: 'الدين',
+  nav: { home: 'الرئيسية', checklist: 'قائمة PCS', documents: 'المستندات', education: 'التعليم', family: 'جاهزية العائلة', 'home-relocation': 'السكن والانتقال', 'mental-readiness': 'الجاهزية النفسية', nav: 'الملاحة', resources: 'الموارد', religion: 'الجاهزية الروحية', translation: 'الترجمة', veterans: 'المحاربون القدامى' },
+};
+
+APP_TRANSLATIONS.zh = {
+  ...APP_TRANSLATIONS.en,
+  tagline: '让搬迁更简单。',
+  branchProfile: '军种与档案',
+  yourBases: '基地信息',
+  familyPreferences: '家庭与偏好',
+  firstName: '名',
+  lastName: '姓',
+  component: '身份类别',
+  payGradeRank: '薪级与军衔',
+  preferredLanguage: '首选语言',
+  languageHelp: '用于导航、翻译支持和语言相关资源。',
+  seeDemoFirst: '先看演示',
+  continue: '继续',
+  launchDemo: '启动演示',
+  myProfile: '我的档案',
+  home: '首页',
+  more: '更多',
+  reset: '重置 / 重新开始',
+  demoTour: '演示导览',
+  skip: '跳过',
+  back: '返回',
+  next: '下一步',
+  thankYouButton: '感谢您的服役',
+  unitedStates: '美国',
+  reportingTo: '报到地点',
+  setGaining: '请在入门设置中选择新基地',
+  yourProfile: '您的档案',
+  gaining: '新基地',
+  depart: '出发',
+  faith: '信仰',
+  nav: { home: '首页', checklist: '清单', documents: '文件', education: '教育', family: '家庭准备', 'home-relocation': '住房搬迁', 'mental-readiness': '心理准备', nav: '导航', resources: '资源', religion: '精神准备', translation: '翻译', veterans: '退伍军人' },
+};
+
+APP_TRANSLATIONS.it = {
+  ...APP_TRANSLATIONS.en,
+  tagline: 'Il tuo trasferimento, semplificato.',
+  branchProfile: 'Forza armata e profilo',
+  yourBases: 'Le tue basi',
+  familyPreferences: 'Famiglia e preferenze',
+  firstName: 'NOME',
+  lastName: 'COGNOME',
+  component: 'COMPONENTE',
+  payGradeRank: 'GRADO E RANGO',
+  preferredLanguage: 'LINGUA PREFERITA',
+  languageHelp: 'Usata per navigazione, traduzione e risorse linguistiche.',
+  seeDemoFirst: 'Vedi prima la demo',
+  continue: 'Continua',
+  launchDemo: 'Avvia demo',
+  myProfile: 'Il mio profilo',
+  home: 'Home',
+  more: 'Altro',
+  reset: 'Reimposta / ricomincia',
+  demoTour: 'TOUR DEMO',
+  skip: 'Salta',
+  back: 'Indietro',
+  next: 'Avanti',
+  thankYouButton: 'Grazie per il tuo servizio',
+  unitedStates: 'STATI UNITI',
+  reportingTo: 'Assegnato a',
+  setGaining: 'Imposta la base di destinazione nell’onboarding',
+  yourProfile: 'IL TUO PROFILO',
+  gaining: 'Destinazione',
+  depart: 'Partenza',
+  faith: 'Fede',
+  nav: { home: 'Home', checklist: 'Checklist', documents: 'Documenti', education: 'Istruzione', family: 'Prontezza familiare', 'home-relocation': 'Trasferimento casa', 'mental-readiness': 'Prontezza mentale', nav: 'Navigazione', resources: 'Risorse', religion: 'Prontezza spirituale', translation: 'Traduzione', veterans: 'Veterani' },
+};
+
+APP_TRANSLATIONS.pt = {
+  ...APP_TRANSLATIONS.en,
+  tagline: 'Sua mudança, simplificada.',
+  branchProfile: 'Ramo e perfil',
+  yourBases: 'Suas bases',
+  familyPreferences: 'Família e preferências',
+  firstName: 'NOME',
+  lastName: 'SOBRENOME',
+  component: 'COMPONENTE',
+  payGradeRank: 'GRAU E PATENTE',
+  preferredLanguage: 'IDIOMA PREFERIDO',
+  languageHelp: 'Usado para navegação, tradução e recursos do idioma.',
+  seeDemoFirst: 'Ver demonstração primeiro',
+  continue: 'Continuar',
+  launchDemo: 'Iniciar demonstração',
+  myProfile: 'Meu perfil',
+  home: 'Início',
+  more: 'Mais',
+  reset: 'Redefinir / reiniciar',
+  demoTour: 'TOUR DE DEMO',
+  skip: 'Pular',
+  back: 'Voltar',
+  next: 'Próximo',
+  thankYouButton: 'Obrigado pelo seu serviço',
+  unitedStates: 'ESTADOS UNIDOS',
+  reportingTo: 'Apresentar-se em',
+  setGaining: 'Defina a instalação de destino no onboarding',
+  yourProfile: 'SEU PERFIL',
+  gaining: 'Destino',
+  depart: 'Partida',
+  faith: 'Fé',
+  nav: { home: 'Início', checklist: 'Checklist', documents: 'Documentos', education: 'Educação', family: 'Prontidão familiar', 'home-relocation': 'Mudança residencial', 'mental-readiness': 'Prontidão mental', nav: 'Navegação', resources: 'Recursos', religion: 'Prontidão espiritual', translation: 'Tradução', veterans: 'Veteranos' },
+};
+
+APP_TRANSLATIONS.vi = {
+  ...APP_TRANSLATIONS.en,
+  tagline: 'Đơn giản hóa PCS của bạn.',
+  branchProfile: 'Quân chủng và hồ sơ',
+  yourBases: 'Căn cứ của bạn',
+  familyPreferences: 'Gia đình và tùy chọn',
+  firstName: 'TÊN',
+  lastName: 'HỌ',
+  component: 'THÀNH PHẦN',
+  payGradeRank: 'BẬC LƯƠNG VÀ CẤP BẬC',
+  preferredLanguage: 'NGÔN NGỮ ƯU TIÊN',
+  languageHelp: 'Dùng cho điều hướng, hỗ trợ dịch và tài nguyên theo ngôn ngữ.',
+  seeDemoFirst: 'Xem demo trước',
+  continue: 'Tiếp tục',
+  launchDemo: 'Mở demo',
+  myProfile: 'Hồ sơ của tôi',
+  home: 'Trang chủ',
+  more: 'Thêm',
+  reset: 'Đặt lại / bắt đầu lại',
+  demoTour: 'HƯỚNG DẪN DEMO',
+  skip: 'Bỏ qua',
+  back: 'Quay lại',
+  next: 'Tiếp',
+  thankYouButton: 'Cảm ơn sự phục vụ của bạn',
+  unitedStates: 'HOA KỲ',
+  reportingTo: 'Báo cáo đến',
+  setGaining: 'Chọn căn cứ đến trong phần onboarding',
+  yourProfile: 'HỒ SƠ CỦA BẠN',
+  gaining: 'Căn cứ đến',
+  depart: 'Khởi hành',
+  faith: 'Tín ngưỡng',
+  nav: { home: 'Trang chủ', checklist: 'Checklist', documents: 'Tài liệu', education: 'Giáo dục', family: 'Sẵn sàng gia đình', 'home-relocation': 'Nhà ở & chuyển nhà', 'mental-readiness': 'Sẵn sàng tinh thần', nav: 'Điều hướng', resources: 'Tài nguyên', religion: 'Sẵn sàng tâm linh', translation: 'Dịch thuật', veterans: 'Cựu chiến binh' },
+};
+
+function getAppLanguage(language) {
+  const code = String(language || 'en').toLowerCase();
+  return APP_TRANSLATIONS[code] ? code : 'en';
+}
+
+function trFrom(language, key) {
+  const lang = getAppLanguage(language);
+  const dict = APP_TRANSLATIONS[lang] || APP_TRANSLATIONS.en;
+  const fallback = APP_TRANSLATIONS.en;
+  const read = (source) => key.split('.').reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : undefined), source);
+  return read(dict) ?? read(fallback) ?? key;
+}
+
+function localizeNavItems(items, language) {
+  return items.map(item => ({ ...item, label: trFrom(language, `nav.${item.id}`) }));
+}
+
 const RELIGIOUS_PREFERENCES = [
   'No Preference', 'Protestant / Christian', 'Catholic', 'Orthodox Christian',
   'Jewish', 'Muslim / Islam', 'Buddhist', 'Hindu',
@@ -3011,6 +3519,8 @@ function Onboarding({ onComplete }) {
   };
 
   const theme = BRANCH_THEMES[p.branch];
+  const onboardingLanguage = getAppLanguage(p.language);
+  const ot = (key) => trFrom(onboardingLanguage, key);
 
   const sortByBranch = (items, branch) => {
     const primary = items.filter(b => b.branch === branch || b.branch === 'Joint');
@@ -3049,12 +3559,12 @@ function Onboarding({ onComplete }) {
   );
 
   return (
-    <div style={{ minHeight: '100dvh', background: theme.secondary, display: 'flex', flexDirection: 'column', fontFamily: 'system-ui' }}>
+    <div lang={onboardingLanguage} dir={onboardingLanguage === 'ar' ? 'rtl' : 'ltr'} style={{ minHeight: '100dvh', background: theme.secondary, display: 'flex', flexDirection: 'column', fontFamily: 'system-ui' }}>
       {/* Header */}
       <div style={{ padding: 'env(safe-area-inset-top) 0 0', background: theme.secondary }}>
         <div style={{ padding: '20px 16px 12px', textAlign: 'center' }}>
           <div style={{ fontSize: 26, fontWeight: 900, color: '#FFFFFF', letterSpacing: '.05em' }}>PCS EXPRESS</div>
-          <div style={{ fontSize: 12, color: theme.accent, marginTop: 4 }}>Your move, simplified.</div>
+          <div style={{ fontSize: 12, color: theme.accent, marginTop: 4 }}>{ot('tagline')}</div>
         </div>
         {/* Progress dots */}
         {step >= 0 && (
@@ -3074,22 +3584,22 @@ function Onboarding({ onComplete }) {
             <>
               <div style={{ textAlign: 'center', marginBottom: 20 }}>
                 <div style={{ fontSize: 36, marginBottom: 10 }}>🎬</div>
-                <div style={{ fontSize: 20, fontWeight: 900, color: '#FFF', marginBottom: 8 }}>See PCS Express in Action</div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: '#FFF', marginBottom: 8 }}>{ot('demoTitle')}</div>
                 <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>
-                  An E-7 Army soldier with 3 kids managing an overseas move to South Korea — showcasing all app features.
+                  {ot('demoBody')}
                 </p>
               </div>
               <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 14, marginBottom: 16, border: '1px solid rgba(255,255,255,0.12)' }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: theme.accent, marginBottom: 10, letterSpacing: '.1em' }}>DEMO PROFILE</div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: theme.accent, marginBottom: 10, letterSpacing: '.1em' }}>{ot('demoProfile')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  {[['Rank', 'E-7 (SFC)'], ['Branch', 'Army'], ['Family', '3 Children'], ['Move', 'OCONUS'], ['From', 'Fort Liberty, NC'], ['To', 'Camp Humphreys, SK']].map(([k, v]) => (
+                  {[[ot('rank'), 'E-7 (SFC)'], [ot('branch'), 'Army'], [ot('family'), '3 Children'], [ot('move'), 'OCONUS'], [ot('from'), 'Fort Liberty, NC'], [ot('to'), 'Camp Humphreys, SK']].map(([k, v]) => (
                     <div key={k}><div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>{k}</div><div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>{v}</div></div>
                   ))}
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <button onClick={() => { prepareInteractiveDemoLaunch(); onComplete(DEMO_PROFILE); }} style={{ padding: '13px', borderRadius: 12, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 14, fontWeight: 900, cursor: 'pointer' }}>Launch Demo</button>
-                <button onClick={() => setStep(0)} style={{ padding: '13px', borderRadius: 12, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#FFF', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>My Profile</button>
+                <button onClick={() => { prepareInteractiveDemoLaunch(); onComplete(DEMO_PROFILE); }} style={{ padding: '13px', borderRadius: 12, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 14, fontWeight: 900, cursor: 'pointer' }}>{ot('launchDemo')}</button>
+                <button onClick={() => setStep(0)} style={{ padding: '13px', borderRadius: 12, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#FFF', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>{ot('myProfile')}</button>
               </div>
             </>
           )}
@@ -3097,7 +3607,7 @@ function Onboarding({ onComplete }) {
           {/* Step 0 — Branch & Profile */}
           {step === 0 && (
             <>
-              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Branch & Profile</div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>{ot('branchProfile')}</div>
 
               {/* Branch buttons */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
@@ -3115,18 +3625,18 @@ function Onboarding({ onComplete }) {
               {/* Name */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                 <div>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>FIRST NAME</label>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('firstName')}</label>
                   <input value={p.firstName} onChange={e => upd('firstName', e.target.value)} placeholder="Jordan" style={inputSt} />
                 </div>
                 <div>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>LAST NAME</label>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('lastName')}</label>
                   <input value={p.lastName} onChange={e => upd('lastName', e.target.value)} placeholder="Rivera" style={inputSt} />
                 </div>
               </div>
 
               {/* Component */}
               <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>COMPONENT</label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('component')}</label>
                 <select value={p.component} onChange={e => {
                   const comp = e.target.value;
                   if (comp === 'Dependent') {
@@ -3147,7 +3657,7 @@ function Onboarding({ onComplete }) {
               ) : (
                 <div style={{ marginBottom: 12 }}>
                   <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
-                    PAY GRADE &amp; RANK <span style={{ fontWeight: 400, opacity: 0.5, fontSize: 10 }}>(optional)</span>
+                    {ot('payGradeRank')} <span style={{ fontWeight: 400, opacity: 0.5, fontSize: 10 }}>(optional)</span>
                   </label>
                   <select value={p.paygrade} onChange={e => upd('paygrade', e.target.value)} style={inputSt}>
                     <option value="N/A">N/A — Not Applicable</option>
@@ -3160,18 +3670,18 @@ function Onboarding({ onComplete }) {
 
               {/* Language */}
               <div style={{ marginBottom: 16 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>PREFERRED LANGUAGE</label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('preferredLanguage')}</label>
                 <select value={p.language} onChange={e => upd('language', e.target.value)} style={inputSt}>
                   {SUPPORTED_LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.native} — {l.name}</option>)}
                 </select>
-                <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>Used for translation services and language-specific resources</div>
+                <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{ot('languageHelp')}</div>
               </div>
 
               <button onClick={() => setStep(-1)} style={{ width: '100%', padding: '10px', marginBottom: 10, borderRadius: 10, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: UI_PALETTE.muted, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                See Demo First →
+                {ot('seeDemoFirst')} →
               </button>
               <button onClick={() => setStep(1)} disabled={!canGo1} style={{ width: '100%', padding: '13px', borderRadius: 12, background: canGo1 ? theme.accent : 'rgba(255,255,255,0.1)', color: canGo1 ? theme.secondary : 'rgba(255,255,255,0.3)', border: 'none', fontWeight: 900, cursor: canGo1 ? 'pointer' : 'not-allowed', fontSize: 14 }}>
-                Continue →
+                {ot('continue')} →
               </button>
             </>
           )}
@@ -3179,7 +3689,7 @@ function Onboarding({ onComplete }) {
           {/* Step 1 — Bases */}
           {step === 1 && (
             <>
-              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Your Bases</div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>{ot('yourBases')}</div>
 
               {/* Losing installation */}
               <div style={{ marginBottom: 14 }}>
@@ -3213,8 +3723,8 @@ function Onboarding({ onComplete }) {
               </div>
 
               <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={() => setStep(0)} style={{ padding: '13px 18px', borderRadius: 12, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>← Back</button>
-                <button onClick={() => setStep(2)} disabled={!canGo2} style={{ flex: 1, padding: '13px', borderRadius: 12, background: canGo2 ? theme.accent : 'rgba(255,255,255,0.1)', color: canGo2 ? theme.secondary : 'rgba(255,255,255,0.3)', border: 'none', fontWeight: 900, cursor: canGo2 ? 'pointer' : 'not-allowed', fontSize: 14 }}>Continue →</button>
+                <button onClick={() => setStep(0)} style={{ padding: '13px 18px', borderRadius: 12, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>← {ot('back')}</button>
+                <button onClick={() => setStep(2)} disabled={!canGo2} style={{ flex: 1, padding: '13px', borderRadius: 12, background: canGo2 ? theme.accent : 'rgba(255,255,255,0.1)', color: canGo2 ? theme.secondary : 'rgba(255,255,255,0.3)', border: 'none', fontWeight: 900, cursor: canGo2 ? 'pointer' : 'not-allowed', fontSize: 14 }}>{ot('continue')} →</button>
               </div>
             </>
           )}
@@ -3261,7 +3771,7 @@ function Onboarding({ onComplete }) {
               </div>
 
               <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={() => setStep(1)} style={{ padding: '13px 18px', borderRadius: 12, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>← Back</button>
+                <button onClick={() => setStep(1)} style={{ padding: '13px 18px', borderRadius: 12, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>← {ot('back')}</button>
                 <button
                   onClick={() => onComplete({
                     ...p,
@@ -3504,6 +4014,9 @@ function App() {
   const safeProfile = profile && profile.branch ? profile : null;
   const theme = BRANCH_THEMES[safeProfile?.branch] || BRANCH_THEMES.Army;
   const homeInsignia = getHomeBranchInsignia(profile?.branch);
+  const appLanguage = getAppLanguage(profile?.language);
+  const appDir = appLanguage === 'ar' ? 'rtl' : 'ltr';
+  const t = (key) => trFrom(appLanguage, key);
 
   // Compute pending alerts based on departure date and checklist completion
   const daysUntilDeparture = profile?.departingDate ? getDaysUntilDeparture(profile.departingDate) : null;
@@ -3563,40 +4076,23 @@ function App() {
   }
 
   const DEMO_TIPS = [
-    { tab: 'home', title: 'Security, Public Data, and Legal Notice',
-      body: 'PCS Express uses public U.S. government, military, and verified public-source information where available. The app removes document-upload capability, avoids classified or sensitive data, and asks users not to enter CUI, rosters, deployment details, or mission-sensitive information. User-entered planning progress is intended to remain local unless the user opens an external public source.' },
-    { tab: 'home', title: 'Onboarding - Branch & Profile',
-      body: 'Branch, component, rank, name, and language help the app tailor branch-specific resources, rank labels, translation support, and PCS planning guidance.' },
-    { tab: 'home', title: 'Onboarding - Bases',
-      body: 'Losing installation, gaining installation, and departure date help build the PCS timeline, housing guidance, route planning, school planning, and local resource recommendations.' },
-    { tab: 'home', title: 'Onboarding - Family & Preferences',
-      body: 'Dependent travel, children ages, and optional spiritual preference help tailor family readiness, school, EFMP, childcare, chaplain, and community support resources.' },
-    { tab: 'home', title: 'Home - Category Selector',
-      body: 'The home screen lists categories alphabetically: Checklist, Documents, Education, Family Readiness, Home Relocation, Mental Readiness, Navigation, Resources, Spiritual Readiness, Translation, and Veterans.' },
-    { tab: 'checklist', title: 'Checklist',
-      body: 'Checklist organizes PCS tasks by phase and lets users tap square controls to track progress without uploading any documents.' },
-    { tab: 'documents', title: 'Documents',
-      body: 'Documents is a checklist-only tracker for records users should gather, verify, or carry, including the Unit checklist for orders-related items. The category does not upload, attach, or store document files.' },
-    { tab: 'education', title: 'Education',
-      body: 'Education brings together colleges, GI Bill chapters, MyCAA, and branch-specific Tuition Assistance guidance so users can compare official education pathways during a move.' },
-    { tab: 'family', title: 'Family Readiness',
-      body: 'Family Readiness combines deployment preparation, EFMP, employment, permanent resident support, pets, and schools into one planning category for household needs.' },
-    { tab: 'home-relocation', title: 'Home Relocation',
-      body: 'Home Relocation combines official housing lookup, inventory and claims tracking, financial move aid, and VA loan guidance for the gaining installation.' },
-    { tab: 'mental-readiness', title: 'Mental Readiness',
-      body: 'Mental Readiness connects service members and dependents to free counseling, crisis support, family support, and self-care resources from official public sources.' },
-    { tab: 'nav', title: 'Navigation',
-      body: 'Navigation supports route planning and public installation map information while excluding restricted, force-protection, internal, or non-public base details.' },
-    { tab: 'resources', title: 'Resources',
-      body: 'Resources gathers official public military, government, family, financial, healthcare, PCS, education, career, and legal links in one place.' },
-    { tab: 'religion', title: 'Spiritual Readiness',
-      body: 'Spiritual Readiness helps users find public chaplain, counseling, worship, and community support options near the gaining installation.' },
-    { tab: 'translation', title: 'Translation',
-      body: 'Translation supports common phrases, saved phrases, and short PCS-related translations for housing, medical, school, transportation, and daily-life needs.' },
-    { tab: 'veterans', title: 'Veterans',
-      body: 'Veterans helps users find veteran-owned business resources, public directories, and local search paths near the gaining location.' },
-    { tab: 'home', title: 'Tour Complete - Thank You',
-      body: 'You have reached the end of the PCS Express tour. Every category is designed to help you plan with public information, avoid sensitive-data entry, and move through PCS with fewer surprises. Thank you for your service.' },
+    { tab: 'home', title: t('demo.securityTitle'), body: t('demo.securityBody') },
+    { tab: 'home', title: t('demo.profileTitle'), body: t('demo.profileBody') },
+    { tab: 'home', title: t('demo.basesTitle'), body: t('demo.basesBody') },
+    { tab: 'home', title: t('demo.familyTitle'), body: t('demo.familyBody') },
+    { tab: 'home', title: t('demo.selectorTitle'), body: t('demo.selectorBody') },
+    { tab: 'checklist', title: t('nav.checklist'), body: t('desc.checklist') },
+    { tab: 'documents', title: t('nav.documents'), body: t('desc.documents') },
+    { tab: 'education', title: t('nav.education'), body: t('desc.education') },
+    { tab: 'family', title: t('nav.family'), body: t('desc.family') },
+    { tab: 'home-relocation', title: t('nav.home-relocation'), body: t('desc.home-relocation') },
+    { tab: 'mental-readiness', title: t('nav.mental-readiness'), body: t('desc.mental-readiness') },
+    { tab: 'nav', title: t('nav.nav'), body: t('desc.nav') },
+    { tab: 'resources', title: t('nav.resources'), body: t('desc.resources') },
+    { tab: 'religion', title: t('nav.religion'), body: t('desc.religion') },
+    { tab: 'translation', title: t('nav.translation'), body: t('desc.translation') },
+    { tab: 'veterans', title: t('nav.veterans'), body: t('desc.veterans') },
+    { tab: 'home', title: t('demo.completeTitle'), body: t('demo.completeBody') },
   ];
 
   const BOTTOM_NAV = [
@@ -3613,34 +4109,35 @@ function App() {
     { id: 'translation', label: 'Translation',           icon: 'TRL', iosIcon: '🌐', color: '#1976D2' },
     { id: 'veterans',    label: 'Veterans',             icon: 'VET', iosIcon: '⭐', color: '#E65100' },
   ];
-  const HOME_CATEGORIES = BOTTOM_NAV.filter(item => item.id !== 'home');
+  const LOCALIZED_BOTTOM_NAV = localizeNavItems(BOTTOM_NAV, appLanguage);
+  const HOME_CATEGORIES = LOCALIZED_BOTTOM_NAV.filter(item => item.id !== 'home');
 
   // iOS bottom tab bar: 4 primary + More button
   const IOS_TAB_BAR = [
-    { id: 'home',       label: 'Home',      iosIcon: '🏠' },
-    { id: 'checklist',  label: 'Checklist', iosIcon: '✅' },
-    { id: 'family',     label: 'Family',    iosIcon: '👪' },
-    { id: 'home-relocation', label: 'Homes', iosIcon: '🏠' },
+    { id: 'home',       label: t('nav.home'),      iosIcon: '🏠' },
+    { id: 'checklist',  label: t('nav.checklist'), iosIcon: '✅' },
+    { id: 'family',     label: t('nav.family'),    iosIcon: '👪' },
+    { id: 'home-relocation', label: t('nav.home-relocation'), iosIcon: '🏠' },
   ];
 
-  const currentLabel = BOTTOM_NAV.find(n => n.id === activeTab)?.label || 'Home';
-  const activeNavItem = BOTTOM_NAV.find(n => n.id === activeTab);
+  const currentLabel = LOCALIZED_BOTTOM_NAV.find(n => n.id === activeTab)?.label || t('nav.home');
+  const activeNavItem = LOCALIZED_BOTTOM_NAV.find(n => n.id === activeTab);
   const CATEGORY_DESCRIPTIONS = {
-    checklist: 'Track PCS requirements by phase, keep milestone progress visible, and tap square controls to save progress without uploading documents.',
-    documents: 'Use checklist-only record tracking for PCS documents users need to gather, verify, or carry. File upload and attachment capability has been removed.',
-    education: 'Review colleges, GI Bill chapters, MyCAA, and branch-specific Tuition Assistance guidance.',
-    family: 'Plan family-impact PCS needs across Deployment, EFMP, Employment, Permanent Resident, Pets, and Schools in one organized category.',
-    'home-relocation': 'Find official housing resources, move aid, VA loan guidance, inventory tracking, claims deadlines, and replacement value planning.',
-    'mental-readiness': 'Connect service members and dependents to free counseling, crisis support, family support, and self-care resources.',
-    nav: 'Plan routes, save directions, and view public installation map information without restricted or non-public base details.',
-    resources: 'Use one organized hub for official public military, government, family, financial, healthcare, PCS, education, and career resources.',
-    religion: 'Locate chaplain, counseling, worship, and community support resources tied to the user’s optional spiritual preference.',
-    translation: 'Translate common PCS, housing, medical, school, transportation, and daily-life phrases for CONUS or OCONUS moves.',
-    veterans: 'Find veteran-owned business resources, public directories, and local search paths near the gaining location.',
+    checklist: t('desc.checklist'),
+    documents: t('desc.documents'),
+    education: t('desc.education'),
+    family: t('desc.family'),
+    'home-relocation': t('desc.home-relocation'),
+    'mental-readiness': t('desc.mental-readiness'),
+    nav: t('desc.nav'),
+    resources: t('desc.resources'),
+    religion: t('desc.religion'),
+    translation: t('desc.translation'),
+    veterans: t('desc.veterans'),
   };
 
   const renderCategoryFrame = (tabId, children) => {
-    const item = BOTTOM_NAV.find(n => n.id === tabId) || activeNavItem;
+    const item = LOCALIZED_BOTTOM_NAV.find(n => n.id === tabId) || activeNavItem;
     return (
       <section className="category-screen" style={{ '--category-color': item?.color || theme.primary }}>
         <div className="category-screen__header" style={{ borderColor: `${theme.accent}55` }}>
@@ -3648,9 +4145,9 @@ function App() {
             {item?.icon || theme.abbr}
           </div>
           <div>
-            <div className="category-screen__eyebrow">PCS EXPRESS CATEGORY</div>
+            <div className="category-screen__eyebrow">{t('categoryEyebrow')}</div>
             <h1>{item?.label || currentLabel}</h1>
-            <p>{CATEGORY_DESCRIPTIONS[tabId] || 'Review official public information and locally saved PCS planning tools for this category.'}</p>
+            <p>{CATEGORY_DESCRIPTIONS[tabId] || t('defaultCategoryDescription')}</p>
           </div>
         </div>
         <div className="category-screen__body">
@@ -3662,7 +4159,7 @@ function App() {
 
   if (activeTab === 'translation') {
     return (
-      <div style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
+      <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
         <PrivacyShield />
         {isDesktop && (
           <div style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', minHeight: '100dvh', borderRight: `2px solid ${theme.accent}30`, flexShrink: 0 }}>
@@ -3672,20 +4169,20 @@ function App() {
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>{getRankDisplay(profile.branch, profile.paygrade)} {profile.firstName}</div>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-              {BOTTOM_NAV.map(item => (
+              {LOCALIZED_BOTTOM_NAV.map(item => (
                 <button key={item.id} onClick={() => goTo(item.id)} style={{ width: '100%', padding: '10px 16px', background: activeTab === item.id ? `${theme.accent}20` : 'transparent', border: 'none', borderLeft: `3px solid ${activeTab === item.id ? theme.accent : 'transparent'}`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.75)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, fontWeight: activeTab === item.id ? 800 : 600, textAlign: 'left', transition: 'all 0.15s' }}>
                   <div style={{ width: 32, height: 24, borderRadius: 5, background: activeTab === item.id ? `${theme.accent}30` : 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 900, letterSpacing: '.06em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.6)', flexShrink: 0 }}>{item.icon}</div>
                   {item.label}
                 </button>
               ))}
             </div>
-            <button onClick={() => { clearSessionDemoProfile(); setProfile(null); }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.1)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,100,100,0.85)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>Reset / Re-onboard</button>
+            <button onClick={() => { clearSessionDemoProfile(); setProfile(null); }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.1)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,100,100,0.85)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>{t('reset')}</button>
           </div>
         )}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <div style={{ background: theme.secondary, paddingTop: isNative ? 'env(safe-area-inset-top)' : 0, paddingLeft: 16, paddingRight: 16, paddingBottom: 12, borderBottom: `1px solid ${theme.accent}30`, display: 'flex', alignItems: 'center', gap: 12 }}>
             {!isDesktop && <button onClick={() => setActiveTab('home')} style={{ background: 'none', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', padding: '2px 4px' }}>←</button>}
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>Translation</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>{t('nav.translation')}</div>
           </div>
           <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isNative && !isDesktop ? 'calc(58px + env(safe-area-inset-bottom))' : 0 }}>
             {renderCategoryFrame('translation', <TranslationModule theme={theme} profile={profile} />)}
@@ -3702,7 +4199,7 @@ function App() {
             ))}
             <button onClick={() => setMoreOpen(o => !o)} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
               <span style={{ fontSize: 22, lineHeight: 1, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.55)', fontWeight: 900, letterSpacing: '-2px' }}>•••</span>
-              <span style={{ fontSize: 10, fontWeight: moreOpen ? 800 : 600, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>More</span>
+              <span style={{ fontSize: 10, fontWeight: moreOpen ? 800 : 600, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>{t('more')}</span>
             </button>
           </div>
         )}
@@ -3712,7 +4209,7 @@ function App() {
             <div style={{ position: 'fixed', bottom: `calc(49px + env(safe-area-inset-bottom))`, left: 0, right: 0, zIndex: 312, background: theme.secondary, borderRadius: '20px 20px 0 0', borderTop: `2px solid ${theme.accent}60`, paddingTop: 8, paddingBottom: 4 }}>
               <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 12px' }} />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, padding: '0 12px' }}>
-                {BOTTOM_NAV.map(item => (
+                {LOCALIZED_BOTTOM_NAV.map(item => (
                   <button key={item.id} onClick={() => { goTo(item.id); setMoreOpen(false); }} style={{ padding: '10px 4px 8px', background: activeTab === item.id ? `${theme.accent}20` : 'rgba(255,255,255,0.05)', border: `1px solid ${activeTab === item.id ? theme.accent + '50' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, color: 'white', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                     <span style={{ fontSize: 20, lineHeight: 1 }}>{item.iosIcon}</span>
                     <span style={{ fontSize: 9, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.65)', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
@@ -3728,9 +4225,9 @@ function App() {
             <div style={{ background: theme.secondary, borderRadius: 16, padding: '16px', border: `2px solid ${theme.accent}`, boxShadow: '0 -4px 30px rgba(0,0,0,0.4)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <div style={{ background: theme.accent, borderRadius: 10, padding: '2px 10px', fontSize: 10, fontWeight: 900, color: theme.secondary }}>
-                  DEMO TOUR {demoTip + 1} / {DEMO_TIPS.length}
+                  {t('demoTour')} {demoTip + 1} / {DEMO_TIPS.length}
                 </div>
-                <button onClick={() => setDemoTip(-1)} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)', fontSize: 13, cursor: 'pointer', padding: '4px 10px', borderRadius: 8, fontWeight: 700 }}>Skip ✕</button>
+                <button onClick={() => setDemoTip(-1)} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)', fontSize: 13, cursor: 'pointer', padding: '4px 10px', borderRadius: 8, fontWeight: 700 }}>{t('skip')} ✕</button>
               </div>
               <div style={{ fontSize: 14, fontWeight: 800, color: '#FFF', marginBottom: 6 }}>{DEMO_TIPS[demoTip].title}</div>
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: 14 }}>{DEMO_TIPS[demoTip].body}</div>
@@ -3741,11 +4238,11 @@ function App() {
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {demoTip > 0 && (
-                  <button onClick={() => { const prev = demoTip - 1; setDemoTip(prev); goTo(DEMO_TIPS[prev].tab); }} style={{ flex: 1, padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>← Back</button>
+                  <button onClick={() => { const prev = demoTip - 1; setDemoTip(prev); goTo(DEMO_TIPS[prev].tab); }} style={{ flex: 1, padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>← {t('back')}</button>
                 )}
                 {demoTip < DEMO_TIPS.length - 1 ? (
                   <button onClick={() => { const next = demoTip + 1; setDemoTip(next); goTo(DEMO_TIPS[next].tab); }} style={{ flex: 2, padding: '10px', borderRadius: 10, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
-                    Next: {DEMO_TIPS[demoTip + 1].title.split('!')[0]} →
+                    {t('next')}: {DEMO_TIPS[demoTip + 1].title.split('!')[0]} →
                   </button>
                 ) : (
                   <button onClick={() => setDemoTip(-1)} style={{ flex: 2, padding: '10px', borderRadius: 10, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>
@@ -3761,7 +4258,7 @@ function App() {
   }
 
   return (
-    <div style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: 'column' }}>
+    <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: 'column' }}>
       <PrivacyShield />
       {/* HEADER — paddingTop uses env(safe-area-inset-top) for notch/Dynamic Island.
           Requires viewport-fit=cover in the HTML meta and contentInsetAdjustmentBehavior=never
@@ -3797,7 +4294,7 @@ function App() {
       {!isDesktop && !isNative && navOpen && (
         <div style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: 0, right: 0, maxWidth: 480, margin: '0 auto', zIndex: 200, background: theme.secondary, borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0 }}>
-            {BOTTOM_NAV.map(item => (
+            {LOCALIZED_BOTTOM_NAV.map(item => (
               <button key={item.id} onClick={() => goTo(item.id)} style={{ padding: '12px 4px', background: activeTab === item.id ? `${theme.accent}25` : 'transparent', border: 'none', borderBottom: `1px solid rgba(255,255,255,0.07)`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.75)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, fontSize: 9, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase' }}>
                 <div style={{ width: 38, height: 28, borderRadius: 6, background: activeTab === item.id ? `${theme.accent}30` : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 900, letterSpacing: '.08em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.6)', border: activeTab === item.id ? `1px solid ${theme.accent}60` : '1px solid rgba(255,255,255,0.1)' }}>{item.icon}</div>
                 {item.label}
@@ -3849,14 +4346,14 @@ function App() {
               {profile.gainingInstallation && <div style={{ fontSize: 10, color: theme.accent, fontWeight: 700 }}>{profile.gainingInstallation.split(',')[0]}</div>}
             </div>
             <div style={{ flex: 1, padding: '6px 0' }}>
-              {BOTTOM_NAV.map(item => (
+              {LOCALIZED_BOTTOM_NAV.map(item => (
                 <button key={item.id} onClick={() => goTo(item.id)} style={{ width: '100%', padding: '9px 14px', background: activeTab === item.id ? `${theme.accent}18` : 'transparent', border: 'none', borderLeft: `3px solid ${activeTab === item.id ? theme.accent : 'transparent'}`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.72)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, fontWeight: activeTab === item.id ? 800 : 500, textAlign: 'left' }}>
                   <div style={{ width: 30, height: 22, borderRadius: 5, background: activeTab === item.id ? `${theme.accent}28` : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 900, letterSpacing: '.05em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.55)', flexShrink: 0 }}>{item.icon}</div>
                   {item.label}
                 </button>
               ))}
             </div>
-            <button onClick={() => { clearSessionDemoProfile(); setProfile(null); }} style={{ width: '100%', padding: '9px', background: 'rgba(255,0,0,0.08)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,100,100,0.8)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>Reset / Re-onboard</button>
+            <button onClick={() => { clearSessionDemoProfile(); setProfile(null); }} style={{ width: '100%', padding: '9px', background: 'rgba(255,0,0,0.08)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,100,100,0.8)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>{t('reset')}</button>
           </div>
         )}
 
@@ -3876,7 +4373,7 @@ function App() {
               </div>
               {/* Branch label */}
               <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.22em', color: theme.primary, marginBottom: 4, textTransform: 'uppercase' }}>
-                UNITED STATES {profile.branch.toUpperCase()}
+                {t('unitedStates')} {profile.branch.toUpperCase()}
               </div>
               <div style={{ fontSize: 10, color: UI_PALETTE.muted, fontStyle: 'italic', marginBottom: 12 }}>{theme.tagline}</div>
               {/* Soldier info */}
@@ -3884,7 +4381,7 @@ function App() {
                 {getRankDisplay(profile.branch, profile.paygrade)} {profile.firstName} {profile.lastName}
               </div>
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 2 }}>
-                {profile.gainingInstallation ? `Reporting to: ${profile.gainingInstallation}` : 'Set gaining installation in onboarding'}
+                {profile.gainingInstallation ? `${t('reportingTo')}: ${profile.gainingInstallation}` : t('setGaining')}
               </div>
               {/* Accent bar */}
               <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: theme.accent, borderRadius: '16px 0 0 16px' }} />
@@ -3902,12 +4399,12 @@ function App() {
 
             {/* Quick profile summary */}
             <div style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderRadius: 14, padding: 14, marginTop: 16, color: UI_PALETTE.text, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
-              <div style={{ fontSize: 11, fontWeight: 900, color: theme.primary, marginBottom: 8, letterSpacing: '.12em' }}>YOUR PROFILE</div>
+              <div style={{ fontSize: 11, fontWeight: 900, color: theme.primary, marginBottom: 8, letterSpacing: '.12em' }}>{t('yourProfile')}</div>
               <div style={{ fontSize: 12, lineHeight: 1.8 }}>
-                <div>Branch: {profile.branch} · {getRankDisplay(profile.branch, profile.paygrade)} ({profile.paygrade})</div>
-                {profile.gainingInstallation && <div>Gaining: {profile.gainingInstallation}</div>}
-                {profile.departingDate && <div>Depart: {profile.departingDate}</div>}
-                {profile.religiousPreference && profile.religiousPreference !== 'Prefer not to say' && <div>Faith: {profile.religiousPreference}</div>}
+                <div>{t('branch')}: {profile.branch} · {getRankDisplay(profile.branch, profile.paygrade)} ({profile.paygrade})</div>
+                {profile.gainingInstallation && <div>{t('gaining')}: {profile.gainingInstallation}</div>}
+                {profile.departingDate && <div>{t('depart')}: {profile.departingDate}</div>}
+                {profile.religiousPreference && profile.religiousPreference !== 'Prefer not to say' && <div>{t('faith')}: {profile.religiousPreference}</div>}
               </div>
             </div>
             <HomeLegalBanners theme={theme} />
@@ -3935,10 +4432,10 @@ function App() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ background: theme.accent, borderRadius: 10, padding: '2px 10px', fontSize: 10, fontWeight: 900, color: theme.secondary }}>
-                  DEMO TOUR {demoTip + 1} / {DEMO_TIPS.length}
+                  {t('demoTour')} {demoTip + 1} / {DEMO_TIPS.length}
                 </div>
               </div>
-              <button onClick={() => setDemoTip(-1)} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)', fontSize: 13, cursor: 'pointer', padding: '4px 10px', borderRadius: 8, fontWeight: 700 }}>Skip ✕</button>
+              <button onClick={() => setDemoTip(-1)} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)', fontSize: 13, cursor: 'pointer', padding: '4px 10px', borderRadius: 8, fontWeight: 700 }}>{t('skip')} ✕</button>
             </div>
             <div style={{ fontSize: 14, fontWeight: 800, color: '#FFF', marginBottom: 6 }}>{DEMO_TIPS[demoTip].title}</div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: 14 }}>{DEMO_TIPS[demoTip].body}</div>
@@ -3950,11 +4447,11 @@ function App() {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               {demoTip > 0 && (
-                <button onClick={() => { const prev = demoTip - 1; setDemoTip(prev); goTo(DEMO_TIPS[prev].tab); }} style={{ flex: 1, padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>← Back</button>
+                <button onClick={() => { const prev = demoTip - 1; setDemoTip(prev); goTo(DEMO_TIPS[prev].tab); }} style={{ flex: 1, padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>← {t('back')}</button>
               )}
               {demoTip < DEMO_TIPS.length - 1 ? (
                 <button onClick={() => { const next = demoTip + 1; setDemoTip(next); goTo(DEMO_TIPS[next].tab); }} style={{ flex: 2, padding: '10px', borderRadius: 10, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
-                  Next: {DEMO_TIPS[demoTip + 1].title.split('!')[0]} →
+                  {t('next')}: {DEMO_TIPS[demoTip + 1].title.split('!')[0]} →
                 </button>
               ) : (
                 <button onClick={() => setDemoTip(-1)} style={{ flex: 2, padding: '10px', borderRadius: 10, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>
@@ -3978,7 +4475,7 @@ function App() {
           ))}
           <button onClick={() => setMoreOpen(o => !o)} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
             <span style={{ fontSize: 22, lineHeight: 1, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.55)', fontWeight: 900, letterSpacing: '-2px' }}>•••</span>
-            <span style={{ fontSize: 10, fontWeight: moreOpen ? 800 : 600, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>More</span>
+            <span style={{ fontSize: 10, fontWeight: moreOpen ? 800 : 600, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>{t('more')}</span>
           </button>
         </div>
       )}
@@ -3991,7 +4488,7 @@ function App() {
             {/* Handle bar */}
             <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 12px' }} />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, padding: '0 12px' }}>
-              {BOTTOM_NAV.map(item => (
+              {LOCALIZED_BOTTOM_NAV.map(item => (
                 <button key={item.id} onClick={() => { goTo(item.id); setMoreOpen(false); }} style={{ padding: '10px 4px 8px', background: activeTab === item.id ? `${theme.accent}20` : 'rgba(255,255,255,0.05)', border: `1px solid ${activeTab === item.id ? theme.accent + '50' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, color: 'white', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                   <span style={{ fontSize: 20, lineHeight: 1, filter: activeTab === item.id ? 'none' : 'grayscale(30%) opacity(0.7)' }}>{item.iosIcon}</span>
                   <span style={{ fontSize: 9, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.65)', letterSpacing: '.02em', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>

@@ -7,6 +7,7 @@ const store = {
 };
 
 const LANGUAGES = [
+  { code: 'en', name: 'English',    flag: '🇺🇸' },
   { code: 'de', name: 'German',     flag: '🇩🇪' },
   { code: 'ja', name: 'Japanese',   flag: '🇯🇵' },
   { code: 'ko', name: 'Korean',     flag: '🇰🇷' },
@@ -23,6 +24,8 @@ const LANGUAGES = [
   { code: 'ro', name: 'Romanian',   flag: '🇷🇴' },
   { code: 'uk', name: 'Ukrainian',  flag: '🇺🇦' },
   { code: 'vi', name: 'Vietnamese', flag: '🇻🇳' },
+  { code: 'zh', name: 'Chinese',    flag: '🇨🇳' },
+  { code: 'tl', name: 'Tagalog',    flag: '🇵🇭' },
   { code: 'fi', name: 'Finnish',    flag: '🇫🇮' },
   { code: 'no', name: 'Norwegian',  flag: '🇳🇴' },
   { code: 'da', name: 'Danish',     flag: '🇩🇰' },
@@ -125,7 +128,13 @@ async function callAI(system, user) {
 export default function TranslationModule({ theme, profile }) {
   const [subTab, setSubTab] = useState('phrases');
   const [inputText, setInputText] = useState('');
-  const [targetLang, setTargetLang] = useState('de');
+  const selectedProfileLanguage = LANGUAGES.some(l => l.code === profile?.language) && profile?.language !== 'en' ? profile.language : 'es';
+  const [targetLang, setTargetLang] = useState(selectedProfileLanguage);
+  useEffect(() => {
+    if (profile?.language && profile.language !== 'en' && LANGUAGES.some(l => l.code === profile.language)) {
+      setTargetLang(profile.language);
+    }
+  }, [profile?.language]);
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
   const [phraseCategory, setPhraseCategory] = useState('emergency');
