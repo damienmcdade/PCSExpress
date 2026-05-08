@@ -2254,6 +2254,96 @@ function EducationBenefitsTab({ theme, profile }) {
     },
   ];
 
+  const TUITION_ASSISTANCE = {
+    Army: {
+      portal: 'ArmyIgnitED',
+      url: 'https://www.armyignited.army.mil/student/',
+      source: 'https://www.eis.army.mil/programs/armyignited',
+      summary: 'Army Tuition Assistance is requested through ArmyIgnitED after the Soldier establishes an education goal and works with an education counselor when required.',
+      steps: [
+        'Contact your Army Education Center or ArmyIgnitED support if this is your first TA request.',
+        'Sign in to ArmyIgnitED with your CAC and create or update your student profile.',
+        'Create an education goal for the school, degree level, and program you plan to pursue.',
+        'Complete required ArmyIgnitED training or counseling items shown in the portal.',
+        'Register with the school, then submit the TA request in ArmyIgnitED before the course start deadline.',
+        'Wait for approval before relying on TA funds; send the approved authorization to the school if requested.',
+      ],
+    },
+    Navy: {
+      portal: 'Navy College / MyNavy Education',
+      url: 'https://www.navycollege.navy.mil/',
+      secondaryUrl: 'https://myeducation.netc.navy.mil/webta/home.html#nbb',
+      source: 'https://www.navy.com/careers-benefits/education/undergraduate-opportunities',
+      summary: 'Navy Tuition Assistance is managed through the Navy College Program and MyNavy Education for eligible Sailors.',
+      steps: [
+        'Tell your chain of command you intend to use Tuition Assistance.',
+        'Complete the required Virtual Learning 101 training in MyNavy Education if you have not done it before.',
+        'Work with a Navy College education counselor and define your education goal.',
+        'Upload the required education plan or degree plan in MyNavy Education.',
+        'Submit the TA application in MyNavy Education within the Navy application window and before the deadline.',
+        'After approval, provide the authorization voucher to your school before the course begins.',
+      ],
+    },
+    'Marine Corps': {
+      portal: 'Marine Corps Voluntary Education / WebTA',
+      url: 'https://www.usmc-mccs.org/services/education/voluntary-education/',
+      source: 'https://www.marines.com/life-as-a-marine/benefits/education.html',
+      summary: 'Marine Corps Tuition Assistance supports eligible Marines taking off-duty courses through approved schools.',
+      steps: [
+        'Contact your installation Education Center or Voluntary Education office before enrolling.',
+        'Confirm eligibility, course limits, degree plan requirements, and command approval rules.',
+        'Choose an accredited school and program that meets TA policy requirements.',
+        'Register for the course only after you understand the TA request timing and school billing process.',
+        'Submit the TA request through the Marine Corps-approved TA system before the course deadline.',
+        'Keep the approved TA authorization and coordinate with the school billing or military student office.',
+      ],
+    },
+    'Air Force': {
+      portal: 'Air Force Virtual Education Center (AFVEC)',
+      url: 'https://afvec.us.af.mil/afvec/public/welcome',
+      source: 'https://www.airforce.com/education',
+      summary: 'Air Force Tuition Assistance is requested through AFVEC for eligible Airmen pursuing voluntary off-duty education.',
+      steps: [
+        'Discuss your education plan with your supervisor and base education office when required.',
+        'Sign in to AFVEC and confirm your profile, education goal, and school information.',
+        'Upload or confirm your degree plan if AFVEC or your education office requires it.',
+        'Register for courses with the school, then submit the TA request in AFVEC before the deadline.',
+        'Wait for supervisor and education office approval before assuming TA will pay.',
+        'Provide approved TA documentation to the school and monitor grades to avoid repayment issues.',
+      ],
+    },
+    'Space Force': {
+      portal: 'AFVEC for Guardians',
+      url: 'https://afvec.us.af.mil/afvec/public/welcome',
+      source: 'https://www.spaceforce.mil/News/Article-Display/Article/2421854/department-of-the-air-force-restores-previous-military-tuition-assistance-cap-a/',
+      summary: 'Space Force Guardians use Department of the Air Force education systems, including AFVEC, for Tuition Assistance.',
+      steps: [
+        'Coordinate with your supervisor and servicing education office before enrolling.',
+        'Use AFVEC to confirm your education goal, school, and degree plan requirements.',
+        'Register for courses only after confirming the course fits current TA policy.',
+        'Submit the TA request in AFVEC before the course start deadline.',
+        'Wait for all required approvals before relying on TA funding.',
+        'Track grades and completion requirements so TA is not recouped.',
+      ],
+    },
+    'Coast Guard': {
+      portal: 'MyCG Ed / ETQC Tuition Assistance',
+      url: 'https://www.forcecom.uscg.mil/Our-Organization/FORCECOM-UNITS/ETQC/VOLUNTARY-EDUCATION/Tuition-Assistance/Coast-Guard-Credentialing-Online-COOL/',
+      source: 'https://www.mycg.uscg.mil/Resources/Article/2454246/education-assistance/',
+      summary: 'Coast Guard Tuition Assistance is requested through MyCG Ed and ETQC guidance for eligible members.',
+      steps: [
+        'Select an approved school and confirm the school has the required DoD MOU status.',
+        'Apply to the school and build a degree or certificate plan before requesting TA.',
+        'Sign in to MyCG Ed with CAC access and review current ETQC Tuition Assistance policy.',
+        'Submit the TA application before the Coast Guard deadline and before the class starts.',
+        'Do not begin relying on TA until the voucher or authorization is approved.',
+        'Send the approved authorization to the school and submit grades on time after completion.',
+      ],
+    },
+  };
+
+  const selectedTA = TUITION_ASSISTANCE[profile?.branch] || TUITION_ASSISTANCE.Army;
+
   const HOW_TO_STEPS = [
     { step: 1, title: "Apply on VA.gov", desc: "Go to va.gov/education/how-to-apply and complete VA Form 22-1990. You'll need your DD-214 or current service info." },
     { step: 2, title: "Receive Certificate of Eligibility", desc: "VA will mail your COE in 4-6 weeks. This shows your school exactly what benefits you have. Upload it to eBenefits or keep a copy." },
@@ -2268,7 +2358,7 @@ function EducationBenefitsTab({ theme, profile }) {
       <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>Education & scholarship resources for service members and spouses</div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {[{ id: 'gibill', label: 'GI Bill Chapters' }, { id: 'howto', label: 'How to Apply' }, { id: 'colleges', label: 'Colleges' }, { id: 'schools', label: 'Find Schools' }, { id: 'mycaa', label: 'MyCAA (Spouses)' }].map(t => (
+        {[{ id: 'gibill', label: 'GI Bill Chapters' }, { id: 'howto', label: 'How to Apply' }, { id: 'tuition', label: 'Tuition Assistance' }, { id: 'colleges', label: 'Colleges' }, { id: 'schools', label: 'Find Schools' }, { id: 'mycaa', label: 'MyCAA (Spouses)' }].map(t => (
           <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ padding: '7px 14px', borderRadius: 20, border: `1.5px solid ${activeTab === t.id ? theme.primary : '#E0E6EE'}`, background: activeTab === t.id ? theme.primary : '#FFF', color: activeTab === t.id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
             {t.label}
           </button>
@@ -2310,6 +2400,40 @@ function EducationBenefitsTab({ theme, profile }) {
           <a href="https://www.va.gov/education/how-to-apply/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 12, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 13, marginTop: 8 }}>
             Start Application on VA.gov
           </a>
+        </div>
+      )}
+
+      {activeTab === 'tuition' && (
+        <div>
+          <div style={{ background: '#FFFFFF', border: '1px solid #DDD5C2', borderLeft: `4px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 14, boxShadow: '0 8px 20px rgba(38,53,31,0.08)' }}>
+            <div style={{ fontSize: 10, fontWeight: 900, color: theme.primary, letterSpacing: '.14em', marginBottom: 4 }}>{(profile?.branch || 'Army').toUpperCase()} TUITION ASSISTANCE</div>
+            <div style={{ fontSize: 16, fontWeight: 900, color: '#111827', marginBottom: 6 }}>{selectedTA.portal}</div>
+            <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>{selectedTA.summary}</div>
+            <div style={{ marginTop: 10, fontSize: 11, color: '#7A4A00', background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: 10, lineHeight: 1.5 }}>
+              Always verify current eligibility, deadlines, service obligations, grade requirements, and repayment rules with your education office before enrolling.
+            </div>
+          </div>
+
+          {selectedTA.steps.map((step, idx) => (
+            <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 10, display: 'flex', gap: 12 }}>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: theme.primary, color: '#FFFFFF', fontSize: 13, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{idx + 1}</div>
+              <div style={{ fontSize: 12, color: '#1F2937', lineHeight: 1.55, fontWeight: 600 }}>{step}</div>
+            </div>
+          ))}
+
+          <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+            <a href={selectedTA.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 12, background: theme.primary, color: '#FFFFFF', textDecoration: 'none', textAlign: 'center', fontWeight: 800, fontSize: 13 }}>
+              Open {selectedTA.portal}
+            </a>
+            {selectedTA.secondaryUrl && (
+              <a href={selectedTA.secondaryUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 12, background: '#F3F4F6', color: '#111827', textDecoration: 'none', textAlign: 'center', fontWeight: 800, fontSize: 12, border: '1px solid #E5E7EB' }}>
+                Open application portal
+              </a>
+            )}
+            <a href={selectedTA.source} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 12, background: '#F8F6EE', color: '#374151', textDecoration: 'none', textAlign: 'center', fontWeight: 800, fontSize: 12, border: '1px solid #DDD5C2' }}>
+              Review official/public branch education guidance
+            </a>
+          </div>
         </div>
       )}
 
