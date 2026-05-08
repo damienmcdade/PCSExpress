@@ -18,6 +18,18 @@ async function loadLeaflet() {
 }
 
 // ─── Facility type definitions ─────────────────────────────────────────────
+const OFFICIAL_INSTALLATION_DIRECTORY = 'https://installations.militaryonesource.mil/';
+
+const getOfficialInstallationUrl = () => OFFICIAL_INSTALLATION_DIRECTORY;
+
+const coordinateIsPublicAndUsable = (baseInfo) =>
+  Number.isFinite(baseInfo?.lat) &&
+  Number.isFinite(baseInfo?.lng) &&
+  Math.abs(baseInfo.lat) <= 90 &&
+  Math.abs(baseInfo.lng) <= 180;
+
+const OFFICIAL_MAP_NOTICE = 'This view uses public installation center coordinates for orientation only. PCS Express does not display restricted, force-protection, internal building, or non-public facility map data. Verify gates, services, hours, and facility directions through official installation sources.';
+
 const FACILITY_TYPES = {
   gate:       { icon: '🚧', label: 'Gate / Entry Point',      color: '#E74C3C' },
   medical:    { icon: '🏥', label: 'Hospital / Medical',      color: '#27AE60' },
@@ -1054,10 +1066,9 @@ const FACILITIES = {
 // ─── Build lookup map: normalize base name variants ─────────────────────────
 const NORM = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const facilityKeys = Object.keys(FACILITIES);
-const getFacilities = (name) => {
-  const n = NORM(name);
-  const key = facilityKeys.find(k => NORM(k) === n || NORM(name).includes(NORM(k)) || NORM(k).includes(NORM(name)));
-  return key ? FACILITIES[key] : [];
+const getFacilities = () => {
+  // Facility-level points are intentionally disabled unless they can be tied to official public installation map data.
+  return [];
 };
 
 const getBaseData = (installationLabel) => {
@@ -1118,8 +1129,9 @@ export default function BaseMapModule({ theme, profile }) {
     }
 
     const baseInfo = getBaseData(selectedBase);
-    if (!baseInfo) {
+    if (!baseInfo || !coordinateIsPublicAndUsable(baseInfo)) {
       setNoData(true);
+      setMapError('Official public base location data is not available for this installation at this time.');
       return;
     }
     setNoData(false);
@@ -1134,17 +1146,22 @@ export default function BaseMapModule({ theme, profile }) {
           zoom: baseInfo.zoom || 13,
           zoomControl: true,
           attributionControl: true,
+          preferCanvas: true,
         });
         mapInstanceRef.current = map;
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: 'Public geographic basemap © OpenStreetMap contributors; verify official installation details through MilitaryINSTALLATIONS.',
           maxZoom: 19,
-        }).addTo(map);
+        });
+        tileLayer.on('tileerror', () => {
+          if (!cancelled) setMapError('The public geographic map tiles could not load on this device. Official public installation information remains available below.');
+        });
+        tileLayer.addTo(map);
 
         // Base center marker
         L.marker([baseInfo.lat, baseInfo.lng], { icon: makeBaseIcon(L) })
-          .bindPopup(`<b>${baseInfo.name}</b><br/>${baseInfo.branch} · ${baseInfo.state}`)
+          .bindPopup(`<b>${baseInfo.name}</b><br/>${baseInfo.branch} · ${baseInfo.state}<br/><small>${OFFICIAL_MAP_NOTICE}</small>`)
           .addTo(map);
 
         // Create layer groups per facility type
@@ -1166,12 +1183,14 @@ export default function BaseMapModule({ theme, profile }) {
         if (facilities.length === 0) {
           L.popup()
             .setLatLng([baseInfo.lat, baseInfo.lng])
-            .setContent(`<b>${baseInfo.name}</b><br/>${baseInfo.branch} · ${baseInfo.state}<br/><small>For full installation maps and facility directories, visit:<br/><a href="https://installations.militaryonesource.mil/" target="_blank">militaryinstallations.dod.mil</a></small>`)
+            .setContent(`<b>${baseInfo.name}</b><br/>${baseInfo.branch} · ${baseInfo.state}<br/><small>For full installation maps and facility directories, visit:<br/><a href="${getOfficialInstallationUrl(baseInfo)}" target="_blank" rel="noopener noreferrer">MilitaryINSTALLATIONS</a></small>`)
             .openOn(map);
         }
 
         // Force redraw after container becomes visible
-        setTimeout(() => { if (!cancelled && mapInstanceRef.current) mapInstanceRef.current.invalidateSize(); }, 150);
+        [150, 450, 900].forEach(delay => {
+          setTimeout(() => { if (!cancelled && mapInstanceRef.current) mapInstanceRef.current.invalidateSize(); }, delay);
+        });
       })
       .catch(() => {
         if (!cancelled) setMapError('Public base map could not load on this device. Official public installation data remains available below.');
@@ -1245,11 +1264,11 @@ export default function BaseMapModule({ theme, profile }) {
           <div style={{ marginTop: 6 }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
               <span style={{ fontSize: 10, background: theme.primary, color: '#FFF', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>{baseInfo.branch}</span>
-              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>{facilityCount > 0 ? `${facilityCount} facilities mapped` : 'Base location only'}</span>
+              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>Official public location view</span>
               {baseInfo.country && <span style={{ fontSize: 10, background: '#E74C3C', color: '#FFF', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>OCONUS</span>}
             </div>
-            <a href="https://installations.militaryonesource.mil/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', fontSize: 10, color: theme.accent, fontWeight: 700, textDecoration: 'none', letterSpacing: '.04em' }}>
-              Official Installation Directory →
+            <a href={getOfficialInstallationUrl(baseInfo)} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', fontSize: 10, color: theme.accent, fontWeight: 700, textDecoration: 'none', letterSpacing: '.04em' }}>
+              Official MilitaryINSTALLATIONS Directory →
             </a>
           </div>
         )}
@@ -1268,10 +1287,22 @@ export default function BaseMapModule({ theme, profile }) {
         )}
       </div>
 
+      <div style={{ padding: '10px 14px', background: '#FFFFFF', borderBottom: '1px solid #E0E6EE' }}>
+        <div style={{ background: '#EAF4FF', border: `1px solid ${theme.primary}35`, borderRadius: 10, padding: 12, color: '#0D3B66', fontSize: 11, lineHeight: 1.55 }}>
+          <strong>Public map quality check:</strong> {OFFICIAL_MAP_NOTICE}
+        </div>
+        {baseInfo && (
+          <a href={getOfficialInstallationUrl(baseInfo)} target="_blank" rel="noopener noreferrer" style={{ display: 'block', marginTop: 10, background: '#FFFFFF', border: '1px solid #D7E3EF', borderLeft: `4px solid ${theme.primary}`, borderRadius: 10, padding: 12, textDecoration: 'none' }}>
+            <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821' }}>Verify {baseInfo.name} on MilitaryINSTALLATIONS</div>
+            <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5, marginTop: 3 }}>Use the official public installation directory for current contacts, programs, services, housing, and visitor guidance.</div>
+          </a>
+        )}
+      </div>
+
       {/* Legend toggle button */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#FFFFFF', borderBottom: '1px solid #E0E6EE' }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: '#0D1821' }}>
-          {facilityCount > 0 ? `📍 ${facilityCount} facilities` : '📍 Base location only'}
+          '📍 Official public base location'
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={toggleAll} style={{ fontSize: 10, padding: '4px 10px', background: activeFilters.size === Object.keys(FACILITY_TYPES).length ? theme.primary : '#E0E6EE', color: activeFilters.size === Object.keys(FACILITY_TYPES).length ? '#FFF' : '#556', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>
@@ -1331,8 +1362,8 @@ export default function BaseMapModule({ theme, profile }) {
       {noData && (
         <div style={{ padding: 24, textAlign: 'center', color: '#888', fontSize: 12 }}>
           <div style={{ fontSize: 32, marginBottom: 8 }}>📍</div>
-          <div style={{ fontWeight: 700 }}>Base not found in database</div>
-          <div style={{ fontSize: 11, marginTop: 4 }}>Try selecting a base from the dropdown above</div>
+          <div style={{ fontWeight: 700 }}>Official public map data unavailable</div>
+          <div style={{ fontSize: 11, marginTop: 4 }}>Select another installation or use MilitaryINSTALLATIONS for current official public information.</div>
         </div>
       )}
     </div>

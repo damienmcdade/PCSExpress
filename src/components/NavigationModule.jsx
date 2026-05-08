@@ -24,44 +24,9 @@ function NavigationModule({ theme, profile }) {
       if (Array.isArray(saved)) setSavedDirections(saved)
     })
   }, [])
-
-  // Mock base maps data
-  const BASE_MAPS = {
-    'Fort Liberty NC': {
-      baseMap: 'https://via.placeholder.com/600x800?text=Fort+Liberty+Base+Map',
-      locations: [
-        { id: 1, name: 'Main Gate', type: 'Gate', coordinates: '(125, 150)', building: 'Gate 1', services: ['ID Check', 'Visitor Pass'] },
-        { id: 2, name: 'Headquarters', type: 'Building', coordinates: '(300, 200)', building: 'Building A', services: ['Command', 'Administration'] },
-        { id: 3, name: 'Medical Center', type: 'Hospital', coordinates: '(350, 400)', building: 'Building B', services: ['Emergency', 'Dental', 'Mental Health'] },
-        { id: 4, name: 'Commissary', type: 'Store', coordinates: '(150, 300)', building: 'Building C', services: ['Groceries', 'Supplies'] },
-        { id: 5, name: 'Exchange', type: 'Store', coordinates: '(200, 280)', building: 'Building D', services: ['Retail', 'Electronics'] },
-        { id: 6, name: 'Housing Office', type: 'Office', coordinates: '(250, 350)', building: 'Building E', services: ['Housing Assignment', 'Rent Support'] },
-        { id: 7, name: 'Dining Facility', type: 'Dining', coordinates: '(400, 250)', building: 'Building F', services: ['Breakfast', 'Lunch', 'Dinner'] },
-        { id: 8, name: 'Fitness Center', type: 'Gym', coordinates: '(450, 300)', building: 'Building G', services: ['Weights', 'Cardio', 'Classes'] },
-        { id: 9, name: 'Library', type: 'Library', coordinates: '(320, 150)', building: 'Building H', services: ['Books', 'Computer Lab', 'Study Areas'] },
-        { id: 10, name: 'Childcare Center', type: 'Daycare', coordinates: '(100, 400)', building: 'Building I', services: ['Infant Care', 'Preschool', 'After-School'] },
-      ],
-    },
-    'Naval Station Norfolk VA': {
-      baseMap: 'https://via.placeholder.com/600x800?text=Norfolk+Naval+Base+Map',
-      locations: [
-        { id: 1, name: 'Naval Gate', type: 'Gate', coordinates: '(150, 100)', building: 'Security', services: ['Naval ID Check'] },
-        { id: 2, name: 'Naval Medical Center', type: 'Hospital', coordinates: '(400, 300)', building: 'Medical', services: ['Military Medicine', 'Dental'] },
-        { id: 3, name: 'Exchange', type: 'Store', coordinates: '(250, 200)', building: 'Retail', services: ['Navy Exchange'] },
-        { id: 4, name: 'Submarine Pier', type: 'Pier', coordinates: '(550, 400)', building: 'Fleet', services: ['Fleet Operations'] },
-      ],
-    },
-  };
-
-  const POPULAR_ROUTES = {
-    'Fort Liberty NC': [
-      { name: 'Main Gate to Housing', from: 'Main Gate', to: 'Housing Office', distance: '2.3 mi', duration: '8 min', type: 'Driving' },
-      { name: 'Main Gate to Medical', from: 'Main Gate', to: 'Medical Center', distance: '1.8 mi', duration: '6 min', type: 'Driving' },
-      { name: 'Commissary to Exchange', from: 'Commissary', to: 'Exchange', distance: '0.3 mi', duration: '2 min', type: 'Walking' },
-      { name: 'Housing to Dining', from: 'Housing Office', to: 'Dining Facility', distance: '1.2 mi', duration: '4 min', type: 'Driving' },
-      { name: 'Main Gate to Childcare', from: 'Main Gate', to: 'Childcare Center', distance: '3.1 mi', duration: '10 min', type: 'Driving' },
-    ],
-  };
+  // Official base map data is rendered by BaseMapModule. Mock placeholder map data has been removed.
+  const BASE_MAPS = {};
+  const POPULAR_ROUTES = {};
 
   // Geocode helper using Nominatim
   const geocode = async (address) => {
@@ -156,6 +121,8 @@ function NavigationModule({ theme, profile }) {
   };
 
   const generateOnBaseRoute = () => {
+    alert('Official public on-base route data is not available for this installation. Use the public route planner or the official installation directory for current visitor guidance.');
+    return;
     if (!departingFrom || !destination) {
       alert('Please select both departure and destination');
       return;
