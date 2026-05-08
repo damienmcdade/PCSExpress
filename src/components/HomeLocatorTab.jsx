@@ -116,8 +116,8 @@ function getMarket(profile, manual) {
   return { label: install || 'Enter gaining installation, address, city, or ZIP', query: install || '' };
 }
 
-function officialSearchUrl(query, branch) {
-  return `https://www.google.com/search?q=${encodeURIComponent(`${query} official military housing ${branch} site:.mil OR site:militaryonesource.mil OR site:homes.mil`)}`;
+function officialSearchUrl() {
+  return 'https://installations.militaryonesource.mil/';
 }
 
 export default function HomeLocatorTab({ theme, profile }) {
@@ -223,7 +223,7 @@ export default function HomeLocatorTab({ theme, profile }) {
           <div key={lender.name} style={{ borderTop: '1px solid #F1F5F9', padding: '10px 0' }}>
             <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821' }}>{lender.name}</div>
             <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{lender.note}</div>
-            <a href={`https://www.google.com/search?q=${encodeURIComponent(lender.name + ' VA loan community reviews NMLS')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 6, fontSize: 10, fontWeight: 900, color: theme.primary }}>Check current community ratings →</a>
+            <a href={` + ' VA loan community reviews NMLS')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 6, fontSize: 10, fontWeight: 900, color: theme.primary }}>Check current community ratings →</a>
           </div>
         ))}
       </div>

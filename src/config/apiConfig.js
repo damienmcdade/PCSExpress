@@ -15,7 +15,7 @@ const getApiUrl = () => {
   }
 
   // Server-side rendering fallback (if applicable)
-  return 'http://localhost:3001'
+  return 'local development server'
 }
 
 export const API_CONFIG = {

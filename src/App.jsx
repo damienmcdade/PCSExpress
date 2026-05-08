@@ -1392,8 +1392,8 @@ function SchoolsTab({ theme, profile }) {
             </div>
           ))}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 4 }}>
-            <a href="https://usa.childcareaware.org/providers/military/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 10, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>ChildCare Aware Military</a>
-            <a href="https://childcare.gov" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 10, background: theme.secondary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>ChildCare.gov</a>
+            <a href="https://installations.militaryonesource.mil/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 10, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>ChildCare Aware Military</a>
+            <a href="https://www.militaryonesource.mil/parenting/child-care/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 10, background: theme.secondary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>ChildCare.gov</a>
           </div>
         </>
       )}
@@ -2245,7 +2245,7 @@ const COLLEGE_ENROLLMENT_LINKS = {
   'Central Texas College': { applyUrl: 'https://www.ctcd.edu/admissions/how-to-apply/', siteUrl: 'https://www.ctcd.edu' },
   'Chaminade University': { applyUrl: 'https://www.chaminade.edu/admissions/', siteUrl: 'https://www.chaminade.edu' },
   'Cisco College': { applyUrl: 'https://www.cisco.edu/admissions/', siteUrl: 'https://www.cisco.edu' },
-  'Coastal Carolina University': { applyUrl: 'https://www.coastal.edu/admissions/', siteUrl: 'https://www.coastal.edu' },
+  'Coastal Carolina University': { applyUrl: 'https://www.coastal.edu/admissions/', siteUrl: '' },
   'Coastal Pines Technical College': { applyUrl: 'https://www.coastalpines.edu/admissions/', siteUrl: 'https://www.coastalpines.edu' },
   'Cochise College': { applyUrl: 'https://www.cochise.edu/admissions/', siteUrl: 'https://www.cochise.edu' },
   'College of Charleston': { applyUrl: 'https://admissions.cofc.edu/', siteUrl: 'https://www.cofc.edu' },
@@ -2548,7 +2548,7 @@ function EducationBenefitsTab({ theme, profile }) {
       portal: 'Navy College / MyNavy Education',
       url: 'https://www.navycollege.navy.mil/',
       secondaryUrl: '',
-      source: 'https://www.navy.com/careers-benefits/education/undergraduate-opportunities',
+      source: 'https://www.navycollege.navy.mil/',
       summary: 'Navy Tuition Assistance is managed through the Navy College Program and MyNavy Education for eligible Sailors.',
       steps: [
         'Tell your chain of command you intend to use Tuition Assistance.',
@@ -2562,7 +2562,7 @@ function EducationBenefitsTab({ theme, profile }) {
     'Marine Corps': {
       portal: 'Marine Corps Voluntary Education / WebTA',
       url: '',
-      source: 'https://www.marines.com/life-as-a-marine/benefits/education.html',
+      source: 'https://www.dantes.mil/mil-ta/',
       summary: 'Marine Corps Tuition Assistance supports eligible Marines taking off-duty courses through approved schools.',
       steps: [
         'Contact your installation Education Center or Voluntary Education office before enrolling.',
@@ -2576,7 +2576,7 @@ function EducationBenefitsTab({ theme, profile }) {
     'Air Force': {
       portal: 'Air Force Virtual Education Center (AFVEC)',
       url: '',
-      source: 'https://www.airforce.com/education',
+      source: 'https://afvec.us.af.mil/afvec/public/welcome',
       summary: 'Air Force Tuition Assistance is requested through AFVEC for eligible Airmen pursuing voluntary off-duty education.',
       steps: [
         'Discuss your education plan with your supervisor and base education office when required.',
@@ -2804,7 +2804,7 @@ function EducationBenefitsTab({ theme, profile }) {
               ))}
             </div>
           ))}
-          <a href="https://aiportal.acc.af.mil/mycaa" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 12, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Apply for MyCAA →</a>
+          <a data-link-removed="https://aiportal.acc.af.mil/mycaa" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 12, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Apply for MyCAA →</a>
           <a href="https://www.militaryonesource.mil/education-employment/for-spouses/mycaa-scholarship-program/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 12, background: '#E8F5E9', color: '#2E7D32', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 12 }}>Learn More at MilitaryOneSource →</a>
         </div>
       )}
@@ -2846,7 +2846,7 @@ function ResourcesTab({ theme, profile }) {
       { name: 'Military Child Education Coalition', desc: 'School transition resources for military children', url: '', tag: 'Families' },
       { name: 'Operation Homefront', desc: 'Emergency financial and housing assistance for military families', url: '', tag: 'All Branches' },
       { name: 'Blue Star Families', desc: 'Connection and community for military families nationwide', url: '', tag: 'All Branches' },
-      { name: branch === 'Army' ? 'Army Community Service (ACS)' : branch === 'Navy' ? 'Fleet & Family Support (FFSC)' : branch.includes('Marine') ? 'Marine Corps Family Services' : 'Airman & Family Readiness Center', desc: 'Installation-based family support, financial counseling, employment help', url: branch === 'Army' ? 'https://www.armymwr.com/acs' : branch === 'Navy' ? 'https://www.cnic.navy.mil/ffsp' : 'https://www.militaryonesource.mil', tag: branch },
+      { name: branch === 'Army' ? 'Army Community Service (ACS)' : branch === 'Navy' ? 'Fleet & Family Support (FFSC)' : branch.includes('Marine') ? 'Marine Corps Family Services' : 'Airman & Family Readiness Center', desc: 'Installation-based family support, financial counseling, employment help', url: branch === 'Army' ? 'https://installations.militaryonesource.mil/' : branch === 'Navy' ? 'https://www.cnic.navy.mil/ffsp' : 'https://www.militaryonesource.mil', tag: branch },
     ],
     financial: [
       { name: 'myPay (DFAS)', desc: 'Access and manage your military pay, allotments, and W-2s', url: 'https://mypay.dfas.mil', tag: 'All Branches' },
@@ -3414,39 +3414,59 @@ function HomeLegalBanners({ theme }) {
 
 function App() {
 
-  // OFFICIAL_LINK_SECURITY_GUARD: hides any rendered external link that is not an official U.S. government, military, or approved crisis-support domain.
+  // APP_WIDE_LINK_SECURITY_AUDIT: prevents blank, relative, same-app, stale, or non-approved link bubbles from navigating users into another PCS Express state.
   useEffect(() => {
     const approvedNonGovHosts = new Set(['988lifeline.org', 'www.988lifeline.org', 'veteranscrisisline.net', 'www.veteranscrisisline.net']);
-    const isOfficialExternalLink = (href) => {
+    const isApprovedExternalLink = (href) => {
       if (!href || href === '#') return false;
       try {
         const parsed = new URL(href, window.location.origin);
-        if (parsed.origin === window.location.origin) return true;
         const host = parsed.hostname.toLowerCase();
+        if (parsed.origin === window.location.origin) return false;
         return host.endsWith('.gov') || host.endsWith('.mil') || host.endsWith('.edu') || approvedNonGovHosts.has(host);
       } catch {
         return false;
       }
     };
+    const disableUnsafeAnchor = (anchor) => {
+      const rawHref = anchor.getAttribute('href') || '';
+      const absoluteHref = anchor.href || rawHref;
+      if (!isApprovedExternalLink(absoluteHref)) {
+        anchor.setAttribute('data-link-audit-blocked', rawHref || 'blank-or-relative');
+        anchor.setAttribute('aria-hidden', 'true');
+        anchor.setAttribute('tabindex', '-1');
+        anchor.removeAttribute('href');
+        anchor.style.display = 'none';
+        return true;
+      }
+      anchor.setAttribute('target', '_blank');
+      anchor.setAttribute('rel', 'noopener noreferrer');
+      return false;
+    };
     const scrubLinks = () => {
-      document.querySelectorAll('a').forEach(anchor => {
-        const rawHref = anchor.getAttribute('href') || '';
-        const absoluteHref = anchor.href || rawHref;
-        if (!isOfficialExternalLink(absoluteHref)) {
-          anchor.removeAttribute('href');
-          anchor.setAttribute('aria-hidden', 'true');
-          anchor.setAttribute('data-security-link-removed', 'true');
-          anchor.style.display = 'none';
-          return;
-        }
-        anchor.setAttribute('rel', 'noopener noreferrer');
-      });
+      document.querySelectorAll('a').forEach(disableUnsafeAnchor);
+    };
+    const clickGuard = (event) => {
+      const anchor = event.target?.closest?.('a');
+      if (!anchor) return;
+      const rawHref = anchor.getAttribute('href') || '';
+      const absoluteHref = anchor.href || rawHref;
+      if (!isApprovedExternalLink(absoluteHref)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        disableUnsafeAnchor(anchor);
+      }
     };
     scrubLinks();
+    document.addEventListener('click', clickGuard, true);
     const observer = new MutationObserver(scrubLinks);
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['href'] });
-    return () => observer.disconnect();
+    return () => {
+      document.removeEventListener('click', clickGuard, true);
+      observer.disconnect();
+    };
   }, []);
+
 
   const [profile, setProfile] = useState(() => normalizeProfile(getSessionDemoProfile() || store.get('pcs_profile')));
   const [activeTab, setActiveTab] = useState('home');
