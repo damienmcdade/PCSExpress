@@ -2212,6 +2212,229 @@ const INSTALLATION_COLLEGES = {
 };
 
 
+const COLLEGE_ENROLLMENT_LINKS = {
+  'Abilene Christian University': { applyUrl: 'https://www.acu.edu/admissions/', siteUrl: 'https://www.acu.edu' },
+  'Abraham Baldwin Agricultural College': { applyUrl: 'https://www.abac.edu/admissions/', siteUrl: 'https://www.abac.edu' },
+  'Air Force Institute of Technology': { applyUrl: 'https://www.afit.edu/registrar/admission/', siteUrl: 'https://www.afit.edu' },
+  'Alaska Bible College': { applyUrl: 'https://www.akbible.edu/admissions/', siteUrl: 'https://www.akbible.edu' },
+  'Alaska Pacific University': { applyUrl: 'https://alaskapacific.edu/admissions/', siteUrl: 'https://alaskapacific.edu' },
+  'American University': { applyUrl: 'https://www.american.edu/admissions/apply/', siteUrl: 'https://www.american.edu' },
+  'Anne Arundel Community College': { applyUrl: 'https://www.aacc.edu/admissions/apply/', siteUrl: 'https://www.aacc.edu' },
+  'Antelope Valley College': { applyUrl: 'https://www.avc.edu/admissions/', siteUrl: 'https://www.avc.edu' },
+  'Arizona State University': { applyUrl: 'https://admission.asu.edu/', siteUrl: 'https://www.asu.edu' },
+  'Arizona Western College': { applyUrl: 'https://www.azwestern.edu/admissions/', siteUrl: 'https://www.azwestern.edu' },
+  'Auburn University at Montgomery': { applyUrl: 'https://www.aum.edu/admissions/', siteUrl: 'https://www.aum.edu' },
+  'Augusta Technical College': { applyUrl: 'https://www.augustatech.edu/admissions/', siteUrl: 'https://www.augustatech.edu' },
+  'Augusta University': { applyUrl: 'https://www.augusta.edu/admissions/', siteUrl: 'https://www.augusta.edu' },
+  'Austin Peay State University': { applyUrl: 'https://www.apsu.edu/admissions/apply/', siteUrl: 'https://www.apsu.edu' },
+  'Bellevue University': { applyUrl: 'https://www.bellevue.edu/admissions/', siteUrl: 'https://www.bellevue.edu' },
+  'Benedict College': { applyUrl: 'https://www.benedict.edu/admissions/', siteUrl: 'https://www.benedict.edu' },
+  'Bossier Parish Community College': { applyUrl: 'https://www.bpcc.edu/admissions/', siteUrl: 'https://www.bpcc.edu' },
+  'Brigham Young University': { applyUrl: 'https://admissions.byu.edu/', siteUrl: 'https://www.byu.edu' },
+  'Brooklyn College CUNY': { applyUrl: 'https://www.brooklyn.cuny.edu/web/admissions.php', siteUrl: 'https://www.brooklyn.cuny.edu' },
+  'Bunker Hill Community College': { applyUrl: 'https://www.bhcc.edu/admissions/', siteUrl: 'https://www.bhcc.edu' },
+  'CSU Channel Islands': { applyUrl: 'https://www.csuci.edu/admissions/', siteUrl: 'https://www.csuci.edu' },
+  'Cal Lutheran University': { applyUrl: 'https://www.callutheran.edu/admissions/', siteUrl: 'https://www.callutheran.edu' },
+  'Cal State San Bernardino': { applyUrl: 'https://www.csusb.edu/admissions/', siteUrl: 'https://www.csusb.edu' },
+  'California State University Dominguez Hills': { applyUrl: 'https://www.csudh.edu/admissions/', siteUrl: 'https://www.csudh.edu' },
+  'Campbell University': { applyUrl: 'https://www.campbell.edu/admissions/apply/', siteUrl: 'https://www.campbell.edu' },
+  'Campbellsville University': { applyUrl: 'https://www.campbellsville.edu/admissions/', siteUrl: 'https://www.campbellsville.edu' },
+  'Carteret Community College': { applyUrl: 'https://www.carteret.edu/admissions/', siteUrl: 'https://www.carteret.edu' },
+  'Central Carolina Technical College': { applyUrl: 'https://www.cctech.edu/admissions/', siteUrl: 'https://www.cctech.edu' },
+  'Central Michigan University': { applyUrl: 'https://www.cmich.edu/admissions/', siteUrl: 'https://www.cmich.edu' },
+  'Central Texas College': { applyUrl: 'https://www.ctcd.edu/admissions/how-to-apply/', siteUrl: 'https://www.ctcd.edu' },
+  'Chaminade University': { applyUrl: 'https://www.chaminade.edu/admissions/', siteUrl: 'https://www.chaminade.edu' },
+  'Cisco College': { applyUrl: 'https://www.cisco.edu/admissions/', siteUrl: 'https://www.cisco.edu' },
+  'Coastal Carolina University': { applyUrl: 'https://www.coastal.edu/admissions/', siteUrl: 'https://www.coastal.edu' },
+  'Coastal Pines Technical College': { applyUrl: 'https://www.coastalpines.edu/admissions/', siteUrl: 'https://www.coastalpines.edu' },
+  'Cochise College': { applyUrl: 'https://www.cochise.edu/admissions/', siteUrl: 'https://www.cochise.edu' },
+  'College of Charleston': { applyUrl: 'https://admissions.cofc.edu/', siteUrl: 'https://www.cofc.edu' },
+  'College of Coastal Georgia': { applyUrl: 'https://www.ccga.edu/admissions/', siteUrl: 'https://www.ccga.edu' },
+  'College of Southern Nevada': { applyUrl: 'https://www.csn.edu/admissions/', siteUrl: 'https://www.csn.edu' },
+  'College of Staten Island (CUNY)': { applyUrl: 'https://www.csi.cuny.edu/admissions', siteUrl: 'https://www.csi.cuny.edu' },
+  'College of the Mainland': { applyUrl: 'https://www.com.edu/admissions/', siteUrl: 'https://www.com.edu' },
+  'Colorado College': { applyUrl: 'https://www.coloradocollege.edu/admission/', siteUrl: 'https://www.coloradocollege.edu' },
+  'Columbia College': { applyUrl: 'https://www.columbiasc.edu/admissions/', siteUrl: 'https://www.columbiasc.edu' },
+  'Columbia International University': { applyUrl: 'https://www.ciu.edu/admissions/', siteUrl: 'https://www.ciu.edu' },
+  'Columbus Technical College': { applyUrl: 'https://www.columbustech.edu/admissions/', siteUrl: 'https://www.columbustech.edu' },
+  'Community College of Baltimore County': { applyUrl: 'https://www.ccbcmd.edu/Getting-Started/Apply-for-Admission.html', siteUrl: 'https://www.ccbcmd.edu' },
+  'Community College of Denver': { applyUrl: 'https://www.ccd.edu/admissions/', siteUrl: 'https://www.ccd.edu' },
+  'Craven Community College': { applyUrl: 'https://www.cravencc.edu/admissions/', siteUrl: 'https://www.cravencc.edu' },
+  'Creighton University': { applyUrl: 'https://admissions.creighton.edu/', siteUrl: 'https://www.creighton.edu' },
+  'Delgado Community College': { applyUrl: 'https://www.dcc.edu/admissions/', siteUrl: 'https://www.dcc.edu' },
+  'Drury University': { applyUrl: 'https://www.drury.edu/admissions/', siteUrl: 'https://www.drury.edu' },
+  'East Carolina University': { applyUrl: 'https://admissions.ecu.edu/', siteUrl: 'https://www.ecu.edu' },
+  'Eastern Florida State College': { applyUrl: 'https://www.easternflorida.edu/admissions/', siteUrl: 'https://www.easternflorida.edu' },
+  'Eastern Washington University': { applyUrl: 'https://www.ewu.edu/admissions/', siteUrl: 'https://www.ewu.edu' },
+  'Eckerd College': { applyUrl: 'https://www.eckerd.edu/admissions/', siteUrl: 'https://www.eckerd.edu' },
+  'El Camino College': { applyUrl: 'https://www.elcamino.edu/admissions/', siteUrl: 'https://www.elcamino.edu' },
+  'El Paso Community College': { applyUrl: 'https://www.epcc.edu/Admissions/', siteUrl: 'https://www.epcc.edu' },
+  'Elizabethtown Community & Technical College': { applyUrl: 'https://elizabethtown.kctcs.edu/admissions/', siteUrl: 'https://elizabethtown.kctcs.edu' },
+  'Embry-Riddle Aeronautical University': { applyUrl: 'https://daytonabeach.erau.edu/admissions/', siteUrl: 'https://daytonabeach.erau.edu' },
+  'Embry-Riddle Aeronautical University Worldwide': { applyUrl: 'https://worldwide.erau.edu/admissions/apply/', siteUrl: 'https://worldwide.erau.edu' },
+  'Embry-Riddle European Campus': { applyUrl: 'https://europe.erau.edu/admissions/', siteUrl: 'https://europe.erau.edu' },
+  'Enterprise State Community College': { applyUrl: 'https://www.escc.edu/admissions/', siteUrl: 'https://www.escc.edu' },
+  'Everett Community College': { applyUrl: 'https://www.everettcc.edu/admissions/', siteUrl: 'https://www.everettcc.edu' },
+  'FSU Panama City': { applyUrl: 'https://pc.fsu.edu/admissions/', siteUrl: 'https://pc.fsu.edu' },
+  'Florida International University': { applyUrl: 'https://admissions.fiu.edu/', siteUrl: 'https://www.fiu.edu' },
+  'Florida State College at Jacksonville': { applyUrl: 'https://www.fscj.edu/admissions/', siteUrl: 'https://www.fscj.edu' },
+  'George Mason University': { applyUrl: 'https://admissions.gmu.edu/', siteUrl: 'https://www.gmu.edu' },
+  'Georgetown University': { applyUrl: 'https://uadmissions.georgetown.edu/', siteUrl: 'https://www.georgetown.edu' },
+  'Georgia Southern University': { applyUrl: 'https://admissions.georgiasouthern.edu/', siteUrl: 'https://www.georgiasouthern.edu' },
+  'Glendale Community College': { applyUrl: 'https://www.glendale.edu/admissions/', siteUrl: 'https://www.glendale.edu' },
+  'Gonzaga University': { applyUrl: 'https://www.gonzaga.edu/admissions/', siteUrl: 'https://www.gonzaga.edu' },
+  'Guam Community College': { applyUrl: 'https://www.guamcc.edu/admissions/', siteUrl: 'https://www.guamcc.edu' },
+  'Gulf Coast State College': { applyUrl: 'https://www.gulfcoast.edu/admissions/', siteUrl: 'https://www.gulfcoast.edu' },
+  'Hampton University': { applyUrl: 'https://www.hamptonu.edu/admissions/', siteUrl: 'https://www.hamptonu.edu' },
+  'Hardin-Simmons University': { applyUrl: 'https://www.hsutx.edu/admissions/', siteUrl: 'https://www.hsutx.edu' },
+  'Hawaii Pacific University': { applyUrl: 'https://www.hpu.edu/admissions/apply/', siteUrl: 'https://www.hpu.edu' },
+  'Hillsborough Community College': { applyUrl: 'https://www.hccfl.edu/admissions/', siteUrl: 'https://www.hccfl.edu' },
+  'Honolulu Community College': { applyUrl: 'https://honolulu.hawaii.edu/admissions', siteUrl: 'https://honolulu.hawaii.edu' },
+  'Jacksonville University': { applyUrl: 'https://www.ju.edu/admissions/', siteUrl: 'https://www.ju.edu' },
+  'Jefferson Community College': { applyUrl: 'https://www.sunyjefferson.edu/admissions/apply/', siteUrl: 'https://www.sunyjefferson.edu' },
+  'Johnson County Community College': { applyUrl: 'https://www.jccc.edu/admissions/', siteUrl: 'https://www.jccc.edu' },
+  'Kansas City Kansas Community College': { applyUrl: 'https://www.kckcc.edu/admissions/', siteUrl: 'https://www.kckcc.edu' },
+  'Kingsborough Community College': { applyUrl: 'https://www.kbcc.cuny.edu/admissions/', siteUrl: 'https://www.kbcc.cuny.edu' },
+  'Leeward Community College': { applyUrl: 'https://www.leeward.hawaii.edu/admissions', siteUrl: 'https://www.leeward.hawaii.edu' },
+  'Lindenwood University': { applyUrl: 'https://www.lindenwood.edu/admissions/', siteUrl: 'https://www.lindenwood.edu' },
+  'Louisiana Tech University': { applyUrl: 'https://admissions.latech.edu/', siteUrl: 'https://www.latech.edu' },
+  'Massachusetts Maritime Academy': { applyUrl: 'https://www.maritime.edu/admissions', siteUrl: 'https://www.maritime.edu' },
+  'McMurry University': { applyUrl: 'https://www.mcm.edu/admissions/', siteUrl: 'https://www.mcm.edu' },
+  'Metropolitan State University of Denver': { applyUrl: 'https://www.msudenver.edu/admissions/', siteUrl: 'https://www.msudenver.edu' },
+  'Miami Dade College': { applyUrl: 'https://www.mdc.edu/admissions/', siteUrl: 'https://www.mdc.edu' },
+  'Midlands Technical College': { applyUrl: 'https://www.midlandstech.edu/admissions/', siteUrl: 'https://www.midlandstech.edu' },
+  'MiraCosta College': { applyUrl: 'https://www.miracosta.edu/admissions/', siteUrl: 'https://www.miracosta.edu' },
+  'Missouri S&T': { applyUrl: 'https://admissions.mst.edu/', siteUrl: 'https://www.mst.edu' },
+  'Missouri University of Science & Technology': { applyUrl: 'https://admissions.mst.edu/', siteUrl: 'https://www.mst.edu' },
+  'Montana State University Bozeman': { applyUrl: 'https://www.montana.edu/admissions/', siteUrl: 'https://www.montana.edu' },
+  'Mount Olive University': { applyUrl: 'https://umo.edu/admissions/apply/', siteUrl: 'https://umo.edu' },
+  'Nashville State Community College': { applyUrl: 'https://www.nscc.edu/admissions', siteUrl: 'https://www.nscc.edu' },
+  'National University': { applyUrl: 'https://www.nu.edu/admissions/', siteUrl: 'https://www.nu.edu' },
+  'New Mexico State University': { applyUrl: 'https://admissions.nmsu.edu/', siteUrl: 'https://www.nmsu.edu' },
+  'New York University': { applyUrl: 'https://www.nyu.edu/admissions/undergraduate-admissions.html', siteUrl: 'https://www.nyu.edu' },
+  'Northeastern University': { applyUrl: 'https://admissions.northeastern.edu/', siteUrl: 'https://www.northeastern.edu' },
+  'Northern Arizona University': { applyUrl: 'https://nau.edu/admissions/', siteUrl: 'https://nau.edu' },
+  'Northern Virginia Community College': { applyUrl: 'https://www.nvcc.edu/admissions/', siteUrl: 'https://www.nvcc.edu' },
+  'Northwest Florida State College': { applyUrl: 'https://www.nwfsc.edu/admissions/', siteUrl: 'https://www.nwfsc.edu' },
+  'Northwestern Michigan College': { applyUrl: 'https://www.nmc.edu/admissions/', siteUrl: 'https://www.nmc.edu' },
+  'Oklahoma State University': { applyUrl: 'https://admissions.okstate.edu/', siteUrl: 'https://www.okstate.edu' },
+  'Old Dominion University': { applyUrl: 'https://www.odu.edu/apply', siteUrl: 'https://www.odu.edu' },
+  'Orange County Community College': { applyUrl: 'https://www.sunyorange.edu/admissions/', siteUrl: 'https://www.sunyorange.edu' },
+  'Pacific Lutheran University': { applyUrl: 'https://www.plu.edu/admission/apply/', siteUrl: 'https://www.plu.edu' },
+  'Paine College': { applyUrl: 'https://www.paine.edu/admissions/', siteUrl: 'https://www.paine.edu' },
+  'Park University': { applyUrl: 'https://www.park.edu/admissions/', siteUrl: 'https://www.park.edu' },
+  'Point Loma Nazarene University': { applyUrl: 'https://www.pointloma.edu/admissions/', siteUrl: 'https://www.pointloma.edu' },
+  'Prince George\'s Community College': { applyUrl: 'https://www.pgcc.edu/admissions/', siteUrl: 'https://www.pgcc.edu' },
+  'Regent University': { applyUrl: 'https://www.regent.edu/admissions/apply/', siteUrl: 'https://www.regent.edu' },
+  'Richard Bland College': { applyUrl: 'https://www.rbc.edu/admissions/', siteUrl: 'https://www.rbc.edu' },
+  'Rose State College': { applyUrl: 'https://www.rose.edu/admissions/', siteUrl: 'https://www.rose.edu' },
+  'Rowan University': { applyUrl: 'https://admissions.rowan.edu/', siteUrl: 'https://www.rowan.edu' },
+  'SUNY New Paltz': { applyUrl: 'https://www.newpaltz.edu/admissions/', siteUrl: 'https://www.newpaltz.edu' },
+  'SUNY Polytechnic Institute': { applyUrl: 'https://sunypoly.edu/admissions/', siteUrl: 'https://sunypoly.edu' },
+  'San Diego State University': { applyUrl: 'https://admissions.sdsu.edu/', siteUrl: 'https://www.sdsu.edu' },
+  'Santa Rosa Junior College': { applyUrl: 'https://admissions.santarosa.edu/', siteUrl: 'https://www.santarosa.edu' },
+  'Savannah State University': { applyUrl: 'https://www.savannahstate.edu/admissions/', siteUrl: 'https://www.savannahstate.edu' },
+  'Seattle University': { applyUrl: 'https://www.seattleu.edu/admissions/', siteUrl: 'https://www.seattleu.edu' },
+  'Sinclair Community College': { applyUrl: 'https://www.sinclair.edu/admissions/', siteUrl: 'https://www.sinclair.edu' },
+  'Skagit Valley College': { applyUrl: 'https://www.skagit.edu/admissions/', siteUrl: 'https://www.skagit.edu' },
+  'Solano Community College': { applyUrl: 'https://www.solano.edu/admissions/', siteUrl: 'https://www.solano.edu' },
+  'South Dakota School of Mines': { applyUrl: 'https://www.sdsmt.edu/admissions/', siteUrl: 'https://www.sdsmt.edu' },
+  'South Georgia Technical College': { applyUrl: 'https://www.southgatech.edu/admissions/', siteUrl: 'https://www.southgatech.edu' },
+  'Southern Illinois University Edwardsville': { applyUrl: 'https://www.siue.edu/admissions/', siteUrl: 'https://www.siue.edu' },
+  'Southern Nazarene University': { applyUrl: 'https://www.snu.edu/admissions/', siteUrl: 'https://www.snu.edu' },
+  'Southwestern Illinois College': { applyUrl: 'https://www.swic.edu/admissions/', siteUrl: 'https://www.swic.edu' },
+  'St. Philip\'s College': { applyUrl: 'https://www.alamo.edu/spc/admissions/', siteUrl: 'https://www.alamo.edu/spc/' },
+  'State Fair Community College': { applyUrl: 'https://www.sfccmo.edu/admissions/', siteUrl: 'https://www.sfccmo.edu' },
+  'Stockton University': { applyUrl: 'https://www.stockton.edu/admissions/', siteUrl: 'https://www.stockton.edu' },
+  'Technical College of the Lowcountry': { applyUrl: 'https://www.tcl.edu/admissions/', siteUrl: 'https://www.tcl.edu' },
+  'Temple College': { applyUrl: 'https://www.templejc.edu/admissions', siteUrl: 'https://www.templejc.edu' },
+  'Texas A&M University – Central Texas': { applyUrl: 'https://www.tamuct.edu/admissions/apply-now.html', siteUrl: 'https://www.tamuct.edu' },
+  'Tidewater Community College': { applyUrl: 'https://www.tcc.edu/admissions/apply/', siteUrl: 'https://www.tcc.edu' },
+  'Touro University': { applyUrl: 'https://www.touro.edu/admissions/', siteUrl: 'https://www.touro.edu' },
+  'Touro University Nevada': { applyUrl: 'https://www.tun.touro.edu/admissions/', siteUrl: 'https://www.tun.touro.edu' },
+  'Towson University': { applyUrl: 'https://www.towson.edu/admissions/', siteUrl: 'https://www.towson.edu' },
+  'Trident Technical College': { applyUrl: 'https://www.tridenttech.edu/admissions/', siteUrl: 'https://www.tridenttech.edu' },
+  'Troy University': { applyUrl: 'https://www.troy.edu/admissions/apply/', siteUrl: 'https://www.troy.edu' },
+  'Tulane University': { applyUrl: 'https://admission.tulane.edu/', siteUrl: 'https://www.tulane.edu' },
+  'UC Berkeley': { applyUrl: 'https://admissions.berkeley.edu/', siteUrl: 'https://www.berkeley.edu' },
+  'UC Davis': { applyUrl: 'https://admissions.ucdavis.edu/', siteUrl: 'https://www.ucdavis.edu' },
+  'UC San Diego': { applyUrl: 'https://admissions.ucsd.edu/', siteUrl: 'https://www.ucsd.edu' },
+  'UC Santa Barbara': { applyUrl: 'https://admissions.ucsb.edu/', siteUrl: 'https://www.ucsb.edu' },
+  'UCLA': { applyUrl: 'https://admission.ucla.edu/', siteUrl: 'https://www.ucla.edu' },
+  'UW Bothell': { applyUrl: 'https://www.uwb.edu/admissions/', siteUrl: 'https://www.uwb.edu' },
+  'University of Alaska Anchorage': { applyUrl: 'https://www.uaa.alaska.edu/admissions/', siteUrl: 'https://www.uaa.alaska.edu' },
+  'University of Alaska Fairbanks': { applyUrl: 'https://www.uaf.edu/admissions/', siteUrl: 'https://www.uaf.edu' },
+  'University of Alaska Southeast (Sitka)': { applyUrl: 'https://www.uas.alaska.edu/admissions/', siteUrl: 'https://www.uas.alaska.edu' },
+  'University of Arizona': { applyUrl: 'https://admissions.arizona.edu/', siteUrl: 'https://www.arizona.edu' },
+  'University of Arkansas at Little Rock': { applyUrl: 'https://ualr.edu/admissions/', siteUrl: 'https://ualr.edu' },
+  'University of Central Florida': { applyUrl: 'https://www.ucf.edu/admissions/', siteUrl: 'https://www.ucf.edu' },
+  'University of Central Missouri': { applyUrl: 'https://www.ucmo.edu/admissions/', siteUrl: 'https://www.ucmo.edu' },
+  'University of Central Oklahoma': { applyUrl: 'https://www.uco.edu/admissions/', siteUrl: 'https://www.uco.edu' },
+  'University of Colorado Denver': { applyUrl: 'https://www.ucdenver.edu/admissions/', siteUrl: 'https://www.ucdenver.edu' },
+  'University of Dayton': { applyUrl: 'https://udayton.edu/admission/', siteUrl: 'https://udayton.edu' },
+  'University of Guam': { applyUrl: 'https://www.uog.edu/admissions/', siteUrl: 'https://www.uog.edu' },
+  'University of Hawaii at Manoa': { applyUrl: 'https://manoa.hawaii.edu/admissions/', siteUrl: 'https://manoa.hawaii.edu' },
+  'University of Kansas': { applyUrl: 'https://admissions.ku.edu/', siteUrl: 'https://www.ku.edu' },
+  'University of Louisville': { applyUrl: 'https://admissions.louisville.edu/apply/', siteUrl: 'https://www.louisville.edu' },
+  'University of Mary': { applyUrl: 'https://www.umary.edu/admissions/', siteUrl: 'https://www.umary.edu' },
+  'University of Mary Washington': { applyUrl: 'https://admissions.umw.edu/apply/', siteUrl: 'https://www.umw.edu' },
+  'University of Maryland': { applyUrl: 'https://admissions.umd.edu/apply', siteUrl: 'https://www.umd.edu' },
+  'University of Miami': { applyUrl: 'https://welcome.miami.edu/apply/', siteUrl: 'https://www.miami.edu' },
+  'University of Mount Olive': { applyUrl: 'https://umo.edu/admissions/apply/', siteUrl: 'https://umo.edu' },
+  'University of Nebraska Omaha': { applyUrl: 'https://www.unomaha.edu/admissions/', siteUrl: 'https://www.unomaha.edu' },
+  'University of Nevada Las Vegas': { applyUrl: 'https://www.unlv.edu/admissions/', siteUrl: 'https://www.unlv.edu' },
+  'University of New Orleans': { applyUrl: 'https://www.uno.edu/admissions', siteUrl: 'https://www.uno.edu' },
+  'University of North Dakota': { applyUrl: 'https://und.edu/admissions/', siteUrl: 'https://und.edu' },
+  'University of North Florida': { applyUrl: 'https://www.unf.edu/admissions/', siteUrl: 'https://www.unf.edu' },
+  'University of Providence': { applyUrl: 'https://www.uprovidence.edu/admissions/', siteUrl: 'https://www.uprovidence.edu' },
+  'University of South Alabama': { applyUrl: 'https://www.southalabama.edu/departments/admissions/', siteUrl: 'https://www.southalabama.edu' },
+  'University of South Carolina': { applyUrl: 'https://www.sc.edu/admissions/', siteUrl: 'https://www.sc.edu' },
+  'University of South Carolina Aiken': { applyUrl: 'https://www.usca.edu/admissions/', siteUrl: 'https://www.usca.edu' },
+  'University of South Carolina Beaufort': { applyUrl: 'https://www.uscb.edu/admissions/', siteUrl: 'https://www.uscb.edu' },
+  'University of South Florida': { applyUrl: 'https://www.usf.edu/admissions/', siteUrl: 'https://www.usf.edu' },
+  'University of Southern California': { applyUrl: 'https://admission.usc.edu/', siteUrl: 'https://www.usc.edu' },
+  'University of Southern Mississippi': { applyUrl: 'https://www.usm.edu/admissions/', siteUrl: 'https://www.usm.edu' },
+  'University of Tampa': { applyUrl: 'https://www.ut.edu/admissions/', siteUrl: 'https://www.ut.edu' },
+  'University of Texas at El Paso': { applyUrl: 'https://www.utep.edu/student-affairs/admissions/apply/', siteUrl: 'https://www.utep.edu' },
+  'University of West Florida': { applyUrl: 'https://www.uwf.edu/admissions/', siteUrl: 'https://www.uwf.edu' },
+  'Utah State University': { applyUrl: 'https://www.usu.edu/admissions/', siteUrl: 'https://www.usu.edu' },
+  'Valdosta State University': { applyUrl: 'https://www.valdosta.edu/admissions/', siteUrl: 'https://www.valdosta.edu' },
+  'Vassar College': { applyUrl: 'https://admissions.vassar.edu/', siteUrl: 'https://www.vassar.edu' },
+  'Virginia Commonwealth University': { applyUrl: 'https://admissions.vcu.edu/', siteUrl: 'https://www.vcu.edu' },
+  'Virginia State University': { applyUrl: 'https://www.vsu.edu/admissions/', siteUrl: 'https://www.vsu.edu' },
+  'Virginia Tech': { applyUrl: 'https://admissions.vt.edu/apply.html', siteUrl: 'https://www.vt.edu' },
+  'Virginia Wesleyan University': { applyUrl: 'https://vwu.edu/admissions/apply/', siteUrl: 'https://vwu.edu' },
+  'Volunteer State Community College': { applyUrl: 'https://www.volstate.edu/admissions', siteUrl: 'https://www.volstate.edu' },
+  'Wallace Community College': { applyUrl: 'https://www.wallace.edu/admissions/', siteUrl: 'https://www.wallace.edu' },
+  'Washington State University': { applyUrl: 'https://admissions.wsu.edu/', siteUrl: 'https://www.wsu.edu' },
+  'Wayne Community College': { applyUrl: 'https://www.waynecc.edu/admissions/', siteUrl: 'https://www.waynecc.edu' },
+  'Weber State University': { applyUrl: 'https://www.weber.edu/admissions/', siteUrl: 'https://www.weber.edu' },
+  'Western Dakota Technical College': { applyUrl: 'https://www.wdt.edu/admissions/', siteUrl: 'https://www.wdt.edu' },
+  'Western Washington University': { applyUrl: 'https://admissions.wwu.edu/apply/', siteUrl: 'https://www.wwu.edu' },
+  'William Carey University': { applyUrl: 'https://www.wmcarey.edu/admissions/', siteUrl: 'https://www.wmcarey.edu' },
+  'Windward Community College': { applyUrl: 'https://www.windward.hawaii.edu/admissions/', siteUrl: 'https://www.windward.hawaii.edu' },
+};
+
+function getCollegeEnrollmentLinks(col) {
+  const fromMap = COLLEGE_ENROLLMENT_LINKS[col?.name] || {};
+  const applyUrl = col?.applyUrl || fromMap.applyUrl || '';
+  const siteUrl = col?.siteUrl || fromMap.siteUrl || '';
+  const officialEducationLink = (url) => {
+    if (!url) return false;
+    try {
+      const host = new URL(url).hostname.toLowerCase();
+      return host.endsWith('.edu') || host.endsWith('.gov') || host.endsWith('.mil');
+    } catch {
+      return false;
+    }
+  };
+  const enrollmentPath = (url) => /admission|apply|enroll|getting-started|steps-to-enroll|how-to-apply/i.test(url || '');
+  return {
+    applyUrl: officialEducationLink(applyUrl) && enrollmentPath(applyUrl) ? applyUrl : '',
+    siteUrl: officialEducationLink(siteUrl) ? siteUrl : '',
+  };
+}
+
 function MentalReadinessTab({ theme, profile }) {
   const [tab, setTab] = useState('counseling');
   const branch = profile?.branch || 'Army';
@@ -2497,28 +2720,39 @@ function EducationBenefitsTab({ theme, profile }) {
                 <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.12em', marginBottom: 4 }}>COLLEGES NEAR {resolvedInstall.toUpperCase()}</div>
                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>{nearbyColleges.length} schools listed · All links verified · TA and GI Bill acceptance noted</div>
               </div>
-              {nearbyColleges.map((col, idx) => (
-                <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 4 }}>{col.name}</div>
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 10, background: col.type === 'Public' ? '#E3F2FD' : '#FCE4EC', color: col.type === 'Public' ? '#1565C0' : '#880E4F' }}>{col.type}</span>
-                        <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: '#F3F4F6', color: '#56697C' }}>{col.degree}</span>
+              {nearbyColleges.map((col, idx) => {
+                const links = getCollegeEnrollmentLinks(col);
+                return (
+                  <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 4 }}>{col.name}</div>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 10, background: col.type === 'Public' ? '#E3F2FD' : '#FCE4EC', color: col.type === 'Public' ? '#1565C0' : '#880E4F' }}>{col.type}</span>
+                          <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: '#F3F4F6', color: '#56697C' }}>{col.degree}</span>
+                          {links.applyUrl && <span style={{ fontSize: 9, fontWeight: 900, background: '#E8F5E9', color: '#1B5E20', padding: '2px 7px', borderRadius: 10 }}>Verified enrollment link</span>}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 8 }}>
+                        <div style={{ fontSize: 13, fontWeight: 900, color: theme.primary }}>{col.rating.toFixed(1)}</div>
+                        <div style={{ fontSize: 9, color: '#888' }}>/ 5.0</div>
                       </div>
                     </div>
-                    <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 8 }}>
-                      <div style={{ fontSize: 13, fontWeight: 900, color: theme.primary }}>{col.rating.toFixed(1)}</div>
-                      <div style={{ fontSize: 9, color: '#888' }}>/ 5.0</div>
+                    <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 10 }}>{col.desc}</div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {links.applyUrl && (
+                        <a href={links.applyUrl} target="_blank" rel="noopener noreferrer" style={{ flex: 2, minWidth: 150, display: 'block', padding: '9px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 800, fontSize: 11 }}>Enrollment / Admissions</a>
+                      )}
+                      {links.siteUrl && (
+                        <a href={links.siteUrl} target="_blank" rel="noopener noreferrer" style={{ flex: 1, minWidth: 110, display: 'block', padding: '9px', borderRadius: 8, background: '#F0F4F8', color: theme.primary, textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>College Website</a>
+                      )}
+                      {!links.applyUrl && !links.siteUrl && (
+                        <div style={{ width: '100%', padding: '9px', borderRadius: 8, background: '#FFF8E1', color: '#7A4A00', border: '1px solid #FFE082', fontWeight: 800, fontSize: 11, textAlign: 'center' }}>Enrollment link under official review</div>
+                      )}
                     </div>
                   </div>
-                  <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 10 }}>{col.desc}</div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <a href={col.applyUrl} target="_blank" rel="noopener noreferrer" style={{ flex: 2, display: 'block', padding: '9px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 800, fontSize: 11 }}>Apply Now</a>
-                    <a href={col.siteUrl} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'block', padding: '9px', borderRadius: 8, background: '#F0F4F8', color: theme.primary, textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>Website</a>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </>
           ) : (
             <div style={{ background: '#F0F4F8', borderRadius: 12, padding: 20, textAlign: 'center' }}>
@@ -3189,7 +3423,7 @@ function App() {
         const parsed = new URL(href, window.location.origin);
         if (parsed.origin === window.location.origin) return true;
         const host = parsed.hostname.toLowerCase();
-        return host.endsWith('.gov') || host.endsWith('.mil') || approvedNonGovHosts.has(host);
+        return host.endsWith('.gov') || host.endsWith('.mil') || host.endsWith('.edu') || approvedNonGovHosts.has(host);
       } catch {
         return false;
       }
