@@ -38,12 +38,12 @@ const PHASES = {
 };
 
 const RESOURCES = [
-  { name: 'USDA APHIS Pet Travel', desc: 'Official country-by-country export and health certificate requirements.', url: 'https://www.aphis.usda.gov/pet-travel' },
+  { name: 'USDA APHIS Pet Travel', desc: 'Official country-by-country export and health certificate requirements.', url: '' },
   { name: 'JTR Pet Transportation Allowance', desc: 'Official DoD travel regulation source for pet expense reimbursement.', url: 'https://www.travel.dod.mil/Policy-Regulations/Joint-Travel-Regulations/' },
   { name: 'Military OneSource Pet PCS', desc: 'PCS planning guidance for moving with pets and family logistics.', url: 'https://www.militaryonesource.mil/moving-pcs/plan-to-move/moving-with-pets/' },
   { name: 'Air Mobility Command Pet Travel', desc: 'Patriot Express pet movement policies and space-available guidance.', url: 'https://www.amc.af.mil/AMC-Travel-Site/AMC-Pet-Travel-Page/' },
   { name: 'CDC Dog Import Rules', desc: 'Current U.S. dog import rules for return travel into the United States.', url: 'https://www.cdc.gov/importation/dogs/' },
-  { name: 'International Air Transport Association', desc: 'Airline live animal transport standards and traveler guidance.', url: 'https://www.iata.org/en/programs/cargo/live-animals/pets/' },
+  { name: 'International Air Transport Association', desc: 'Airline live animal transport standards and traveler guidance.', url: '' },
 ];
 
 export default function PetRelocationChecklistTab({ theme, profile }) {

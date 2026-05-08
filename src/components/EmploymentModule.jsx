@@ -66,22 +66,16 @@ const SKILL_CATS = [
 ]
 
 const JOB_BOARDS = [
-  { name: 'USAJobs.gov',          desc: 'Official federal civilian jobs portal. Schedule A hiring authority and military preference applies to qualifying applicants.',    url: 'https://www.usajobs.gov',                              badge: 'Federal',   color: '#1565C0' },
-  { name: 'Indeed',               desc: 'Largest general job search engine. Advanced location, salary, and experience-level filters across all industries.',              url: 'https://www.indeed.com',                               badge: 'General',   color: '#00897B' },
-  { name: 'LinkedIn Jobs',        desc: 'Professional networking and job search. Free LinkedIn Premium available to qualifying active duty and recently separated members.',url: 'https://www.linkedin.com/jobs/',                       badge: 'Network',   color: '#0077B5' },
-  { name: 'Hire Heroes USA',      desc: 'Free job placement assistance, resume coaching, and employer connections for service members and military spouses.',              url: 'https://www.hireheroesusa.org',                        badge: 'Military',  color: '#C62828' },
-  { name: 'ClearanceJobs',        desc: 'Job listings specifically for roles requiring active security clearances. Clearance holders earn significantly more on average.', url: 'https://www.clearancejobs.com',                        badge: 'Clearance', color: '#558B2F' },
-  { name: 'Transition GPS (DoD)', desc: 'DoD Transition Assistance Program workshops, employer connections, and career resources for separating service members.',        url: 'https://www.dodtap.mil',                               badge: 'DoD TAP',   color: '#283593' },
-  { name: 'CareerOneStop',        desc: 'Department of Labor career exploration tool, training finder, and job search for all experience levels and industries.',          url: 'https://www.careeronestop.org',                        badge: 'DoL',       color: '#37474F' },
-  { name: 'ZipRecruiter',         desc: 'AI-powered job matching. Create a profile and get contacted by employers directly. Fast application process.',                    url: 'https://www.ziprecruiter.com',                         badge: 'General',   color: '#E65100' },
+  { name: 'USAJOBS', desc: 'Official federal civilian jobs portal with military spouse and veteran hiring paths.', url: 'https://www.usajobs.gov', badge: 'Federal', color: '#1565C0' },
+  { name: 'Department of Labor VETS', desc: 'Official employment support for veterans, transitioning service members, and military spouses.', url: 'https://www.dol.gov/agencies/vets', badge: 'DOL', color: '#37474F' },
+  { name: 'DoD Transition Assistance Program', desc: 'Official transition workshops and career preparation resources for separating service members.', url: 'https://www.dodtap.mil', badge: 'DoD TAP', color: '#283593' },
 ]
 
 const SPOUSE_BOARDS = [
-  { name: 'MySECO / MSEP Portal',          desc: 'Military Spouse Employment Partnership — 500+ top companies committed to hiring military spouses. Free career coaching, resume review, and job matching.', url: 'https://myseco.militaryonesource.mil/portal/', badge: 'Spouse',    color: '#880E4F' },
-  { name: 'Hiring Our Heroes (Spouses)',    desc: 'Free fellowship programs, hiring events, and direct employer connections specifically for military spouses. Active nationwide hiring events.', url: 'https://www.hiringourheroes.org/programs/spouses/', badge: 'Spouse',    color: '#AD1457' },
-  { name: 'Blue Star Families Careers',    desc: 'Employment resources, career coaching, and remote-friendly job connections tailored for military families on the move.',                       url: 'https://bluestarfam.org/resources/employment/',   badge: 'Spouse',    color: '#1565C0' },
-  { name: 'Military Spouse JD Network',    desc: 'Legal career resources, pro bono opportunities, and bar admission assistance for military spouse attorneys relocating to new states.',         url: 'https://www.msjdn.org/',                           badge: 'Legal',     color: '#4A148C' },
-  { name: 'MyCAA Scholarship Program',     desc: 'Up to $4,000 per year in funding for spouse education and career credentials. Portable certificates designed for PCS life.',                  url: 'https://aiportal.acc.af.mil/mycaa',                badge: 'Education', color: '#1B5E20' },
+  { name: 'MySECO / MSEP Portal', desc: 'Official DoD spouse education and career portal with MSEP employment resources.', url: 'https://myseco.militaryonesource.mil/portal/', badge: 'Spouse', color: '#880E4F' },
+  { name: 'Military OneSource SECO', desc: 'Official spouse education and career guidance from Military OneSource.', url: 'https://www.militaryonesource.mil/education-employment/seco/', badge: 'Spouse', color: '#1565C0' },
+  { name: 'DOL Military Spouse Employment', desc: 'Official Department of Labor employment information for military spouses.', url: 'https://www.dol.gov/agencies/vets/veterans/military-spouses/employment', badge: 'DOL', color: '#37474F' },
+  { name: 'MyCAA Scholarship Program', desc: 'Official MyCAA portal for eligible spouse education and career credentials.', url: '', badge: 'Education', color: '#1B5E20' },
 ]
 
 const LOCAL_JOBS = {
@@ -455,11 +449,10 @@ function EmploymentModule({ theme, profile }) {
     const kw = encodeURIComponent([industryKw, skillKw].filter(Boolean).join(' ').trim() || 'jobs')
     const loc = encodeURIComponent(searchCity)
     switch (board) {
-      case 'usajobs':  return `https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}`
-      case 'indeed':   return `https://www.indeed.com/jobs?q=${kw}&l=${loc}&radius=${radius}`
-      case 'linkedin': return `https://www.linkedin.com/jobs/search/?keywords=${kw}&location=${loc}&distance=${radius}`
-      case 'clearance': return `https://www.clearancejobs.com/jobs?keywords=${kw}&location=${loc}`
-      default: return 'https://www.usajobs.gov'
+      case 'myseco': return 'https://myseco.militaryonesource.mil/portal/'
+      case 'dol': return 'https://www.dol.gov/agencies/vets/veterans/military-spouses/employment'
+      case 'usajobs':
+      default: return `https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}`
     }
   }
 
@@ -597,9 +590,8 @@ function EmploymentModule({ theme, profile }) {
               : 'All Industries';
             const boards = [
               { id: 'usajobs', name: 'USAJOBS', color: '#1565C0', desc: 'Official federal openings. Use the Military Spouses filter when eligible.', remote: 'Remote filter available on USAJOBS.' },
-              { id: 'linkedin', name: 'LinkedIn Jobs', color: '#0077B5', desc: 'Live private-sector and remote roles near the gaining installation.', remote: 'Remote and hybrid filters available on LinkedIn.' },
-              { id: 'indeed', name: 'Indeed', color: '#00897B', desc: 'Current local job postings across industries and experience levels.', remote: 'Remote keyword and location filters available on Indeed.' },
-              { id: 'clearance', name: 'ClearanceJobs', color: '#2E7D32', desc: 'Clearance-friendly openings for eligible service members and spouses.', remote: 'Remote availability depends on employer and clearance requirements.' },
+              { id: 'myseco', name: 'MySECO / MSEP', color: '#880E4F', desc: 'Official DoD spouse employment portal and Military Spouse Employment Partnership entry point.', remote: 'MSEP includes in-person, hybrid, and remote-friendly employer listings.' },
+              { id: 'dol', name: 'DOL Military Spouse Employment', color: '#37474F', desc: 'Official Department of Labor military spouse employment guidance and federal hiring pathways.', remote: 'Use DOL and USAJOBS filters to review remote or virtual opportunities.' },
             ];
             return (
               <div>
@@ -607,7 +599,7 @@ function EmploymentModule({ theme, profile }) {
                   LIVE JOB SEARCHES - {selectedLabels} · {radius}mi of {searchCity}
                 </div>
                 <div style={{ background: '#F0F8FF', border: '1px solid #ADD8E6', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 11, color: '#0C5A7E', lineHeight: 1.5 }}>
-                  PCS Express no longer stores static job cards because openings change quickly. These links open active job searches on major employment sites using the selected radius, installation area, and industry filters.
+                  PCS Express no longer stores static job cards because openings change quickly. These links open official government and military employment resources using the selected radius, installation area, and industry filters where supported.
                 </div>
                 {boards.map(board => (
                   <a key={board.id} href={buildSearchUrl(board.id)} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${board.color}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>

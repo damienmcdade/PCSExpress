@@ -83,7 +83,7 @@ function EducationModule({ theme, profile }) {
       salary: '$32,000-$38,000',
       matchScore: 95,
       skills: ['Communication', 'Organization', 'Microsoft Office'],
-      url: 'https://usajobs.gov',
+      url: 'https://www.usajobs.gov',
     },
     {
       id: 2,
@@ -94,7 +94,7 @@ function EducationModule({ theme, profile }) {
       salary: '$38,000-$45,000',
       matchScore: 88,
       skills: ['Healthcare Knowledge', 'Customer Service', 'Documentation'],
-      url: 'https://healthcareerjobs.com',
+      url: '',
     },
     {
       id: 3,
@@ -105,7 +105,7 @@ function EducationModule({ theme, profile }) {
       salary: '$28,000-$35,000',
       matchScore: 82,
       skills: ['Communication', 'Problem Solving', 'Customer Service'],
-      url: 'https://techcompany.careers',
+      url: '',
     },
     {
       id: 4,
@@ -116,7 +116,7 @@ function EducationModule({ theme, profile }) {
       salary: '$50,000-$62,000',
       matchScore: 85,
       skills: ['Project Management', 'Leadership', 'Technical Knowledge'],
-      url: 'https://usajobs.gov',
+      url: 'https://www.usajobs.gov',
     },
     {
       id: 5,
@@ -127,7 +127,7 @@ function EducationModule({ theme, profile }) {
       salary: '$30,000-$40,000',
       matchScore: 79,
       skills: ['Organization', 'Communication', 'Time Management'],
-      url: 'https://remotecompany.com',
+      url: '',
     },
     {
       id: 6,
@@ -138,7 +138,7 @@ function EducationModule({ theme, profile }) {
       salary: '$28,000-$32,000',
       matchScore: 80,
       skills: ['Healthcare', 'Empathy', 'Physical Stamina'],
-      url: 'https://fghospital.org/careers',
+      url: '',
     },
   ];
 

@@ -26,7 +26,7 @@ const BRANCH_EFMP = {
     office: 'Marine Corps Community Services EFMP office and the installation medical EFMP coordinator',
     forms: ['DD Form 2792', 'DD Form 2792-1', 'NAVMC EFMP forms when directed by the local EFMP office'],
     note: 'Marine Corps EFMP supports families before, during, and after PCS relocation when medical or educational needs exist.',
-    url: 'https://www.usmc-mccs.org/efmp',
+    url: '',
   },
   'Air Force': {
     office: 'Military and Family Readiness Center EFMP-Family Support and medical EFMP-M staff',

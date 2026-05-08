@@ -37,9 +37,9 @@ const INSTALLATION_MARKETS = {
 };
 
 const BRANCH_HOUSING_SOURCES = {
-  Army: { name: 'Army Housing', url: 'https://home.army.mil/imcom/index.php/customers/housing' },
+  Army: { name: 'Army Housing', url: '' },
   Navy: { name: 'Navy Housing', url: 'https://ffr.cnic.navy.mil/Navy-Housing/' },
-  'Marine Corps': { name: 'Marine Corps Housing', url: 'https://www.housing.marines.mil/' },
+  'Marine Corps': { name: 'Marine Corps Housing', url: '' },
   'Air Force': { name: 'Department of the Air Force Housing', url: 'https://www.housing.af.mil/' },
   'Space Force': { name: 'Department of the Air Force Housing', url: 'https://www.housing.af.mil/' },
   'Coast Guard': { name: 'Coast Guard Housing Program', url: 'https://www.dcms.uscg.mil/Our-Organization/Assistant-Commandant-for-Human-Resources-CG-1/Health-Safety-and-Work-Life-CG-11/Office-of-Work-Life-CG-111/Housing-Program/' },

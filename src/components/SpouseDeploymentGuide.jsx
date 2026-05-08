@@ -43,7 +43,7 @@ function SpouseDeploymentGuide({ theme, profile }) {
           critical: true,
           links: [
             { label: 'SGLI — VA Life Insurance', url: 'https://www.va.gov/life-insurance/options-eligibility/sgli/' },
-            { label: 'eBenefits', url: 'https://www.ebenefits.va.gov' },
+            { label: 'eBenefits', url: '' },
           ],
         },
         {
@@ -62,7 +62,7 @@ function SpouseDeploymentGuide({ theme, profile }) {
           critical: true,
           links: [
             { label: 'myPay (DFAS)', url: 'https://mypay.dfas.mil' },
-            { label: 'Military Saves', url: 'https://militarysaves.org' },
+            { label: 'Military Saves', url: '' },
           ],
         },
       ],
@@ -122,8 +122,8 @@ function SpouseDeploymentGuide({ theme, profile }) {
           deadline: '60 days before deployment',
           critical: true,
           links: [
-            { label: 'Blue Star Families', url: 'https://bluestarfam.org' },
-            { label: 'Army FRG / MWR', url: 'https://www.armymwr.com/family/family-readiness' },
+            { label: 'Blue Star Families', url: '' },
+            { label: 'Army FRG / MWR', url: '' },
           ],
         },
       ],
@@ -147,8 +147,8 @@ function SpouseDeploymentGuide({ theme, profile }) {
           deadline: '60 days before deployment',
           critical: true,
           links: [
-            { label: 'ChildCare Aware Military', url: 'https://usa.childcareaware.org/providers/military/' },
-            { label: 'DoDEA CDC', url: 'https://www.dodea.edu' },
+            { label: 'ChildCare Aware Military', url: '' },
+            { label: 'DoDEA CDC', url: '' },
           ],
         },
         {
@@ -182,8 +182,8 @@ function SpouseDeploymentGuide({ theme, profile }) {
           deadline: '60 days before deployment',
           critical: true,
           links: [
-            { label: 'School Liaison Officers (DoDEA)', url: 'https://www.dodea.edu/Partnership/schoolLiaisonOfficers.cfm' },
-            { label: 'Military Child Education Coalition', url: 'https://www.militarychild.org' },
+            { label: 'School Liaison Officers (DoDEA)', url: '' },
+            { label: 'Military Child Education Coalition', url: '' },
           ],
         },
       ],
@@ -208,7 +208,7 @@ function SpouseDeploymentGuide({ theme, profile }) {
           critical: true,
           links: [
             { label: 'TRICARE', url: 'https://www.tricare.mil' },
-            { label: 'MilitaryINSTALLATIONS', url: 'https://www.militaryinstallations.dod.mil' },
+            { label: 'MilitaryINSTALLATIONS', url: 'https://installations.militaryonesource.mil/' },
           ],
         },
         {
@@ -242,7 +242,7 @@ function SpouseDeploymentGuide({ theme, profile }) {
           deadline: '45 days before deployment',
           critical: true,
           links: [
-            { label: 'USAA Military Auto', url: 'https://www.usaa.com' },
+            { label: 'USAA Military Auto', url: '' },
             { label: 'SCRA Auto Protections (CFPB)', url: 'https://www.consumerfinance.gov/consumer-tools/military-financial-lifecycle/scra/' },
           ],
         },

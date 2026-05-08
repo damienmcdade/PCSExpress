@@ -35,7 +35,7 @@ const BASE_DOCS = {
     { id: 'dla_receipt',         name: 'DLA / Meal Receipts',             form: 'Receipts',                required: false, desc: 'Meal and incidental receipts during authorized PCS travel days' },
   ],
   hhg: [
-    { id: 'hhg_application',     name: 'HHG Shipment Application',        form: 'DD Form 1299',            required: true,  desc: 'Schedule household goods shipment via Defense Personal Property System (DPS)', formUrl: 'https://www.move.mil' },
+    { id: 'hhg_application',     name: 'HHG Shipment Application',        form: 'DD Form 1299',            required: true,  desc: 'Schedule household goods shipment via Defense Personal Property System (DPS)', formUrl: 'https://dps.move.mil/cust/standard/user/home.xhtml' },
     { id: 'hhg_counseling',      name: 'HHG Transportation Counseling',   form: 'DD Form 1797',            required: true,  desc: 'Transportation counseling checklist — must be signed before TSP pickup date' },
     { id: 'weight_ticket_empty', name: 'Empty Weight Ticket',             form: 'Weight Ticket',           required: true,  desc: 'Empty weight of moving vehicle before loading — required for full HHG reimbursement' },
     { id: 'weight_ticket_full',  name: 'Full (Loaded) Weight Ticket',     form: 'Weight Ticket',           required: true,  desc: 'Loaded weight of moving vehicle with all household goods' },
@@ -48,7 +48,7 @@ const BASE_DOCS = {
   housing: [
     { id: 'bah_auth',            name: 'BAH Authorization',               form: 'Branch-Specific',         required: true,  desc: 'Basic Allowance for Housing — ensure rate is set for gaining installation zip code', formUrl: 'https://www.travel.dod.mil/Allowances/Basic-Allowance-for-Housing/BAH-Rate-Lookup/' },
     { id: 'housing_application', name: 'On-Post Housing Application',     form: 'Installation Form',       required: false, desc: 'Application for government-owned or privatized quarters at gaining installation' },
-    { id: 'lease_termination',   name: 'Lease Termination Notice (SCRA)', form: 'SCRA Letter',             required: false, desc: 'PCS lease break letter — protected under Servicemembers Civil Relief Act (30-day notice)', formUrl: 'https://www.militaryonesource.mil/financial-legal/personal-finance/scra/' },
+    { id: 'lease_termination',   name: 'Lease Termination Notice (SCRA)', form: 'SCRA Letter',             required: false, desc: 'PCS lease break letter — protected under Servicemembers Civil Relief Act (30-day notice)', formUrl: '' },
     { id: 'new_lease',           name: 'New Rental / Lease Agreement',    form: 'Lease Agreement',         required: false, desc: 'Signed lease or rental agreement at or near gaining installation' },
     { id: 'utility_transfers',   name: 'Utility Transfer Documents',      form: 'Utility Forms',           required: false, desc: 'Electricity, gas, water, and internet transfer or cancellation confirmations' },
   ],
@@ -125,7 +125,7 @@ const BRANCH_EXTRA = {
   },
   'Air Force': {
     orders: [
-      { id: 'af_mypers',        name: 'AF PCS Orders via myPers',          form: 'AF Orders',               required: true,  desc: 'Official AF PCS orders from AFPC — verify in myPers portal and print all endorsements', formUrl: 'https://mypers.af.mil' },
+      { id: 'af_mypers',        name: 'AF PCS Orders via myPers',          form: 'AF Orders',               required: true,  desc: 'Official AF PCS orders from AFPC — verify in myPers portal and print all endorsements', formUrl: '' },
     ],
     family: [
       { id: 'af907',            name: 'Relocation Preparation Checklist',  form: 'AF Form 907',             required: true,  desc: 'Complete AF Form 907 with Airman & Family Readiness Center counselor before departure' },
@@ -135,7 +135,7 @@ const BRANCH_EXTRA = {
   },
   'Space Force': {
     orders: [
-      { id: 'sf_mypers',        name: 'Space Force PCS Orders via myPers', form: 'SF Orders',               required: true,  desc: 'Official Space Force PCS orders via myPers (shared AF/SF system)', formUrl: 'https://mypers.af.mil' },
+      { id: 'sf_mypers',        name: 'Space Force PCS Orders via myPers', form: 'SF Orders',               required: true,  desc: 'Official Space Force PCS orders via myPers (shared AF/SF system)', formUrl: '' },
     ],
     family: [
       { id: 'sf_outprocess',    name: 'Delta / Unit Out-Processing',       form: 'SF Out-Processing',       required: true,  desc: 'Complete all out-processing at losing Delta/unit and Space Force installation' },

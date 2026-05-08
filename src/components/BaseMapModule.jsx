@@ -1166,7 +1166,7 @@ export default function BaseMapModule({ theme, profile }) {
         if (facilities.length === 0) {
           L.popup()
             .setLatLng([baseInfo.lat, baseInfo.lng])
-            .setContent(`<b>${baseInfo.name}</b><br/>${baseInfo.branch} · ${baseInfo.state}<br/><small>For full installation maps and facility directories, visit:<br/><a href="https://www.militaryinstallations.dod.mil/" target="_blank">militaryinstallations.dod.mil</a></small>`)
+            .setContent(`<b>${baseInfo.name}</b><br/>${baseInfo.branch} · ${baseInfo.state}<br/><small>For full installation maps and facility directories, visit:<br/><a href="https://installations.militaryonesource.mil/" target="_blank">militaryinstallations.dod.mil</a></small>`)
             .openOn(map);
         }
 
@@ -1248,7 +1248,7 @@ export default function BaseMapModule({ theme, profile }) {
               <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>{facilityCount > 0 ? `${facilityCount} facilities mapped` : 'Base location only'}</span>
               {baseInfo.country && <span style={{ fontSize: 10, background: '#E74C3C', color: '#FFF', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>OCONUS</span>}
             </div>
-            <a href="https://www.militaryinstallations.dod.mil/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', fontSize: 10, color: theme.accent, fontWeight: 700, textDecoration: 'none', letterSpacing: '.04em' }}>
+            <a href="https://installations.militaryonesource.mil/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', fontSize: 10, color: theme.accent, fontWeight: 700, textDecoration: 'none', letterSpacing: '.04em' }}>
               Official Installation Directory →
             </a>
           </div>

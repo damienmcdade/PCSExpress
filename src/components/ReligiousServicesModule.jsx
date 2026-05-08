@@ -82,7 +82,7 @@ function getBranchSupportCenter(branch) {
       name: 'Marine Corps Family Services (MCCS)',
       branch: 'Marine Corps',
       description: 'Family support, counseling, financial readiness, and deployment readiness services.',
-      url: 'https://www.usmc-mccs.org',
+      url: '',
       phone: '1-800-336-4592',
     }
   }
@@ -109,7 +109,7 @@ function getBranchSupportCenter(branch) {
     name: 'Army Community Service (ACS)',
     branch: 'Army',
     description: 'Financial counseling, deployment support, family advocacy, employment readiness, and relocation assistance.',
-    url: 'https://www.armymwr.com/acs',
+    url: '',
     phone: '(Installation ACS) – find via MilitaryINSTALLATIONS',
   }
 }
@@ -201,12 +201,12 @@ const RELIGIOUS_SERVICES = {
 }
 
 const ONLINE_RESOURCES = [
-  { name: 'Military Installations', url: 'https://www.militaryinstallations.dod.mil', description: 'Find your installation chaplain office and local faith resources' },
-  { name: 'Chapel Locator (Army)', url: 'https://www.chapel.army.mil', description: 'Army chapel services, times, and chaplain contacts worldwide' },
+  { name: 'Military Installations', url: 'https://installations.militaryonesource.mil/', description: 'Find your installation chaplain office and local faith resources' },
+  { name: 'Chapel Locator (Army)', url: '', description: 'Army chapel services, times, and chaplain contacts worldwide' },
   { name: 'Navy Chaplain Corps', url: 'https://www.navy.mil/NavyData/People/Fields/chaplains/', description: 'Fleet chaplain services and spiritual care resources' },
   { name: 'USMC Chaplain Directory', url: 'https://www.marines.mil/News/Publications/MCPEL/Marine-Corps-Orders/Article/899309/', description: 'Marine Corps chaplain directory and unit ministry teams' },
-  { name: 'Chaplain Alliance', url: 'https://www.chaplainalliance.org', description: 'Multi-denomination chaplain resources and endorsing agency contacts' },
-  { name: 'Military OneSource – Faith', url: 'https://www.militaryonesource.mil/recreation-travel-shopping/recreation/spiritual-fitness/', description: 'Spiritual fitness tools and faith-based support for all branches' },
+  { name: 'Chaplain Alliance', url: '', description: 'Multi-denomination chaplain resources and endorsing agency contacts' },
+  { name: 'Military OneSource – Faith', url: '', description: 'Spiritual fitness tools and faith-based support for all branches' },
 ]
 
 function ReligiousServicesModule({ theme, profile }) {
@@ -417,7 +417,7 @@ function ReligiousServicesModule({ theme, profile }) {
                   We don't have local chapel listings for this installation yet. Use the resources below to locate your installation chaplain, or reach out directly.
                 </div>
                 <a
-                  href="https://www.militaryinstallations.dod.mil"
+                  href="https://installations.militaryonesource.mil/"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
