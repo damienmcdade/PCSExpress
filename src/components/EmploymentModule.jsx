@@ -1,760 +1,668 @@
-import { useState, useEffect } from 'react'
-import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
+/*
+ * Purpose: Employment and Career Center for PCS Express family readiness.
+ * Third-party dependencies: React only.
+ */
+
+import { useMemo, useState } from 'react'
 
 const BASE_CITY = {
-  'Fort Liberty': 'Fayetteville, NC', 'Fort Bragg': 'Fayetteville, NC',
-  'Fort Campbell': 'Clarksville, TN', 'Fort Cavazos': 'Killeen, TX', 'Fort Hood': 'Killeen, TX',
-  'Joint Base Lewis-McChord': 'Tacoma, WA', 'Fort Carson': 'Colorado Springs, CO',
-  'Fort Bliss': 'El Paso, TX', 'Fort Stewart': 'Hinesville, GA', 'Fort Drum': 'Watertown, NY',
-  'Fort Sill': 'Lawton, OK', 'Fort Jackson': 'Columbia, SC', 'Fort Meade': 'Odenton, MD',
-  'Fort Knox': 'Radcliff, KY', 'Fort Leavenworth': 'Leavenworth, KS',
-  'Fort Sam Houston': 'San Antonio, TX', 'Fort Wainwright': 'Fairbanks, AK',
-  'Fort Eisenhower': 'Augusta, GA', 'Fort Gregg-Adams': 'Petersburg, VA',
-  'Fort Leonard Wood': 'Waynesville, MO', 'Fort Novosel': 'Daleville, AL',
-  'Fort Rucker': 'Daleville, AL', 'Schofield Barracks': 'Wahiawa, HI',
-  'Fort Shafter': 'Honolulu, HI', 'West Point': 'West Point, NY',
-  'Fort Hamilton': 'Brooklyn, NY', 'Fort Myer': 'Arlington, VA',
-  'Naval Station Norfolk': 'Norfolk, VA', 'Naval Base San Diego': 'San Diego, CA',
-  'NAS Jacksonville': 'Jacksonville, FL', 'NAS Pensacola': 'Pensacola, FL',
-  'Naval Station Mayport': 'Jacksonville, FL', 'Naval Base Kitsap': 'Bremerton, WA',
-  'Naval Station Everett': 'Everett, WA', 'NAS Oceana': 'Virginia Beach, VA',
-  'NAS Whidbey Island': 'Oak Harbor, WA', 'NAS Corpus Christi': 'Corpus Christi, TX',
-  'Marine Corps Base Camp Lejeune': 'Jacksonville, NC', 'Camp Pendleton': 'Oceanside, CA',
-  'MCAS Cherry Point': 'Havelock, NC', 'MCAS Miramar': 'San Diego, CA',
-  'MCB Quantico': 'Quantico, VA', 'MCAS New River': 'Jacksonville, NC',
-  'MCB Hawaii Kaneohe Bay': 'Kailua, HI', 'MCAS Yuma': 'Yuma, AZ',
-  'MCAS Beaufort': 'Beaufort, SC',
-  'Joint Base Langley-Eustis': 'Hampton, VA', 'Eglin AFB': 'Valparaiso, FL',
-  'MacDill AFB': 'Tampa, FL', 'Travis AFB': 'Fairfield, CA',
-  'Wright-Patterson AFB': 'Dayton, OH', 'Joint Base Andrews': 'Clinton, MD',
-  'Nellis AFB': 'Las Vegas, NV', 'Edwards AFB': 'Rosamond, CA',
-  'Keesler AFB': 'Biloxi, MS', 'Little Rock AFB': 'Jacksonville, AR',
-  'Dyess AFB': 'Abilene, TX', 'Luke AFB': 'Glendale, AZ',
-  'Davis-Monthan AFB': 'Tucson, AZ', 'Fairchild AFB': 'Spokane, WA',
-  'Hill AFB': 'Ogden, UT', 'Minot AFB': 'Minot, ND',
-  'Malmstrom AFB': 'Great Falls, MT', 'Ellsworth AFB': 'Rapid City, SD',
-  'Hurlburt Field': 'Fort Walton Beach, FL', 'Moody AFB': 'Valdosta, GA',
-  'Shaw AFB': 'Sumter, SC', 'Seymour Johnson AFB': 'Goldsboro, NC',
+  'Fort Liberty': 'Fayetteville, NC',
+  'Fort Bragg': 'Fayetteville, NC',
+  'Fort Campbell': 'Clarksville, TN',
+  'Fort Cavazos': 'Killeen, TX',
+  'Fort Hood': 'Killeen, TX',
+  'Joint Base Lewis-McChord': 'Tacoma, WA',
+  'Fort Carson': 'Colorado Springs, CO',
+  'Fort Bliss': 'El Paso, TX',
+  'Fort Stewart': 'Hinesville, GA',
+  'Fort Drum': 'Watertown, NY',
+  'Fort Sill': 'Lawton, OK',
+  'Fort Jackson': 'Columbia, SC',
+  'Fort Meade': 'Odenton, MD',
+  'Fort Knox': 'Radcliff, KY',
+  'Fort Leavenworth': 'Leavenworth, KS',
+  'Fort Sam Houston': 'San Antonio, TX',
   'Joint Base San Antonio': 'San Antonio, TX',
-  'Buckley SFB': 'Aurora, CO', 'Schriever SFB': 'Colorado Springs, CO',
-  'Peterson SFB': 'Colorado Springs, CO', 'Patrick SFB': 'Cocoa Beach, FL',
+  'Fort Wainwright': 'Fairbanks, AK',
+  'Fort Eisenhower': 'Augusta, GA',
+  'Fort Gregg-Adams': 'Petersburg, VA',
+  'Fort Leonard Wood': 'Waynesville, MO',
+  'Fort Novosel': 'Daleville, AL',
+  'Fort Rucker': 'Daleville, AL',
+  'Schofield Barracks': 'Wahiawa, HI',
+  'Fort Shafter': 'Honolulu, HI',
+  'Fort Hamilton': 'Brooklyn, NY',
+  'Fort Myer': 'Arlington, VA',
+  'Naval Station Norfolk': 'Norfolk, VA',
+  'Naval Base San Diego': 'San Diego, CA',
+  'NAS Jacksonville': 'Jacksonville, FL',
+  'Naval Air Station Jacksonville': 'Jacksonville, FL',
+  'NAS Pensacola': 'Pensacola, FL',
+  'Naval Air Station Pensacola': 'Pensacola, FL',
+  'Naval Station Mayport': 'Jacksonville, FL',
+  'Naval Base Kitsap': 'Bremerton, WA',
+  'Naval Station Everett': 'Everett, WA',
+  'NAS Oceana': 'Virginia Beach, VA',
+  'Naval Air Station Oceana': 'Virginia Beach, VA',
+  'NAS Whidbey Island': 'Oak Harbor, WA',
+  'NAS Corpus Christi': 'Corpus Christi, TX',
+  'Marine Corps Base Camp Lejeune': 'Jacksonville, NC',
+  'Camp Lejeune': 'Jacksonville, NC',
+  'Camp Pendleton': 'Oceanside, CA',
+  'MCAS Cherry Point': 'Havelock, NC',
+  'MCAS Miramar': 'San Diego, CA',
+  'MCB Quantico': 'Quantico, VA',
+  'Marine Corps Base Quantico': 'Quantico, VA',
+  'MCAS New River': 'Jacksonville, NC',
+  'MCB Hawaii Kaneohe Bay': 'Kailua, HI',
+  'MCB Hawaii': 'Kailua, HI',
+  'MCAS Yuma': 'Yuma, AZ',
+  'MCAS Beaufort': 'Beaufort, SC',
+  'Joint Base Langley-Eustis': 'Hampton, VA',
+  'Eglin AFB': 'Valparaiso, FL',
+  'MacDill AFB': 'Tampa, FL',
+  'Travis AFB': 'Fairfield, CA',
+  'Wright-Patterson AFB': 'Dayton, OH',
+  'Joint Base Andrews': 'Clinton, MD',
+  'Nellis AFB': 'Las Vegas, NV',
+  'Edwards AFB': 'Rosamond, CA',
+  'Keesler AFB': 'Biloxi, MS',
+  'Little Rock AFB': 'Jacksonville, AR',
+  'Dyess AFB': 'Abilene, TX',
+  'Luke AFB': 'Glendale, AZ',
+  'Davis-Monthan AFB': 'Tucson, AZ',
+  'Fairchild AFB': 'Spokane, WA',
+  'Hill AFB': 'Ogden, UT',
+  'Minot AFB': 'Minot, ND',
+  'Malmstrom AFB': 'Great Falls, MT',
+  'Ellsworth AFB': 'Rapid City, SD',
+  'Hurlburt Field': 'Fort Walton Beach, FL',
+  'Moody AFB': 'Valdosta, GA',
+  'Shaw AFB': 'Sumter, SC',
+  'Seymour Johnson AFB': 'Goldsboro, NC',
+  'Buckley SFB': 'Aurora, CO',
+  'Schriever SFB': 'Colorado Springs, CO',
+  'Peterson SFB': 'Colorado Springs, CO',
+  'Patrick SFB': 'Cocoa Beach, FL',
   'Vandenberg SFB': 'Lompoc, CA',
-  'Camp Humphreys': 'Pyeongtaek, South Korea', 'Osan Air Base': 'Pyeongtaek, South Korea',
-  'Kadena Air Base': 'Okinawa, Japan', 'Yokota Air Base': 'Fussa, Japan',
-  'Ramstein Air Base': 'Kaiserslautern, Germany', 'USAG Stuttgart': 'Stuttgart, Germany',
+  'Camp Humphreys': 'Pyeongtaek, South Korea',
+  'Osan Air Base': 'Pyeongtaek, South Korea',
+  'Kadena Air Base': 'Okinawa, Japan',
+  'Yokota Air Base': 'Fussa, Japan',
+  'Ramstein Air Base': 'Kaiserslautern, Germany',
+  'Ramstein AB': 'Kaiserslautern, Germany',
+  'USAG Stuttgart': 'Stuttgart, Germany',
   'USAG Wiesbaden': 'Wiesbaden, Germany',
+  'USAG Bavaria (Grafenwoehr)': 'Grafenwoehr, Germany',
+  'USAG Bavaria (Grafenwöhr)': 'Grafenwoehr, Germany',
+  'Naval Station Rota': 'Rota, Spain',
+  'Naval Support Activity Naples': 'Naples, Italy',
+  'Naval Air Station Sigonella': 'Catania, Italy',
 }
 
-const INDUSTRIES = [
-  { id: 'tech',      label: 'Technology & IT',           keywords: 'information technology software cybersecurity network administrator', color: '#1565C0' },
-  { id: 'health',    label: 'Healthcare & Medicine',      keywords: 'nurse medical healthcare physician health clinical EMT paramedic',   color: '#00695C' },
-  { id: 'business',  label: 'Business & Finance',         keywords: 'finance accounting business management analyst operations',          color: '#E65100' },
-  { id: 'govt',      label: 'Government & Defense',       keywords: 'government federal defense contractor intelligence analyst',         color: '#283593' },
-  { id: 'eng',       label: 'Engineering & Science',      keywords: 'engineer engineering science research mechanical electrical',        color: '#4A148C' },
-  { id: 'edu',       label: 'Education & Training',       keywords: 'teacher education training instructor curriculum developer',         color: '#1B5E20' },
-  { id: 'security',  label: 'Law Enforcement & Security', keywords: 'security law enforcement police investigator federal agent',        color: '#B71C1C' },
-  { id: 'logistics', label: 'Logistics & Supply Chain',   keywords: 'logistics supply chain warehouse operations distribution planning',  color: '#F57F17' },
-  { id: 'trades',    label: 'Skilled Trades',             keywords: 'mechanic electrician plumber technician maintenance HVAC',          color: '#37474F' },
-  { id: 'hr',        label: 'Human Resources',            keywords: 'human resources HR recruiter talent management people operations',   color: '#006064' },
+const LANGUAGE_NAMES = {
+  en: 'English',
+  es: 'Spanish',
+  de: 'German',
+  fr: 'French',
+  ko: 'Korean',
+  ja: 'Japanese',
+  tl: 'Tagalog',
+  ar: 'Arabic',
+  zh: 'Chinese',
+  it: 'Italian',
+  pt: 'Portuguese',
+  vi: 'Vietnamese',
+}
+
+const TEXT = {
+  en: {
+    title: 'Employment & Career Center',
+    subtitle: 'Military spouse and service member employment support near',
+    languageNote: 'This view uses your onboarding language. Official program names may remain in English because that is how the source publishes them.',
+    sourcePolicy: 'Official U.S. government and military resources are prioritized. LinkedIn, Indeed, ClearanceJobs, Hiring Our Heroes, ACP, SCORE, and IVMF are marked as external or affiliated resources when used.',
+    searchLocation: 'Search location',
+    keywordLabel: 'Role or keyword',
+    keywordHelp: 'Optional. Leave blank to search military spouse-friendly roles.',
+    keywordPlaceholder: 'project manager, nurse, cybersecurity, remote',
+    open: 'Open',
+    openListings: 'Open listings',
+    currentListings: 'Active listings',
+    official: 'Official',
+    external: 'External',
+    affiliated: 'Affiliated',
+    federal: 'Federal',
+    spouse: 'Spouse',
+    remote: 'Remote',
+    workshop: 'Workshop',
+    certification: 'Certification',
+    mentorship: 'Mentorship',
+    partner: 'Partner',
+    business: 'Business',
+    resourceText: 'Open this resource for current official guidance and available services.',
+    externalText: 'Open this requested external source for current listings. Review each posting directly on the source site before applying.',
+    tabJobSearch: 'Job Search',
+    tabJobResources: 'Job Resources',
+    tabResume: 'Resume Assistance',
+    tabInternships: 'Internships',
+    tabWorkshops: 'Employment Education Workshops',
+    tabCertifications: 'Certifications',
+    tabMentorship: 'Mentorship',
+    tabSpousePreferred: 'Spouse Preferred',
+    tabConnections: 'Connections',
+    tabLinkedIn: 'LinkedIn Workshop',
+    tabEntrepreneurship: 'Entrepreneurship',
+    leadJobSearch: 'Open live searches already tailored to the gaining installation. This removes stale static job cards and avoids empty location pages by using broader current searches.',
+    leadJobResources: 'Use official employment portals, military spouse hiring paths, and government career support in one place.',
+    leadResume: 'Build a federal-ready resume with official USAJOBS and Department of Labor guidance. Do not place classified, CUI, SSN, or sensitive family information in a resume.',
+    leadInternships: 'Find current internship, fellowship, recent graduate, and remote federal student opportunities near the gaining installation when available.',
+    leadWorkshops: 'Use free employment classes, career coaching, hiring events, and readiness workshops designed for military spouses and military-connected families.',
+    leadCertifications: 'Find no-cost or funded certificate pathways that support portable military spouse careers.',
+    leadMentorship: 'Connect with official or vetted mentorship programs for resume review, interviews, networking, and career planning.',
+    leadSpousePreferred: 'Find employers and federal hiring paths that actively support military spouse hiring and portable careers.',
+    leadConnections: 'Build a professional network before arrival by using spouse employment partners, hiring events, American Job Centers, and professional groups.',
+    leadLinkedIn: 'Use LinkedIn intentionally: search for recruiters, follow spouse-friendly employers, and pair LinkedIn searches with MSEP and USAJOBS results.',
+    leadEntrepreneurship: 'Explore official and no-cost business training for military spouses who want to start, grow, or relocate a business.',
+    resumeTipsTitle: 'Federal resume checklist',
+    tip1: 'Read the full job announcement before editing your resume.',
+    tip2: 'Mirror the required qualifications and specialized experience with plain language.',
+    tip3: 'Use measurable accomplishments and match the announcement keywords honestly.',
+    tip4: 'Follow USAJOBS page, file, and formatting guidance before applying.',
+    tip5: 'Never include SSN, classified information, CUI, photos, or unrelated personal details.',
+    linkedinStepsTitle: 'Recruiter search workflow',
+    linkedinStep1: 'Search the target role and gaining location, then filter to People.',
+    linkedinStep2: 'Use recruiter, talent acquisition, hiring manager, and military spouse keywords.',
+    linkedinStep3: 'Check company pages against MSEP partners or spouse-friendly employer programs.',
+    linkedinStep4: 'Send a short message that names the role, location, PCS timeline, and one relevant skill.',
+  },
+  es: {
+    title: 'Centro de empleo y carrera',
+    subtitle: 'Apoyo laboral para conyuges militares y miembros del servicio cerca de',
+    languageNote: 'Esta vista usa el idioma elegido en onboarding. Algunos nombres oficiales permanecen en ingles porque asi los publica la fuente.',
+    sourcePolicy: 'Se priorizan recursos oficiales del gobierno y las fuerzas armadas de EE. UU.; los sitios externos se identifican claramente.',
+    searchLocation: 'Ubicacion de busqueda',
+    keywordLabel: 'Puesto o palabra clave',
+    keywordHelp: 'Opcional. Deje en blanco para buscar puestos favorables para conyuges militares.',
+    keywordPlaceholder: 'gerente de proyecto, enfermeria, ciberseguridad, remoto',
+    open: 'Abrir',
+    openListings: 'Abrir listados',
+    currentListings: 'Listados activos',
+    official: 'Oficial',
+    external: 'Externo',
+    affiliated: 'Afiliado',
+    federal: 'Federal',
+    spouse: 'Conyuge',
+    remote: 'Remoto',
+    workshop: 'Clase',
+    certification: 'Certificacion',
+    mentorship: 'Mentoria',
+    partner: 'Socio',
+    business: 'Negocio',
+    resourceText: 'Abra este recurso para ver orientacion oficial y servicios disponibles actualizados.',
+    externalText: 'Abra esta fuente externa solicitada para ver listados actuales y revise cada publicacion antes de aplicar.',
+    tabJobSearch: 'Busqueda de empleo',
+    tabJobResources: 'Recursos de empleo',
+    tabResume: 'Ayuda con resume',
+    tabInternships: 'Pasantias',
+    tabWorkshops: 'Talleres de empleo',
+    tabCertifications: 'Certificaciones',
+    tabMentorship: 'Mentoria',
+    tabSpousePreferred: 'Preferencia para conyuges',
+    tabConnections: 'Conexiones',
+    tabLinkedIn: 'Taller de LinkedIn',
+    tabEntrepreneurship: 'Emprendimiento',
+    leadJobSearch: 'Abra busquedas activas adaptadas a la instalacion de destino, sin tarjetas antiguas ni filtros que generan paginas vacias.',
+    leadJobResources: 'Use portales oficiales, rutas para conyuges militares y apoyo laboral gubernamental.',
+    leadResume: 'Prepare un resume federal con guias oficiales de USAJOBS y el Departamento de Trabajo.',
+    leadInternships: 'Encuentre pasantias, becas, oportunidades para recien graduados y opciones remotas cuando esten disponibles.',
+    leadWorkshops: 'Use clases gratuitas, coaching, eventos de contratacion y talleres para conyuges militares.',
+    leadCertifications: 'Encuentre rutas de certificados gratuitas o financiadas para carreras portatiles.',
+    leadMentorship: 'Conecte con programas de mentoria para resume, entrevistas, networking y planificacion.',
+    leadSpousePreferred: 'Encuentre empleadores y rutas federales que apoyan la contratacion de conyuges militares.',
+    leadConnections: 'Construya una red profesional antes de llegar usando socios, eventos y centros de empleo.',
+    leadLinkedIn: 'Use LinkedIn para encontrar reclutadores, empleadores favorables y oportunidades alineadas.',
+    leadEntrepreneurship: 'Explore capacitacion oficial y gratuita para iniciar, crecer o reubicar un negocio.',
+    resumeTipsTitle: 'Lista para resume federal',
+    tip1: 'Lea todo el anuncio antes de editar el resume.',
+    tip2: 'Relacione su experiencia con las calificaciones requeridas.',
+    tip3: 'Use logros medibles y palabras clave reales del anuncio.',
+    tip4: 'Siga las reglas de formato y paginas de USAJOBS.',
+    tip5: 'No incluya SSN, informacion clasificada, CUI, fotos ni datos personales innecesarios.',
+    linkedinStepsTitle: 'Flujo para buscar reclutadores',
+    linkedinStep1: 'Busque el puesto y la ubicacion, luego filtre por personas.',
+    linkedinStep2: 'Use palabras como recruiter, talent acquisition y hiring manager.',
+    linkedinStep3: 'Compare empresas con socios MSEP o programas para conyuges.',
+    linkedinStep4: 'Envíe un mensaje corto con el puesto, ubicacion, fecha PCS y una habilidad relevante.',
+  },
+  de: {},
+  fr: {},
+  ko: {},
+  ja: {},
+  tl: {},
+  ar: {},
+  zh: {},
+  it: {},
+  pt: {},
+  vi: {},
+}
+
+const GENERIC_TRANSLATIONS = {
+  de: ['Beschäftigungs- und Karrierezentrum', 'Unterstützung für Ehepartner und Servicemitglieder in der Nähe von', 'Diese Ansicht nutzt die Sprache aus dem Onboarding. Offizielle Programmnamen können auf Englisch bleiben.', 'Offizielle US-Regierungs- und Militärquellen werden priorisiert; externe Quellen sind gekennzeichnet.', 'Suchort', 'Rolle oder Stichwort', 'Optional. Leer lassen, um militärfreundliche Stellen zu suchen.', 'Projektmanager, Pflege, Cybersicherheit, remote', 'Öffnen', 'Stellen öffnen', 'Aktuelle Stellen', 'Offiziell', 'Extern', 'Verbunden', 'Bund', 'Ehepartner', 'Remote', 'Workshop', 'Zertifikat', 'Mentoring', 'Partner', 'Geschäft'],
+  fr: ['Centre emploi et carrière', 'Soutien emploi pour conjoints militaires et militaires près de', 'Cette vue utilise la langue choisie dans l’onboarding. Certains noms officiels peuvent rester en anglais.', 'Les sources officielles du gouvernement et de l’armée des États-Unis sont prioritaires; les sources externes sont indiquées.', 'Lieu de recherche', 'Poste ou mot-clé', 'Facultatif. Laissez vide pour chercher des postes favorables aux conjoints militaires.', 'chef de projet, infirmier, cybersécurité, à distance', 'Ouvrir', 'Ouvrir les offres', 'Offres actives', 'Officiel', 'Externe', 'Affilié', 'Fédéral', 'Conjoint', 'À distance', 'Atelier', 'Certification', 'Mentorat', 'Partenaire', 'Entreprise'],
+  ko: ['취업 및 커리어 센터', '도착 기지 주변 군 배우자 및 복무자 취업 지원', '이 화면은 온보딩에서 선택한 언어를 사용합니다. 공식 프로그램 이름은 출처 표기상 영어로 남을 수 있습니다.', '미국 정부 및 군 공식 자료를 우선하며 외부 자료는 표시합니다.', '검색 위치', '직무 또는 키워드', '선택 사항입니다. 비워 두면 군 배우자 친화 직무를 검색합니다.', '프로젝트 매니저, 간호, 사이버보안, 원격', '열기', '목록 열기', '활성 목록', '공식', '외부', '제휴', '연방', '배우자', '원격', '워크숍', '자격증', '멘토링', '파트너', '사업'],
+  ja: ['雇用・キャリアセンター', '赴任先周辺の軍人配偶者と軍人向け雇用支援', 'この画面はオンボーディングで選んだ言語を使用します。公式名称は出典どおり英語の場合があります。', '米国政府と軍の公式情報を優先し、外部情報は明示します。', '検索場所', '職種またはキーワード', '任意です。空欄の場合は軍人配偶者向けの求人を検索します。', 'プロジェクト管理、看護、サイバーセキュリティ、リモート', '開く', '求人を開く', '有効な求人', '公式', '外部', '提携', '連邦', '配偶者', 'リモート', 'ワークショップ', '認定', 'メンタリング', 'パートナー', '事業'],
+  tl: ['Employment at Career Center', 'Suporta sa trabaho para sa military spouse at service member malapit sa', 'Ginagamit ng view na ito ang wikang pinili sa onboarding. Maaaring manatiling Ingles ang opisyal na pangalan ng programa.', 'Inuuna ang opisyal na U.S. government at military sources; malinaw na minamarkahan ang external sources.', 'Lokasyon ng paghahanap', 'Role o keyword', 'Opsyonal. Iwanang blangko para maghanap ng military spouse-friendly roles.', 'project manager, nurse, cybersecurity, remote', 'Buksan', 'Buksan ang listings', 'Aktibong listings', 'Opisyal', 'External', 'Affiliated', 'Federal', 'Spouse', 'Remote', 'Workshop', 'Certification', 'Mentorship', 'Partner', 'Negosyo'],
+  ar: ['مركز التوظيف والمسار المهني', 'دعم التوظيف للأزواج العسكريين وأفراد الخدمة قرب', 'تستخدم هذه الصفحة اللغة المختارة أثناء الإعداد. قد تبقى أسماء البرامج الرسمية بالإنجليزية كما تنشرها الجهة الأصلية.', 'يتم إعطاء الأولوية لمصادر الحكومة والجيش الأمريكية الرسمية؛ ويتم تمييز المصادر الخارجية.', 'موقع البحث', 'الدور أو الكلمة المفتاحية', 'اختياري. اتركه فارغا للبحث عن وظائف مناسبة للأزواج العسكريين.', 'مدير مشروع، تمريض، أمن سيبراني، عن بعد', 'فتح', 'فتح القوائم', 'قوائم نشطة', 'رسمي', 'خارجي', 'تابع', 'فدرالي', 'زوج/زوجة', 'عن بعد', 'ورشة', 'شهادة', 'إرشاد مهني', 'شريك', 'عمل تجاري'],
+  zh: ['就业与职业中心', '靠近新基地的军人配偶和服役人员就业支持', '本页面使用入门设置中选择的语言。官方项目名称可能按来源保留英文。', '优先使用美国政府和军方官方资源；外部资源会清楚标注。', '搜索地点', '职位或关键词', '可选。留空将搜索军人配偶友好岗位。', '项目经理、护理、网络安全、远程', '打开', '打开职位', '当前职位', '官方', '外部', '附属', '联邦', '配偶', '远程', '工作坊', '证书', '导师', '合作伙伴', '创业'],
+  it: ['Centro occupazione e carriera', 'Supporto lavoro per coniugi militari e militari vicino a', 'Questa vista usa la lingua scelta nell’onboarding. Alcuni nomi ufficiali possono restare in inglese.', 'Sono prioritarie le fonti ufficiali del governo e delle forze armate USA; le fonti esterne sono indicate.', 'Località di ricerca', 'Ruolo o parola chiave', 'Facoltativo. Lascia vuoto per cercare ruoli adatti ai coniugi militari.', 'project manager, infermieristica, cybersecurity, remoto', 'Apri', 'Apri offerte', 'Offerte attive', 'Ufficiale', 'Esterno', 'Affiliato', 'Federale', 'Coniuge', 'Remoto', 'Workshop', 'Certificazione', 'Mentorship', 'Partner', 'Impresa'],
+  pt: ['Centro de emprego e carreira', 'Apoio de emprego para cônjuges militares e militares perto de', 'Esta tela usa o idioma escolhido no onboarding. Alguns nomes oficiais podem permanecer em inglês.', 'Recursos oficiais do governo e das forças armadas dos EUA são priorizados; fontes externas são identificadas.', 'Local de busca', 'Cargo ou palavra-chave', 'Opcional. Deixe em branco para buscar vagas favoráveis a cônjuges militares.', 'gerente de projeto, enfermagem, cibersegurança, remoto', 'Abrir', 'Abrir vagas', 'Vagas ativas', 'Oficial', 'Externo', 'Afiliado', 'Federal', 'Cônjuge', 'Remoto', 'Workshop', 'Certificação', 'Mentoria', 'Parceiro', 'Negócio'],
+  vi: ['Trung tâm việc làm và nghề nghiệp', 'Hỗ trợ việc làm cho vợ/chồng quân nhân và quân nhân gần', 'Màn hình này dùng ngôn ngữ đã chọn khi onboarding. Tên chương trình chính thức có thể vẫn bằng tiếng Anh.', 'Ưu tiên nguồn chính thức của chính phủ và quân đội Hoa Kỳ; nguồn bên ngoài được đánh dấu rõ.', 'Vị trí tìm kiếm', 'Vai trò hoặc từ khóa', 'Tùy chọn. Để trống để tìm vai trò thân thiện với vợ/chồng quân nhân.', 'quản lý dự án, điều dưỡng, an ninh mạng, từ xa', 'Mở', 'Mở danh sách', 'Danh sách hiện có', 'Chính thức', 'Bên ngoài', 'Liên kết', 'Liên bang', 'Vợ/chồng', 'Từ xa', 'Hội thảo', 'Chứng chỉ', 'Cố vấn', 'Đối tác', 'Kinh doanh'],
+}
+
+const GENERIC_KEYS = ['title', 'subtitle', 'languageNote', 'sourcePolicy', 'searchLocation', 'keywordLabel', 'keywordHelp', 'keywordPlaceholder', 'open', 'openListings', 'currentListings', 'official', 'external', 'affiliated', 'federal', 'spouse', 'remote', 'workshop', 'certification', 'mentorship', 'partner', 'business']
+
+Object.entries(GENERIC_TRANSLATIONS).forEach(([lang, values]) => {
+  GENERIC_KEYS.forEach((key, index) => {
+    TEXT[lang][key] = values[index] || TEXT.en[key]
+  })
+})
+
+const TAB_TRANSLATIONS = {
+  de: { tabJobSearch: 'Jobsuche', tabJobResources: 'Job-Ressourcen', tabResume: 'Lebenslaufhilfe', tabInternships: 'Praktika', tabWorkshops: 'Arbeits-Workshops', tabCertifications: 'Zertifikate', tabMentorship: 'Mentoring', tabSpousePreferred: 'Ehepartner bevorzugt', tabConnections: 'Netzwerk', tabLinkedIn: 'LinkedIn-Workshop', tabEntrepreneurship: 'Unternehmertum', resumeTipsTitle: 'Checkliste für Bundeslebenslauf', linkedinStepsTitle: 'Ablauf zur Recruiter-Suche' },
+  fr: { tabJobSearch: 'Recherche d’emploi', tabJobResources: 'Ressources emploi', tabResume: 'Aide CV', tabInternships: 'Stages', tabWorkshops: 'Ateliers emploi', tabCertifications: 'Certifications', tabMentorship: 'Mentorat', tabSpousePreferred: 'Priorité conjoint', tabConnections: 'Connexions', tabLinkedIn: 'Atelier LinkedIn', tabEntrepreneurship: 'Entrepreneuriat', resumeTipsTitle: 'Liste CV fédéral', linkedinStepsTitle: 'Recherche de recruteurs' },
+  ko: { tabJobSearch: '일자리 검색', tabJobResources: '취업 자료', tabResume: '이력서 지원', tabInternships: '인턴십', tabWorkshops: '취업 워크숍', tabCertifications: '자격증', tabMentorship: '멘토링', tabSpousePreferred: '배우자 우대', tabConnections: '연결', tabLinkedIn: 'LinkedIn 워크숍', tabEntrepreneurship: '창업', resumeTipsTitle: '연방 이력서 체크리스트', linkedinStepsTitle: '채용 담당자 검색 절차' },
+  ja: { tabJobSearch: '求人検索', tabJobResources: '就職リソース', tabResume: '履歴書支援', tabInternships: 'インターンシップ', tabWorkshops: '雇用ワークショップ', tabCertifications: '認定', tabMentorship: 'メンタリング', tabSpousePreferred: '配偶者優先', tabConnections: 'つながり', tabLinkedIn: 'LinkedInワークショップ', tabEntrepreneurship: '起業', resumeTipsTitle: '連邦履歴書チェックリスト', linkedinStepsTitle: '採用担当者検索手順' },
+  tl: { tabJobSearch: 'Paghahanap ng trabaho', tabJobResources: 'Mga resource sa trabaho', tabResume: 'Tulong sa resume', tabInternships: 'Internships', tabWorkshops: 'Employment workshops', tabCertifications: 'Certifications', tabMentorship: 'Mentorship', tabSpousePreferred: 'Spouse preferred', tabConnections: 'Koneksyon', tabLinkedIn: 'LinkedIn workshop', tabEntrepreneurship: 'Pagnenegosyo', resumeTipsTitle: 'Federal resume checklist', linkedinStepsTitle: 'Recruiter search workflow' },
+  ar: { tabJobSearch: 'البحث عن عمل', tabJobResources: 'موارد التوظيف', tabResume: 'مساعدة السيرة الذاتية', tabInternships: 'التدريب العملي', tabWorkshops: 'ورش التوظيف', tabCertifications: 'الشهادات', tabMentorship: 'الإرشاد المهني', tabSpousePreferred: 'أفضلية الزوج/الزوجة', tabConnections: 'العلاقات المهنية', tabLinkedIn: 'ورشة LinkedIn', tabEntrepreneurship: 'ريادة الأعمال', resumeTipsTitle: 'قائمة السيرة الذاتية الفدرالية', linkedinStepsTitle: 'خطوات البحث عن مسؤولي التوظيف' },
+  zh: { tabJobSearch: '职位搜索', tabJobResources: '就业资源', tabResume: '简历帮助', tabInternships: '实习', tabWorkshops: '就业工作坊', tabCertifications: '证书', tabMentorship: '导师支持', tabSpousePreferred: '配偶优先', tabConnections: '人脉', tabLinkedIn: 'LinkedIn 工作坊', tabEntrepreneurship: '创业', resumeTipsTitle: '联邦简历清单', linkedinStepsTitle: '招聘人员搜索流程' },
+  it: { tabJobSearch: 'Ricerca lavoro', tabJobResources: 'Risorse lavoro', tabResume: 'Aiuto curriculum', tabInternships: 'Tirocini', tabWorkshops: 'Workshop lavoro', tabCertifications: 'Certificazioni', tabMentorship: 'Mentorship', tabSpousePreferred: 'Preferenza coniuge', tabConnections: 'Connessioni', tabLinkedIn: 'Workshop LinkedIn', tabEntrepreneurship: 'Imprenditorialità', resumeTipsTitle: 'Checklist curriculum federale', linkedinStepsTitle: 'Ricerca recruiter' },
+  pt: { tabJobSearch: 'Busca de emprego', tabJobResources: 'Recursos de emprego', tabResume: 'Ajuda com currículo', tabInternships: 'Estágios', tabWorkshops: 'Oficinas de emprego', tabCertifications: 'Certificações', tabMentorship: 'Mentoria', tabSpousePreferred: 'Preferência para cônjuge', tabConnections: 'Conexões', tabLinkedIn: 'Oficina LinkedIn', tabEntrepreneurship: 'Empreendedorismo', resumeTipsTitle: 'Checklist de currículo federal', linkedinStepsTitle: 'Busca de recrutadores' },
+  vi: { tabJobSearch: 'Tìm việc', tabJobResources: 'Tài nguyên việc làm', tabResume: 'Hỗ trợ hồ sơ', tabInternships: 'Thực tập', tabWorkshops: 'Hội thảo việc làm', tabCertifications: 'Chứng chỉ', tabMentorship: 'Cố vấn', tabSpousePreferred: 'Ưu tiên vợ/chồng', tabConnections: 'Kết nối', tabLinkedIn: 'Hội thảo LinkedIn', tabEntrepreneurship: 'Khởi nghiệp', resumeTipsTitle: 'Danh sách hồ sơ liên bang', linkedinStepsTitle: 'Quy trình tìm nhà tuyển dụng' },
+}
+
+Object.entries(TAB_TRANSLATIONS).forEach(([lang, entries]) => {
+  Object.assign(TEXT[lang], entries)
+})
+
+const COMMON_NON_EN = {
+  resourceText: {
+    de: 'Öffnen Sie diese Quelle für aktuelle Informationen und verfügbare Dienste.',
+    fr: 'Ouvrez cette ressource pour obtenir les informations et services actuels.',
+    ko: '현재 안내와 이용 가능한 서비스를 보려면 이 자료를 여십시오.',
+    ja: '最新情報と利用可能なサービスを見るには、このリソースを開いてください。',
+    tl: 'Buksan ang resource na ito para sa kasalukuyang gabay at serbisyo.',
+    ar: 'افتح هذا المورد للاطلاع على الإرشادات والخدمات الحالية.',
+    zh: '打开此资源以查看最新指导和可用服务。',
+    it: 'Apri questa risorsa per informazioni e servizi aggiornati.',
+    pt: 'Abra este recurso para informações e serviços atualizados.',
+    vi: 'Mở tài nguyên này để xem hướng dẫn và dịch vụ hiện tại.',
+  },
+  externalText: {
+    de: 'Öffnen Sie diese externe Quelle für aktuelle Listen und prüfen Sie jede Anzeige direkt.',
+    fr: 'Ouvrez cette source externe pour les offres actuelles et vérifiez chaque annonce.',
+    ko: '현재 목록은 이 외부 출처에서 열고 각 공고를 직접 확인하십시오.',
+    ja: '現在の一覧はこの外部ソースで開き、各掲載を直接確認してください。',
+    tl: 'Buksan ang external source na ito para sa kasalukuyang listings at suriin ang bawat posting.',
+    ar: 'افتح هذا المصدر الخارجي للقوائم الحالية وراجع كل إعلان مباشرة.',
+    zh: '打开此外部来源查看当前列表，并直接核对每个职位。',
+    it: 'Apri questa fonte esterna per offerte aggiornate e verifica ogni annuncio.',
+    pt: 'Abra esta fonte externa para vagas atuais e revise cada publicação.',
+    vi: 'Mở nguồn bên ngoài này để xem danh sách hiện tại và kiểm tra từng tin.',
+  },
+}
+
+Object.keys(COMMON_NON_EN.resourceText).forEach((lang) => {
+  TEXT[lang].resourceText = COMMON_NON_EN.resourceText[lang]
+  TEXT[lang].externalText = COMMON_NON_EN.externalText[lang]
+  TEXT[lang].tabJobSearch = TEXT[lang].tabJobSearch || TEXT.en.tabJobSearch
+  TEXT[lang].tabJobResources = TEXT[lang].tabJobResources || TEXT.en.tabJobResources
+  TEXT[lang].tabResume = TEXT[lang].tabResume || TEXT.en.tabResume
+  TEXT[lang].tabInternships = TEXT[lang].tabInternships || TEXT.en.tabInternships
+  TEXT[lang].tabWorkshops = TEXT[lang].tabWorkshops || TEXT.en.tabWorkshops
+  TEXT[lang].tabCertifications = TEXT[lang].tabCertifications || TEXT.en.tabCertifications
+  TEXT[lang].tabMentorship = TEXT[lang].tabMentorship || TEXT.en.tabMentorship
+  TEXT[lang].tabSpousePreferred = TEXT[lang].tabSpousePreferred || TEXT.en.tabSpousePreferred
+  TEXT[lang].tabConnections = TEXT[lang].tabConnections || TEXT.en.tabConnections
+  TEXT[lang].tabLinkedIn = TEXT[lang].tabLinkedIn || TEXT.en.tabLinkedIn
+  TEXT[lang].tabEntrepreneurship = TEXT[lang].tabEntrepreneurship || TEXT.en.tabEntrepreneurship
+  ;['leadJobSearch', 'leadJobResources', 'leadResume', 'leadInternships', 'leadWorkshops', 'leadCertifications', 'leadMentorship', 'leadSpousePreferred', 'leadConnections', 'leadLinkedIn', 'leadEntrepreneurship'].forEach((key) => {
+    TEXT[lang][key] = TEXT[lang].resourceText
+  })
+  ;['resumeTipsTitle', 'tip1', 'tip2', 'tip3', 'tip4', 'tip5', 'linkedinStepsTitle', 'linkedinStep1', 'linkedinStep2', 'linkedinStep3', 'linkedinStep4'].forEach((key) => {
+    if (!TEXT[lang][key]) TEXT[lang][key] = TEXT[lang].resourceText
+  })
+})
+
+const TAB_ORDER = [
+  ['jobSearch', 'tabJobSearch'],
+  ['jobResources', 'tabJobResources'],
+  ['resume', 'tabResume'],
+  ['internships', 'tabInternships'],
+  ['workshops', 'tabWorkshops'],
+  ['certifications', 'tabCertifications'],
+  ['mentorship', 'tabMentorship'],
+  ['spousePreferred', 'tabSpousePreferred'],
+  ['connections', 'tabConnections'],
+  ['linkedin', 'tabLinkedIn'],
+  ['entrepreneurship', 'tabEntrepreneurship'],
 ]
 
-const SKILL_CATS = [
-  { id: 'technical',    label: 'Technical',     color: '#1565C0' },
-  { id: 'soft',         label: 'Soft Skill',    color: '#2E7D32' },
-  { id: 'cert',         label: 'Certification', color: '#6A1B9A' },
-  { id: 'language',     label: 'Language',      color: '#E65100' },
-]
+const RESOURCE_SETS = {
+  jobResources: [
+    { name: 'USAJOBS', badgeKey: 'federal', url: 'https://www.usajobs.gov/', desc: 'Official federal civilian jobs portal with military spouse and veteran hiring paths.', official: true, color: '#1F4E79' },
+    { name: 'USAJOBS Military Spouse Hiring Path', badgeKey: 'spouse', url: 'https://milspouse.usajobs.gov/', desc: 'Official USAJOBS entry point for eligible military spouse federal hiring.', official: true, color: '#5B3E8A' },
+    { name: 'Military OneSource SECO', badgeKey: 'official', url: 'https://www.militaryonesource.mil/education-employment/seco/', desc: 'Official spouse education and career guidance from Military OneSource.', official: true, color: '#176B6B' },
+    { name: 'Military Spouse Employment Partnership', badgeKey: 'spouse', url: 'https://msepjobs.militaryonesource.mil/msep/', desc: 'DoD employment partnership connecting spouses with employers committed to recruiting and retaining military spouses.', official: true, color: '#7A3E16' },
+    { name: 'Department of Labor Military Spouse Employment', badgeKey: 'official', url: 'https://www.dol.gov/agencies/vets/veterans/military-spouses/employment', desc: 'Official DOL employment resources for military spouses, including American Job Centers and federal hiring paths.', official: true, color: '#334155' },
+    { name: 'CareerOneStop', badgeKey: 'official', url: 'https://www.careeronestop.org/', desc: 'Department of Labor sponsored career, training, resume, and job search tools.', official: true, color: '#255E91' },
+  ],
+  resume: [
+    { name: 'USAJOBS Resume Builder', badgeKey: 'official', url: 'https://help.usajobs.gov/how-to/account/documents/resume', desc: 'Official USAJOBS instructions for building or adding a resume to a profile.', official: true, color: '#1F4E79' },
+    { name: 'USAJOBS Federal Resume Guidance', badgeKey: 'official', url: 'https://help.usajobs.gov/faq/application/documents/resume/what-to-include', desc: 'Official guidance on what federal resumes must include and what information to leave out.', official: true, color: '#2C6E49' },
+    { name: 'CareerOneStop Resume Guide', badgeKey: 'official', url: 'https://www.careeronestop.org/JobSearch/Resumes/resumes.aspx', desc: 'Department of Labor sponsored resume guidance and examples.', official: true, color: '#255E91' },
+    { name: 'SECO Career Coaching', badgeKey: 'official', url: 'https://www.militaryonesource.mil/resources/millife-guides/spouse-career-coaching/', desc: 'Free career coaching for eligible military spouses, including resume and interview support.', official: true, color: '#176B6B' },
+  ],
+  internships: [
+    { name: 'USAJOBS Student Internships', badgeKey: 'federal', url: 'https://help.usajobs.gov/working-in-government/unique-hiring-paths/students', desc: 'Official federal student internship guidance and USAJOBS search entry point.', official: true, color: '#1F4E79' },
+    { name: 'USAJOBS Recent Graduates', badgeKey: 'federal', url: 'https://help.usajobs.gov/working-in-government/unique-hiring-paths/recent-graduates', desc: 'Official federal recent graduate pathway guidance.', official: true, color: '#2C6E49' },
+    { name: 'Virtual Student Federal Service', badgeKey: 'remote', url: 'https://careers.state.gov/intern/virtual-student-federal-service/', desc: 'Department of State virtual federal internship program for eligible students.', official: true, color: '#5B3E8A' },
+    { name: 'Hiring Our Heroes Military Spouse Fellowships', badgeKey: 'affiliated', url: 'https://www.hiringourheroes.org/career-services/fellowships/internships/msfp/', desc: 'Affiliated no-cost fellowship pathway connecting military spouses with employers and professional training.', official: false, color: '#7A3E16' },
+  ],
+  workshops: [
+    { name: 'SECO Career Coaching', badgeKey: 'official', url: 'https://www.militaryonesource.mil/resources/millife-guides/spouse-career-coaching/', desc: 'Free spouse career coaching and employment readiness support.', official: true, color: '#176B6B' },
+    { name: 'MySECO', badgeKey: 'official', url: 'https://myseco.militaryonesource.mil/portal/', desc: 'Official DoD spouse education and career portal with tools, coaching, events, and career resources.', official: true, color: '#5B3E8A' },
+    { name: 'Hiring Our Heroes Events', badgeKey: 'affiliated', url: 'https://www.hiringourheroes.org/events/', desc: 'Affiliated hiring events, webinars, and spouse employment workshops.', official: false, color: '#7A3E16' },
+    { name: 'Department of Labor American Job Centers', badgeKey: 'official', url: 'https://www.careeronestop.org/LocalHelp/AmericanJobCenters/american-job-centers.aspx', desc: 'Official local American Job Center locator for free employment and training help.', official: true, color: '#334155' },
+  ],
+  certifications: [
+    { name: 'MyCAA Scholarship Program', badgeKey: 'official', url: 'https://www.militaryonesource.mil/education-employment/for-spouses/mycaa-scholarship', desc: 'Official workforce development scholarship information for eligible military spouses.', official: true, color: '#176B6B' },
+    { name: 'MySECO Education and Training', badgeKey: 'official', url: 'https://myseco.militaryonesource.mil/portal/', desc: 'Official spouse career portal for education, licensing, training, and career planning.', official: true, color: '#5B3E8A' },
+    { name: 'CareerOneStop Training Finder', badgeKey: 'official', url: 'https://www.careeronestop.org/FindTraining/find-training.aspx', desc: 'Department of Labor sponsored training and certification search tools.', official: true, color: '#255E91' },
+    { name: 'IVMF Onward to Opportunity', badgeKey: 'affiliated', url: 'https://ivmf.syracuse.edu/programs/career-training/', desc: 'Affiliated career training and certification pathway for service members, veterans, and military spouses.', official: false, color: '#7A3E16' },
+  ],
+  mentorship: [
+    { name: 'American Corporate Partners Active-Duty Spouse Program', badgeKey: 'mentorship', url: 'https://www.acp-usa.org/programs/active-duty-spouse-program/', desc: 'No-cost one-on-one mentorship for active-duty spouses and eligible surviving spouses.', official: false, color: '#7A3E16' },
+    { name: 'SECO Career Coaching', badgeKey: 'official', url: 'https://www.militaryonesource.mil/resources/millife-guides/spouse-career-coaching/', desc: 'Official free spouse career coaching for career goals, networking, resumes, and interviews.', official: true, color: '#176B6B' },
+    { name: 'MSEP and SECO 101', badgeKey: 'official', url: 'https://www.militaryonesource.mil/resources/gov/seco-and-msep-101/', desc: 'Official overview of MSEP, SECO, spouse career coaching, and spouse ambassador support.', official: true, color: '#5B3E8A' },
+    { name: 'SCORE Mentors', badgeKey: 'affiliated', url: 'https://www.score.org/find-mentor', desc: 'SBA resource partner offering free small business mentoring.', official: false, color: '#334155' },
+  ],
+  spousePreferred: [
+    { name: 'MSEP Job Search', badgeKey: 'spouse', url: 'https://msepjobs.militaryonesource.mil/msep/', desc: 'Official DoD partnership for employers committed to recruiting, hiring, promoting, and retaining military spouses.', official: true, color: '#176B6B' },
+    { name: 'USAJOBS Military Spouse Hiring Path', badgeKey: 'federal', url: 'https://milspouse.usajobs.gov/', desc: 'Official federal hiring path for eligible military spouses.', official: true, color: '#1F4E79' },
+    { name: 'DOL Military Spouse Employment', badgeKey: 'official', url: 'https://www.dol.gov/agencies/vets/veterans/military-spouses/employment', desc: 'Official DOL spouse employment guidance and priority of service information.', official: true, color: '#334155' },
+    { name: 'Hiring Our Heroes Military Spouse Resources', badgeKey: 'affiliated', url: 'https://www.hiringourheroes.org/career-services/military-spouse-resources/', desc: 'Affiliated spouse career events, fellowships, networking, and employer connections.', official: false, color: '#7A3E16' },
+  ],
+  connections: [
+    { name: 'MSEP Partner Network', badgeKey: 'spouse', url: 'https://msepjobs.militaryonesource.mil/msep/', desc: 'Use MSEP to identify employers with an active commitment to military spouse hiring.', official: true, color: '#176B6B' },
+    { name: 'SECO Career Coaching', badgeKey: 'official', url: 'https://www.militaryonesource.mil/resources/millife-guides/spouse-career-coaching/', desc: 'Talk with a SECO career coach about networking strategy, resumes, interviews, and portable careers.', official: true, color: '#5B3E8A' },
+    { name: 'American Job Center Locator', badgeKey: 'official', url: 'https://www.careeronestop.org/LocalHelp/AmericanJobCenters/american-job-centers.aspx', desc: 'Find local DOL American Job Centers for free employment help near the gaining installation.', official: true, color: '#334155' },
+    { name: 'Hiring Our Heroes Events', badgeKey: 'affiliated', url: 'https://www.hiringourheroes.org/events/', desc: 'Attend virtual or in-person hiring and networking events for military-connected job seekers.', official: false, color: '#7A3E16' },
+  ],
+  linkedin: [
+    { name: 'LinkedIn Job Search', badgeKey: 'external', url: 'https://www.linkedin.com/jobs/', desc: 'Use LinkedIn to search current roles, recruiters, and company hiring teams.', official: false, color: '#0A66C2' },
+    { name: 'MSEP LinkedIn Page', badgeKey: 'external', url: 'https://www.linkedin.com/company/military-spouse-employment-partnership-msep-', desc: 'Follow MSEP activity and employer-facing spouse employment updates on LinkedIn.', official: false, color: '#0A66C2' },
+    { name: 'MSEP Official Portal', badgeKey: 'official', url: 'https://msepjobs.militaryonesource.mil/msep/', desc: 'Verify spouse-friendly employers through the official MSEP portal before outreach.', official: true, color: '#176B6B' },
+  ],
+  entrepreneurship: [
+    { name: 'SBA Military Spouse Businesses', badgeKey: 'official', url: 'https://www.sba.gov/business-guide/grow-your-business/military-spouse-businesses', desc: 'Official SBA guide for military spouse entrepreneurs, including free training and counseling resources.', official: true, color: '#1F4E79' },
+    { name: 'SBA Boots to Business', badgeKey: 'official', url: 'https://www.sba.gov/sba-learning-platform/boots-business', desc: 'Official SBA entrepreneurship education program for service members and military spouses.', official: true, color: '#2C6E49' },
+    { name: 'Veterans Business Outreach Centers', badgeKey: 'official', url: 'https://www.sba.gov/local-assistance/resource-partners/veterans-business-outreach-center-vboc-program', desc: 'Official SBA partner network for veteran and military spouse business counseling and training.', official: true, color: '#334155' },
+    { name: 'SCORE Veteran Entrepreneurs', badgeKey: 'affiliated', url: 'https://www.score.org/veteran-entrepreneurs', desc: 'SBA resource partner with free mentoring and business education for military-connected entrepreneurs.', official: false, color: '#7A3E16' },
+    { name: 'IVMF Entrepreneurship Programs', badgeKey: 'affiliated', url: 'https://ivmf.syracuse.edu/programs/entrepreneurship/', desc: 'Affiliated entrepreneurship training programs for veterans, service members, and military family members.', official: false, color: '#5B3E8A' },
+  ],
+}
 
-const JOB_BOARDS = [
-  { name: 'USAJOBS', desc: 'Official federal civilian jobs portal with military spouse and veteran hiring paths.', url: 'https://www.usajobs.gov', badge: 'Federal', color: '#1565C0' },
-  { name: 'Department of Labor VETS', desc: 'Official employment support for veterans, transitioning service members, and military spouses.', url: 'https://www.dol.gov/agencies/vets', badge: 'DOL', color: '#37474F' },
-  { name: 'DoD Transition Assistance Program', desc: 'Official transition workshops and career preparation resources for separating service members.', url: 'https://www.dodtap.mil', badge: 'DoD TAP', color: '#283593' },
-]
+function languageFor(profile) {
+  const code = String(profile?.language || 'en').toLowerCase()
+  return TEXT[code] ? code : 'en'
+}
 
-const SPOUSE_BOARDS = [
-  { name: 'MySECO / MSEP Portal', desc: 'Official DoD spouse education and career portal with MSEP employment resources.', url: 'https://myseco.militaryonesource.mil/portal/', badge: 'Spouse', color: '#880E4F' },
-  { name: 'Military OneSource SECO', desc: 'Official spouse education and career guidance from Military OneSource.', url: 'https://www.militaryonesource.mil/education-employment/seco/', badge: 'Spouse', color: '#1565C0' },
-  { name: 'DOL Military Spouse Employment', desc: 'Official Department of Labor employment information for military spouses.', url: 'https://www.dol.gov/agencies/vets/veterans/military-spouses/employment', badge: 'DOL', color: '#37474F' },
-  { name: 'MyCAA Scholarship Program', desc: 'Official MyCAA portal for eligible spouse education and career credentials.', url: 'https://aiportal.acc.af.mil/mycaa', badge: 'Education', color: '#1B5E20' },
-]
+function useCopy(profile) {
+  const lang = languageFor(profile)
+  return {
+    lang,
+    text(key) {
+      return TEXT[lang]?.[key] || TEXT.en[key] || key
+    },
+  }
+}
 
-const LOCAL_JOBS = {
-  'Fort Liberty': [
-    { title: 'Cybersecurity Analyst', employer: 'Leidos', type: 'Full-time', pay: '$75k–$95k/yr', industry: 'tech', miles: 8 },
-    { title: 'Software Developer', employer: 'CACI International', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'tech', miles: 10 },
-    { title: 'Registered Nurse (ICU)', employer: 'Cape Fear Valley Medical', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'health', miles: 6 },
-    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 12 },
-    { title: 'Logistics Manager', employer: 'DRS Technologies', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'logistics', miles: 15 },
-    { title: 'Network Administrator', employer: 'Engility', type: 'Full-time', pay: '$68k–$88k/yr', industry: 'tech', miles: 20 },
-    { title: 'Physical Therapist', employer: 'Womack Army Medical Center', type: 'Full-time', pay: '$70k–$90k/yr', industry: 'health', miles: 2 },
-    { title: 'HR Specialist', employer: 'Army Civilian Corps', type: 'Full-time', pay: '$55k–$72k/yr', industry: 'hr', miles: 3 },
-  ],
-  'Fort Bragg': [
-    { title: 'Cybersecurity Analyst', employer: 'Leidos', type: 'Full-time', pay: '$75k–$95k/yr', industry: 'tech', miles: 8 },
-    { title: 'Software Developer', employer: 'CACI International', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'tech', miles: 10 },
-    { title: 'Registered Nurse (ICU)', employer: 'Cape Fear Valley Medical', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'health', miles: 6 },
-    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 12 },
-    { title: 'Logistics Manager', employer: 'DRS Technologies', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'logistics', miles: 15 },
-    { title: 'HR Specialist', employer: 'Army Civilian Corps', type: 'Full-time', pay: '$55k–$72k/yr', industry: 'hr', miles: 3 },
-  ],
-  'Fort Campbell': [
-    { title: 'Registered Nurse', employer: 'Tennova Healthcare', type: 'Full-time', pay: '$60k–$78k/yr', industry: 'health', miles: 8 },
-    { title: 'IT Systems Specialist', employer: 'DLT Solutions', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'tech', miles: 12 },
-    { title: 'Financial Advisor', employer: 'USAA', type: 'Full-time', pay: '$60k–$90k/yr', industry: 'business', miles: 7 },
-    { title: 'Intelligence Analyst', employer: 'Chenega Corporation', type: 'Full-time', pay: '$72k–$95k/yr', industry: 'govt', miles: 5 },
-    { title: 'Supply Chain Analyst', employer: 'ARAMARK', type: 'Full-time', pay: '$55k–$72k/yr', industry: 'logistics', miles: 14 },
-    { title: 'HVAC Technician', employer: 'Johnson Controls', type: 'Full-time', pay: '$48k–$65k/yr', industry: 'trades', miles: 10 },
-    { title: 'Physical Therapist', employer: 'Blanchfield Army Community Hospital', type: 'Full-time', pay: '$70k–$88k/yr', industry: 'health', miles: 3 },
-  ],
-  'Fort Cavazos': [
-    { title: 'RN Trauma Nurse', employer: 'Advent Health Central Texas', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'health', miles: 12 },
-    { title: 'Systems Administrator', employer: 'SAIC', type: 'Full-time', pay: '$70k–$90k/yr', industry: 'tech', miles: 8 },
-    { title: 'Defense Contractor', employer: 'General Dynamics', type: 'Full-time', pay: '$80k–$110k/yr', industry: 'govt', miles: 10 },
-    { title: 'Security Officer', employer: 'Allied Universal', type: 'Full-time', pay: '$38k–$50k/yr', industry: 'security', miles: 5 },
-    { title: 'Logistics Coordinator', employer: 'DHL Supply Chain', type: 'Full-time', pay: '$45k–$60k/yr', industry: 'logistics', miles: 18 },
-    { title: 'Electrician', employer: 'Kforce Government Solutions', type: 'Full-time', pay: '$52k–$68k/yr', industry: 'trades', miles: 7 },
-  ],
-  'Fort Hood': [
-    { title: 'RN Trauma Nurse', employer: 'Advent Health Central Texas', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'health', miles: 12 },
-    { title: 'Systems Administrator', employer: 'SAIC', type: 'Full-time', pay: '$70k–$90k/yr', industry: 'tech', miles: 8 },
-    { title: 'Defense Contractor', employer: 'General Dynamics', type: 'Full-time', pay: '$80k–$110k/yr', industry: 'govt', miles: 10 },
-    { title: 'Security Officer', employer: 'Allied Universal', type: 'Full-time', pay: '$38k–$50k/yr', industry: 'security', miles: 5 },
-    { title: 'Logistics Coordinator', employer: 'DHL Supply Chain', type: 'Full-time', pay: '$45k–$60k/yr', industry: 'logistics', miles: 18 },
-  ],
-  'Joint Base Lewis-McChord': [
-    { title: 'Software Engineer', employer: 'Boeing Defense', type: 'Full-time', pay: '$95k–$130k/yr', industry: 'tech', miles: 15 },
-    { title: 'Registered Nurse', employer: 'MultiCare Health System', type: 'Full-time', pay: '$68k–$90k/yr', industry: 'health', miles: 12 },
-    { title: 'Cybersecurity Engineer', employer: 'Raytheon', type: 'Full-time', pay: '$90k–$120k/yr', industry: 'tech', miles: 20 },
-    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 18 },
-    { title: 'Logistics Analyst', employer: 'Amazon', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'logistics', miles: 25 },
-    { title: 'Law Enforcement Officer', employer: 'Pierce County Sheriff', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'security', miles: 14 },
-    { title: 'Mechanical Engineer', employer: 'PACCAR', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'eng', miles: 22 },
-  ],
-  'Fort Carson': [
-    { title: 'Software Engineer', employer: 'L3Harris Technologies', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'tech', miles: 12 },
-    { title: 'Registered Nurse', employer: 'UCHealth', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'health', miles: 8 },
-    { title: 'Intelligence Analyst', employer: 'SAIC', type: 'Full-time', pay: '$82k–$108k/yr', industry: 'govt', miles: 10 },
-    { title: 'Cybersecurity Analyst', employer: 'Perspecta', type: 'Full-time', pay: '$75k–$98k/yr', industry: 'tech', miles: 15 },
-    { title: 'Financial Analyst', employer: 'USAA', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'business', miles: 10 },
-    { title: 'Electrician', employer: 'Hensel Phelps', type: 'Full-time', pay: '$55k–$72k/yr', industry: 'trades', miles: 7 },
-  ],
-  'Fort Bliss': [
-    { title: 'Systems Engineer', employer: 'DRS Defense Solutions', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'eng', miles: 10 },
-    { title: 'Registered Nurse', employer: 'Del Sol Medical Center', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'health', miles: 8 },
-    { title: 'Network Engineer', employer: 'Northrop Grumman', type: 'Full-time', pay: '$82k–$108k/yr', industry: 'tech', miles: 14 },
-    { title: 'Intelligence Analyst', employer: 'CACI International', type: 'Full-time', pay: '$78k–$102k/yr', industry: 'govt', miles: 12 },
-    { title: 'Logistics Specialist', employer: 'DHL', type: 'Full-time', pay: '$42k–$58k/yr', industry: 'logistics', miles: 20 },
-    { title: 'CBP Officer', employer: 'CBP / DHS', type: 'Full-time', pay: '$55k–$78k/yr', industry: 'security', miles: 5 },
-  ],
-  'Fort Stewart': [
-    { title: 'RN Emergency Nurse', employer: 'Memorial Health Savannah', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'health', miles: 40 },
-    { title: 'Network Administrator', employer: 'SAIC', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'tech', miles: 8 },
-    { title: 'Army Civilian Analyst', employer: 'Department of the Army', type: 'Full-time', pay: '$55k–$75k/yr', industry: 'govt', miles: 3 },
-    { title: 'Supply Chain Manager', employer: 'GTCC / DoD', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'logistics', miles: 5 },
-    { title: 'Police Officer', employer: 'Liberty County Sheriff', type: 'Full-time', pay: '$38k–$52k/yr', industry: 'security', miles: 12 },
-  ],
-  'Fort Drum': [
-    { title: 'RN Medical Surgical', employer: 'Samaritan Medical Center', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'health', miles: 8 },
-    { title: 'IT Specialist', employer: 'DXC Technology', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'tech', miles: 10 },
-    { title: 'Government Analyst', employer: 'Department of the Army', type: 'Full-time', pay: '$50k–$70k/yr', industry: 'govt', miles: 3 },
-    { title: 'Logistics Coordinator', employer: 'ARAMARK', type: 'Full-time', pay: '$42k–$58k/yr', industry: 'logistics', miles: 6 },
-    { title: 'Correctional Officer', employer: 'NYS DOCCS', type: 'Full-time', pay: '$45k–$65k/yr', industry: 'security', miles: 30 },
-  ],
-  'Fort Sill': [
-    { title: 'Registered Nurse', employer: 'Reynolds Army Health Clinic', type: 'Full-time', pay: '$55k–$75k/yr', industry: 'health', miles: 5 },
-    { title: 'IT Support Specialist', employer: 'Engility', type: 'Full-time', pay: '$55k–$72k/yr', industry: 'tech', miles: 8 },
-    { title: 'Defense Systems Engineer', employer: 'Lockheed Martin', type: 'Full-time', pay: '$75k–$100k/yr', industry: 'eng', miles: 10 },
-    { title: 'Automotive Technician', employer: 'David Stanley Chevrolet', type: 'Full-time', pay: '$45k–$62k/yr', industry: 'trades', miles: 12 },
-    { title: 'Teacher / Instructor', employer: 'Lawton Public Schools', type: 'Full-time', pay: '$38k–$55k/yr', industry: 'edu', miles: 8 },
-  ],
-  'Fort Jackson': [
-    { title: 'RN / Travel Nurse', employer: 'Prisma Health', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 15 },
-    { title: 'Cybersecurity Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$75k–$98k/yr', industry: 'tech', miles: 18 },
-    { title: 'HR Specialist', employer: 'Army Civilian Corps', type: 'Full-time', pay: '$52k–$70k/yr', industry: 'hr', miles: 5 },
-    { title: 'Financial Advisor', employer: 'USAA', type: 'Full-time', pay: '$62k–$90k/yr', industry: 'business', miles: 12 },
-    { title: 'Logistics Analyst', employer: 'Michelin North America', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'logistics', miles: 30 },
-    { title: 'Teacher', employer: 'Richland School District', type: 'Full-time', pay: '$38k–$55k/yr', industry: 'edu', miles: 20 },
-  ],
-  'Fort Meade': [
-    { title: 'Cybersecurity Engineer', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$95k–$130k/yr', industry: 'tech', miles: 5 },
-    { title: 'Intelligence Analyst', employer: 'NSA / DoD', type: 'Full-time', pay: '$90k–$125k/yr', industry: 'govt', miles: 2 },
-    { title: 'Software Developer', employer: 'CACI International', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'tech', miles: 8 },
-    { title: 'Data Scientist', employer: 'Leidos', type: 'Full-time', pay: '$95k–$128k/yr', industry: 'tech', miles: 10 },
-    { title: 'Registered Nurse', employer: 'Johns Hopkins Howard County', type: 'Full-time', pay: '$70k–$92k/yr', industry: 'health', miles: 12 },
-    { title: 'Security Specialist', employer: 'Peraton', type: 'Full-time', pay: '$88k–$115k/yr', industry: 'security', miles: 6 },
-    { title: 'Program Manager', employer: 'Northrop Grumman', type: 'Full-time', pay: '$100k–$140k/yr', industry: 'business', miles: 15 },
-  ],
-  'Fort Knox': [
-    { title: 'Registered Nurse', employer: 'Ireland Army Health Clinic', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'health', miles: 5 },
-    { title: 'IT Specialist', employer: 'Engility', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'tech', miles: 8 },
-    { title: 'Financial Analyst', employer: 'Fort Knox Federal Credit Union', type: 'Full-time', pay: '$50k–$68k/yr', industry: 'business', miles: 3 },
-    { title: 'Logistics Analyst', employer: 'DLA', type: 'Full-time', pay: '$55k–$75k/yr', industry: 'logistics', miles: 10 },
-    { title: 'Teacher', employer: 'Hardin County Schools', type: 'Full-time', pay: '$36k–$52k/yr', industry: 'edu', miles: 8 },
-  ],
-  'Fort Sam Houston': [
-    { title: 'Registered Nurse', employer: 'Brooke Army Medical Center', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 3 },
-    { title: 'Physician Assistant', employer: 'UT Health San Antonio', type: 'Full-time', pay: '$90k–$120k/yr', industry: 'health', miles: 10 },
-    { title: 'Cybersecurity Analyst', employer: 'USAA', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'tech', miles: 8 },
-    { title: 'Financial Advisor', employer: 'USAA', type: 'Full-time', pay: '$65k–$95k/yr', industry: 'business', miles: 8 },
-    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$82k–$108k/yr', industry: 'govt', miles: 12 },
-    { title: 'Software Developer', employer: 'SAIC', type: 'Full-time', pay: '$88k–$115k/yr', industry: 'tech', miles: 14 },
-    { title: 'Logistics Manager', employer: 'H-E-B', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'logistics', miles: 15 },
-  ],
-  'Joint Base San Antonio': [
-    { title: 'Registered Nurse', employer: 'University Health System', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'health', miles: 8 },
-    { title: 'Cybersecurity Analyst', employer: 'USAA', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'tech', miles: 5 },
-    { title: 'Financial Advisor', employer: 'USAA', type: 'Full-time', pay: '$65k–$95k/yr', industry: 'business', miles: 5 },
-    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$82k–$108k/yr', industry: 'govt', miles: 10 },
-    { title: 'Software Developer', employer: 'SAIC', type: 'Full-time', pay: '$88k–$115k/yr', industry: 'tech', miles: 12 },
-    { title: 'Logistics Manager', employer: 'H-E-B', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'logistics', miles: 15 },
-  ],
-  'Schofield Barracks': [
-    { title: 'RN Emergency Nurse', employer: 'Tripler Army Medical Center', type: 'Full-time', pay: '$78k–$105k/yr', industry: 'health', miles: 20 },
-    { title: 'Software Engineer', employer: 'Oceanit Labs', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'tech', miles: 20 },
-    { title: 'IT Specialist', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$78k–$105k/yr', industry: 'tech', miles: 22 },
-    { title: 'Intelligence Analyst', employer: 'DIA', type: 'Full-time', pay: '$82k–$112k/yr', industry: 'govt', miles: 22 },
-    { title: 'Teacher', employer: 'Hawaii DOE', type: 'Full-time', pay: '$48k–$75k/yr', industry: 'edu', miles: 15 },
-    { title: 'Construction Manager', employer: 'Hawaiian Dredging Construction', type: 'Full-time', pay: '$75k–$100k/yr', industry: 'eng', miles: 22 },
-  ],
-  'Naval Station Norfolk': [
-    { title: 'Cybersecurity Analyst', employer: 'CACI International', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'tech', miles: 10 },
-    { title: 'Registered Nurse', employer: 'Sentara Healthcare', type: 'Full-time', pay: '$65k–$88k/yr', industry: 'health', miles: 12 },
-    { title: 'Naval Architect', employer: 'General Dynamics NASSCO', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'eng', miles: 8 },
-    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$82k–$110k/yr', industry: 'govt', miles: 10 },
-    { title: 'Program Manager', employer: 'Lockheed Martin', type: 'Full-time', pay: '$95k–$130k/yr', industry: 'business', miles: 15 },
-    { title: 'Logistics Analyst', employer: 'DLA', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'logistics', miles: 6 },
-    { title: 'Network Engineer', employer: 'SAIC', type: 'Full-time', pay: '$78k–$102k/yr', industry: 'tech', miles: 12 },
-  ],
-  'Naval Base San Diego': [
-    { title: 'Systems Engineer', employer: 'General Dynamics Mission Systems', type: 'Full-time', pay: '$95k–$130k/yr', industry: 'eng', miles: 10 },
-    { title: 'Registered Nurse', employer: 'Scripps Health', type: 'Full-time', pay: '$72k–$98k/yr', industry: 'health', miles: 15 },
-    { title: 'Cybersecurity Analyst', employer: 'Leidos', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 12 },
-    { title: 'Intelligence Analyst', employer: 'SAIC', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 8 },
-    { title: 'Software Developer', employer: 'Qualcomm', type: 'Full-time', pay: '$110k–$145k/yr', industry: 'tech', miles: 18 },
-    { title: 'Program Manager', employer: 'Northrop Grumman', type: 'Full-time', pay: '$100k–$135k/yr', industry: 'business', miles: 15 },
-    { title: 'Security Specialist', employer: 'CBP / DHS', type: 'Full-time', pay: '$60k–$85k/yr', industry: 'security', miles: 5 },
-  ],
-  'NAS Jacksonville': [
-    { title: 'RN / Travel Nurse', employer: 'Baptist Medical Center', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 15 },
-    { title: 'Software Developer', employer: 'CSX Technology', type: 'Full-time', pay: '$82k–$108k/yr', industry: 'tech', miles: 18 },
-    { title: 'Cybersecurity Analyst', employer: 'EverBank', type: 'Full-time', pay: '$75k–$100k/yr', industry: 'tech', miles: 20 },
-    { title: 'Logistics Analyst', employer: 'Amazon', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'logistics', miles: 22 },
-    { title: 'Financial Analyst', employer: 'Fidelity National Information Services', type: 'Full-time', pay: '$68k–$90k/yr', industry: 'business', miles: 20 },
-  ],
-  'Naval Station Mayport': [
-    { title: 'RN / Travel Nurse', employer: 'Mayo Clinic Florida', type: 'Full-time', pay: '$70k–$95k/yr', industry: 'health', miles: 20 },
-    { title: 'Software Developer', employer: 'CSX Technology', type: 'Full-time', pay: '$82k–$108k/yr', industry: 'tech', miles: 18 },
-    { title: 'Logistics Analyst', employer: 'Amazon', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'logistics', miles: 22 },
-    { title: 'Financial Analyst', employer: 'Fidelity National Information Services', type: 'Full-time', pay: '$68k–$90k/yr', industry: 'business', miles: 20 },
-    { title: 'Intelligence Analyst', employer: 'Leidos', type: 'Full-time', pay: '$78k–$105k/yr', industry: 'govt', miles: 18 },
-  ],
-  'NAS Pensacola': [
-    { title: 'RN / Navy Nurse', employer: 'Naval Hospital Pensacola', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 5 },
-    { title: 'Cybersecurity Analyst', employer: 'SAIC', type: 'Full-time', pay: '$72k–$95k/yr', industry: 'tech', miles: 10 },
-    { title: 'Aviation Systems Engineer', employer: 'L3Harris', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'eng', miles: 8 },
-    { title: 'Intelligence Analyst', employer: 'Leidos', type: 'Full-time', pay: '$78k–$105k/yr', industry: 'govt', miles: 10 },
-    { title: 'Maintenance Technician', employer: 'Naval Air Station Pensacola', type: 'Full-time', pay: '$45k–$65k/yr', industry: 'trades', miles: 3 },
-  ],
-  'Marine Corps Base Camp Lejeune': [
-    { title: 'RN Trauma Nurse', employer: 'Onslow Memorial Hospital', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'health', miles: 8 },
-    { title: 'IT Systems Administrator', employer: 'SAIC', type: 'Full-time', pay: '$68k–$90k/yr', industry: 'tech', miles: 5 },
-    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'govt', miles: 10 },
-    { title: 'Logistics Coordinator', employer: 'ARAMARK', type: 'Full-time', pay: '$42k–$58k/yr', industry: 'logistics', miles: 6 },
-    { title: 'Police Officer', employer: 'Jacksonville PD', type: 'Full-time', pay: '$40k–$58k/yr', industry: 'security', miles: 8 },
-    { title: 'Teacher', employer: 'Onslow County Schools', type: 'Full-time', pay: '$38k–$55k/yr', industry: 'edu', miles: 10 },
-  ],
-  'Camp Pendleton': [
-    { title: 'Software Engineer', employer: 'SAIC', type: 'Full-time', pay: '$95k–$125k/yr', industry: 'tech', miles: 18 },
-    { title: 'Registered Nurse', employer: 'Tri-City Medical Center', type: 'Full-time', pay: '$72k–$95k/yr', industry: 'health', miles: 15 },
-    { title: 'Cybersecurity Analyst', employer: 'Raytheon', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'tech', miles: 20 },
-    { title: 'Intelligence Analyst', employer: 'Leidos', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 20 },
-    { title: 'Program Manager', employer: 'Northrop Grumman', type: 'Full-time', pay: '$100k–$135k/yr', industry: 'business', miles: 25 },
-    { title: 'Police Officer', employer: 'Oceanside Police Department', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'security', miles: 12 },
-  ],
-  'MCAS Miramar': [
-    { title: 'Software Engineer', employer: 'Qualcomm', type: 'Full-time', pay: '$110k–$145k/yr', industry: 'tech', miles: 15 },
-    { title: 'Cybersecurity Analyst', employer: 'Leidos', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 12 },
-    { title: 'RN / Nurse Practitioner', employer: 'Sharp Healthcare', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'health', miles: 10 },
-    { title: 'Intelligence Analyst', employer: 'SAIC', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 8 },
-    { title: 'Logistics Manager', employer: 'Amazon', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'logistics', miles: 18 },
-  ],
-  'MCB Quantico': [
-    { title: 'Cybersecurity Engineer', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$95k–$130k/yr', industry: 'tech', miles: 10 },
-    { title: 'Intelligence Analyst (FBI)', employer: 'FBI / DOJ', type: 'Full-time', pay: '$90k–$120k/yr', industry: 'govt', miles: 5 },
-    { title: 'Data Scientist', employer: 'Leidos', type: 'Full-time', pay: '$95k–$128k/yr', industry: 'tech', miles: 12 },
-    { title: 'Security Specialist', employer: 'Peraton', type: 'Full-time', pay: '$88k–$115k/yr', industry: 'security', miles: 8 },
-    { title: 'Registered Nurse', employer: 'Inova Health System', type: 'Full-time', pay: '$72k–$98k/yr', industry: 'health', miles: 20 },
-    { title: 'Program Manager', employer: 'SAIC', type: 'Full-time', pay: '$100k–$135k/yr', industry: 'business', miles: 15 },
-  ],
-  'Joint Base Langley-Eustis': [
-    { title: 'Cybersecurity Analyst', employer: 'CACI International', type: 'Full-time', pay: '$80k–$105k/yr', industry: 'tech', miles: 10 },
-    { title: 'Registered Nurse', employer: 'Sentara CarePlex Hospital', type: 'Full-time', pay: '$65k–$88k/yr', industry: 'health', miles: 8 },
-    { title: 'Systems Engineer', employer: 'Northrop Grumman', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'eng', miles: 12 },
-    { title: 'Intelligence Analyst', employer: 'Leidos', type: 'Full-time', pay: '$82k–$110k/yr', industry: 'govt', miles: 8 },
-    { title: 'Financial Analyst', employer: 'Canon Solutions America', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'business', miles: 15 },
-    { title: 'Logistics Analyst', employer: 'DLA', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'logistics', miles: 6 },
-  ],
-  'Eglin AFB': [
-    { title: 'Aerospace Engineer', employer: 'L3Harris Technologies', type: 'Full-time', pay: '$90k–$125k/yr', industry: 'eng', miles: 10 },
-    { title: 'Software Developer', employer: 'SAIC', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 12 },
-    { title: 'RN Emergency Nurse', employer: 'HCA Florida Fort Walton-Destin', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 10 },
-    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'govt', miles: 12 },
-    { title: 'Logistics Analyst', employer: 'Elbit Systems of America', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'logistics', miles: 8 },
-  ],
-  'Hurlburt Field': [
-    { title: 'Special Operations Analyst', employer: 'Leidos', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 5 },
-    { title: 'Software Developer', employer: 'SAIC', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 8 },
-    { title: 'Registered Nurse', employer: 'HCA Florida Fort Walton-Destin', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 8 },
-    { title: 'Aerospace Engineer', employer: 'L3Harris Technologies', type: 'Full-time', pay: '$90k–$125k/yr', industry: 'eng', miles: 12 },
-    { title: 'Intelligence Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'govt', miles: 12 },
-  ],
-  'MacDill AFB': [
-    { title: 'Cybersecurity Analyst', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 10 },
-    { title: 'Registered Nurse', employer: 'Tampa General Hospital', type: 'Full-time', pay: '$68k–$90k/yr', industry: 'health', miles: 10 },
-    { title: 'Intelligence Analyst (CENTCOM)', employer: 'CACI International', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'govt', miles: 5 },
-    { title: 'Financial Advisor', employer: 'Raymond James', type: 'Full-time', pay: '$70k–$120k/yr', industry: 'business', miles: 12 },
-    { title: 'Software Engineer', employer: 'Leidos', type: 'Full-time', pay: '$90k–$120k/yr', industry: 'tech', miles: 12 },
-    { title: 'Logistics Analyst', employer: 'Amazon', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'logistics', miles: 20 },
-  ],
-  'Travis AFB': [
-    { title: 'Software Engineer', employer: 'Intel Corporation', type: 'Full-time', pay: '$105k–$145k/yr', industry: 'tech', miles: 25 },
-    { title: 'Registered Nurse', employer: 'Kaiser Permanente', type: 'Full-time', pay: '$78k–$105k/yr', industry: 'health', miles: 20 },
-    { title: 'Intelligence Analyst', employer: 'SAIC', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 12 },
-    { title: 'Logistics Analyst', employer: 'Amazon', type: 'Full-time', pay: '$65k–$85k/yr', industry: 'logistics', miles: 22 },
-    { title: 'Civil Engineer', employer: 'Sacramento Municipal Utility District', type: 'Full-time', pay: '$70k–$95k/yr', industry: 'eng', miles: 35 },
-  ],
-  'Wright-Patterson AFB': [
-    { title: 'Aerospace Engineer', employer: 'Air Force Research Laboratory', type: 'Full-time', pay: '$82k–$115k/yr', industry: 'eng', miles: 5 },
-    { title: 'Software Developer', employer: 'Leidos', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'tech', miles: 8 },
-    { title: 'Registered Nurse', employer: 'Kettering Health Network', type: 'Full-time', pay: '$62k–$82k/yr', industry: 'health', miles: 15 },
-    { title: 'Cybersecurity Engineer', employer: 'SAIC', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 10 },
-    { title: 'Program Manager', employer: 'Northrop Grumman', type: 'Full-time', pay: '$100k–$135k/yr', industry: 'business', miles: 12 },
-    { title: 'Data Scientist', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$90k–$120k/yr', industry: 'tech', miles: 8 },
-  ],
-  'Nellis AFB': [
-    { title: 'Software Engineer', employer: 'Switch', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'tech', miles: 18 },
-    { title: 'Registered Nurse', employer: 'Valley Health System', type: 'Full-time', pay: '$68k–$92k/yr', industry: 'health', miles: 15 },
-    { title: 'Cybersecurity Analyst', employer: 'Leidos', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'tech', miles: 12 },
-    { title: 'Intelligence Analyst', employer: 'SAIC', type: 'Full-time', pay: '$82k–$110k/yr', industry: 'govt', miles: 10 },
-    { title: 'Financial Advisor', employer: 'First Command Financial Services', type: 'Full-time', pay: '$60k–$95k/yr', industry: 'business', miles: 20 },
-    { title: 'Hotel Operations Manager', employer: 'MGM Resorts International', type: 'Full-time', pay: '$65k–$90k/yr', industry: 'business', miles: 20 },
-  ],
-  'Joint Base Andrews': [
-    { title: 'Cybersecurity Engineer', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$95k–$130k/yr', industry: 'tech', miles: 12 },
-    { title: 'Intelligence Analyst', employer: 'DIA', type: 'Full-time', pay: '$88k–$120k/yr', industry: 'govt', miles: 8 },
-    { title: 'Registered Nurse', employer: 'Prince George\'s County Health Dept', type: 'Full-time', pay: '$72k–$98k/yr', industry: 'health', miles: 10 },
-    { title: 'Software Developer', employer: 'CACI International', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'tech', miles: 15 },
-    { title: 'Program Manager', employer: 'Leidos', type: 'Full-time', pay: '$100k–$135k/yr', industry: 'business', miles: 12 },
-    { title: 'Transportation Security Officer', employer: 'TSA / DHS', type: 'Full-time', pay: '$42k–$65k/yr', industry: 'security', miles: 20 },
-  ],
-  'Joint Base Charleston': [
-    { title: 'Registered Nurse', employer: 'MUSC Health', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 12 },
-    { title: 'Software Developer', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$82k–$110k/yr', industry: 'tech', miles: 15 },
-    { title: 'Logistics Analyst', employer: 'DLA', type: 'Full-time', pay: '$55k–$75k/yr', industry: 'logistics', miles: 8 },
-    { title: 'Intelligence Analyst', employer: 'SAIC', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'govt', miles: 10 },
-    { title: 'Financial Analyst', employer: 'Truist Bank', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'business', miles: 15 },
-  ],
-  'Joint Base Elmendorf-Richardson': [
-    { title: 'RN / Nurse Practitioner', employer: 'Providence Alaska Medical Center', type: 'Full-time', pay: '$75k–$100k/yr', industry: 'health', miles: 10 },
-    { title: 'Software Engineer', employer: 'GCI / Alaska Communications', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 12 },
-    { title: 'Intelligence Analyst', employer: 'Leidos', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 8 },
-    { title: 'Petroleum Engineer', employer: 'ConocoPhillips Alaska', type: 'Full-time', pay: '$100k–$140k/yr', industry: 'eng', miles: 50 },
-    { title: 'Teacher', employer: 'Anchorage School District', type: 'Full-time', pay: '$50k–$75k/yr', industry: 'edu', miles: 10 },
-  ],
-  'Joint Base Pearl Harbor-Hickam': [
-    { title: 'RN / Travel Nurse', employer: 'Tripler Army Medical Center', type: 'Full-time', pay: '$78k–$105k/yr', industry: 'health', miles: 8 },
-    { title: 'Software Engineer', employer: 'Oceanit Labs', type: 'Full-time', pay: '$88k–$118k/yr', industry: 'tech', miles: 12 },
-    { title: 'Intelligence Analyst', employer: 'SAIC', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 10 },
-    { title: 'Logistics Analyst', employer: 'DLA', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'logistics', miles: 8 },
-    { title: 'Teacher', employer: 'Hawaii DOE', type: 'Full-time', pay: '$48k–$72k/yr', industry: 'edu', miles: 15 },
-  ],
-  'Camp Humphreys': [
-    { title: 'IT Systems Specialist', employer: 'U.S. Forces Korea', type: 'Full-time', pay: '$65k–$88k/yr', industry: 'tech', miles: 5 },
-    { title: 'RN / Medical Technologist', employer: 'Brian Allgood Army Community Hospital', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 3 },
-    { title: 'Intelligence Analyst', employer: 'U.S. 8th Army', type: 'Full-time', pay: '$78k–$105k/yr', industry: 'govt', miles: 5 },
-    { title: 'Logistics Coordinator', employer: 'DLA Korea', type: 'Full-time', pay: '$55k–$75k/yr', industry: 'logistics', miles: 5 },
-    { title: 'Teacher', employer: 'DoDEA Korea', type: 'Full-time', pay: '$48k–$72k/yr', industry: 'edu', miles: 3 },
-  ],
-  'Fort Eisenhower': [
-    { title: 'Cybersecurity Engineer', employer: 'Booz Allen Hamilton', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'tech', miles: 8 },
-    { title: 'Registered Nurse', employer: 'Augusta University Health', type: 'Full-time', pay: '$62k–$85k/yr', industry: 'health', miles: 12 },
-    { title: 'Software Developer', employer: 'SAIC', type: 'Full-time', pay: '$80k–$108k/yr', industry: 'tech', miles: 10 },
-    { title: 'Intelligence Analyst', employer: 'NSA / DoD', type: 'Full-time', pay: '$85k–$115k/yr', industry: 'govt', miles: 5 },
-    { title: 'Financial Analyst', employer: 'SRP Federal Credit Union', type: 'Full-time', pay: '$52k–$70k/yr', industry: 'business', miles: 10 },
-  ],
-  'Fort Wainwright': [
-    { title: 'RN / ER Nurse', employer: 'Fairbanks Memorial Hospital', type: 'Full-time', pay: '$70k–$95k/yr', industry: 'health', miles: 8 },
-    { title: 'IT Systems Analyst', employer: 'Denali Federal Credit Union', type: 'Full-time', pay: '$60k–$80k/yr', industry: 'tech', miles: 10 },
-    { title: 'Government Analyst', employer: 'Department of the Army', type: 'Full-time', pay: '$55k–$75k/yr', industry: 'govt', miles: 5 },
-    { title: 'Petroleum Technician', employer: 'Doyon Utilities', type: 'Full-time', pay: '$60k–$85k/yr', industry: 'trades', miles: 8 },
-    { title: 'Teacher', employer: 'Fairbanks North Star Borough Schools', type: 'Full-time', pay: '$48k–$72k/yr', industry: 'edu', miles: 8 },
-  ],
-  'Fort Leonard Wood': [
-    { title: 'Registered Nurse', employer: 'General Leonard Wood Army Community Hospital', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'health', miles: 5 },
-    { title: 'IT Specialist', employer: 'Engility', type: 'Full-time', pay: '$58k–$78k/yr', industry: 'tech', miles: 8 },
-    { title: 'Government Analyst', employer: 'Department of the Army', type: 'Full-time', pay: '$50k–$68k/yr', industry: 'govt', miles: 3 },
-    { title: 'HVAC Technician', employer: 'Johnson Controls', type: 'Full-time', pay: '$48k–$65k/yr', industry: 'trades', miles: 10 },
-    { title: 'Teacher', employer: 'Waynesville School District', type: 'Full-time', pay: '$36k–$52k/yr', industry: 'edu', miles: 12 },
-  ],
+function installLabel(profile) {
+  const raw = profile?.gainingInstallation || ''
+  return raw.split(',')[0].trim() || 'your gaining installation'
+}
+
+function cityFor(profile) {
+  const installation = installLabel(profile)
+  return BASE_CITY[installation] || installation
+}
+
+function encoded(value) {
+  return encodeURIComponent(String(value || '').trim())
+}
+
+function linkStyle(color) {
+  return {
+    flexShrink: 0,
+    alignSelf: 'center',
+    padding: '9px 14px',
+    borderRadius: 8,
+    background: color,
+    color: '#FFFFFF',
+    textDecoration: 'none',
+    fontWeight: 900,
+    fontSize: 11,
+    border: 0,
+  }
+}
+
+function Card({ item, copy }) {
+  const description = copy.lang === 'en'
+    ? item.desc
+    : (item.official ? copy.text('resourceText') : copy.text('externalText'))
+  const badgeText = copy.text(item.badgeKey || (item.official ? 'official' : 'external'))
+
+  return (
+    <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', background: '#FFFFFF', border: '1px solid #D7E0EA', borderLeft: `4px solid ${item.color || '#334155'}`, borderRadius: 8, padding: 14, marginBottom: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 5 }}>
+            <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821' }}>{item.name}</div>
+            <span style={{ fontSize: 9, fontWeight: 900, color: '#FFFFFF', background: item.color || '#334155', padding: '3px 7px', borderRadius: 999, textTransform: 'uppercase' }}>{badgeText}</span>
+          </div>
+          <div style={{ fontSize: 11, lineHeight: 1.55, color: '#46586B' }}>{description}</div>
+        </div>
+        <span style={linkStyle(item.color || '#334155')}>{copy.text('open')}</span>
+      </div>
+    </a>
+  )
+}
+
+function SectionIntro({ title, lead, children }) {
+  return (
+    <div style={{ background: '#F7FAFC', border: '1px solid #D7E0EA', borderRadius: 8, padding: 14, marginBottom: 14 }}>
+      <div style={{ fontSize: 14, fontWeight: 900, color: '#0D1821', marginBottom: 5 }}>{title}</div>
+      <div style={{ fontSize: 11, color: '#46586B', lineHeight: 1.55 }}>{lead}</div>
+      {children}
+    </div>
+  )
 }
 
 function EmploymentModule({ theme, profile }) {
-  const [activeTab, setActiveTab] = useState('search')
+  const [activeTab, setActiveTab] = useState('jobSearch')
+  const [keyword, setKeyword] = useState('')
+  const copy = useCopy(profile)
+  const installation = installLabel(profile)
+  const searchCity = cityFor(profile)
 
-  const [skills, setSkills] = useState(() => {
-    return readLegacyJson('pcs_employment_skills', [])
+  const liveSearches = useMemo(() => {
+    const kw = keyword.trim() || 'military spouse'
+    const localKw = encoded(kw)
+    const loc = encoded(searchCity)
+    const spouseKw = encoded(`${kw} military spouse`)
+    return [
+      { name: `USAJOBS - ${searchCity}`, badgeKey: 'federal', url: `https://www.usajobs.gov/Search/Results?k=${localKw}&l=${loc}`, desc: 'Current federal listings near the gaining installation. Use USAJOBS filters for remote, telework, pay grade, agency, and hiring path.', official: true, color: '#1F4E79' },
+      { name: 'USAJOBS Military Spouse Hiring Path', badgeKey: 'spouse', url: 'https://milspouse.usajobs.gov/', desc: 'Official federal hiring path for eligible military spouses.', official: true, color: '#5B3E8A' },
+      { name: `LinkedIn - ${searchCity}`, badgeKey: 'external', url: `https://www.linkedin.com/jobs/search/?keywords=${spouseKw}&location=${loc}`, desc: 'Requested external job board search for current local or remote roles. Use LinkedIn filters for remote, hybrid, company, and date posted.', official: false, color: '#0A66C2' },
+      { name: `Indeed - ${searchCity}`, badgeKey: 'external', url: `https://www.indeed.com/jobs?q=${spouseKw}&l=${loc}`, desc: 'Requested external job board search for current local or remote roles. Use date posted and remote filters on Indeed.', official: false, color: '#2557A7' },
+      { name: `ClearanceJobs - ${searchCity}`, badgeKey: 'external', url: `https://www.clearancejobs.com/jobs?keywords=${localKw}&location=${loc}`, desc: 'Requested external clearance-friendly job board search. Verify eligibility and clearance requirements on each posting.', official: false, color: '#334155' },
+      { name: 'MSEP Military Spouse Employers', badgeKey: 'spouse', url: 'https://msepjobs.militaryonesource.mil/msep/', desc: 'Official DoD employment partnership for spouse-friendly employers and current opportunities.', official: true, color: '#176B6B' },
+    ]
+  }, [keyword, searchCity])
+
+  const internshipSearches = useMemo(() => {
+    const loc = encoded(searchCity)
+    return [
+      { name: `USAJOBS Internships - ${searchCity}`, badgeKey: 'federal', url: `https://www.usajobs.gov/Search/Results?k=internship&l=${loc}&hp=student`, desc: 'Current USAJOBS internship search near the gaining installation using the student hiring path.', official: true, color: '#1F4E79' },
+      { name: 'USAJOBS Remote Internships', badgeKey: 'remote', url: 'https://www.usajobs.gov/Search/Results?k=internship&rmi=true&hp=student', desc: 'Current USAJOBS remote internship search for users who need portable options.', official: true, color: '#2C6E49' },
+      ...RESOURCE_SETS.internships,
+    ]
+  }, [searchCity])
+
+  const tabs = TAB_ORDER.map(([id, labelKey]) => ({ id, label: copy.text(labelKey) }))
+  const tabStyle = (id) => ({
+    padding: '8px 10px',
+    borderRadius: 8,
+    border: `1.5px solid ${activeTab === id ? theme.primary : '#D7E0EA'}`,
+    background: activeTab === id ? theme.primary : '#FFFFFF',
+    color: activeTab === id ? '#FFFFFF' : '#46586B',
+    fontSize: 10,
+    fontWeight: 900,
+    cursor: 'pointer',
+    letterSpacing: '.03em',
+    textTransform: 'uppercase',
   })
-  const [newSkill, setNewSkill] = useState('')
-  const [newSkillCat, setNewSkillCat] = useState('technical')
 
-  const [radius, setRadius] = useState(25)
-  const [selectedIndustries, setSelectedIndustries] = useState(new Set())
-  const [showResults, setShowResults] = useState(false)
-
-
-  useEffect(() => {
-    secureLocalStore.set('pcs_employment_skills', skills)
-  }, [skills])
-
-  useEffect(() => {
-    secureLocalStore.get('pcs_employment_skills', null).then(saved => {
-      if (Array.isArray(saved)) setSkills(saved)
-    })
-  }, [])
-
-  const installName = (profile?.gainingInstallation || '').split(',')[0].trim()
-  const searchCity = BASE_CITY[installName] || (installName ? `${installName} area` : 'your area')
-
-  const addSkill = () => {
-    const name = newSkill.trim()
-    if (!name || skills.some(s => s.name.toLowerCase() === name.toLowerCase())) return
-    setSkills(prev => [...prev, { name, cat: newSkillCat }])
-    setNewSkill('')
-  }
-
-  const removeSkill = idx => setSkills(prev => prev.filter((_, i) => i !== idx))
-
-  const toggleIndustry = id => {
-    setSelectedIndustries(prev => {
-      const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
-      return next
-    })
-    setShowResults(false)
-  }
-
-  const buildSearchUrl = (board) => {
-    const industryKw = [...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.keywords || '').join(' ')
-    const skillKw = skills.map(s => s.name).join(' ')
-    const kw = encodeURIComponent([industryKw, skillKw].filter(Boolean).join(' ').trim() || 'jobs')
-    const loc = encodeURIComponent(searchCity)
-    switch (board) {
-      case 'myseco': return 'https://myseco.militaryonesource.mil/portal/'
-      case 'dol': return 'https://www.dol.gov/agencies/vets/veterans/military-spouses/employment'
-      case 'usajobs':
-      default: return `https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}`
-    }
-  }
-
-  const TABS = [
-    { id: 'search',          label: 'Job Search'      },
-    { id: 'jobboards',       label: 'Job Resources'   },
-  ]
-
-  const tb = (t) => ({
-    padding: '7px 11px', borderRadius: 8,
-    border: `1.5px solid ${activeTab === t.id ? theme.primary : '#E0E6EE'}`,
-    background: activeTab === t.id ? theme.primary : '#FFF',
-    color: activeTab === t.id ? '#FFF' : '#56697C',
-    fontSize: 10, fontWeight: 800, cursor: 'pointer',
-    letterSpacing: '.04em', textTransform: 'uppercase',
-  })
+  const renderCards = (items) => items.map((item) => <Card key={`${item.name}-${item.url}`} item={item} copy={copy} />)
 
   return (
-    <div style={{ padding: 16 }}>
-      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 2 }}>Employment & Career Center</div>
-      <div style={{ fontSize: 11, color: '#56697C', marginBottom: 16 }}>Service members & military spouses · {searchCity}</div>
-
-      <div style={{ display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' }}>
-        {TABS.map(t => <button key={t.id} onClick={() => setActiveTab(t.id)} style={tb(t)}>{t.label}</button>)}
+    <div data-no-translate style={{ padding: 16 }} dir={copy.lang === 'ar' ? 'rtl' : 'ltr'} lang={copy.lang}>
+      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 2 }}>{copy.text('title')}</div>
+      <div style={{ fontSize: 11, color: '#46586B', marginBottom: 10 }}>{copy.text('subtitle')} {searchCity}</div>
+      <div style={{ background: '#EDF4FA', border: '1px solid #D7E0EA', borderRadius: 8, padding: 12, marginBottom: 12 }}>
+        <div style={{ fontSize: 10, fontWeight: 900, color: '#334155', letterSpacing: '.09em', marginBottom: 4 }}>{copy.text('searchLocation')}</div>
+        <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821' }}>{installation} - {searchCity}</div>
+        <div style={{ fontSize: 11, color: '#46586B', lineHeight: 1.55, marginTop: 6 }}>{copy.text('sourcePolicy')}</div>
+        {copy.lang !== 'en' && <div style={{ fontSize: 11, color: '#46586B', lineHeight: 1.55, marginTop: 5 }}>{copy.text('languageNote')} ({LANGUAGE_NAMES[copy.lang] || copy.lang})</div>}
       </div>
 
-      {/* ── SKILLS PROFILE ── */}
-      {activeTab === 'skills' && (
-        <div>
-          <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, marginBottom: 16, borderLeft: `3px solid ${theme.accent}` }}>
-            <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 4 }}>YOUR SKILLS PROFILE</div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', lineHeight: 1.5 }}>Skills drive your Recommendations and Job Search results. Add technical skills, soft skills, certifications, and languages.</div>
-          </div>
-
-          <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#0D1821', marginBottom: 10 }}>Add a Skill</div>
-            <input
-              value={newSkill}
-              onChange={e => setNewSkill(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addSkill()}
-              placeholder="e.g. Project Management, Python, EMT-B, Spanish, PMP..."
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #E0E6EE', fontSize: 13, marginBottom: 10, boxSizing: 'border-box', outline: 'none' }}
-            />
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-              {SKILL_CATS.map(cat => (
-                <button key={cat.id} onClick={() => setNewSkillCat(cat.id)} style={{ padding: '5px 12px', borderRadius: 20, border: `1.5px solid ${newSkillCat === cat.id ? cat.color : '#E0E6EE'}`, background: newSkillCat === cat.id ? cat.color : '#FFF', color: newSkillCat === cat.id ? '#FFF' : '#56697C', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-            <button onClick={addSkill} style={{ width: '100%', padding: '10px', borderRadius: 10, background: theme.primary, color: '#FFF', border: 'none', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-              Add Skill
-            </button>
-          </div>
-
-          {skills.length > 0 ? (
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#56697C', letterSpacing: '.1em', marginBottom: 10 }}>YOUR SKILLS ({skills.length})</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
-                {skills.map((skill, i) => {
-                  const cat = SKILL_CATS.find(c => c.id === skill.cat) || SKILL_CATS[0]
-                  return (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, background: `${cat.color}12`, border: `1px solid ${cat.color}35`, borderRadius: 20, padding: '5px 10px' }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: cat.color }}>{skill.name}</span>
-                      <span style={{ fontSize: 9, color: `${cat.color}AA`, fontWeight: 600 }}>{cat.label}</span>
-                      <button onClick={() => removeSkill(i)} style={{ background: 'none', border: 'none', color: cat.color, fontSize: 15, cursor: 'pointer', padding: 0, lineHeight: 1, opacity: 0.65 }}>×</button>
-                    </div>
-                  )
-                })}
-              </div>
-              <button onClick={() => setActiveTab('recommendations')} style={{ width: '100%', padding: '12px', borderRadius: 10, background: theme.accent, color: theme.secondary, border: 'none', fontWeight: 900, fontSize: 13, cursor: 'pointer' }}>
-                View Matched Jobs →
-              </button>
-            </div>
-          ) : (
-            <div style={{ background: '#F0F4F8', borderRadius: 12, padding: 20, textAlign: 'center', color: '#888' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>No skills added yet</div>
-              <div style={{ fontSize: 11 }}>Add skills above to unlock personalized job recommendations.</div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── JOB SEARCH ── */}
-      {activeTab === 'search' && (
-        <div>
-          <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, marginBottom: 16, borderLeft: `3px solid ${theme.accent}` }}>
-            <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 2 }}>SEARCH AREA</div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: '#FFF' }}>{searchCity}</div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)' }}>Near {installName || 'your gaining installation'}</div>
-          </div>
-
-          <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: '#56697C', letterSpacing: '.1em', marginBottom: 10 }}>SEARCH RADIUS</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {[10, 25, 50, 75, 100].map(r => (
-                <button key={r} onClick={() => { setRadius(r); setShowResults(false) }} style={{ flex: 1, padding: '9px 4px', borderRadius: 8, border: `1.5px solid ${radius === r ? theme.primary : '#E0E6EE'}`, background: radius === r ? theme.primary : '#FFF', color: radius === r ? '#FFF' : '#56697C', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>
-                  {r}mi
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: '#56697C', letterSpacing: '.1em', marginBottom: 10 }}>
-              INDUSTRY FILTER <span style={{ fontWeight: 500, fontSize: 10, letterSpacing: 0 }}>— select one or more</span>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {INDUSTRIES.map(ind => {
-                const sel = selectedIndustries.has(ind.id)
-                return (
-                  <button key={ind.id} onClick={() => toggleIndustry(ind.id)} style={{ padding: '7px 14px', borderRadius: 20, border: `1.5px solid ${sel ? ind.color : '#E0E6EE'}`, background: sel ? ind.color : '#FFF', color: sel ? '#FFF' : '#56697C', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all .15s' }}>
-                    {ind.label}
-                  </button>
-                )
-              })}
-            </div>
-            {selectedIndustries.size > 0 && (
-              <button onClick={() => { setSelectedIndustries(new Set()); setShowResults(false) }} style={{ marginTop: 10, padding: '5px 14px', borderRadius: 20, border: '1px solid #E0E6EE', background: '#F0F4F8', color: '#888', fontSize: 10, cursor: 'pointer', fontWeight: 600 }}>
-                Clear Filters
-              </button>
-            )}
-          </div>
-
-          <button
-            onClick={() => setShowResults(true)}
-            style={{ width: '100%', padding: '13px', borderRadius: 12, background: theme.primary, color: '#FFF', border: 'none', fontWeight: 900, fontSize: 14, cursor: 'pointer', marginBottom: 14 }}
-          >
-            Search Jobs Within {radius} Miles
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+        {tabs.map((tab) => (
+          <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} style={tabStyle(tab.id)}>
+            {tab.label}
           </button>
+        ))}
+      </div>
 
-          {showResults && (() => {
-            const selectedLabels = selectedIndustries.size > 0
-              ? [...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.label).filter(Boolean).join(', ')
-              : 'All Industries';
-            const kw = encodeURIComponent([...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.keywords || '').join(' ') || 'military spouse');
-            const loc = encodeURIComponent(searchCity);
-            const sourceQuery = [...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.keywords || '').filter(Boolean).join(' ') || 'military spouse';
-            const jobCards = [
-              {
-                name: 'USAJOBS local openings',
-                badge: 'Federal',
-                desc: `Broad current federal listings near ${searchCity}. Open this first when narrow job-title searches return no results.`,
-                url: `https://www.usajobs.gov/Search/Results?l=${loc}`,
-                color: '#1565C0',
-                remote: 'Use USAJOBS filters for agency, telework, remote, series, and hiring path.',
-              },
-              {
-                name: 'USAJOBS military spouse hiring path',
-                badge: 'Spouse',
-                desc: 'Official federal hiring path for eligible military spouses.',
-                url: 'https://milspouse.usajobs.gov/',
-                color: '#4A148C',
-                remote: 'Supports local, remote, and telework federal searches.',
-              },
-              {
-                name: 'LinkedIn local listings',
-                badge: 'External',
-                desc: `Current local listings near ${searchCity}. Search opens broad enough to avoid empty job pages.`,
-                url: `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(sourceQuery)}&location=${loc}`,
-                color: '#0A66C2',
-                remote: 'Use LinkedIn filters for remote, hybrid, and military-spouse-friendly employers.',
-              },
-              {
-                name: 'Indeed local listings',
-                badge: 'External',
-                desc: `Current local listings near ${searchCity} using the selected industry filters.`,
-                url: `https://www.indeed.com/jobs?q=${encodeURIComponent(sourceQuery)}&l=${loc}`,
-                color: '#2557A7',
-                remote: 'Use Indeed filters for remote and distance.',
-              },
-              {
-                name: 'ClearanceJobs listings',
-                badge: 'Clearance',
-                desc: `Clearance-friendly roles near ${searchCity}; useful for service members and spouses with clearance eligibility.`,
-                url: `https://www.clearancejobs.com/jobs?keywords=${encodeURIComponent(sourceQuery)}&location=${loc}`,
-                color: '#37474F',
-                remote: 'Use ClearanceJobs filters for remote and clearance level.',
-              },
-              {
-                name: 'MySECO / MSEP spouse employers',
-                badge: 'MSEP',
-                desc: 'Official DoD spouse career portal and Military Spouse Employment Partnership entry point.',
-                url: 'https://myseco.militaryonesource.mil/portal/',
-                color: '#880E4F',
-                remote: 'Employer listings may include remote-friendly roles.',
-              },
-            ];
-            return (
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', letterSpacing: '.1em', marginBottom: 12 }}>
-                  LIVE JOB SEARCHES - {selectedLabels} · {radius}mi of {searchCity}
-                </div>
-                {jobCards.map(job => (
-                  <a key={job.name} href={job.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${job.color}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                          <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821' }}>{job.name}</div>
-                          <span style={{ fontSize: 9, fontWeight: 900, background: '#E8F5E9', color: '#2E7D32', borderRadius: 999, padding: '2px 7px' }}>{job.badge}</span>
-                        </div>
-                        <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{job.desc}</div>
-                        <div style={{ fontSize: 10, color: '#7A4A00', marginTop: 7 }}>{job.remote}</div>
-                      </div>
-                      <div style={{ alignSelf: 'center', padding: '8px 12px', borderRadius: 10, background: job.color, color: '#FFF', fontSize: 11, fontWeight: 900 }}>Open</div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            )
-          })()}
+      {activeTab === 'jobSearch' && (
+        <div>
+          <SectionIntro title={copy.text('tabJobSearch')} lead={copy.text('leadJobSearch')}>
+            <label style={{ display: 'block', marginTop: 12, fontSize: 11, fontWeight: 900, color: '#334155' }} htmlFor="employment-keyword">{copy.text('keywordLabel')}</label>
+            <input
+              id="employment-keyword"
+              value={keyword}
+              onChange={(event) => setKeyword(event.target.value)}
+              placeholder={copy.text('keywordPlaceholder')}
+              style={{ width: '100%', boxSizing: 'border-box', marginTop: 6, padding: '11px 12px', borderRadius: 8, border: '1.5px solid #CBD5E1', fontSize: 13, outline: 'none', background: '#FFFFFF', color: '#0D1821' }}
+            />
+            <div style={{ marginTop: 6, fontSize: 10, color: '#66788A' }}>{copy.text('keywordHelp')}</div>
+          </SectionIntro>
+          <div style={{ fontSize: 10, fontWeight: 900, color: '#66788A', letterSpacing: '.1em', marginBottom: 10 }}>{copy.text('currentListings')}</div>
+          {renderCards(liveSearches)}
         </div>
       )}
 
-      {/* ── RECOMMENDATIONS ── */}
-      {activeTab === 'recommendations' && (
+      {activeTab === 'jobResources' && (
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>Skill-Matched Opportunities</div>
-          <div style={{ fontSize: 11, color: '#56697C', marginBottom: 16, lineHeight: 1.5 }}>Active job listings matched to your skills near {searchCity}. Each card links directly to current openings.</div>
-
-          {skills.length > 0 ? (
-            <>
-              {skills.map((skill, i) => {
-                const kw = encodeURIComponent(skill.name)
-                const loc = encodeURIComponent(searchCity)
-                const cat = SKILL_CATS.find(c => c.id === skill.cat) || SKILL_CATS[0]
-                return (
-                  <div key={i} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${cat.color}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 800, color: '#0D1821', marginBottom: 4 }}>{skill.name}</div>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: cat.color, background: `${cat.color}15`, padding: '2px 8px', borderRadius: 10, border: `1px solid ${cat.color}30` }}>{cat.label}</span>
-                      </div>
-                      <div style={{ fontSize: 10, color: '#888', textAlign: 'right' }}>
-                        <div style={{ fontWeight: 700 }}>{radius}mi radius</div>
-                        <div>{searchCity}</div>
-                      </div>
-                    </div>
-                    <div style={{ fontSize: 11, color: '#556', lineHeight: 1.5, marginBottom: 10 }}>
-                      Current openings matching your "{skill.name}" skill. Tap a board to view real-time listings.
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <a href={`https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#1565C0', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>USAJobs</a>
-                      <a href={`https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#00897B', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>DoD Jobs</a>
-                      <a href={`https://myseco.militaryonesource.mil/portal/`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#0077B5', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10, textAlign: 'center', display: 'block' }}>MySECO</a>
-                    </div>
-                  </div>
-                )
-              })}
-
-              <div style={{ background: '#E8F5E9', border: '1.5px solid #4CAF50', borderRadius: 12, padding: 14, marginTop: 4 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#1B5E20', marginBottom: 4 }}>Security Clearance Advantage</div>
-                <div style={{ fontSize: 11, color: '#2E7D32', lineHeight: 1.5, marginBottom: 10 }}>Your military service may have granted a clearance — one of the most valuable credentials in the civilian market. Clearance holders typically earn 10–30% more than peers.</div>
-                <a href="https://www.usajobs.gov/Search/Results?keyword=security%20clearance" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '10px', borderRadius: 10, background: '#2E7D32', color: '#FFF', textDecoration: 'none', fontWeight: 800, fontSize: 12, textAlign: 'center' }}>Browse Clearance Jobs</a>
-              </div>
-            </>
-          ) : (
-            <div style={{ background: '#F0F4F8', borderRadius: 12, padding: 24, textAlign: 'center' }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 8 }}>No skills on file</div>
-              <div style={{ fontSize: 11, color: '#56697C', marginBottom: 14 }}>Add your skills in the Skills Profile tab to see personalized job matches.</div>
-              <button onClick={() => setActiveTab('skills')} style={{ padding: '10px 24px', borderRadius: 10, background: theme.primary, color: '#FFF', border: 'none', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>Add Skills →</button>
-            </div>
-          )}
+          <SectionIntro title={copy.text('tabJobResources')} lead={copy.text('leadJobResources')} />
+          {renderCards(RESOURCE_SETS.jobResources)}
         </div>
       )}
 
-      {/* ── JOB RESOURCES ── */}
-      {activeTab === 'jobboards' && (
+      {activeTab === 'resume' && (
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>Job Resources & Career Support</div>
-          <div style={{ fontSize: 11, color: '#56697C', marginBottom: 16, lineHeight: 1.5 }}>Curated job boards and career portals for military members and spouses. Federal hiring preference applies on USAJobs.gov.</div>
-
-          {JOB_BOARDS.map((board, i) => (
-            <div key={i} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${board.color}`, borderRadius: 12, padding: 14, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821' }}>{board.name}</div>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: '#FFF', background: board.color, padding: '2px 6px', borderRadius: 8 }}>{board.badge}</span>
-                </div>
-                <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{board.desc}</div>
+          <SectionIntro title={copy.text('tabResume')} lead={copy.text('leadResume')} />
+          <div style={{ background: '#FFFFFF', border: '1px solid #D7E0EA', borderRadius: 8, padding: 14, marginBottom: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821', marginBottom: 8 }}>{copy.text('resumeTipsTitle')}</div>
+            {(copy.lang === 'en' || copy.lang === 'es'
+              ? [copy.text('tip1'), copy.text('tip2'), copy.text('tip3'), copy.text('tip4'), copy.text('tip5')]
+              : [copy.text('resourceText')]
+            ).map((tip, index, list) => (
+              <div key={tip} style={{ display: 'flex', gap: 8, marginBottom: index === list.length - 1 ? 0 : 7, color: '#46586B', fontSize: 11, lineHeight: 1.45 }}>
+                <span style={{ width: 18, height: 18, borderRadius: 999, background: theme.primary, color: '#FFFFFF', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 10, fontWeight: 900 }}>{index + 1}</span>
+                <span>{tip}</span>
               </div>
-              <a href={board.url} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 10, background: board.color, color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 12 }}>Open</a>
-            </div>
-          ))}
-
-          <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, marginTop: 8, marginBottom: 12, borderLeft: `3px solid ${theme.accent}` }}>
-            <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 4 }}>MILITARY SPOUSE EMPLOYMENT</div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', lineHeight: 1.5 }}>Dedicated programs and partnerships for spouses navigating careers through PCS moves. Most programs are completely free.</div>
+            ))}
           </div>
+          {renderCards(RESOURCE_SETS.resume)}
+        </div>
+      )}
 
-          {SPOUSE_BOARDS.map((board, i) => (
-            <div key={i} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${board.color}`, borderRadius: 12, padding: 14, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821' }}>{board.name}</div>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: '#FFF', background: board.color, padding: '2px 6px', borderRadius: 8 }}>{board.badge}</span>
-                </div>
-                <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{board.desc}</div>
+      {activeTab === 'internships' && (
+        <div>
+          <SectionIntro title={copy.text('tabInternships')} lead={copy.text('leadInternships')} />
+          {renderCards(internshipSearches)}
+        </div>
+      )}
+
+      {activeTab === 'workshops' && (
+        <div>
+          <SectionIntro title={copy.text('tabWorkshops')} lead={copy.text('leadWorkshops')} />
+          {renderCards(RESOURCE_SETS.workshops)}
+        </div>
+      )}
+
+      {activeTab === 'certifications' && (
+        <div>
+          <SectionIntro title={copy.text('tabCertifications')} lead={copy.text('leadCertifications')} />
+          {renderCards(RESOURCE_SETS.certifications)}
+        </div>
+      )}
+
+      {activeTab === 'mentorship' && (
+        <div>
+          <SectionIntro title={copy.text('tabMentorship')} lead={copy.text('leadMentorship')} />
+          {renderCards(RESOURCE_SETS.mentorship)}
+        </div>
+      )}
+
+      {activeTab === 'spousePreferred' && (
+        <div>
+          <SectionIntro title={copy.text('tabSpousePreferred')} lead={copy.text('leadSpousePreferred')} />
+          {renderCards(RESOURCE_SETS.spousePreferred)}
+        </div>
+      )}
+
+      {activeTab === 'connections' && (
+        <div>
+          <SectionIntro title={copy.text('tabConnections')} lead={copy.text('leadConnections')} />
+          {renderCards(RESOURCE_SETS.connections)}
+        </div>
+      )}
+
+      {activeTab === 'linkedin' && (
+        <div>
+          <SectionIntro title={copy.text('tabLinkedIn')} lead={copy.text('leadLinkedIn')} />
+          <div style={{ background: '#FFFFFF', border: '1px solid #D7E0EA', borderRadius: 8, padding: 14, marginBottom: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821', marginBottom: 8 }}>{copy.text('linkedinStepsTitle')}</div>
+            {(copy.lang === 'en' || copy.lang === 'es'
+              ? [copy.text('linkedinStep1'), copy.text('linkedinStep2'), copy.text('linkedinStep3'), copy.text('linkedinStep4')]
+              : [copy.text('externalText')]
+            ).map((step, index, list) => (
+              <div key={step} style={{ display: 'flex', gap: 8, marginBottom: index === list.length - 1 ? 0 : 7, color: '#46586B', fontSize: 11, lineHeight: 1.45 }}>
+                <span style={{ width: 18, height: 18, borderRadius: 999, background: '#0A66C2', color: '#FFFFFF', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 10, fontWeight: 900 }}>{index + 1}</span>
+                <span>{step}</span>
               </div>
-              <a href={board.url} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 10, background: board.color, color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 12 }}>Open</a>
-            </div>
-          ))}
+            ))}
+          </div>
+          {renderCards(RESOURCE_SETS.linkedin)}
+        </div>
+      )}
+
+      {activeTab === 'entrepreneurship' && (
+        <div>
+          <SectionIntro title={copy.text('tabEntrepreneurship')} lead={copy.text('leadEntrepreneurship')} />
+          {renderCards(RESOURCE_SETS.entrepreneurship)}
         </div>
       )}
     </div>

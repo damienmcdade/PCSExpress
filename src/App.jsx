@@ -3619,12 +3619,35 @@ function getAppLanguage(language) {
   return APP_TRANSLATIONS[code] ? code : 'en';
 }
 
+
+const GENERIC_LANGUAGE_FALLBACKS = {
+  es: { desc: 'Revise recursos oficiales y herramientas de planificacion para esta categoria.', demoTitle: 'Paso del recorrido', demoBody: 'Esta parte del recorrido explica como usar esta area de PCS Express con la informacion publica oficial disponible.' },
+  de: { desc: 'Pruefen Sie offizielle Ressourcen und Planungswerkzeuge fuer diese Kategorie.', demoTitle: 'Tour-Schritt', demoBody: 'Dieser Teil der Tour erklaert, wie Sie diesen Bereich von PCS Express mit verfuegbaren offiziellen oeffentlichen Informationen nutzen.' },
+  fr: { desc: 'Consultez les ressources officielles et les outils de planification pour cette categorie.', demoTitle: 'Etape de visite', demoBody: 'Cette partie de la visite explique comment utiliser cette zone de PCS Express avec les informations publiques officielles disponibles.' },
+  ko: { desc: '이 범주의 공식 자료와 계획 도구를 확인하십시오.', demoTitle: '둘러보기 단계', demoBody: '이 둘러보기는 사용 가능한 공식 공개 정보를 사용하여 PCS Express의 이 영역을 이용하는 방법을 설명합니다.' },
+  ja: { desc: 'このカテゴリの公式リソースと計画ツールを確認してください。', demoTitle: 'ツアー手順', demoBody: 'このツアーでは、利用可能な公式公開情報を使ってPCS Expressのこの領域を使用する方法を説明します。' },
+  tl: { desc: 'Suriin ang opisyal na resources at planning tools para sa kategoryang ito.', demoTitle: 'Hakbang sa tour', demoBody: 'Ipinapaliwanag ng bahaging ito kung paano gamitin ang area na ito ng PCS Express gamit ang opisyal na pampublikong impormasyon.' },
+  ar: { desc: 'راجع الموارد الرسمية وأدوات التخطيط لهذه الفئة.', demoTitle: 'خطوة في الجولة', demoBody: 'يشرح هذا الجزء من الجولة كيفية استخدام هذا القسم من PCS Express بالاعتماد على المعلومات العامة الرسمية المتاحة.' },
+  zh: { desc: '查看此类别的官方资源和规划工具。', demoTitle: '导览步骤', demoBody: '本导览说明如何使用可用的官方公开信息操作 PCS Express 的此区域。' },
+  it: { desc: 'Consulta le risorse ufficiali e gli strumenti di pianificazione per questa categoria.', demoTitle: 'Passaggio del tour', demoBody: 'Questa parte del tour spiega come usare questa area di PCS Express con le informazioni pubbliche ufficiali disponibili.' },
+  pt: { desc: 'Revise recursos oficiais e ferramentas de planejamento para esta categoria.', demoTitle: 'Etapa do tour', demoBody: 'Esta parte do tour explica como usar esta area do PCS Express com informacoes publicas oficiais disponiveis.' },
+  vi: { desc: 'Xem tài nguyên chính thức và công cụ lập kế hoạch cho danh mục này.', demoTitle: 'Bước hướng dẫn', demoBody: 'Phần này giải thích cách sử dụng khu vực này của PCS Express bằng thông tin công khai chính thức có sẵn.' },
+};
+
 function trFrom(language, key) {
   const lang = getAppLanguage(language);
   const dict = APP_TRANSLATIONS[lang] || APP_TRANSLATIONS.en;
   const fallback = APP_TRANSLATIONS.en;
   const read = (source) => key.split('.').reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : undefined), source);
-  return read(dict) ?? read(fallback) ?? key;
+  const direct = read(dict);
+  if (direct !== undefined) return direct;
+  const generic = GENERIC_LANGUAGE_FALLBACKS[lang];
+  if (lang !== 'en' && generic) {
+    if (key.startsWith('desc.')) return generic.desc;
+    if (key.startsWith('demo.') && key.endsWith('Title')) return generic.demoTitle;
+    if (key.startsWith('demo.')) return generic.demoBody;
+  }
+  return read(fallback) ?? key;
 }
 
 function localizeNavItems(items, language) {
