@@ -4573,7 +4573,7 @@ function App() {
               </div>
               {/* Branch label */}
               <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.22em', color: theme.primary, marginBottom: 4, textTransform: 'uppercase' }}>
-                {MISSION_CONTROL_STATUS_LABELS[appLanguage] || MISSION_CONTROL_STATUS_LABELS.en} · {t('unitedStates')} {profile.branch.toUpperCase()}
+                {MISSION_CONTROL_STATUS_LABELS[appLanguage] || MISSION_CONTROL_STATUS_LABELS.en} · {MISSION_CONTROL_STATUS_LABELS[appLanguage] || MISSION_CONTROL_STATUS_LABELS.en} · {t('unitedStates')} {profile.branch.toUpperCase()}
               </div>
               <div style={{ fontSize: 10, color: UI_PALETTE.muted, fontStyle: 'italic', marginBottom: 12 }}>{theme.tagline}</div>
               {/* Soldier info */}
