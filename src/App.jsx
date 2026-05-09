@@ -867,267 +867,41 @@ function officialSchoolCards(installation) {
   ];
 }
 
-function veteranBusinessDiscoveryCards(installation) {
+function veteranBusinessBubbleLinks(installation) {
   const loc = getInstallationSearchLocation(installation);
   return [
-    { name: `Veteran-owned businesses near ${loc}`, category: 'Google Search', desc: 'Search current public listings near the gaining installation. Verify ownership, hours, and ratings directly before visiting.', url: googleSearchUrl(`veteran owned businesses near ${loc}`), icon: 'SEARCH' },
-    { name: `Veteran-owned restaurants near ${loc}`, category: 'Food', desc: 'Current public search for veteran-owned restaurants and cafes near the gaining installation.', url: googleSearchUrl(`veteran owned restaurant near ${loc}`), icon: 'FOOD' },
-    { name: `Veteran-owned home services near ${loc}`, category: 'Home Services', desc: 'Current public search for veteran-owned home repair, moving, real estate, and local services.', url: googleSearchUrl(`veteran owned home services near ${loc}`), icon: 'HOME' },
-    { name: 'SBA Veteran-Owned Business Resources', category: 'SBA', desc: 'Official SBA training, funding, and contracting resources for veteran-owned businesses.', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses', icon: 'SBA' },
-    { name: 'VA OSDBU Veteran Business Resources', category: 'Federal Contracting', desc: 'Official VA small and veteran business program information.', url: 'https://www.va.gov/osdbu/', icon: 'VA' },
+    { category: 'All', label: 'All veteran resources', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses', desc: 'Official SBA overview for veteran-owned businesses, training, funding, and contracting.' },
+    { category: 'Local Search', label: `Local search near ${loc}`, url: googleSearchUrl(`veteran owned businesses near ${loc}`), desc: 'Current public search tailored to the gaining installation area.' },
+    { category: 'Restaurants', label: `Restaurants near ${loc}`, url: googleSearchUrl(`veteran owned restaurants cafes near ${loc}`), desc: 'Current public search for veteran-owned restaurants and cafes near the gaining area.' },
+    { category: 'Home Services', label: `Home services near ${loc}`, url: googleSearchUrl(`veteran owned home services real estate moving repair near ${loc}`), desc: 'Current public search for veteran-owned home repair, real estate, moving, and local services.' },
+    { category: 'Certification', label: 'SBA VetCert', url: 'https://veterans.certify.sba.gov/', desc: 'Official SBA certification portal and small business search for certified VOSB and SDVOSB firms.' },
+    { category: 'Contracting', label: 'Federal contracting', url: 'https://www.sba.gov/federal-contracting/contracting-assistance-programs/veteran-contracting-assistance-programs', desc: 'Official SBA contracting assistance guidance for veteran-owned small businesses.' },
+    { category: 'Counseling', label: 'VBOC counseling', url: 'https://www.sba.gov/local-assistance/resource-partners/veterans-business-outreach-center-vboc-program', desc: 'Official SBA Veterans Business Outreach Center locator for free counseling, training, and mentorship.' },
+    { category: 'VA OSDBU', label: 'VA OSDBU', url: 'https://www.va.gov/osdbu/index.asp', desc: 'Official VA small and veteran business program information.' },
+    { category: 'SAM.gov', label: 'SAM.gov entities', url: 'https://sam.gov/entity-information', desc: 'Official federal entity information search for businesses registered to work with the government.' },
+    { category: 'SBA Search', label: 'SBA business search', url: 'https://search.certifications.sba.gov/', desc: 'Official SBA Small Business Search portal for certified business discovery.' },
   ];
 }
 
+function veteranBusinessDiscoveryCards(installation) {
+  const loc = getInstallationSearchLocation(installation);
+  return [
+    { name: `Veteran-owned businesses near ${loc}`, category: 'Local Search', desc: 'Open a current public search for veteran-owned businesses near the gaining installation. Verify ownership, hours, and ratings directly before visiting.', url: googleSearchUrl(`veteran owned businesses near ${loc}`), icon: 'SEARCH' },
+    { name: `Veteran-owned restaurants near ${loc}`, category: 'Restaurants', desc: 'Open a current public search for veteran-owned restaurants and cafes near the gaining installation.', url: googleSearchUrl(`veteran owned restaurants cafes near ${loc}`), icon: 'FOOD' },
+    { name: `Veteran-owned home services near ${loc}`, category: 'Home Services', desc: 'Open a current public search for veteran-owned repair, moving, real estate, and local services near the gaining installation.', url: googleSearchUrl(`veteran owned home services real estate moving repair near ${loc}`), icon: 'HOME' },
+    { name: 'SBA Veteran-Owned Business Resources', category: 'All', desc: 'Official SBA support for veteran entrepreneurship, including training, funding, and federal contracting resources.', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses', icon: 'SBA' },
+    { name: 'SBA VetCert and Small Business Search', category: 'Certification', desc: 'Official SBA portal for VetCert certification and discovery of certified veteran-owned firms.', url: 'https://veterans.certify.sba.gov/', icon: 'VOSB' },
+    { name: 'SBA Veteran Contracting Assistance', category: 'Contracting', desc: 'Official SBA guidance for veteran-owned small businesses pursuing federal contract awards and set-aside opportunities.', url: 'https://www.sba.gov/federal-contracting/contracting-assistance-programs/veteran-contracting-assistance-programs', icon: 'CONTRACT' },
+    { name: 'Veterans Business Outreach Centers', category: 'Counseling', desc: 'Official SBA locator for free VBOC business counseling, training, workshops, and mentorship.', url: 'https://www.sba.gov/local-assistance/resource-partners/veterans-business-outreach-center-vboc-program', icon: 'VBOC' },
+    { name: 'VA OSDBU Veteran Business Resources', category: 'VA OSDBU', desc: 'Official VA Office of Small and Disadvantaged Business Utilization information for procurement-ready small and veteran businesses.', url: 'https://www.va.gov/osdbu/index.asp', icon: 'VA' },
+    { name: 'SAM.gov Entity Information', category: 'SAM.gov', desc: 'Official federal entity information search for registration, exclusions, and public entity records.', url: 'https://sam.gov/entity-information', icon: 'SAM' },
+    { name: 'SBA Small Business Search', category: 'SBA Search', desc: 'Official SBA search portal for certified small businesses and federal market research.', url: 'https://search.certifications.sba.gov/', icon: 'SEARCH' },
+  ].filter(card => card.url);
+}
 
-const VETERAN_OWNED_BUSINESSES = {
-  // ── ARMY CONUS ────────────────────────────────────────────────────────────
-  "Fort Liberty": [
-    { name:"Airborne & Special Operations Museum Store", category:"Retail/Museum", desc:"Veteran-run gift shop at the Airborne & Special Operations Museum. Military memorabilia, books, and unit history gear.", url:"", icon:"🎖️" },
-    { name:"All American Brewpub", category:"Restaurant/Bar", desc:"Veteran-owned brewery and restaurant in downtown Fayetteville. Craft beers and American fare with military discounts.", url:"", icon:"🍺" },
-    { name:"Cape Fear CrossFit", category:"Fitness", desc:"Veteran-owned CrossFit affiliate near Fort Liberty. Tactical fitness programming, active-duty discounts available.", url:"", icon:"💪" },
-    { name:"Patriot Roofing & Construction", category:"Home Services", desc:"Veteran-owned roofing and general contracting serving the Fort Liberty military community.", url:"", icon:"🏠" },
-    { name:"Find More Near Fort Liberty →", category:"Directory", desc:"Search VeteranOwnedBusiness.com for all verified veteran-owned businesses in the Fayetteville area.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Fort Bragg": [
-    { name:"Airborne & Special Operations Museum Store", category:"Retail/Museum", desc:"Veteran-operated gift shop honoring the 82nd Airborne and Special Operations history.", url:"", icon:"🎖️" },
-    { name:"All American Brewpub", category:"Restaurant/Bar", desc:"Veteran-owned brewery near post with craft beers and military discounts.", url:"", icon:"🍺" },
-    { name:"Find More Near Fayetteville →", category:"Directory", desc:"Search for all verified veteran-owned businesses in the greater Fayetteville area.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Fort Campbell": [
-    { name:"Strawberry Alley Ale Works", category:"Brewery/Restaurant", desc:"Veteran co-owned craft brewery in downtown Clarksville. Award-winning ales, lagers and IPAs. Military and veteran discounts offered.", url:"", icon:"🍺" },
-    { name:"Paradigm Shift Brewing", category:"Brewery", desc:"Veteran-owned nano-brewery in Clarksville, TN. Small-batch craft beers with a military heritage. Taproom open weekends.", url:"", icon:"🍺" },
-    { name:"Warrior's Path Financial", category:"Financial Services", desc:"Veteran-owned financial planning and wealth management near Fort Campbell. Specializes in military retirement planning.", url:"", icon:"💰" },
-    { name:"Tactical CrossFit Clarksville", category:"Fitness", desc:"Veteran-owned CrossFit gym in Clarksville. Military programming, group classes, and active-duty rates.", url:"", icon:"💪" },
-    { name:"Find More Near Clarksville →", category:"Directory", desc:"Search VeteranOwnedBusiness.com for all verified veteran-owned businesses near Fort Campbell.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Fort Cavazos": [
-    { name:"Killeen Veterans Business Alliance", category:"Network", desc:"Coalition of veteran-owned businesses in the greater Killeen/Fort Cavazos area. Referrals, networking, and mutual support.", url:"", icon:"🤝" },
-    { name:"Texas Veteran BBQ", category:"Restaurant", desc:"Veteran-owned Texas-style BBQ joint near Fort Cavazos. Brisket, ribs, and pulled pork with a military discount.", url:"", icon:"🍖" },
-    { name:"Lone Star Tactical Fitness", category:"Fitness", desc:"Veteran-owned CrossFit and tactical fitness gym serving the Fort Cavazos community. Monthly active-duty rates available.", url:"", icon:"💪" },
-    { name:"Combat Veteran Realty", category:"Real Estate", desc:"Veteran-owned real estate team specializing in VA loans and military relocations around Fort Cavazos.", url:"", icon:"🏘️" },
-    { name:"Find More Near Killeen →", category:"Directory", desc:"Search for all verified veteran-owned businesses in the Killeen/Temple area.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Fort Hood": [
-    { name:"Killeen Veterans Business Alliance", category:"Network", desc:"Veteran-owned business network near Fort Hood. Connects military entrepreneurs and patrons.", url:"", icon:"🤝" },
-    { name:"Texas Veteran BBQ", category:"Restaurant", desc:"Veteran-owned BBQ near Fort Hood. Military discounts available.", url:"", icon:"🍖" },
-    { name:"Find More Near Killeen →", category:"Directory", desc:"Browse all veteran-owned businesses near Fort Hood/Cavazos.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Fort Carson": [
-    { name:"Pikes Peak Brewing Company", category:"Brewery", desc:"Veteran co-founded craft brewery in Colorado Springs. Community-centered taproom with rotating military appreciation events.", url:"", icon:"🍺" },
-    { name:"BattleBorn Coffee Roasters", category:"Coffee", desc:"Veteran-owned specialty coffee roaster based in Colorado. Ships nationwide; beans available at area shops near Fort Carson.", url:"", icon:"☕" },
-    { name:"Warrior Roofing & Solar", category:"Home Services", desc:"Veteran-owned roofing and solar installation company in Colorado Springs. Active-duty and veteran discounts available.", url:"", icon:"🏠" },
-    { name:"Tactical Strength & Conditioning", category:"Fitness", desc:"Veteran-owned strength and conditioning gym in Colorado Springs. Military pricing, SFAS/Ranger School prep programming.", url:"", icon:"💪" },
-    { name:"Valor Financial (Colorado Springs)", category:"Financial Services", desc:"Veteran-owned financial advisory firm in Colorado Springs. Military TSP rollover and retirement planning specialists.", url:"", icon:"💰" },
-    { name:"Find More Near Colorado Springs →", category:"Directory", desc:"Browse verified veteran-owned businesses near Fort Carson on VeteranOwnedBusiness.com.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Fort Bliss": [
-    { name:"Veteran Coffee House El Paso", category:"Coffee/Community", desc:"Veteran-owned coffee shop and community hub in El Paso. Regular networking events for transitioning service members.", url:"", icon:"☕" },
-    { name:"Combat Arms CrossFit El Paso", category:"Fitness", desc:"Veteran-owned CrossFit gym near Fort Bliss. Military discounts, veteran coaching staff.", url:"", icon:"💪" },
-    { name:"Border Veteran Realty", category:"Real Estate", desc:"Veteran-owned real estate team specializing in VA loans and PCS moves in the El Paso/Fort Bliss area.", url:"", icon:"🏘️" },
-    { name:"El Paso Veterans Business Outreach Center", category:"Network/Resources", desc:"SBA-backed VBOC providing free counseling, training, and resources for veteran entrepreneurs in the El Paso area.", url:"https://sba.gov/offices/district/nm/albuquerque", icon:"🤝" },
-    { name:"Find More Near El Paso →", category:"Directory", desc:"Search for verified veteran-owned businesses near Fort Bliss.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Fort Stewart": [
-    { name:"Coastal Empire Beer Company", category:"Brewery", desc:"Savannah-area craft brewery with strong military community ties. Veteran-owned staff; military discount on all orders.", url:"", icon:"🍺" },
-    { name:"Hinesville Veteran Services", category:"Network", desc:"Local veteran business support network serving the Fort Stewart military community. Resources for entrepreneurs and job seekers.", url:"", icon:"🤝" },
-    { name:"Tactical Fitness Hinesville", category:"Fitness", desc:"Veteran-owned gym and training facility near Fort Stewart. Flexible military membership rates.", url:"", icon:"💪" },
-    { name:"Find More Near Hinesville/Savannah →", category:"Directory", desc:"Browse veteran-owned businesses in the Hinesville and Savannah, GA area.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Fort Drum": [
-    { name:"Watertown Veteran Business Hub", category:"Network", desc:"Local veteran entrepreneur network near Fort Drum. Monthly meetings, business referrals, and support for transitioning service members.", url:"", icon:"🤝" },
-    { name:"North Country Tactical Gear", category:"Retail/Outdoor", desc:"Veteran-owned outdoor and tactical gear store near Fort Drum. Military discount on all purchases.", url:"", icon:"🎒" },
-    { name:"Find More Near Watertown →", category:"Directory", desc:"Search for veteran-owned businesses near Fort Drum in Watertown, NY.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Fort Sill": [
-    { name:"Lawton Veteran Business Alliance", category:"Network", desc:"Local network of veteran business owners near Fort Sill. Events, referrals, and mutual support for the military community.", url:"", icon:"🤝" },
-    { name:"Thunder CrossFit Lawton", category:"Fitness", desc:"Veteran-owned CrossFit gym in Lawton, OK. Military pricing available for active duty and veterans.", url:"", icon:"💪" },
-    { name:"Red River Brewing (Lawton)", category:"Brewery", desc:"Veteran-owned craft brewery in Lawton, OK. Oklahoma craft beers with a military roots atmosphere.", url:"", icon:"🍺" },
-    { name:"Find More Near Lawton →", category:"Directory", desc:"Search for verified veteran-owned businesses near Fort Sill.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Fort Jackson": [
-    { name:"Columbia Veteran Business Network", category:"Network", desc:"South Carolina veteran entrepreneur community near Fort Jackson. Free mentorship, referrals, and resources.", url:"", icon:"🤝" },
-    { name:"Palmetto Tactical Fitness", category:"Fitness", desc:"Veteran-owned fitness and training center in Columbia, SC. Group classes and personal training with military rates.", url:"", icon:"💪" },
-    { name:"Veteran Realty Group Columbia", category:"Real Estate", desc:"VA loan specialists and veteran-owned real estate team helping PCS moves in and around Fort Jackson.", url:"", icon:"🏘️" },
-    { name:"Find More Near Columbia →", category:"Directory", desc:"Browse all veteran-owned businesses in the Columbia, SC area.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Fort Knox": [
-    { name:"Radcliff Veteran Business Hub", category:"Network", desc:"Veteran-owned business network serving the Fort Knox / Radcliff / Louisville corridor. Business referrals and networking events.", url:"", icon:"🤝" },
-    { name:"Armor CrossFit", category:"Fitness", desc:"Veteran-owned CrossFit affiliate near Fort Knox. Tactical fitness and competitive sport programming. Military discounts.", url:"", icon:"💪" },
-    { name:"Veteran Auto Service", category:"Automotive", desc:"Veteran-owned auto repair shop serving the Fort Knox military community. Honest service and military discount available.", url:"", icon:"🔧" },
-    { name:"Find More Near Fort Knox/Louisville →", category:"Directory", desc:"Search for veteran-owned businesses in the Fort Knox and Louisville, KY area.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Fort Meade": [
-    { name:"Annapolis Veteran Business Network", category:"Network", desc:"Maryland veteran entrepreneur network connecting businesses near Fort Meade, Annapolis, and the DC metro corridor.", url:"", icon:"🤝" },
-    { name:"IRONCLAD Coffee Roasters", category:"Coffee", desc:"Veteran-owned specialty coffee roaster in the Baltimore-DC corridor. 10% discount for active duty and veterans.", url:"", icon:"☕" },
-    { name:"Cyber Veteran Solutions", category:"Technology", desc:"Veteran-owned IT and cybersecurity consulting firm near Fort Meade and NSA. DoD contractor support.", url:"", icon:"💻" },
-    { name:"Find More Near Fort Meade →", category:"Directory", desc:"Search for veteran-owned businesses near Fort Meade in the Odenton/Baltimore area.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Fort Sam Houston": [
-    { name:"Ranger Cattle Company", category:"Food/Retail", desc:"Veteran-owned beef company founded by a former Army Ranger near San Antonio. Premium Texas beef shipped nationwide.", url:"", icon:"🥩" },
-    { name:"Combat Coffee San Antonio", category:"Coffee", desc:"Veteran-owned specialty coffee brand headquartered in San Antonio. Supports veteran employment with every purchase.", url:"", icon:"☕" },
-    { name:"Veteran Realty of San Antonio", category:"Real Estate", desc:"VA loan certified veteran-owned real estate team. Specializes in military PCS moves and BAH optimization near JBSA.", url:"", icon:"🏘️" },
-    { name:"SAVETCO (SA Veteran Entrepreneur)", category:"Network", desc:"San Antonio veteran entrepreneur coalition — events, mentorship, and procurement support at the city and state level.", url:"", icon:"🤝" },
-    { name:"Find More Near San Antonio →", category:"Directory", desc:"Browse all verified veteran-owned businesses near JBSA / Fort Sam Houston.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Joint Base San Antonio": [
-    { name:"Combat Coffee San Antonio", category:"Coffee", desc:"Veteran-owned specialty coffee. Supports veteran employment.", url:"", icon:"☕" },
-    { name:"SAVETCO Veteran Entrepreneurs", category:"Network", desc:"San Antonio veteran entrepreneur coalition — city and state procurement support.", url:"", icon:"🤝" },
-    { name:"Veteran Realty of San Antonio", category:"Real Estate", desc:"VA loan certified real estate team serving JBSA, Fort Sam Houston, and Lackland AFB military families.", url:"", icon:"🏘️" },
-    { name:"Find More Near San Antonio →", category:"Directory", desc:"Browse all veteran-owned businesses near JBSA.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Schofield Barracks": [
-    { name:"Koa Brewing Co", category:"Brewery", desc:"Hawaii-based veteran-friendly craft brewery. Local ingredients and military appreciation events near Schofield.", url:"", icon:"🍺" },
-    { name:"Aloha Veteran CrossFit", category:"Fitness", desc:"Veteran-owned CrossFit affiliate in Wahiawa/Honolulu area. Military discount on monthly memberships.", url:"", icon:"💪" },
-    { name:"Hawaii Veteran Business Hub", category:"Network", desc:"Statewide network of veteran-owned businesses with active members near Schofield Barracks and Honolulu.", url:"", icon:"🤝" },
-    { name:"Find More Near Honolulu →", category:"Directory", desc:"Search for verified veteran-owned businesses in Hawaii.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  // ── NAVY ──────────────────────────────────────────────────────────────────
-  "Naval Station Norfolk": [
-    { name:"Coastal Fermentory", category:"Brewery", desc:"Veteran-owned craft brewery in Hampton Roads. Rotating taps, military discount Fridays.", url:"", icon:"🍺" },
-    { name:"Hampton Roads Veterans Chamber", category:"Network", desc:"Regional chamber connecting veteran-owned businesses across Norfolk, Hampton, and Virginia Beach.", url:"", icon:"🤝" },
-    { name:"Warfare Fitness Norfolk", category:"Fitness", desc:"Veteran-owned functional fitness gym near NS Norfolk. Military-style programming and veteran pricing.", url:"", icon:"💪" },
-    { name:"Veteran Realty Hampton Roads", category:"Real Estate", desc:"Veteran-owned VA-loan specialist real estate team serving Norfolk, Chesapeake, and Virginia Beach.", url:"", icon:"🏘️" },
-    { name:"Find More Near Norfolk →", category:"Directory", desc:"Browse verified veteran-owned businesses in the Hampton Roads area.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Naval Base San Diego": [
-    { name:"Groundwork Coffee Co.", category:"Coffee", desc:"Veteran-co-founded specialty coffee roaster with San Diego roots. Beans sourced from conflict-affected regions worldwide. Multiple locations.", url:"", icon:"☕" },
-    { name:"Combat Flip Flops", category:"Apparel/Retail", desc:"Ranger-founded lifestyle brand manufacturing in conflict regions. Sold nationwide; popular at San Diego-area military exchanges.", url:"", icon:"👟" },
-    { name:"San Diego Veteran Business Alliance", category:"Network", desc:"Network of 200+ veteran-owned businesses in San Diego County with events, procurement support, and mentorship.", url:"", icon:"🤝" },
-    { name:"Warrior CrossFit San Diego", category:"Fitness", desc:"Veteran-owned CrossFit affiliate in San Diego. Tactical strength programming and military membership rates.", url:"", icon:"💪" },
-    { name:"Find More Near San Diego →", category:"Directory", desc:"Search the full directory of veteran-owned businesses in San Diego.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "NAS Jacksonville": [
-    { name:"Bold City Brewery", category:"Brewery", desc:"Jacksonville craft brewery with deep military community ties and regular veteran appreciation events.", url:"", icon:"🍺" },
-    { name:"Jacksonville Veteran Business Network", category:"Network", desc:"Local network supporting veteran-owned businesses in Jacksonville. Regular meetups and procurement referrals.", url:"", icon:"🤝" },
-    { name:"Tactical CrossFit Jacksonville", category:"Fitness", desc:"Veteran-owned CrossFit and functional fitness near NAS Jacksonville. Active-duty monthly rates available.", url:"", icon:"💪" },
-    { name:"Find More Near Jacksonville →", category:"Directory", desc:"Browse all verified veteran-owned businesses in Jacksonville, FL.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Naval Station Mayport": [
-    { name:"Bold City Brewery", category:"Brewery", desc:"Jacksonville veteran-friendly craft brewery. Rotating taps and military appreciation events.", url:"", icon:"🍺" },
-    { name:"Veteran Realty Jacksonville Beaches", category:"Real Estate", desc:"VA-loan specialist real estate team serving the Mayport/Atlantic Beach/Neptune Beach corridor.", url:"", icon:"🏘️" },
-    { name:"Find More Near Jacksonville/Mayport →", category:"Directory", desc:"Browse all veteran-owned businesses in the greater Jacksonville area.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "NAS Pensacola": [
-    { name:"Pensacola Veteran Business Hub", category:"Network", desc:"Panhandle area veteran entrepreneur coalition serving NAS Pensacola, Whiting Field, and Eglin AFB military community.", url:"", icon:"🤝" },
-    { name:"Craft 850 Brewing", category:"Brewery", desc:"Veteran-owned craft brewery in the Pensacola area. Military discount available; proceeds partially fund veteran charities.", url:"", icon:"🍺" },
-    { name:"Emerald Coast Tactical Fitness", category:"Fitness", desc:"Veteran-owned gym near NAS Pensacola. Functional fitness, CrossFit, and military prep programming.", url:"", icon:"💪" },
-    { name:"Find More Near Pensacola →", category:"Directory", desc:"Browse verified veteran-owned businesses in Pensacola.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Naval Air Station Pensacola": [
-    { name:"Pensacola Veteran Business Hub", category:"Network", desc:"Panhandle veteran entrepreneur coalition — business referrals and community support.", url:"", icon:"🤝" },
-    { name:"Craft 850 Brewing", category:"Brewery", desc:"Veteran-owned craft brewery in the Pensacola area. Military discount available.", url:"", icon:"🍺" },
-    { name:"Find More Near Pensacola →", category:"Directory", desc:"Browse all veteran-owned businesses near NAS Pensacola.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  // ── MARINE CORPS ──────────────────────────────────────────────────────────
-  "Marine Corps Base Camp Lejeune": [
-    { name:"Lejeune Veteran Business Network", category:"Network", desc:"Jacksonville, NC veteran entrepreneur coalition. Business referrals, mentorship, and networking events for the Camp Lejeune community.", url:"", icon:"🤝" },
-    { name:"Onslow CrossFit", category:"Fitness", desc:"Veteran-owned CrossFit affiliate in Jacksonville, NC. Military pricing and tactical fitness programming.", url:"", icon:"💪" },
-    { name:"Lejeune Veteran Realty", category:"Real Estate", desc:"Marine veteran-owned real estate team. VA loan specialists serving Camp Lejeune PCS families.", url:"", icon:"🏘️" },
-    { name:"Half Time Beverage", category:"Retail", desc:"Veteran-owned beer, wine, and spirits shop near Camp Lejeune. Large military selection and competitive pricing.", url:"", icon:"🛒" },
-    { name:"Find More Near Jacksonville, NC →", category:"Directory", desc:"Search for all verified veteran-owned businesses near Camp Lejeune.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Camp Lejeune": [
-    { name:"Onslow CrossFit", category:"Fitness", desc:"Veteran-owned CrossFit affiliate near Camp Lejeune. Military pricing available.", url:"", icon:"💪" },
-    { name:"Half Time Beverage", category:"Retail", desc:"Veteran-owned spirits shop near Camp Lejeune.", url:"", icon:"🛒" },
-    { name:"Find More Near Jacksonville, NC →", category:"Directory", desc:"Browse veteran-owned businesses near Camp Lejeune.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Camp Pendleton": [
-    { name:"Wild Coast Coffee Co.", category:"Coffee", desc:"Veteran-owned specialty coffee shop in Oceanside. Regular military appreciation events and active-duty discounts.", url:"", icon:"☕" },
-    { name:"Oceanside CrossFit", category:"Fitness", desc:"Veteran-owned CrossFit affiliate in Oceanside, CA. Marine veteran coaches. Military membership rates.", url:"", icon:"💪" },
-    { name:"San Diego Veteran Business Alliance", category:"Network", desc:"Large network of veteran-owned businesses covering San Diego County and North County including Oceanside.", url:"", icon:"🤝" },
-    { name:"Ironside Brewing (Oceanside)", category:"Brewery", desc:"Veteran-co-owned craft brewery in Oceanside with a military heritage theme.", url:"", icon:"🍺" },
-    { name:"Find More Near Oceanside →", category:"Directory", desc:"Browse verified veteran-owned businesses near Camp Pendleton.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "MCAS Miramar": [
-    { name:"Groundwork Coffee Co.", category:"Coffee", desc:"Veteran co-founded specialty coffee with San Diego roots. Multiple locations throughout the region.", url:"", icon:"☕" },
-    { name:"San Diego Veteran Business Alliance", category:"Network", desc:"200+ veteran-owned businesses in the San Diego area covering all districts.", url:"", icon:"🤝" },
-    { name:"Find More Near San Diego →", category:"Directory", desc:"Search the full directory of veteran-owned businesses in San Diego.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "MCB Quantico": [
-    { name:"Northern Virginia Veteran Business Network", category:"Network", desc:"Regional network covering Quantico, Woodbridge, and the DC metro area. Business referrals and government procurement support.", url:"", icon:"🤝" },
-    { name:"Semper Fit Stafford", category:"Fitness", desc:"Veteran-owned CrossFit and personal training gym near MCB Quantico in Stafford, VA.", url:"", icon:"💪" },
-    { name:"Find More Near Quantico/NOVA →", category:"Directory", desc:"Browse veteran-owned businesses in Northern Virginia near MCB Quantico.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  // ── AIR FORCE ─────────────────────────────────────────────────────────────
-  "Joint Base Langley-Eustis": [
-    { name:"The Winery at Bull Run (nearby)", category:"Winery", desc:"Virginia winery with strong veteran/military community ties in the Hampton Roads area. Regular veteran events.", url:"", icon:"🍷" },
-    { name:"Hampton Roads Veterans Chamber", category:"Network", desc:"Regional veteran business chamber covering Hampton, Newport News, and Norfolk. Business directory and advocacy.", url:"", icon:"🤝" },
-    { name:"Peninsula CrossFit", category:"Fitness", desc:"Veteran-owned CrossFit affiliate on the Virginia Peninsula. Military pricing available.", url:"", icon:"💪" },
-    { name:"Find More Near Hampton, VA →", category:"Directory", desc:"Browse veteran-owned businesses near Langley-Eustis in Hampton and Newport News.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Eglin AFB": [
-    { name:"Emerald Coast Veteran Business Hub", category:"Network", desc:"Veteran entrepreneur coalition in the Eglin/Hurlburt/Pensacola corridor. Business referrals and SBA support.", url:"", icon:"🤝" },
-    { name:"Lucky Devil Brewing (Ft. Walton Beach)", category:"Brewery", desc:"Veteran-friendly craft brewery near Eglin AFB in Fort Walton Beach. Military discount on pints and growlers.", url:"", icon:"🍺" },
-    { name:"Destin Tactical & Outdoors", category:"Retail", desc:"Veteran-owned outdoor and tactical gear shop near Eglin AFB. Military discounts and special ordering.", url:"", icon:"🎒" },
-    { name:"Find More Near Fort Walton Beach →", category:"Directory", desc:"Browse veteran-owned businesses in the Eglin / Fort Walton Beach area.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Hurlburt Field": [
-    { name:"Emerald Coast Veteran Business Hub", category:"Network", desc:"Veteran entrepreneur coalition serving the Eglin/Hurlburt/Pensacola corridor.", url:"", icon:"🤝" },
-    { name:"Find More Near Fort Walton Beach →", category:"Directory", desc:"Browse veteran-owned businesses near Hurlburt Field.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "MacDill AFB": [
-    { name:"Veteran Craft Brewing Co.", category:"Brewery", desc:"Tampa-based veteran-owned craft brewery. Military appreciation nights and active-duty discounts.", url:"", icon:"🍺" },
-    { name:"Warrior Weekend Foundation (Tampa)", category:"Network", desc:"Tampa Bay veteran business and community network. Connects SOCOM-area veterans with local business opportunities.", url:"", icon:"🤝" },
-    { name:"Special Ops CrossFit Tampa", category:"Fitness", desc:"Veteran-owned CrossFit affiliate in Tampa. SOCOM/SOF community programming. Military rates available.", url:"", icon:"💪" },
-    { name:"Veteran Realty Tampa Bay", category:"Real Estate", desc:"Veteran-owned real estate team specializing in VA loans for MacDill AFB and SOCOM military families.", url:"", icon:"🏘️" },
-    { name:"Find More Near Tampa →", category:"Directory", desc:"Browse the full directory of veteran-owned businesses in Tampa.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Travis AFB": [
-    { name:"Travis Credit Union", category:"Financial Services", desc:"Military-chartered credit union serving Travis AFB members. Competitive rates on VA loans, auto, and personal banking.", url:"", icon:"💰" },
-    { name:"Fairfield Veteran Business Network", category:"Network", desc:"Solano County veteran entrepreneur coalition near Travis AFB. Business referrals and Vet-Biz procurement resources.", url:"", icon:"🤝" },
-    { name:"North Bay CrossFit", category:"Fitness", desc:"Veteran-owned CrossFit affiliate in Vacaville/Fairfield. Military family discount plans.", url:"", icon:"💪" },
-    { name:"Find More Near Fairfield/Sacramento →", category:"Directory", desc:"Browse veteran-owned businesses near Travis AFB.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Wright-Patterson AFB": [
-    { name:"Dayton Veteran Business Alliance", category:"Network", desc:"Regional veteran business network in Dayton / Montgomery County. Business referrals and WPAFB contractor support.", url:"", icon:"🤝" },
-    { name:"Warped Wing Brewing", category:"Brewery", desc:"Dayton craft brewery with an aviation and veteran-connected heritage. Regular military appreciation events.", url:"", icon:"🍺" },
-    { name:"Air Force CrossFit Dayton", category:"Fitness", desc:"Veteran-owned CrossFit affiliate near Wright-Patterson AFB. Military and DoD civilian membership rates.", url:"", icon:"💪" },
-    { name:"Find More Near Dayton →", category:"Directory", desc:"Browse verified veteran-owned businesses near Wright-Patterson AFB.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Nellis AFB": [
-    { name:"Battle Born Brewing Company", category:"Brewery", desc:"Veteran-owned Nevada craft brewery. 'Battle Born' is Nevada's state motto — honoring the state's strong military heritage.", url:"", icon:"🍺" },
-    { name:"Las Vegas Veteran Business Network", category:"Network", desc:"Nevada veteran entrepreneur coalition. Business referrals, veteran-owned business directory, and government procurement support.", url:"", icon:"🤝" },
-    { name:"Nellis CrossFit", category:"Fitness", desc:"Veteran-owned CrossFit affiliate near Nellis AFB in Henderson, NV. Fighter pilot and tactical fitness programming.", url:"", icon:"💪" },
-    { name:"Find More Near Las Vegas →", category:"Directory", desc:"Browse verified veteran-owned businesses in the Las Vegas area.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  // ── JOINT BASES ───────────────────────────────────────────────────────────
-  "Joint Base Lewis-McChord": [
-    { name:"Northwest Veteran Business Alliance", category:"Network", desc:"Washington State veteran entrepreneur network. Events, referrals, and 8(a) procurement support for JBLM area veteran businesses.", url:"", icon:"🤝" },
-    { name:"Black Coffee Roasting Co.", category:"Coffee", desc:"Veteran-owned coffee roaster in Olympia, WA. All-black packaging symbolizing the coffee's strength — military discount for service members.", url:"", icon:"☕" },
-    { name:"Tacoma CrossFit", category:"Fitness", desc:"Veteran-owned CrossFit affiliate in Tacoma. Military programming and monthly active-duty rates near JBLM.", url:"", icon:"💪" },
-    { name:"Sound Brewing (Tacoma)", category:"Brewery", desc:"Veteran-connected craft brewery in Tacoma with a Navy/military community presence.", url:"", icon:"🍺" },
-    { name:"Find More Near Tacoma →", category:"Directory", desc:"Browse the full directory of veteran-owned businesses near JBLM.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Joint Base Andrews": [
-    { name:"National Capital Region Veteran Business Hub", category:"Network", desc:"DC-area veteran business network covering Prince George's County, Northern Virginia, and the Pentagon corridor.", url:"", icon:"🤝" },
-    { name:"Veteran Realty DC Metro", category:"Real Estate", desc:"Veteran-owned real estate team specializing in VA loans for the DC metro area. PCS move specialists near Andrews, Pentagon, and Fort Meade.", url:"", icon:"🏘️" },
-    { name:"Capital Beltway CrossFit", category:"Fitness", desc:"Veteran-owned CrossFit affiliate near Joint Base Andrews. Military pricing for active duty and veterans.", url:"", icon:"💪" },
-    { name:"Find More Near DC Metro →", category:"Directory", desc:"Search for veteran-owned businesses in the DC metro area near Joint Base Andrews.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Joint Base Charleston": [
-    { name:"Charleston Veteran Business Network", category:"Network", desc:"South Carolina veteran entrepreneur coalition. Active members near JB Charleston, Naval Weapons Station, and North Charleston.", url:"", icon:"🤝" },
-    { name:"Holy City Brewing", category:"Brewery", desc:"Charleston-area craft brewery with veteran community ties and regular military appreciation tap nights.", url:"", icon:"🍺" },
-    { name:"Lowcountry CrossFit", category:"Fitness", desc:"Veteran-owned CrossFit affiliate in North Charleston. Military membership rates.", url:"", icon:"💪" },
-    { name:"Find More Near Charleston →", category:"Directory", desc:"Browse all veteran-owned businesses in the Charleston, SC area.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Joint Base Elmendorf-Richardson": [
-    { name:"Anchorage Veteran Business Network", category:"Network", desc:"Alaska veteran entrepreneur coalition. Business referrals and government contracting support for the JBER community.", url:"", icon:"🤝" },
-    { name:"Broken Tooth Brewing", category:"Brewery", desc:"Anchorage veteran-connected craft brewery. Popular with the JBER military community. Seasonal outdoor programming.", url:"", icon:"🍺" },
-    { name:"Alaska Tactical Fitness", category:"Fitness", desc:"Veteran-owned CrossFit and tactical fitness near JBER. Cold-weather training specialties.", url:"", icon:"💪" },
-    { name:"Find More Near Anchorage →", category:"Directory", desc:"Search for veteran-owned businesses near JBER in Anchorage, AK.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  "Joint Base Pearl Harbor-Hickam": [
-    { name:"Koa Brewing Co", category:"Brewery", desc:"Hawaii craft brewery with veteran community ties. Military appreciation events and active-duty discounts.", url:"", icon:"🍺" },
-    { name:"Hawaii Veteran Business Hub", category:"Network", desc:"Statewide veteran entrepreneur network covering JBPHH, Schofield, and all Hawaii military installations.", url:"", icon:"🤝" },
-    { name:"Find More Near Honolulu →", category:"Directory", desc:"Browse veteran-owned businesses in Hawaii.", url:"https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses", icon:"🔍" },
-  ],
-  // ── OCONUS ────────────────────────────────────────────────────────────────
-  "Camp Humphreys": [
-    { name:"Dragon Hill Lodge (MWR)", category:"Hospitality", desc:"Military-operated lodge on Camp Humphreys. Veteran-staffed hospitality and dining.", url:"", icon:"🏨" },
-    { name:"Army & Air Force Exchange (AAFES)", category:"Retail", desc:"Exchange-operated retail on post. Prioritizes veteran-owned small businesses as vendors.", url:"", icon:"🛒" },
-    { name:"Search USFK Patron Businesses →", category:"Directory", desc:"Browse MWR-approved and veteran-connected businesses on Camp Humphreys.", url:"", icon:"🔍" },
-  ],
-};
+
+const VETERAN_OWNED_BUSINESSES = {}; // Legacy static cards removed from rendering because several entries had no active source links.
+
 
 const PCS_CHECKLIST = {
   "Orders Received": [
@@ -1514,19 +1288,17 @@ function VeteranBusinessesTab({ theme, profile }) {
   const [filter, setFilter] = useState('All');
   const instName = (profile?.gainingInstallation || '').split(',')[0].trim();
   const searchLocation = getInstallationSearchLocation(instName);
+  const bubbleLinks = veteranBusinessBubbleLinks(instName).filter(link => link.url);
   const discoveryCards = veteranBusinessDiscoveryCards(instName);
-  // Stale hand-entered veteran-business cards are intentionally not rendered.
-  // The active discovery cards below keep users on official resources and current public searches.
-  const localBiz = [];
-  const displayBiz = discoveryCards;
-  const categories = ['All', ...new Set(displayBiz.map(b => b.category))];
+  const displayBiz = discoveryCards.filter(card => card.url);
   const filtered = filter === 'All' ? displayBiz : displayBiz.filter(b => b.category === filter);
+  const visibleCards = filtered.length ? filtered : displayBiz;
 
   const NATIONAL_DIRS = [
     { name: 'SBA Veteran-Owned Businesses', icon: 'SBA', desc: 'Official SBA veteran entrepreneurship, training, funding, and contracting guidance.', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses' },
     { name: 'VetCert Small Business Search', icon: 'VOSB', desc: 'Official SBA certification portal and search for verified VOSB and SDVOSB firms.', url: 'https://veterans.certify.sba.gov/' },
     { name: 'Veterans Business Outreach Centers', icon: 'VBOC', desc: 'Official SBA VBOC locator for free entrepreneurship counseling and training.', url: 'https://www.sba.gov/local-assistance/resource-partners/veterans-business-outreach-center-vboc-program' },
-    { name: 'VA OSDBU', icon: 'VA', desc: 'Official VA small and veteran business program information.', url: 'https://www.va.gov/osdbu/about/' },
+    { name: 'VA OSDBU', icon: 'VA', desc: 'Official VA small and veteran business program information.', url: 'https://www.va.gov/osdbu/index.asp' },
     { name: 'SAM.gov Entity Information', icon: 'SAM', desc: 'Official federal entity search and public registration information.', url: 'https://sam.gov/entity-information' },
   ];
 
@@ -1550,27 +1322,49 @@ function VeteranBusinessesTab({ theme, profile }) {
         </div>
       </div>
 
-      {/* Category filter */}
-      {categories.length > 2 && (
-        <div style={{ display: 'flex', gap: 6, marginBottom: 14, overflowX: 'auto', paddingBottom: 4 }}>
-          {categories.map(cat => (
-            <button key={cat} onClick={() => setFilter(cat)} style={{ flexShrink: 0, padding: '6px 12px', borderRadius: 16, border: `1.5px solid ${filter === cat ? theme.primary : '#E0E6EE'}`, background: filter === cat ? theme.primary : '#FFF', color: filter === cat ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
-              {cat}
-            </button>
-          ))}
+      {/* Active category link bubbles */}
+      {bubbleLinks.length > 1 && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: '#56697C', marginBottom: 8, letterSpacing: '.06em' }}>ACTIVE CATEGORY LINKS</div>
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6 }}>
+            {bubbleLinks.map(bubble => (
+              <a
+                key={bubble.category}
+                href={bubble.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setFilter(bubble.category)}
+                aria-label={`Open ${bubble.label}`}
+                style={{
+                  flexShrink: 0,
+                  minWidth: 136,
+                  maxWidth: 210,
+                  padding: '9px 12px',
+                  borderRadius: 16,
+                  border: `1.5px solid ${filter === bubble.category ? theme.primary : '#D6E0EA'}`,
+                  background: filter === bubble.category ? theme.primary : '#FFFFFF',
+                  color: filter === bubble.category ? '#FFFFFF' : '#243447',
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  fontWeight: 800,
+                  whiteSpace: 'normal',
+                  lineHeight: 1.25,
+                  textDecoration: 'none',
+                  boxShadow: filter === bubble.category ? '0 6px 14px rgba(0,0,0,0.14)' : 'none',
+                }}
+              >
+                <span style={{ display: 'block', marginBottom: 4 }}>{bubble.label}</span>
+                <span style={{ display: 'block', fontSize: 10, fontWeight: 700, opacity: 0.82 }}>Open active source</span>
+              </a>
+            ))}
+          </div>
+          <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.45 }}>
+            Each bubble opens an active official resource or a current public search tailored to the gaining installation. The cards below mirror the same categories.
+          </div>
         </div>
       )}
 
-      {/* Local listings */}
-      {false && localBiz.length === 0 && (
-        <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-          <div style={{ fontSize: 20, marginBottom: 8 }}>⭐</div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 4 }}>No local listings yet for this installation</div>
-          <div style={{ fontSize: 11, color: '#888' }}>Use the national directories above to find veteran-owned businesses in your area.</div>
-        </div>
-      )}
-
-      {filtered.map((biz, idx) => (
+      {visibleCards.map((biz, idx) => (
         <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
             <span style={{ fontSize: 22 }}>{biz.icon}</span>
@@ -1581,13 +1375,14 @@ function VeteranBusinessesTab({ theme, profile }) {
           </div>
           <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 10 }}>{biz.desc}</div>
           <a href={biz.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '9px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>
-            Visit Website
+            Open Source
           </a>
         </div>
       ))}
     </div>
   );
 }
+
 
 const INSTALLATION_COLLEGES = {
   'Fort Liberty': [
