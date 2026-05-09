@@ -2966,6 +2966,17 @@ function EducationBenefitsTab({ theme, profile }) {
 function ResourcesTab({ theme, profile }) {
   const [activeSection, setActiveSection] = useState('careers');
   const branch = profile?.branch || 'Army';
+  const BRANCH_FAMILY_SUPPORT = {
+    Army: { name: 'Army Community Service (ACS)', desc: 'Army installation-based family support, financial counseling, employment help, and relocation support.', url: 'https://installations.militaryonesource.mil/' },
+    Navy: { name: 'Fleet & Family Support Center (FFSC)', desc: 'Navy family support, relocation assistance, deployment support, counseling, and employment help.', url: 'https://ffr.cnic.navy.mil/Fleet-And-Family-Readiness/Family-Readiness/Fleet-Family-Support-Program/' },
+    'Marine Corps': { name: 'Marine Corps Community Services (MCCS)', desc: 'Marine Corps family readiness, relocation, counseling, employment, and financial support.', url: 'https://www.usmc-mccs.org/' },
+    'Air Force': { name: 'Military & Family Readiness Center', desc: 'Air Force relocation, employment, financial readiness, family support, and deployment resources.', url: 'https://www.af.mil/Contact-Us/' },
+    'Space Force': { name: 'Department of the Air Force Military & Family Readiness', desc: 'Space Force family readiness support through the servicing Department of the Air Force installation.', url: 'https://www.spaceforce.mil/Family/' },
+    'Coast Guard': { name: 'Coast Guard Work-Life Program', desc: 'Coast Guard family, relocation, financial, employment, and work-life support services.', url: 'https://www.dcms.uscg.mil/Our-Organization/Assistant-Commandant-for-Human-Resources-CG-1/Health-Safety-and-Work-Life-CG-11/' },
+  };
+  const selectedFamilySupport = BRANCH_FAMILY_SUPPORT[branch] || BRANCH_FAMILY_SUPPORT.Army;
+  const BRANCH_ONLY_TAGS = ['Army', 'Navy', 'Marine Corps', 'Air Force', 'Space Force', 'Coast Guard'];
+  const getVisibleResources = (items = []) => items.filter(resource => !BRANCH_ONLY_TAGS.includes(resource.tag) || resource.tag === branch);
 
   const SECTIONS = [
     { id: 'careers',      label: 'Careers', icon: '💼' },
@@ -2997,7 +3008,7 @@ function ResourcesTab({ theme, profile }) {
       { name: 'Military Child Education Coalition', desc: 'School transition resources for military children', url: 'https://www.militarychild.org/', tag: 'Families' },
       { name: 'Operation Homefront', desc: 'Emergency financial and housing assistance for military families', url: 'https://operationhomefront.org/critical-financial-assistance/', tag: 'All Branches' },
       { name: 'Blue Star Families', desc: 'Connection and community for military families nationwide', url: 'https://bluestarfam.org/', tag: 'All Branches' },
-      { name: branch === 'Army' ? 'Army Community Service (ACS)' : branch === 'Navy' ? 'Fleet & Family Support (FFSC)' : branch.includes('Marine') ? 'Marine Corps Family Services' : 'Airman & Family Readiness Center', desc: 'Installation-based family support, financial counseling, employment help', url: branch === 'Army' ? 'https://installations.militaryonesource.mil/' : branch === 'Navy' ? 'https://www.cnic.navy.mil/ffsp' : 'https://www.militaryonesource.mil', tag: branch },
+      { ...selectedFamilySupport, tag: branch },
     ],
     financial: [
       { name: 'myPay (DFAS)', desc: 'Access and manage your military pay, allotments, and W-2s', url: 'https://mypay.dfas.mil', tag: 'All Branches' },
@@ -3061,7 +3072,7 @@ function ResourcesTab({ theme, profile }) {
       </div>
 
       {/* Resource cards */}
-      {(RESOURCES[activeSection] || []).map((r, idx) => {
+      {getVisibleResources(RESOURCES[activeSection] || []).map((r, idx) => {
         const tc = tagColor(r.tag);
         return (
           <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
@@ -3148,7 +3159,7 @@ const APP_TRANSLATIONS = {
     next: 'Next',
     thankYouButton: 'Thank You for Your Service!',
     categoryEyebrow: 'PCS EXPRESS CATEGORY',
-    defaultCategoryDescription: 'Review official public information and locally saved PCS planning tools for this category.',
+    defaultCategoryDescription: 'Review official public information and PCS planning tools for this category.',
     unitedStates: 'UNITED STATES',
     reportingTo: 'Reporting to',
     setGaining: 'Set gaining installation in onboarding',
@@ -3239,7 +3250,7 @@ APP_TRANSLATIONS.es = {
   next: 'Siguiente',
   thankYouButton: 'Gracias por su servicio',
   categoryEyebrow: 'CATEGORÍA PCS EXPRESS',
-  defaultCategoryDescription: 'Revise información pública oficial y herramientas de planificación guardadas localmente.',
+  defaultCategoryDescription: 'Revise información pública oficial y herramientas de planificación PCS.',
   unitedStates: 'ESTADOS UNIDOS',
   reportingTo: 'Asignado a',
   setGaining: 'Configure la instalación de destino en el inicio',
@@ -3909,7 +3920,7 @@ function Onboarding({ onComplete }) {
                 <select value={p.religiousPreference} onChange={e => upd('religiousPreference', e.target.value)} style={inputSt}>
                   {RELIGIOUS_PREFERENCES.map(r => <option key={r}>{r}</option>)}
                 </select>
-                <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>Stored locally only — helps surface relevant chapel and community resources</div>
+                <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>Optional - helps surface relevant chapel and community resources</div>
               </div>
 
               <div style={{ display: 'flex', gap: 10 }}>

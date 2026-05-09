@@ -201,11 +201,11 @@ const RELIGIOUS_SERVICES = {
 }
 
 const ONLINE_RESOURCES = [
-  { name: 'MilitaryINSTALLATIONS', url: 'https://installations.militaryonesource.mil/', description: 'Find installation chaplain offices, support centers, contacts, and public installation resources.' },
-  { name: 'Army Chaplain Corps', url: 'https://www.army.mil/chaplaincorps/', description: 'Official U.S. Army Chaplain Corps public information.' },
-  { name: 'Navy Chaplain Corps', url: 'https://www.navy.mil/Resources/Navy-Chaplain-Corps/', description: 'Official Navy Chaplain Corps public information for Navy, Marine Corps, and Coast Guard support.' },
-  { name: 'Air Force Chaplain Corps', url: 'https://www.af.mil/About-Us/Fact-Sheets/Display/Article/104584/chaplain-corps/', description: 'Official Air Force Chaplain Corps public information.' },
-  { name: 'Military OneSource Counseling', url: 'https://www.militaryonesource.mil/benefits/confidential-counseling/', description: 'Official confidential non-medical counseling information for eligible military families.' },
+  { name: 'MilitaryINSTALLATIONS', branches: ['ALL'], url: 'https://installations.militaryonesource.mil/', description: 'Find installation chaplain offices, support centers, contacts, and public installation resources.' },
+  { name: 'Army Chaplain Corps', branches: ['Army'], url: 'https://www.army.mil/chaplaincorps/', description: 'Official U.S. Army Chaplain Corps public information.' },
+  { name: 'Navy Chaplain Corps', branches: ['Navy', 'Marine Corps', 'Coast Guard'], url: 'https://www.navy.mil/Resources/Navy-Chaplain-Corps/', description: 'Official Navy Chaplain Corps public information for Navy, Marine Corps, and Coast Guard support.' },
+  { name: 'Air Force Chaplain Corps', branches: ['Air Force', 'Space Force'], url: 'https://www.af.mil/About-Us/Fact-Sheets/Display/Article/104584/chaplain-corps/', description: 'Official Air Force Chaplain Corps public information for Air Force and Space Force support.' },
+  { name: 'Military OneSource Counseling', branches: ['ALL'], url: 'https://www.militaryonesource.mil/benefits/confidential-counseling/', description: 'Official confidential non-medical counseling information for eligible military families.' },
 ]
 
 function ReligiousServicesModule({ theme, profile }) {
@@ -235,6 +235,7 @@ function ReligiousServicesModule({ theme, profile }) {
   })()
 
   const branchSupport = getBranchSupportCenter(profile?.branch)
+  const spiritualBranch = branchSupport.branch || profile?.branch || 'Army'
   const services = getServices()
   const instName = (profile?.gainingInstallation || '').split(',')[0].trim() || 'your installation'
 
@@ -438,7 +439,7 @@ function ReligiousServicesModule({ theme, profile }) {
                 ONLINE RESOURCES
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {ONLINE_RESOURCES.filter(res => res.url).map((res, idx) => (
+                {ONLINE_RESOURCES.filter(res => res.url && (res.branches?.includes('ALL') || res.branches?.includes(spiritualBranch))).map((res, idx) => (
                   <a
                     key={idx}
                     href={res.url}
