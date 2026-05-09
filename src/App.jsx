@@ -870,32 +870,32 @@ function officialSchoolCards(installation) {
 function veteranBusinessBubbleLinks(installation) {
   const loc = getInstallationSearchLocation(installation);
   return [
-    { category: 'All', label: 'All veteran resources', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses', desc: 'Official SBA overview for veteran-owned businesses, training, funding, and contracting.' },
-    { category: 'Local Search', label: `Local search near ${loc}`, url: googleSearchUrl(`veteran owned businesses near ${loc}`), desc: 'Current public search tailored to the gaining installation area.' },
-    { category: 'Restaurants', label: `Restaurants near ${loc}`, url: googleSearchUrl(`veteran owned restaurants cafes near ${loc}`), desc: 'Current public search for veteran-owned restaurants and cafes near the gaining area.' },
-    { category: 'Home Services', label: `Home services near ${loc}`, url: googleSearchUrl(`veteran owned home services real estate moving repair near ${loc}`), desc: 'Current public search for veteran-owned home repair, real estate, moving, and local services.' },
+    { category: 'All', label: 'SBA veteran resources', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses', desc: 'Official SBA overview for veteran-owned businesses, training, funding, and contracting.' },
+    { category: 'Search', label: 'SBA business search', url: 'https://search.certifications.sba.gov/', desc: `Official SBA Small Business Search. Use ${loc}, VOSB, SDVOSB, and service keywords to find public certified-firm records.` },
+    { category: 'Food', label: 'Food service firms', url: 'https://search.certifications.sba.gov/', desc: `Official SBA search path for food-service, restaurant, catering, cafe, and dining-related veteran-owned firms near ${loc}.` },
+    { category: 'Home Services', label: 'Home service firms', url: 'https://search.certifications.sba.gov/', desc: `Official SBA search path for construction, repair, moving, real estate, maintenance, and home-service firms near ${loc}.` },
     { category: 'Certification', label: 'SBA VetCert', url: 'https://veterans.certify.sba.gov/', desc: 'Official SBA certification portal and small business search for certified VOSB and SDVOSB firms.' },
     { category: 'Contracting', label: 'Federal contracting', url: 'https://www.sba.gov/federal-contracting/contracting-assistance-programs/veteran-contracting-assistance-programs', desc: 'Official SBA contracting assistance guidance for veteran-owned small businesses.' },
     { category: 'Counseling', label: 'VBOC counseling', url: 'https://www.sba.gov/local-assistance/resource-partners/veterans-business-outreach-center-vboc-program', desc: 'Official SBA Veterans Business Outreach Center locator for free counseling, training, and mentorship.' },
     { category: 'VA OSDBU', label: 'VA OSDBU', url: 'https://www.va.gov/osdbu/index.asp', desc: 'Official VA small and veteran business program information.' },
     { category: 'SAM.gov', label: 'SAM.gov entities', url: 'https://sam.gov/entity-information', desc: 'Official federal entity information search for businesses registered to work with the government.' },
-    { category: 'SBA Search', label: 'SBA business search', url: 'https://search.certifications.sba.gov/', desc: 'Official SBA Small Business Search portal for certified business discovery.' },
   ];
 }
 
 function veteranBusinessDiscoveryCards(installation) {
   const loc = getInstallationSearchLocation(installation);
   return [
-    { name: `Veteran-owned businesses near ${loc}`, category: 'Local Search', desc: 'Open a current public search for veteran-owned businesses near the gaining installation. Verify ownership, hours, and ratings directly before visiting.', url: googleSearchUrl(`veteran owned businesses near ${loc}`), icon: 'SEARCH' },
-    { name: `Veteran-owned restaurants near ${loc}`, category: 'Restaurants', desc: 'Open a current public search for veteran-owned restaurants and cafes near the gaining installation.', url: googleSearchUrl(`veteran owned restaurants cafes near ${loc}`), icon: 'FOOD' },
-    { name: `Veteran-owned home services near ${loc}`, category: 'Home Services', desc: 'Open a current public search for veteran-owned repair, moving, real estate, and local services near the gaining installation.', url: googleSearchUrl(`veteran owned home services real estate moving repair near ${loc}`), icon: 'HOME' },
     { name: 'SBA Veteran-Owned Business Resources', category: 'All', desc: 'Official SBA support for veteran entrepreneurship, including training, funding, and federal contracting resources.', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses', icon: 'SBA' },
+    { name: `SBA Small Business Search for ${loc}`, category: 'Search', desc: 'Official SBA search portal for certified public small-business records. Search by location, VOSB or SDVOSB status, keywords, and NAICS terms.', url: 'https://search.certifications.sba.gov/', icon: 'SBA' },
+    { name: `SAM.gov Entity Information for ${loc}`, category: 'Search', desc: 'Official SAM.gov entity search for public registration and active entity records. Use the gaining location and business keywords, then verify active status.', url: 'https://sam.gov/entity-information', icon: 'SAM' },
+    { name: `Food and restaurant firms near ${loc}`, category: 'Food', desc: 'Use the official SBA Small Business Search with terms such as food service, restaurant, catering, cafe, dining, and the gaining installation area.', url: 'https://search.certifications.sba.gov/', icon: 'FOOD' },
+    { name: `Food-service entity verification for ${loc}`, category: 'Food', desc: 'Use SAM.gov Entity Information to verify public entity records for food-service, catering, and dining businesses before relying on a listing.', url: 'https://sam.gov/entity-information', icon: 'SAM' },
+    { name: `Home service firms near ${loc}`, category: 'Home Services', desc: 'Use the official SBA Small Business Search with terms such as construction, repair, moving, real estate, maintenance, cleaning, and the gaining installation area.', url: 'https://search.certifications.sba.gov/', icon: 'HOME' },
+    { name: `Home-service entity verification for ${loc}`, category: 'Home Services', desc: 'Use SAM.gov Entity Information to verify public entity records for repair, moving, construction, and home-service businesses.', url: 'https://sam.gov/entity-information', icon: 'SAM' },
     { name: 'SBA VetCert and Small Business Search', category: 'Certification', desc: 'Official SBA portal for VetCert certification and discovery of certified veteran-owned firms.', url: 'https://veterans.certify.sba.gov/', icon: 'VOSB' },
     { name: 'SBA Veteran Contracting Assistance', category: 'Contracting', desc: 'Official SBA guidance for veteran-owned small businesses pursuing federal contract awards and set-aside opportunities.', url: 'https://www.sba.gov/federal-contracting/contracting-assistance-programs/veteran-contracting-assistance-programs', icon: 'CONTRACT' },
     { name: 'Veterans Business Outreach Centers', category: 'Counseling', desc: 'Official SBA locator for free VBOC business counseling, training, workshops, and mentorship.', url: 'https://www.sba.gov/local-assistance/resource-partners/veterans-business-outreach-center-vboc-program', icon: 'VBOC' },
     { name: 'VA OSDBU Veteran Business Resources', category: 'VA OSDBU', desc: 'Official VA Office of Small and Disadvantaged Business Utilization information for procurement-ready small and veteran businesses.', url: 'https://www.va.gov/osdbu/index.asp', icon: 'VA' },
-    { name: 'SAM.gov Entity Information', category: 'SAM.gov', desc: 'Official federal entity information search for registration, exclusions, and public entity records.', url: 'https://sam.gov/entity-information', icon: 'SAM' },
-    { name: 'SBA Small Business Search', category: 'SBA Search', desc: 'Official SBA search portal for certified small businesses and federal market research.', url: 'https://search.certifications.sba.gov/', icon: 'SEARCH' },
   ].filter(card => card.url);
 }
 
@@ -1359,7 +1359,7 @@ function VeteranBusinessesTab({ theme, profile }) {
             ))}
           </div>
           <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.45 }}>
-            Each bubble opens an active official resource or a current public search tailored to the gaining installation. The cards below mirror the same categories.
+            Each bubble opens an official SBA, VA, or SAM.gov resource. The Search, Food, and Home Services cards now use the same verified-source pattern as the SBA and VA cards.
           </div>
         </div>
       )}
