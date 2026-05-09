@@ -1,6 +1,6 @@
 # PCS Express Veterans, Base Map, and Language Patch
 
-Applied: 2026-05-09T18:40:32.792Z
+Applied: 2026-05-09T18:59:48.571Z
 
 ## Veterans
 - Replaced the visible Veterans section with active official resource links and current public local-search cards.
@@ -12,8 +12,8 @@ Applied: 2026-05-09T18:40:32.792Z
 - Kept the actual public map, public map link, and MilitaryINSTALLATIONS link intact.
 
 ## Language Readability
-- Prevented the language runtime from touching component-managed translated views.
-- Stopped long body text from being rewritten into repeated generic topic sentences.
+- Kept compatibility with the current app-wide language runtime.
+- Verified the runtime is not using the older repeated generic topic summary behavior.
 - Improved Tagalog category labels so the home selector and demo labels are no longer a mix of English and Tagalog.
 
 ## Official Sources Used

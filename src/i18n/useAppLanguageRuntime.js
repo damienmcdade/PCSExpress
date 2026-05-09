@@ -280,6 +280,30 @@ const PHRASES = {
   'Enrollment link under official review': tr('Enlace de inscripción en revisión oficial', 'Einschreibungslink in offizieller Prüfung', 'Lien d’inscription en vérification officielle', '등록 링크 공식 검토 중', '入学リンクは公式確認中', 'Enrollment link ay sinusuri pa', 'رابط التسجيل قيد المراجعة الرسمية', '注册链接正在官方审核', 'Link iscrizione in verifica ufficiale', 'Link de matrícula em revisão oficial', 'Liên kết ghi danh đang được xác minh'),
 };
 
+const PHRASE_LOOKUP = Object.fromEntries(
+  Object.entries(PHRASES).map(([key, value]) => [key.toLowerCase(), value])
+);
+
+const COMMAND_PHRASES = {
+  'Copy': tr('Copiar', 'Kopieren', 'Copier', '복사', 'コピー', 'Kopyahin', 'نسخ', '复制', 'Copia', 'Copiar', 'Sao chép'),
+  'Copy Translation': tr('Copiar traducción', 'Übersetzung kopieren', 'Copier la traduction', '번역 복사', '翻訳をコピー', 'Kopyahin ang salin', 'نسخ الترجمة', '复制翻译', 'Copia traduzione', 'Copiar tradução', 'Sao chép bản dịch'),
+  'Clear All': tr('Borrar todo', 'Alles löschen', 'Tout effacer', '모두 지우기', 'すべて消去', 'Burahin lahat', 'مسح الكل', '全部清除', 'Cancella tutto', 'Limpar tudo', 'Xóa tất cả'),
+  'Add Child': tr('Agregar menor', 'Kind hinzufügen', 'Ajouter un enfant', '자녀 추가', '子どもを追加', 'Magdagdag ng anak', 'إضافة طفل', '添加子女', 'Aggiungi figlio', 'Adicionar criança', 'Thêm trẻ em'),
+  'Add Item': tr('Agregar elemento', 'Element hinzufügen', 'Ajouter un élément', '항목 추가', '項目を追加', 'Magdagdag ng item', 'إضافة عنصر', '添加项目', 'Aggiungi elemento', 'Adicionar item', 'Thêm mục'),
+  'Remove': tr('Quitar', 'Entfernen', 'Supprimer', '제거', '削除', 'Alisin', 'إزالة', '移除', 'Rimuovi', 'Remover', 'Xóa'),
+  'Save Route': tr('Guardar ruta', 'Route speichern', 'Enregistrer l’itinéraire', '경로 저장', 'ルートを保存', 'I-save ang ruta', 'حفظ المسار', '保存路线', 'Salva percorso', 'Salvar rota', 'Lưu tuyến'),
+  'Generate On-Base Route': tr('Crear ruta en la base', 'Route auf der Basis erstellen', 'Créer un itinéraire sur la base', '기지 내 경로 만들기', '基地内ルートを作成', 'Gumawa ng ruta sa base', 'إنشاء مسار داخل القاعدة', '生成基地内路线', 'Crea percorso in base', 'Gerar rota na base', 'Tạo tuyến trong căn cứ'),
+  'Search Official School Sources →': tr('Buscar fuentes escolares oficiales', 'Offizielle Schulquellen suchen', 'Rechercher les sources scolaires officielles', '공식 학교 출처 검색', '公式学校情報を検索', 'Maghanap ng opisyal na school sources', 'البحث في مصادر المدارس الرسمية', '搜索官方学校来源', 'Cerca fonti scolastiche ufficiali', 'Pesquisar fontes escolares oficiais', 'Tìm nguồn trường học chính thức'),
+  'Reset Local App Data': tr('Restablecer datos locales', 'Lokale App-Daten zurücksetzen', 'Réinitialiser les données locales', '로컬 앱 데이터 재설정', 'ローカルアプリデータをリセット', 'I-reset ang lokal na app data', 'إعادة ضبط بيانات التطبيق المحلية', '重置本地应用数据', 'Reimposta dati locali', 'Redefinir dados locais', 'Đặt lại dữ liệu cục bộ'),
+  'Load Example': tr('Cargar ejemplo', 'Beispiel laden', 'Charger l’exemple', '예시 불러오기', '例を読み込む', 'Mag-load ng halimbawa', 'تحميل مثال', '加载示例', 'Carica esempio', 'Carregar exemplo', 'Tải ví dụ'),
+  'Close Demo': tr('Cerrar demo', 'Demo schließen', 'Fermer la démo', '데모 닫기', 'デモを閉じる', 'Isara ang demo', 'إغلاق العرض', '关闭演示', 'Chiudi demo', 'Fechar demo', 'Đóng demo'),
+};
+
+Object.entries(COMMAND_PHRASES).forEach(([key, value]) => {
+  PHRASES[key] = value;
+  PHRASE_LOOKUP[key.toLowerCase()] = value;
+});
+
 const PROPER_NOUNS = [
   'PCS', 'PCS Express', 'USAJOBS', 'Military OneSource', 'MySECO', 'MSEP', 'MyCAA', 'TRICARE', 'DoDEA', 'DPS', 'VA', 'GI Bill', 'FAFSA',
   'ArmyIgnitED', 'AFVEC', 'DANTES', 'DEERS', 'USPS', 'SGLI', 'TMO', 'PPPO', 'HHG', 'POV', 'MTF', 'EFMP', 'OCONUS', 'CONUS',
@@ -384,10 +408,12 @@ function translateExact(original, lang) {
   const leading = original.match(/^\s*/)?.[0] || '';
   const trailing = original.match(/\s*$/)?.[0] || '';
   const compact = compactText(original);
-  const translated = PHRASES[compact]?.[lang];
+  const translated = PHRASES[compact]?.[lang] || PHRASE_LOOKUP[compact.toLowerCase()]?.[lang];
   if (translated) return `${leading}${translated}${trailing}`;
   const [marker, body] = splitMarker(compact);
-  const markerTranslated = marker ? PHRASES[body]?.[lang] : null;
+  const markerTranslated = marker
+    ? PHRASES[body]?.[lang] || PHRASE_LOOKUP[body.toLowerCase()]?.[lang]
+    : null;
   return markerTranslated ? `${leading}${marker}${markerTranslated}${trailing}` : null;
 }
 
@@ -487,6 +513,40 @@ function localizedSentence({ topic, intent, source, lang, short }) {
   return sentences[lang] || sentences.es;
 }
 
+function controlContext(parent) {
+  const parts = [];
+  let node = parent;
+  for (let i = 0; node && i < 5; i += 1) {
+    parts.push(
+      node.id || '',
+      typeof node.className === 'string' ? node.className : '',
+      node.getAttribute?.('aria-label') || '',
+      node.getAttribute?.('data-section') || '',
+      node.getAttribute?.('role') || ''
+    );
+    node = node.parentElement;
+  }
+  return parts.join(' ');
+}
+
+function isLikelySelectorLabel(parent, compact) {
+  const tag = parent?.tagName?.toLowerCase() || '';
+  const role = parent?.getAttribute?.('role') || '';
+  if (tag !== 'button' && role !== 'button' && role !== 'tab') return false;
+  const context = controlContext(parent);
+  if (/tab|tabs|nav|navigation|category|selector|section|filter|phase|menu|bottom|sidebar|segment/i.test(context)) return true;
+  if (compact.length <= 64 && !hasVerbLikeEnglish(compact) && !/[.!?]/.test(compact)) return true;
+  return false;
+}
+
+function commandFallback(lower, bundle) {
+  if (/^open\b|^view\b|^learn\b|^visit\b|^download\b|^browse\b|^launch\b/.test(lower)) return bundle.action;
+  if (/^copy\b/.test(lower)) return PHRASE_LOOKUP.copy?.it === bundle.action ? bundle.action : '';
+  if (/^clear\b|^remove\b|^reset\b|^delete\b/.test(lower)) return '';
+  if (/^add\b|^save\b|^load\b|^close\b|^submit\b|^translate\b/.test(lower)) return '';
+  return '';
+}
+
 function chooseFallback(original, lang, parent) {
   const leading = original.match(/^\s*/)?.[0] || '';
   const trailing = original.match(/\s*$/)?.[0] || '';
@@ -498,23 +558,24 @@ function chooseFallback(original, lang, parent) {
   const bundle = GENERIC[lang] || GENERIC.es;
   const tag = parent?.tagName?.toLowerCase() || '';
   const role = parent?.getAttribute?.('role') || '';
+  const labelLikeControl = isLikelySelectorLabel(parent, compact);
 
   let translated = '';
-  if (/^open\b|^view\b|^learn\b|^visit\b|^download\b|^browse\b|^launch\b/.test(lower)) translated = bundle.action;
-  else if (/search|find/.test(lower) && compact.length <= 80) translated = bundle.search;
+  const explicitCommand = commandFallback(lower, bundle);
+  if (explicitCommand) translated = explicitCommand;
+  else if (/search|find/.test(lower) && compact.length <= 80 && !labelLikeControl) translated = bundle.search;
   else if (/continue|build my pcs plan|start/.test(lower) && compact.length <= 80) translated = bundle.continue;
   else if (/^back$|go back/.test(lower)) translated = bundle.back;
   else if (/^next$/.test(lower)) translated = bundle.next;
-  else if ((tag === 'button' || role === 'button') && compact.length <= 80) translated = bundle.action;
-  else if (tag === 'a' && compact.length <= 100) translated = bundle.resource;
   else if (/not available|unavailable|no .*data|cannot find|not found|under official review/.test(lower)) translated = bundle.unavailable;
+  else if (tag === 'a' && compact.length <= 100 && /resource|website|enrollment|admissions|official|learn more|open|visit/.test(lower)) translated = bundle.resource;
   else {
     const topic = topicFor(compact, parent);
     const intent = intentFor(compact);
     const source = sourceFrom(compact);
     const headingTag = /^h[1-6]$/.test(tag);
     const isShortHeading = compact.length <= 44 && !/[.!?]/.test(compact);
-    translated = localizedSentence({ topic, intent, source, lang, short: headingTag || isShortHeading });
+    translated = localizedSentence({ topic, intent, source, lang, short: headingTag || isShortHeading || labelLikeControl });
   }
 
   return `${leading}${marker}${translated}${trailing}`;

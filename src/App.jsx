@@ -3343,7 +3343,7 @@ APP_TRANSLATIONS.fr = {
   gaining: 'Arrivée',
   depart: 'Départ',
   faith: 'Foi',
-  nav: { home: 'Accueil', checklist: 'Checklist', documents: 'Documents', education: 'Éducation', family: 'Préparation familiale', 'home-relocation': 'Relogement', 'mental-readiness': 'Préparation mentale', nav: 'Navigation', resources: 'Ressources', religion: 'Préparation spirituelle', translation: 'Traduction', veterans: 'Vétérans' },
+  nav: { home: 'Accueil', checklist: 'Liste PCS', documents: 'Documents', education: 'Éducation', family: 'Préparation familiale', 'home-relocation': 'Relogement', 'mental-readiness': 'Préparation mentale', nav: 'Navigation', resources: 'Ressources', religion: 'Préparation spirituelle', translation: 'Traduction', veterans: 'Vétérans' },
 };
 
 APP_TRANSLATIONS.ko = {
@@ -3547,7 +3547,7 @@ APP_TRANSLATIONS.it = {
   gaining: 'Destinazione',
   depart: 'Partenza',
   faith: 'Fede',
-  nav: { home: 'Home', checklist: 'Checklist', documents: 'Documenti', education: 'Istruzione', family: 'Prontezza familiare', 'home-relocation': 'Trasferimento casa', 'mental-readiness': 'Prontezza mentale', nav: 'Navigazione', resources: 'Risorse', religion: 'Prontezza spirituale', translation: 'Traduzione', veterans: 'Veterani' },
+  nav: { home: 'Pagina iniziale', checklist: 'Lista PCS', documents: 'Documenti', education: 'Istruzione', family: 'Prontezza familiare', 'home-relocation': 'Trasferimento casa', 'mental-readiness': 'Prontezza mentale', nav: 'Navigazione', resources: 'Risorse', religion: 'Prontezza spirituale', translation: 'Traduzione', veterans: 'Veterani' },
 };
 
 APP_TRANSLATIONS.pt = {
@@ -3581,7 +3581,7 @@ APP_TRANSLATIONS.pt = {
   gaining: 'Destino',
   depart: 'Partida',
   faith: 'Fé',
-  nav: { home: 'Início', checklist: 'Checklist', documents: 'Documentos', education: 'Educação', family: 'Prontidão familiar', 'home-relocation': 'Mudança residencial', 'mental-readiness': 'Prontidão mental', nav: 'Navegação', resources: 'Recursos', religion: 'Prontidão espiritual', translation: 'Tradução', veterans: 'Veteranos' },
+  nav: { home: 'Início', checklist: 'Lista PCS', documents: 'Documentos', education: 'Educação', family: 'Prontidão familiar', 'home-relocation': 'Mudança residencial', 'mental-readiness': 'Prontidão mental', nav: 'Navegação', resources: 'Recursos', religion: 'Prontidão espiritual', translation: 'Tradução', veterans: 'Veteranos' },
 };
 
 APP_TRANSLATIONS.vi = {
@@ -3615,7 +3615,7 @@ APP_TRANSLATIONS.vi = {
   gaining: 'Căn cứ đến',
   depart: 'Khởi hành',
   faith: 'Tín ngưỡng',
-  nav: { home: 'Trang chủ', checklist: 'Checklist', documents: 'Tài liệu', education: 'Giáo dục', family: 'Sẵn sàng gia đình', 'home-relocation': 'Nhà ở & chuyển nhà', 'mental-readiness': 'Sẵn sàng tinh thần', nav: 'Điều hướng', resources: 'Tài nguyên', religion: 'Sẵn sàng tâm linh', translation: 'Dịch thuật', veterans: 'Cựu chiến binh' },
+  nav: { home: 'Trang chủ', checklist: 'Danh sách PCS', documents: 'Tài liệu', education: 'Giáo dục', family: 'Sẵn sàng gia đình', 'home-relocation': 'Nhà ở & chuyển nhà', 'mental-readiness': 'Sẵn sàng tinh thần', nav: 'Điều hướng', resources: 'Tài nguyên', religion: 'Sẵn sàng tâm linh', translation: 'Dịch thuật', veterans: 'Cựu chiến binh' },
 };
 
 function getAppLanguage(language) {
@@ -3672,6 +3672,154 @@ const KEYED_LANGUAGE_TEMPLATES = {
   vi: { desc: (label) => `${label}: xem tài nguyên chính thức và công cụ lập kế hoạch cho khu vực này.`, demoTitle: (label) => label, demoBody: (label) => `Phần này giải thích cách sử dụng ${label} trong PCS Express.` },
 };
 
+
+const CATEGORY_DESC_TRANSLATIONS = {
+  es: {
+    checklist: 'Organice las tareas PCS por fase, marque el progreso con controles cuadrados y mantenga visibles los plazos importantes.',
+    documents: 'Use listas de seguimiento para saber qué documentos reunir, revisar y llevar, sin subir archivos a la aplicación.',
+    education: 'Revise universidades cercanas, beneficios GI Bill, MyCAA y pasos de Tuition Assistance según la rama seleccionada.',
+    family: 'Coordine necesidades familiares de PCS como despliegue, EFMP, empleo, residencia, mascotas y escuelas.',
+    'home-relocation': 'Encuentre apoyo oficial de vivienda, ayuda de mudanza, inventario, reclamos y planificación de valor de reemplazo.',
+    'mental-readiness': 'Acceda a recursos gratuitos de consejería, crisis, apoyo familiar y autocuidado para miembros del servicio y dependientes.',
+    nav: 'Planifique rutas, indicaciones y mapas públicos de instalación sin mostrar información restringida o no pública.',
+    resources: 'Abra recursos oficiales de gobierno, militares, familiares, financieros, médicos, educativos y de carrera en un solo lugar.',
+    religion: 'Localice apoyo de capellán, consejería, servicios religiosos y comunidad según la preferencia espiritual opcional.',
+    translation: 'Use frases útiles para vivienda, salud, escuelas, transporte y vida diaria durante mudanzas CONUS u OCONUS.',
+    veterans: 'Encuentre directorios y búsquedas públicas para recursos y negocios de veteranos cerca del destino.',
+  },
+  de: {
+    checklist: 'Ordnen Sie PCS-Aufgaben nach Phasen, markieren Sie Fortschritt mit Kontrollfeldern und behalten Sie wichtige Fristen im Blick.',
+    documents: 'Nutzen Sie reine Checklisten, um Dokumente zu sammeln, zu prüfen und mitzunehmen, ohne Dateien in die App hochzuladen.',
+    education: 'Prüfen Sie Hochschulen in der Nähe, GI-Bill-Leistungen, MyCAA und Tuition-Assistance-Schritte nach ausgewählter Teilstreitkraft.',
+    family: 'Koordinieren Sie PCS-Familienthemen wie Einsatz, EFMP, Beschäftigung, Aufenthalt, Haustiere und Schulen.',
+    'home-relocation': 'Finden Sie offizielle Wohnungsquellen, Umzugshilfe, Inventar, Schadensansprüche und Ersatzwertplanung.',
+    'mental-readiness': 'Nutzen Sie kostenlose Beratungs-, Krisen-, Familien- und Selbsthilferessourcen für Servicemitglieder und Angehörige.',
+    nav: 'Planen Sie Routen, Wegbeschreibungen und öffentliche Standortkarten ohne eingeschränkte oder nicht öffentliche Informationen.',
+    resources: 'Öffnen Sie offizielle Regierungs-, Militär-, Familien-, Finanz-, Gesundheits-, Bildungs- und Karrierequellen an einem Ort.',
+    religion: 'Finden Sie Seelsorge, Beratung, Gottesdienste und Gemeinschaftshilfe anhand der optionalen spirituellen Präferenz.',
+    translation: 'Nutzen Sie hilfreiche Sätze für Wohnen, Gesundheit, Schule, Verkehr und Alltag bei CONUS- oder OCONUS-Umzügen.',
+    veterans: 'Finden Sie öffentliche Verzeichnisse und Suchpfade für Veteranenressourcen und veteranengeführte Unternehmen in Zielnähe.',
+  },
+  fr: {
+    checklist: 'Organisez les tâches PCS par phase, cochez la progression avec des cases et gardez les échéances importantes visibles.',
+    documents: 'Utilisez des listes de suivi pour savoir quels documents réunir, vérifier et transporter, sans téléverser de fichiers.',
+    education: 'Consultez les établissements proches, le GI Bill, MyCAA et les étapes Tuition Assistance selon la branche sélectionnée.',
+    family: 'Coordonnez les besoins familiaux PCS comme déploiement, EFMP, emploi, résidence permanente, animaux et écoles.',
+    'home-relocation': 'Trouvez des ressources officielles de logement, aide au déménagement, inventaire, réclamations et valeur de remplacement.',
+    'mental-readiness': 'Accédez à des ressources gratuites de conseil, crise, soutien familial et autosoins pour militaires et dépendants.',
+    nav: 'Planifiez trajets, itinéraires et cartes publiques d’installation sans données restreintes ou non publiques.',
+    resources: 'Ouvrez les ressources officielles gouvernementales, militaires, familiales, financières, santé, éducation et carrière.',
+    religion: 'Trouvez aumônerie, conseil, services religieux et soutien communautaire selon la préférence spirituelle facultative.',
+    translation: 'Utilisez des phrases utiles pour logement, santé, école, transport et vie quotidienne lors de PCS CONUS ou OCONUS.',
+    veterans: 'Trouvez des annuaires publics et recherches pour ressources vétérans et entreprises détenues par des vétérans près de l’arrivée.',
+  },
+  ko: {
+    checklist: 'PCS 작업을 단계별로 정리하고 체크박스로 진행 상황과 주요 기한을 확인합니다.',
+    documents: '파일 업로드 없이 수집, 확인, 휴대해야 할 PCS 문서를 체크리스트로 추적합니다.',
+    education: '선택한 군별에 맞춰 인근 대학, GI Bill, MyCAA, 학비 지원 절차를 확인합니다.',
+    family: '배치, EFMP, 취업, 영주권, 반려동물, 학교 등 가족 관련 PCS 필요 사항을 정리합니다.',
+    'home-relocation': '공식 주거 자료, 이사 지원, 재고, 청구 기한, 대체 가치 계획을 확인합니다.',
+    'mental-readiness': '복무자와 가족을 위한 무료 상담, 위기 지원, 가족 지원, 자기관리 자료를 연결합니다.',
+    nav: '제한 정보 없이 공개 설치 지도, 경로, 길 안내를 계획합니다.',
+    resources: '정부, 군, 가족, 재정, 의료, 교육, 경력 관련 공식 자료를 한곳에서 엽니다.',
+    religion: '선택한 영적 선호에 맞춰 군종, 상담, 예배, 지역사회 지원을 찾습니다.',
+    translation: 'CONUS 또는 OCONUS 이동 중 주거, 의료, 학교, 교통, 일상 표현을 사용합니다.',
+    veterans: '도착지 주변 재향군인 자료와 재향군인 운영 사업체 공개 검색 경로를 찾습니다.',
+  },
+  ja: {
+    checklist: 'PCSタスクを段階別に整理し、チェック欄で進捗と重要期限を確認します。',
+    documents: 'ファイルをアップロードせず、集める、確認する、携行するPCS書類をチェックリストで管理します。',
+    education: '選択した軍種に合わせ、近隣校、GI Bill、MyCAA、授業料支援手順を確認します。',
+    family: '展開、EFMP、雇用、永住、ペット、学校など家族に関わるPCS事項を整理します。',
+    'home-relocation': '公式住宅情報、引越し支援、家財記録、請求期限、交換価値計画を確認します。',
+    'mental-readiness': '軍人と扶養家族向けの無料カウンセリング、危機支援、家族支援、セルフケアを探します。',
+    nav: '制限情報を含めず、公開基地地図、経路、道順を計画します。',
+    resources: '政府、軍、家族、財務、医療、教育、キャリアの公式リソースを一か所で開きます。',
+    religion: '任意の精神的希望に合わせて、従軍牧師、相談、礼拝、地域支援を探します。',
+    translation: 'CONUSまたはOCONUS移動で使う住宅、医療、学校、交通、日常表現を確認します。',
+    veterans: '到着地周辺の退役軍人リソースと退役軍人経営事業の公開検索先を確認します。',
+  },
+  tl: {
+    checklist: 'Ayusin ang PCS tasks ayon sa yugto, markahan ang progreso gamit ang square controls, at bantayan ang deadlines.',
+    documents: 'Gamitin ang checklist tracking para malaman kung anong dokumento ang kokolektahin, susuriin, at dadalhin nang walang file upload.',
+    education: 'Suriin ang malapit na schools, GI Bill, MyCAA, at Tuition Assistance steps ayon sa napiling branch.',
+    family: 'Iayos ang family PCS needs tulad ng deployment, EFMP, trabaho, residency, pets, at schools.',
+    'home-relocation': 'Hanapin ang opisyal na housing resources, move aid, inventory, claims deadlines, at replacement value planning.',
+    'mental-readiness': 'Kumonekta sa libreng counseling, crisis support, family support, at self-care resources para sa service members at dependents.',
+    nav: 'Magplano ng routes, directions, at pampublikong installation maps nang walang restricted o non-public details.',
+    resources: 'Buksan sa isang lugar ang official government, military, family, financial, healthcare, education, at career resources.',
+    religion: 'Hanapin ang chaplain, counseling, worship, at community support batay sa optional spiritual preference.',
+    translation: 'Gamitin ang phrases para sa housing, medical, school, transportation, at daily life sa CONUS o OCONUS moves.',
+    veterans: 'Hanapin ang public directories at search paths para sa veteran resources at veteran-owned businesses malapit sa destinasyon.',
+  },
+  ar: {
+    checklist: 'نظّم مهام PCS حسب المرحلة، وحدد التقدم بالمربعات، وابق المواعيد المهمة واضحة.',
+    documents: 'استخدم قوائم متابعة لمعرفة المستندات التي يجب جمعها ومراجعتها وحملها دون رفع ملفات إلى التطبيق.',
+    education: 'راجع المدارس القريبة ومزايا GI Bill وMyCAA وخطوات المساعدة الدراسية حسب الفرع المختار.',
+    family: 'نسّق احتياجات الأسرة خلال PCS مثل الانتشار وEFMP والعمل والإقامة والحيوانات الأليفة والمدارس.',
+    'home-relocation': 'ابحث عن موارد السكن الرسمية ومساعدة الانتقال والجرد والمطالبات وتخطيط قيمة الاستبدال.',
+    'mental-readiness': 'احصل على موارد مجانية للاستشارة ودعم الأزمات ودعم الأسرة والرعاية الذاتية لأفراد الخدمة والمعالين.',
+    nav: 'خطط للمسارات والاتجاهات وخرائط المنشآت العامة دون عرض معلومات مقيدة أو غير عامة.',
+    resources: 'افتح موارد رسمية حكومية وعسكرية وأسرية ومالية وصحية وتعليمية ومهنية في مكان واحد.',
+    religion: 'اعثر على دعم القسيس والاستشارة والعبادة والمجتمع حسب التفضيل الروحي الاختياري.',
+    translation: 'استخدم عبارات مفيدة للسكن والصحة والمدارس والنقل والحياة اليومية أثناء انتقال CONUS أو OCONUS.',
+    veterans: 'اعثر على أدلة عامة ومسارات بحث لموارد المحاربين القدامى والشركات المملوكة لهم قرب الوجهة.',
+  },
+  zh: {
+    checklist: '按阶段整理 PCS 任务，用方框控件标记进度，并持续查看重要期限。',
+    documents: '使用清单追踪需要收集、核对和携带的 PCS 文件，不在应用中上传文件。',
+    education: '按所选军种查看附近学校、GI Bill、MyCAA 和学费援助步骤。',
+    family: '协调部署、EFMP、就业、永久居民、宠物和学校等家庭 PCS 事项。',
+    'home-relocation': '查找官方住房资源、搬家援助、物品清单、索赔期限和重置价值规划。',
+    'mental-readiness': '连接服役人员和家属可用的免费咨询、危机支持、家庭支持和自我照护资源。',
+    nav: '规划路线、方向和公开基地地图，不显示受限或非公开信息。',
+    resources: '在一个位置打开政府、军方、家庭、财务、医疗、教育和职业官方资源。',
+    religion: '根据可选精神偏好查找随军牧师、咨询、礼拜和社区支持。',
+    translation: '在 CONUS 或 OCONUS 搬迁中使用住房、医疗、学校、交通和日常生活短语。',
+    veterans: '查找目的地附近退伍军人资源和退伍军人经营企业的公开目录与搜索路径。',
+  },
+  it: {
+    checklist: 'Organizza le attività PCS per fase, segna l’avanzamento con le caselle e tieni visibili le scadenze importanti.',
+    documents: 'Usa liste di controllo per sapere quali documenti raccogliere, verificare e portare, senza caricare file nell’app.',
+    education: 'Consulta scuole vicine, capitoli GI Bill, MyCAA e passaggi di Tuition Assistance in base alla forza armata scelta.',
+    family: 'Coordina bisogni familiari PCS come schieramento, EFMP, lavoro, residenza permanente, animali domestici e scuole.',
+    'home-relocation': 'Trova risorse ufficiali per alloggio, aiuti al trasloco, inventario, reclami e pianificazione del valore di sostituzione.',
+    'mental-readiness': 'Accedi a counseling gratuito, supporto crisi, supporto familiare e strumenti di cura personale per militari e familiari.',
+    nav: 'Pianifica percorsi, indicazioni e mappe pubbliche delle installazioni senza dati riservati o non pubblici.',
+    resources: 'Apri risorse ufficiali governative, militari, familiari, finanziarie, sanitarie, educative e di carriera in un unico punto.',
+    religion: 'Trova cappellani, counseling, funzioni religiose e supporto comunitario collegati alla preferenza spirituale facoltativa.',
+    translation: 'Usa frasi utili per casa, salute, scuola, trasporti e vita quotidiana durante trasferimenti CONUS o OCONUS.',
+    veterans: 'Trova directory pubbliche e ricerche per risorse veterani e imprese gestite da veterani vicino alla destinazione.',
+  },
+  pt: {
+    checklist: 'Organize tarefas PCS por fase, marque o progresso com caixas e mantenha prazos importantes visíveis.',
+    documents: 'Use listas de acompanhamento para saber quais documentos reunir, verificar e levar, sem enviar arquivos ao app.',
+    education: 'Revise escolas próximas, GI Bill, MyCAA e etapas de Tuition Assistance conforme o ramo escolhido.',
+    family: 'Coordene necessidades familiares de PCS como desdobramento, EFMP, emprego, residência, pets e escolas.',
+    'home-relocation': 'Encontre recursos oficiais de moradia, ajuda de mudança, inventário, reclamações e valor de reposição.',
+    'mental-readiness': 'Acesse recursos gratuitos de aconselhamento, crise, apoio familiar e autocuidado para militares e dependentes.',
+    nav: 'Planeje rotas, direções e mapas públicos de instalações sem informações restritas ou não públicas.',
+    resources: 'Abra recursos oficiais de governo, militares, família, finanças, saúde, educação e carreira em um só lugar.',
+    religion: 'Encontre capelão, aconselhamento, culto e apoio comunitário conforme a preferência espiritual opcional.',
+    translation: 'Use frases úteis para moradia, saúde, escola, transporte e vida diária em mudanças CONUS ou OCONUS.',
+    veterans: 'Encontre diretórios públicos e buscas para recursos de veteranos e empresas de veteranos perto do destino.',
+  },
+  vi: {
+    checklist: 'Sắp xếp nhiệm vụ PCS theo giai đoạn, đánh dấu tiến độ bằng ô vuông và theo dõi hạn quan trọng.',
+    documents: 'Dùng danh sách kiểm tra để biết tài liệu cần thu thập, xác minh và mang theo, không tải tệp lên ứng dụng.',
+    education: 'Xem trường gần căn cứ, GI Bill, MyCAA và các bước Tuition Assistance theo quân chủng đã chọn.',
+    family: 'Điều phối nhu cầu gia đình khi PCS như triển khai, EFMP, việc làm, thường trú, thú cưng và trường học.',
+    'home-relocation': 'Tìm nguồn nhà ở chính thức, hỗ trợ chuyển nhà, kiểm kê, hạn khiếu nại và kế hoạch giá trị thay thế.',
+    'mental-readiness': 'Truy cập tư vấn miễn phí, hỗ trợ khủng hoảng, hỗ trợ gia đình và tự chăm sóc cho quân nhân và thân nhân.',
+    nav: 'Lập tuyến đường, chỉ dẫn và bản đồ căn cứ công khai không có thông tin hạn chế hoặc không công khai.',
+    resources: 'Mở tài nguyên chính thức về chính phủ, quân đội, gia đình, tài chính, y tế, giáo dục và nghề nghiệp tại một nơi.',
+    religion: 'Tìm tuyên úy, tư vấn, sinh hoạt tôn giáo và hỗ trợ cộng đồng theo tùy chọn tâm linh.',
+    translation: 'Dùng cụm từ hữu ích về nhà ở, y tế, trường học, giao thông và đời sống khi chuyển CONUS hoặc OCONUS.',
+    veterans: 'Tìm thư mục công khai và đường tìm kiếm cho tài nguyên cựu chiến binh và doanh nghiệp do cựu chiến binh điều hành gần nơi đến.',
+  },
+};
+
+
 function keyedLanguageLabel(lang, topic) {
   return KEYED_LANGUAGE_TOPICS[topic]?.[lang] || KEYED_LANGUAGE_TOPICS[topic]?.es || topic;
 }
@@ -3695,6 +3843,11 @@ function trFrom(language, key) {
   const read = (source) => key.split('.').reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : undefined), source);
   const direct = read(dict);
   const english = read(fallback);
+  if (lang !== 'en' && key.startsWith('desc.')) {
+    const topic = key.slice(5);
+    const localizedDesc = CATEGORY_DESC_TRANSLATIONS[lang]?.[topic];
+    if (localizedDesc) return localizedDesc;
+  }
   const staleEnglishFallback = lang !== 'en' && direct !== undefined && direct === english && (key.startsWith('desc.') || key.startsWith('demo.'));
   if (direct !== undefined && !staleEnglishFallback) return direct;
   if (lang !== 'en' && (key.startsWith('desc.') || key.startsWith('demo.'))) {
