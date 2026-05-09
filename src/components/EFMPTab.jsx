@@ -26,7 +26,7 @@ const BRANCH_EFMP = {
     office: 'Marine Corps Community Services EFMP office and the installation medical EFMP coordinator',
     forms: ['DD Form 2792', 'DD Form 2792-1', 'NAVMC EFMP forms when directed by the local EFMP office'],
     note: 'Marine Corps EFMP supports families before, during, and after PCS relocation when medical or educational needs exist.',
-    url: '',
+    url: 'https://www.usmc-mccs.org/services/support/exceptional-family-member-program/',
   },
   'Air Force': {
     office: 'Military and Family Readiness Center EFMP-Family Support and medical EFMP-M staff',
@@ -148,7 +148,7 @@ export default function EFMPTab({ theme, profile }) {
         <div className="efmp-list">
           {branchInfo.forms.map(form => <div key={form}>{form}</div>)}
         </div>
-        <a href={branchInfo.url} target="_blank" rel="noopener noreferrer" style={{ background: theme.primary }}>Open {branch} EFMP Source</a>
+        {branchInfo.url && <a href={branchInfo.url} target="_blank" rel="noopener noreferrer" style={{ background: theme.primary }}>Open {branch} EFMP Source</a>}
       </section>
 
       <div className="pcs-progress-card">
@@ -197,7 +197,7 @@ export default function EFMPTab({ theme, profile }) {
 
       <section className="pet-resources" aria-label="Official EFMP resources">
         <h3>Official EFMP Links</h3>
-        {OFFICIAL_RESOURCES.map(resource => (
+        {OFFICIAL_RESOURCES.filter(resource => resource.url).map(resource => (
           <a key={resource.name} href={resource.url} target="_blank" rel="noopener noreferrer">
             <strong>{resource.name}</strong>
             <span>{resource.desc}</span>

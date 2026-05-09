@@ -1193,7 +1193,7 @@ export default function BaseMapModule({ theme, profile }) {
         });
       })
       .catch(() => {
-        if (!cancelled) setMapError('Public base map engine could not load on this device. Official public installation data remains available below.');
+        if (!cancelled) setMapError('');
       });
 
     return () => {
@@ -1279,7 +1279,7 @@ export default function BaseMapModule({ theme, profile }) {
         ref={mapRef}
         style={{ width: '100%', height: '52vh', background: '#e8f0f8', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       >
-        {mapError && (
+        {mapError && noData && (
           <div style={{ maxWidth: 360, background: '#FFFFFF', border: `1px solid ${theme.accent}55`, borderRadius: 12, padding: 14, color: '#27384a', fontSize: 12, lineHeight: 1.5, boxShadow: '0 6px 20px rgba(13,24,33,0.12)' }}>
             <strong style={{ display: 'block', color: '#0D1821', marginBottom: 6 }}>Official map fallback</strong>
             {mapError}

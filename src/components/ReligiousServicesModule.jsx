@@ -82,7 +82,7 @@ function getBranchSupportCenter(branch) {
       name: 'Marine Corps Family Services (MCCS)',
       branch: 'Marine Corps',
       description: 'Family support, counseling, financial readiness, and deployment readiness services.',
-      url: 'https://www.usmc-mccs.org/services/support/family-care/',
+      url: 'https://installations.militaryonesource.mil/',
       phone: '1-800-336-4592',
     }
   }

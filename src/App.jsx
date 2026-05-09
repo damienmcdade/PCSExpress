@@ -1418,12 +1418,12 @@ function SchoolsTab({ theme, profile }) {
           </div>
           <div style={{ fontSize: 12, fontWeight: 800, color: '#56697C', marginBottom: 10 }}>SCHOOL FINDER RESOURCES</div>
           {[
-            { name: 'GreatSchools', desc: 'Search by zip code — ratings, reviews, test scores', url: 'https://nces.ed.gov/ccd/schoolsearch/' },
-            { name: 'DoDEA School Finder', desc: 'Find DoDEA schools on military installations worldwide', url: '' },
+            { name: 'NCES School Search', desc: 'Official school search by name, location, district, and school characteristics.', url: 'https://nces.ed.gov/ccd/schoolsearch/' },
+            { name: 'DoDEA School Finder', desc: 'Find DoDEA schools on military installations worldwide', url: 'https://www.dodea.edu/find-your-school' },
             { name: 'NCES School Finder', desc: 'National Center for Education Statistics school search', url: 'https://nces.ed.gov/ccd/schoolsearch/' },
-            { name: 'Military Child Education Coalition', desc: 'Education transition resources for military-connected children', url: '' },
-            { name: 'School Liaison Officers (SLO)', desc: 'Find your installation SLO — free school transition support', url: '' },
-          ].map((r, idx) => (
+            { name: 'Military OneSource School Liaison Program', desc: 'Official education transition support for military-connected children', url: 'https://www.militaryonesource.mil/benefits/school-liaison-program/' },
+            { name: 'School Liaison Officers (SLO)', desc: 'Find your installation SLO - free school transition support', url: 'https://www.militaryonesource.mil/benefits/school-liaison-program/' },
+          ].filter(r => r.url).map((r, idx) => (
             <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>{r.name}</div>
               <div style={{ fontSize: 11, color: '#555', marginBottom: 8 }}>{r.desc}</div>
@@ -1446,7 +1446,7 @@ function VeteranBusinessesTab({ theme, profile }) {
   const NATIONAL_DIRS = [
     { name: 'Veteran-Owned Business Directory', icon: '🇺🇸', desc: 'Search thousands of verified veteran-owned businesses by location and category.', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses' },
     { name: 'SBA Veteran Business Outreach', icon: '🏛️', desc: 'Free counseling, training, and procurement opportunities for veteran entrepreneurs.', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses' },
-    { name: 'V-WISE (Women Vets)', icon: '💪', desc: 'SBA program specifically supporting women veteran business owners.', url: '' },
+    { name: 'Women Veteran Entrepreneurship Training', icon: '💪', desc: 'SBA-supported entrepreneurship training for women veterans and military spouses.', url: 'https://www.sba.gov/article/2024/05/10/sba-announces-funding-awards-three-organizations-provide-women-veteran-entrepreneurship-training' },
     { name: 'Hire Heroes USA', icon: '✈️', desc: 'Free job placement and career coaching for veterans and military spouses.', url: 'https://www.dol.gov/agencies/vets' },
   ];
 
@@ -2524,11 +2524,11 @@ function MentalReadinessTab({ theme, profile }) {
     'crisis-support': [
       { name: 'Military Crisis Line', desc: 'Call 988 and press 1, chat online, or text 838255 for 24/7 confidential crisis support.', url: 'https://www.veteranscrisisline.net/' },
       { name: '988 Suicide & Crisis Lifeline', desc: 'Free 24/7 support for people in emotional distress or suicidal crisis.', url: 'https://988lifeline.org/' },
-      { name: 'The Brandon Act', desc: 'Official information explaining how service members can request mental health support through their chain of command.', url: '' },
+      { name: 'The Brandon Act', desc: 'Official information explaining how service members can request mental health support through their chain of command.', url: 'https://www.health.mil/Military-Health-Topics/Mental-Health/Brandon-Act' },
     ],
     'family-support': [
       { name: 'Military OneSource Mental Health', desc: 'Public mental health resource hub for military personnel and families.', url: 'https://www.militaryonesource.mil/health-wellness/mental-health/' },
-      { name: 'inTransition', desc: 'Free confidential coaching for service members, veterans, and retirees who need mental health care during transitions.', url: '' },
+      { name: 'inTransition', desc: 'Free confidential coaching for service members, veterans, and retirees who need mental health care during transitions.', url: 'https://www.health.mil/Military-Health-Topics/Mental-Health/inTransition' },
       { name: `${branch} Family Support`, desc: 'Use installation family support offices for relocation stress, parenting, deployment, and local referral help.', url: 'https://installations.militaryonesource.mil/' },
     ],
     'self-care-tools': [
@@ -2546,7 +2546,7 @@ function MentalReadinessTab({ theme, profile }) {
             Mental Readiness connects service members and dependents to free official resources for counseling, crisis support, transition stress, and self-care. In an emergency, call 911 or the Military Crisis Line at 988 then press 1.
           </div>
         </div>
-        {resources[tab].map(item => (
+        {resources[tab].filter(item => item.url).map(item => (
           <a key={item.name} href={item.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 10, textDecoration: 'none' }}>
             <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>{item.name}</div>
             <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.55 }}>{item.desc}</div>
@@ -2603,7 +2603,7 @@ function EducationBenefitsTab({ theme, profile }) {
   const TUITION_ASSISTANCE = {
     Army: {
       portal: 'ArmyIgnitED',
-      url: '',
+      url: 'https://www.armyignited.army.mil/student/',
       source: 'https://www.eis.army.mil/programs/armyignited',
       summary: 'Army Tuition Assistance is requested through ArmyIgnitED after the Soldier establishes an education goal and works with an education counselor when required.',
       steps: [
@@ -2632,7 +2632,7 @@ function EducationBenefitsTab({ theme, profile }) {
     },
     'Marine Corps': {
       portal: 'Marine Corps Voluntary Education / WebTA',
-      url: '',
+      url: 'https://www.dantes.mil/mil-ta/',
       source: 'https://www.dantes.mil/mil-ta/',
       summary: 'Marine Corps Tuition Assistance supports eligible Marines taking off-duty courses through approved schools.',
       steps: [
@@ -2646,7 +2646,7 @@ function EducationBenefitsTab({ theme, profile }) {
     },
     'Air Force': {
       portal: 'Air Force Virtual Education Center (AFVEC)',
-      url: '',
+      url: 'https://afvec.us.af.mil/afvec/public/welcome',
       source: 'https://afvec.us.af.mil/afvec/public/welcome',
       summary: 'Air Force Tuition Assistance is requested through AFVEC for eligible Airmen pursuing voluntary off-duty education.',
       steps: [
@@ -2660,7 +2660,7 @@ function EducationBenefitsTab({ theme, profile }) {
     },
     'Space Force': {
       portal: 'AFVEC for Guardians',
-      url: '',
+      url: 'https://afvec.us.af.mil/afvec/public/welcome',
       source: 'https://www.spaceforce.mil/News/Article-Display/Article/2421854/department-of-the-air-force-restores-previous-military-tuition-assistance-cap-a/',
       summary: 'Space Force Guardians use Department of the Air Force education systems, including AFVEC, for Tuition Assistance.',
       steps: [
@@ -2843,11 +2843,11 @@ function EducationBenefitsTab({ theme, profile }) {
           </div>
           {[
             { name: "VA Comparison Tool", desc: "Compare GI Bill benefits at specific schools — see tuition, BAH rates, and ratings.", url: "https://www.va.gov/gi-bill-comparison-tool/" },
-            { name: "ArmyIgnitED", desc: "Official Army portal for Tuition Assistance requests, education counseling, and CLEP/DANTES exam registration.", url: "" },
+            { name: "ArmyIgnitED", desc: "Official Army portal for Tuition Assistance requests, education counseling, and CLEP/DANTES exam registration.", url: "https://www.armyignited.army.mil/student/" },
             { name: "DANTES (DSST Exams)", desc: "Free college-level subject exams for service members — earn college credit.", url: "https://www.dantes.mil" },
-            { name: "Troops to Teachers", desc: "Transition into teaching with VA support programs.", url: "" },
-            { name: "eBenefits Portal", desc: "Manage all VA education benefits and check remaining entitlement.", url: "" },
-          ].map((r, idx) => (
+            { name: "DANTES Education Programs", desc: "Official voluntary education, testing, and career planning resources for service members.", url: "https://www.dantes.mil/Education-Programs/" },
+            { name: "VA Education Benefits", desc: "Apply for and manage VA education benefits on VA.gov.", url: "https://www.va.gov/education/" },
+          ].filter(r => r.url).map((r, idx) => (
             <div key={idx} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>{r.name}</div>
               <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 8 }}>{r.desc}</div>
@@ -2951,12 +2951,12 @@ function ResourcesTab({ theme, profile }) {
       { name: 'Transition GPS (TAP)', desc: 'DoD Transition Assistance Program — mandatory pre-separation classes', url: 'https://www.dodtap.mil', tag: 'Transition' },
     ],
     portals: [
-      { name: 'ARBA Case Tracking System (ACTS)', desc: 'Army Review Boards Agency — track your Army Board for Correction of Records case', url: '', tag: 'Army' },
+      
       { name: 'Army TAP Portal', desc: 'Army Transition Assistance Program — schedule TAP workshops and manage transition', url: 'https://tapevents.mil', tag: 'Army' },
       { name: 'HRC — iPERMS', desc: 'U.S. Army Human Resources Command — view and manage your official military personnel records', url: 'https://iperms.hrc.army.mil', tag: 'Army' },
       { name: 'U.S. Army HRC Portal', desc: 'Army Human Resources Command — assignments, promotions, evaluations, and career tools', url: 'https://www.hrc.army.mil', tag: 'Army' },
       { name: 'IPPS-A', desc: 'Integrated Personnel and Pay System — Army: manage pay, personnel actions, and leave', url: 'https://ipps-a.army.mil', tag: 'Army' },
-      { name: 'Military Information Platform (MIP)', desc: 'Army knowledge management and information sharing platform', url: '', tag: 'Army' },
+      
       { name: 'milConnect (DMDC)', desc: 'Defense Manpower Data Center — view benefits, DEERS updates, and personnel data', url: 'https://milconnect.dmdc.osd.mil/', tag: 'All Branches' },
     ],
   };
@@ -3616,7 +3616,7 @@ function Onboarding({ onComplete }) {
     border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.25)',
     color: '#FFFFFF', outline: 'none', boxSizing: 'border-box',
   };
-  const canGo1 = Boolean((p.firstName || '').trim() && p.branch && p.component && p.language);
+  const canGo1 = Boolean(p.branch && p.component && p.language);
   const canGo2 = p.gainingInstallation && p.departingDate;
 
   const SuggestionList = ({ items, onSelect }) => items.length === 0 ? null : (
@@ -3846,6 +3846,8 @@ function Onboarding({ onComplete }) {
                 <button
                   onClick={() => onComplete({
                     ...p,
+                    firstName: (p.firstName || '').trim() || 'Service Member',
+                    lastName: (p.lastName || '').trim(),
                     hasChildren: p.childAges.some(a => a !== '' && !isNaN(Number(a))),
                     childAges: p.childAges.filter(a => a !== '' && !isNaN(Number(a))).map(Number),
                     childrenAges: p.childAges.filter(a => a !== '' && !isNaN(Number(a))).map(Number).join(', '),

@@ -196,13 +196,27 @@ export default function HomeLocatorTab({ theme, profile }) {
             <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginTop: 3 }}>{card.desc}</div>
           </a>
         ))}
+        <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8 }}>
+          {[
+            { name: 'Family housing availability', detail: `${activeProfile.type} profile near ${market.label}`, url: 'https://www.homes.mil/homes/DispatchServlet/HomesEntry' },
+            { name: 'Housing office guidance', detail: `Wait-list, eligibility, pet rules, and local housing office support for ${market.label}`, url: 'https://installations.militaryonesource.mil/' },
+            { name: 'Unaccompanied housing', detail: 'Official housing office guidance for barracks, dorms, and unaccompanied member options.', url: branchSource.url },
+            { name: 'VA home loan research', detail: 'Official VA guidance before contacting any lender or realtor.', url: 'https://www.va.gov/housing-assistance/home-loans/' },
+          ].map(card => (
+            <a key={card.name} href={card.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12 }}>
+              <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821' }}>{card.name}</div>
+              <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.45, marginTop: 4 }}>{card.detail}</div>
+              <div style={{ fontSize: 9, color: theme.primary, fontWeight: 900, marginTop: 8 }}>Official source</div>
+            </a>
+          ))}
+        </div>
       </div>
 
       <div style={{ fontSize: 11, color: '#0D3B66', background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, marginBottom: 12, lineHeight: 1.5 }}>
         Official public housing pages do not provide one universal live listing feed. PCS Express shows branch-specific housing profiles and sends users to official public military housing systems for current availability.
       </div>
 
-      {[branchSource, ...OFFICIAL_SOURCES, { name: 'Official Public Web Cross-Check', url: officialSearchUrl(market.query, branch), note: 'Searches public official .mil, Military OneSource, and HOMES.mil pages for the selected location.' }].map((source) => (
+      {[branchSource, ...OFFICIAL_SOURCES, { name: 'Official Installation Directory Cross-Check', url: officialSearchUrl(), note: 'Open the official public installation directory to verify current housing office, services, and local installation support.' }].map((source) => (
         <a key={source.name} href={source.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
             <div>

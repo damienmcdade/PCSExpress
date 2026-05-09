@@ -96,14 +96,14 @@ export default function MovingFinancialAssistanceTab({ theme, profile }) {
       <section className="assistance-band" aria-label="Priority assistance">
         <div className="assistance-band__title">Start Here for {branch}</div>
         <div className="assistance-grid">
-          {priority.map(resource => (
+          {priority.filter(resource => resource.url).map(resource => (
             <ResourceCard key={resource.name} resource={resource} theme={theme} compact />
           ))}
         </div>
       </section>
 
       <div className="assistance-list">
-        {RESOURCES.map(resource => (
+        {RESOURCES.filter(resource => resource.url).map(resource => (
           <ResourceCard key={resource.name} resource={resource} theme={theme} />
         ))}
       </div>

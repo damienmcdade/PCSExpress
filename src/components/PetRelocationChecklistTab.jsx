@@ -38,12 +38,12 @@ const PHASES = {
 };
 
 const RESOURCES = [
-  { name: 'USDA APHIS Pet Travel', desc: 'Official country-by-country export and health certificate requirements.', url: '' },
+  { name: 'USDA APHIS Pet Travel', desc: 'Official country-by-country export and health certificate requirements.', url: 'https://www.aphis.usda.gov/pet-travel' },
   { name: 'JTR Pet Transportation Allowance', desc: 'Official DoD travel regulation source for pet expense reimbursement.', url: 'https://www.travel.dod.mil/Policy-Regulations/Joint-Travel-Regulations/' },
   { name: 'Military OneSource Pet PCS', desc: 'PCS planning guidance for moving with pets and family logistics.', url: 'https://www.militaryonesource.mil/moving-pcs/plan-to-move/moving-with-pets/' },
   { name: 'Air Mobility Command Pet Travel', desc: 'Patriot Express pet movement policies and space-available guidance.', url: 'https://www.amc.af.mil/AMC-Travel-Site/AMC-Pet-Travel-Page/' },
   { name: 'CDC Dog Import Rules', desc: 'Current U.S. dog import rules for return travel into the United States.', url: 'https://www.cdc.gov/importation/dogs/' },
-  { name: 'International Air Transport Association', desc: 'Airline live animal transport standards and traveler guidance.', url: '' },
+  { name: 'DOT Flying With Pets', desc: 'Official U.S. Department of Transportation passenger guidance for flying with animals.', url: 'https://www.transportation.gov/airconsumer/plane-talk-traveling-animals' },
 ];
 
 export default function PetRelocationChecklistTab({ theme, profile }) {
@@ -136,7 +136,7 @@ export default function PetRelocationChecklistTab({ theme, profile }) {
 
       <section className="pet-resources" aria-label="Pet relocation resources">
         <h3>Active Pet Relocation Links</h3>
-        {RESOURCES.map(resource => (
+        {RESOURCES.filter(resource => resource.url).map(resource => (
           <a key={resource.name} href={resource.url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${resource.name}`}>
             <strong>{resource.name}</strong>
             <span>{resource.desc}</span>

@@ -381,7 +381,7 @@ export default function ImmigrationModule({ theme }) {
                 {s.fee && (
                   <div style={{ display: 'inline-block', background: '#FFF3E0', color: '#E65100', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, marginBottom: 8 }}>Fee: {s.fee}</div>
                 )}
-                <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '5px 12px', borderRadius: 7, background: theme.primary, color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10 }}>{s.link} →</a>
+                {s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '5px 12px', borderRadius: 7, background: theme.primary, color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10 }}>{s.link} →</a> : <span style={{ display: 'inline-block', padding: '5px 12px', borderRadius: 7, background: '#F3F4F6', color: '#6B7280', fontWeight: 700, fontSize: 10 }}>Official link under review</span>}
               </div>
             </div>
           ))}
@@ -408,14 +408,14 @@ export default function ImmigrationModule({ theme }) {
                 {s.fee && (
                   <div style={{ display: 'inline-block', background: '#F3E5F5', color: '#6A1B9A', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, marginBottom: 8 }}>Fee: {s.fee}</div>
                 )}
-                <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '5px 12px', borderRadius: 7, background: '#2E7D32', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10 }}>{s.link} →</a>
+                {s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '5px 12px', borderRadius: 7, background: '#2E7D32', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 10 }}>{s.link} →</a> : <span style={{ display: 'inline-block', padding: '5px 12px', borderRadius: 7, background: '#F3F4F6', color: '#6B7280', fontWeight: 700, fontSize: 10 }}>Official link under review</span>}
               </div>
             </div>
           ))}
           <div style={{ background: '#E3F2FD', border: '1px solid #90CAF9', borderRadius: 10, padding: 12, marginTop: 8 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#1565C0', marginBottom: 4 }}>USCIS Civics Practice Test</div>
             <div style={{ fontSize: 11, color: '#0D47A1', lineHeight: 1.5, marginBottom: 8 }}>Practice all 100 civics questions for the naturalization test — available free on USCIS.gov.</div>
-            <a data-link-removed="https://www.uscis.gov/citizenship/find-study-materials-and-resources/study-for-the-test/civics-practice-test" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '6px 14px', borderRadius: 8, background: '#1565C0', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 11 }}>Take Practice Test →</a>
+            <a href="https://www.uscis.gov/citizenship/find-study-materials-and-resources/study-for-the-test/civics-practice-test" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '6px 14px', borderRadius: 8, background: '#1565C0', color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 11 }}>Take Practice Test →</a>
           </div>
         </div>
       )}
@@ -436,7 +436,7 @@ export default function ImmigrationModule({ theme }) {
                   <span style={{ background: isWarning ? '#FFF3E0' : `${theme.primary}15`, color: isWarning ? '#E65100' : theme.primary, fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 8, whiteSpace: 'nowrap', flexShrink: 0 }}>{r.tag}</span>
                 </div>
                 <div style={{ fontSize: 11, color: '#4A5568', lineHeight: 1.6, marginBottom: 8 }}>{r.desc}</div>
-                <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '6px 14px', borderRadius: 8, background: isWarning ? '#E65100' : theme.primary, color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 11 }}>{r.urlLabel} →</a>
+                {r.url ? <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '6px 14px', borderRadius: 8, background: isWarning ? '#E65100' : theme.primary, color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 11 }}>{r.urlLabel} →</a> : <span style={{ display: 'inline-block', padding: '6px 14px', borderRadius: 8, background: '#F3F4F6', color: '#6B7280', fontWeight: 700, fontSize: 11 }}>Official link under review</span>}
               </div>
             );
           })}

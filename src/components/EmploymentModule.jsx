@@ -590,17 +590,26 @@ function EmploymentModule({ theme, profile }) {
               : 'All Industries';
             const kw = encodeURIComponent([...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.keywords || '').join(' ') || 'military spouse');
             const loc = encodeURIComponent(searchCity);
+            const makeUsaJobs = (name, keyword, badge, desc, color, remote = 'Use USAJOBS filters for telework, remote, full-time, part-time, and agency options.') => ({
+              name,
+              badge,
+              desc,
+              url: `https://www.usajobs.gov/Search/Results?keyword=${encodeURIComponent(keyword)}&LocationName=${loc}&Radius=${radius}`,
+              color,
+              remote,
+            });
             const jobCards = [
-              { name: 'Federal jobs near this installation', badge: 'Live USAJOBS', desc: `Current federal positions within ${radius} miles of ${searchCity}.`, url: `https://www.usajobs.gov/Search/Results?keyword=${kw}&LocationName=${loc}&Radius=${radius}`, color: '#1565C0', remote: 'Remote filter available after opening USAJOBS.' },
-              { name: 'Military spouse hiring path', badge: 'Spouse', desc: 'USAJOBS military spouse hiring path entry point for eligible spouses.', url: 'https://milspouse.usajobs.gov/', color: '#6A1B9A', remote: 'Supports remote and local federal searches.' },
-              { name: 'Department of Defense civilian jobs', badge: 'DoD', desc: `Current DoD civilian job searches near ${searchCity}.`, url: `https://www.usajobs.gov/Search/Results?d=DD&LocationName=${loc}&Radius=${radius}&keyword=${kw}`, color: '#283593', remote: 'Use USAJOBS filters for telework and remote roles.' },
-              { name: 'Remote federal opportunities', badge: 'Remote', desc: 'Federal jobs marked remote or virtual, useful during PCS transitions.', url: `https://www.usajobs.gov/Search/Results?RemoteIndicator=true&keyword=${kw}`, color: '#00796B', remote: 'Remote-only search path.' },
+              makeUsaJobs('Administrative Support Assistant', 'administrative support assistant military spouse', 'Admin', `Open current administrative support listings within ${radius} miles of ${searchCity}.`, '#1565C0'),
+              makeUsaJobs('Human Resources Specialist', 'human resources specialist military spouse', 'HR', `Open current HR listings near ${searchCity}, including spouse-friendly federal hiring paths when available.`, '#6A1B9A'),
+              makeUsaJobs('Information Technology Specialist', 'information technology specialist cybersecurity military spouse', 'IT', `Open current IT and cybersecurity listings within ${radius} miles of ${searchCity}.`, '#283593'),
+              makeUsaJobs('Registered Nurse / Clinical Staff', 'registered nurse clinical medical military spouse', 'Health', `Open current medical and clinical support listings near ${searchCity}.`, '#00796B'),
+              makeUsaJobs('Logistics Management Specialist', 'logistics management specialist supply military spouse', 'Logistics', `Open current logistics, supply, and operations listings near ${searchCity}.`, '#5D4037'),
+              makeUsaJobs('Contract Specialist', 'contract specialist acquisition military spouse', 'Contracting', `Open current contracting and acquisition listings near ${searchCity}.`, '#AD1457'),
+              makeUsaJobs('Security Specialist', 'security specialist clearance military spouse', 'Security', `Open current security and clearance-friendly federal listings near ${searchCity}.`, '#37474F'),
+              makeUsaJobs('Child and Youth Program Assistant', 'child youth program assistant military spouse', 'Family', `Open current child and youth support listings near ${searchCity}.`, '#EF6C00'),
+              { name: 'Remote federal opportunities', badge: 'Remote', desc: 'Open current federal jobs marked remote or virtual, useful during PCS transitions.', url: `https://www.usajobs.gov/Search/Results?RemoteIndicator=true&keyword=${kw}`, color: '#00838F', remote: 'Remote-only search path.' },
+              { name: 'Military spouse hiring path', badge: 'Spouse', desc: 'Official USAJOBS military spouse hiring path entry point for eligible spouses.', url: 'https://milspouse.usajobs.gov/', color: '#4A148C', remote: 'Supports remote and local federal searches.' },
               { name: 'MySECO / MSEP spouse employment', badge: 'MSEP', desc: 'Official DoD spouse career portal and Military Spouse Employment Partnership entry point.', url: 'https://myseco.militaryonesource.mil/portal/', color: '#880E4F', remote: 'Employer listings may include remote-friendly roles.' },
-            ];
-            const boards = [
-              { id: 'usajobs', name: 'USAJOBS', color: '#1565C0', desc: 'Official federal openings. Use the Military Spouses filter when eligible.', remote: 'Remote filter available on USAJOBS.' },
-              { id: 'myseco', name: 'MySECO / MSEP', color: '#880E4F', desc: 'Official DoD spouse employment portal and Military Spouse Employment Partnership entry point.', remote: 'MSEP includes in-person, hybrid, and remote-friendly employer listings.' },
-              { id: 'dol', name: 'DOL Military Spouse Employment', color: '#37474F', desc: 'Official Department of Labor military spouse employment guidance and federal hiring pathways.', remote: 'Use DOL and USAJOBS filters to review remote or virtual opportunities.' },
             ];
             return (
               <div>
@@ -622,22 +631,6 @@ function EmploymentModule({ theme, profile }) {
                         <div style={{ fontSize: 10, color: '#7A4A00', marginTop: 7 }}>{job.remote}</div>
                       </div>
                       <div style={{ alignSelf: 'center', padding: '8px 12px', borderRadius: 10, background: job.color, color: '#FFF', fontSize: 11, fontWeight: 900 }}>Open</div>
-                    </div>
-                  </a>
-                ))}
-
-                {boards.map(board => (
-                  <a key={board.id} href={buildSearchUrl(board.id)} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${board.color}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                          <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821' }}>{board.name}</div>
-                          <span style={{ fontSize: 9, fontWeight: 900, background: '#E8F5E9', color: '#2E7D32', borderRadius: 999, padding: '2px 7px' }}>Live link</span>
-                        </div>
-                        <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{board.desc}</div>
-                        <div style={{ fontSize: 10, color: '#7A4A00', marginTop: 7 }}>{board.remote}</div>
-                      </div>
-                      <div style={{ alignSelf: 'center', padding: '8px 12px', borderRadius: 10, background: board.color, color: '#FFF', fontSize: 11, fontWeight: 900 }}>Open</div>
                     </div>
                   </a>
                 ))}
