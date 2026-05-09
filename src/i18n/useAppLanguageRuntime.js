@@ -1,6 +1,12 @@
 /*
- * Purpose: App-wide preferred-language runtime for visible PCS Express navigation and control text.
+ * Purpose: App-wide language-first runtime for PCS Express.
  * Third-party dependencies: React only.
+ *
+ * This runtime replaces the former partial-word translator. Partial replacement
+ * caused mixed strings such as translated labels embedded inside English
+ * sentences. This version translates whole visible text nodes only. If a full
+ * phrase has not been localized yet, non-English languages receive a complete
+ * localized fallback sentence instead of an English fragment.
  */
 
 import { useEffect } from 'react';
@@ -8,13 +14,163 @@ import { useEffect } from 'react';
 const RTL_LANGS = new Set(['ar']);
 const SUPPORTED = new Set(['en', 'es', 'de', 'fr', 'ko', 'ja', 'tl', 'ar', 'zh', 'it', 'pt', 'vi']);
 
+const GENERIC = {
+  en: {
+    section: 'Official information',
+    body: 'Official public information is available from the linked source. Verify details with the official source before acting.',
+    action: 'Open',
+    search: 'Search',
+    continue: 'Continue',
+    back: 'Back',
+    next: 'Next',
+    resource: 'Open official resource',
+    unavailable: 'Official public information is not available in the local app for this item yet.',
+    languageMode: 'Selected language mode is active.',
+  },
+  es: {
+    section: 'Información oficial',
+    body: 'La información pública oficial está disponible en la fuente enlazada. Verifique los detalles con la fuente oficial antes de actuar.',
+    action: 'Abrir',
+    search: 'Buscar',
+    continue: 'Continuar',
+    back: 'Atrás',
+    next: 'Siguiente',
+    resource: 'Abrir recurso oficial',
+    unavailable: 'La información pública oficial aún no está disponible localmente para este elemento.',
+    languageMode: 'El modo de idioma seleccionado está activo.',
+  },
+  de: {
+    section: 'Offizielle Informationen',
+    body: 'Offizielle öffentliche Informationen sind über die verlinkte Quelle verfügbar. Prüfen Sie Details vor dem Handeln bei der offiziellen Quelle.',
+    action: 'Öffnen',
+    search: 'Suchen',
+    continue: 'Weiter',
+    back: 'Zurück',
+    next: 'Weiter',
+    resource: 'Offizielle Ressource öffnen',
+    unavailable: 'Für dieses Element sind lokal noch keine offiziellen öffentlichen Informationen verfügbar.',
+    languageMode: 'Der ausgewählte Sprachmodus ist aktiv.',
+  },
+  fr: {
+    section: 'Information officielle',
+    body: 'Les informations publiques officielles sont disponibles dans la source liée. Vérifiez les détails auprès de la source officielle avant d’agir.',
+    action: 'Ouvrir',
+    search: 'Rechercher',
+    continue: 'Continuer',
+    back: 'Retour',
+    next: 'Suivant',
+    resource: 'Ouvrir la ressource officielle',
+    unavailable: 'Les informations publiques officielles ne sont pas encore disponibles localement pour cet élément.',
+    languageMode: 'Le mode de langue sélectionné est actif.',
+  },
+  ko: {
+    section: '공식 정보',
+    body: '공식 공개 정보는 연결된 출처에서 확인할 수 있습니다. 조치하기 전에 공식 출처에서 세부 정보를 확인하십시오.',
+    action: '열기',
+    search: '검색',
+    continue: '계속',
+    back: '뒤로',
+    next: '다음',
+    resource: '공식 자료 열기',
+    unavailable: '이 항목의 공식 공개 정보는 아직 앱에 저장되어 있지 않습니다.',
+    languageMode: '선택한 언어 모드가 활성화되어 있습니다.',
+  },
+  ja: {
+    section: '公式情報',
+    body: '公式公開情報はリンク先で確認できます。行動する前に公式ソースで詳細を確認してください。',
+    action: '開く',
+    search: '検索',
+    continue: '続行',
+    back: '戻る',
+    next: '次へ',
+    resource: '公式リソースを開く',
+    unavailable: 'この項目の公式公開情報はまだアプリ内で利用できません。',
+    languageMode: '選択した言語モードが有効です。',
+  },
+  tl: {
+    section: 'Opisyal na impormasyon',
+    body: 'Makikita ang opisyal na pampublikong impormasyon sa naka-link na source. Suriin muna ang detalye sa opisyal na source bago kumilos.',
+    action: 'Buksan',
+    search: 'Maghanap',
+    continue: 'Magpatuloy',
+    back: 'Bumalik',
+    next: 'Susunod',
+    resource: 'Buksan ang opisyal na resource',
+    unavailable: 'Wala pang lokal na opisyal na pampublikong impormasyon para sa item na ito.',
+    languageMode: 'Aktibo ang napiling wika.',
+  },
+  ar: {
+    section: 'معلومات رسمية',
+    body: 'تتوفر المعلومات العامة الرسمية من خلال المصدر المرتبط. تحقق من التفاصيل من المصدر الرسمي قبل اتخاذ أي إجراء.',
+    action: 'فتح',
+    search: 'بحث',
+    continue: 'متابعة',
+    back: 'رجوع',
+    next: 'التالي',
+    resource: 'فتح المورد الرسمي',
+    unavailable: 'المعلومات العامة الرسمية غير متوفرة محلياً لهذا العنصر حتى الآن.',
+    languageMode: 'وضع اللغة المختارة مفعل.',
+  },
+  zh: {
+    section: '官方信息',
+    body: '官方公开信息可在链接来源中查看。采取行动前请向官方来源核实详细信息。',
+    action: '打开',
+    search: '搜索',
+    continue: '继续',
+    back: '返回',
+    next: '下一步',
+    resource: '打开官方资源',
+    unavailable: '此项目的官方公开信息尚未在本地应用中提供。',
+    languageMode: '所选语言模式已启用。',
+  },
+  it: {
+    section: 'Informazione ufficiale',
+    body: 'Le informazioni pubbliche ufficiali sono disponibili dalla fonte collegata. Verifica i dettagli con la fonte ufficiale prima di agire.',
+    action: 'Apri',
+    search: 'Cerca',
+    continue: 'Continua',
+    back: 'Indietro',
+    next: 'Avanti',
+    resource: 'Apri risorsa ufficiale',
+    unavailable: 'Le informazioni pubbliche ufficiali non sono ancora disponibili localmente per questo elemento.',
+    languageMode: 'La modalità lingua selezionata è attiva.',
+  },
+  pt: {
+    section: 'Informação oficial',
+    body: 'As informações públicas oficiais estão disponíveis na fonte vinculada. Verifique os detalhes com a fonte oficial antes de agir.',
+    action: 'Abrir',
+    search: 'Pesquisar',
+    continue: 'Continuar',
+    back: 'Voltar',
+    next: 'Próximo',
+    resource: 'Abrir recurso oficial',
+    unavailable: 'As informações públicas oficiais ainda não estão disponíveis localmente para este item.',
+    languageMode: 'O modo de idioma selecionado está ativo.',
+  },
+  vi: {
+    section: 'Thông tin chính thức',
+    body: 'Thông tin công khai chính thức có sẵn từ nguồn được liên kết. Hãy xác minh chi tiết với nguồn chính thức trước khi hành động.',
+    action: 'Mở',
+    search: 'Tìm kiếm',
+    continue: 'Tiếp tục',
+    back: 'Quay lại',
+    next: 'Tiếp',
+    resource: 'Mở tài nguyên chính thức',
+    unavailable: 'Thông tin công khai chính thức chưa có trong ứng dụng cho mục này.',
+    languageMode: 'Chế độ ngôn ngữ đã chọn đang hoạt động.',
+  },
+};
+
 const PHRASES = {
   'PCS Express': { es: 'PCS Express', de: 'PCS Express', fr: 'PCS Express', ko: 'PCS Express', ja: 'PCS Express', tl: 'PCS Express', ar: 'PCS Express', zh: 'PCS Express', it: 'PCS Express', pt: 'PCS Express', vi: 'PCS Express' },
+  'PCS EXPRESS': { es: 'PCS EXPRESS', de: 'PCS EXPRESS', fr: 'PCS EXPRESS', ko: 'PCS EXPRESS', ja: 'PCS EXPRESS', tl: 'PCS EXPRESS', ar: 'PCS EXPRESS', zh: 'PCS EXPRESS', it: 'PCS EXPRESS', pt: 'PCS EXPRESS', vi: 'PCS EXPRESS' },
   'Home': { es: 'Inicio', de: 'Start', fr: 'Accueil', ko: '홈', ja: 'ホーム', tl: 'Home', ar: 'الرئيسية', zh: '首页', it: 'Home', pt: 'Início', vi: 'Trang chủ' },
   'More': { es: 'Más', de: 'Mehr', fr: 'Plus', ko: '더 보기', ja: 'その他', tl: 'Higit pa', ar: 'المزيد', zh: '更多', it: 'Altro', pt: 'Mais', vi: 'Thêm' },
   'Checklist': { es: 'Lista', de: 'Checkliste', fr: 'Liste', ko: '체크리스트', ja: 'チェックリスト', tl: 'Checklist', ar: 'قائمة التحقق', zh: '清单', it: 'Checklist', pt: 'Checklist', vi: 'Danh sách' },
   'Documents': { es: 'Documentos', de: 'Dokumente', fr: 'Documents', ko: '문서', ja: '書類', tl: 'Dokumento', ar: 'المستندات', zh: '文件', it: 'Documenti', pt: 'Documentos', vi: 'Tài liệu' },
   'Education': { es: 'Educación', de: 'Bildung', fr: 'Éducation', ko: '교육', ja: '教育', tl: 'Edukasyon', ar: 'التعليم', zh: '教育', it: 'Istruzione', pt: 'Educação', vi: 'Giáo dục' },
+  'Employment': { es: 'Empleo', de: 'Beschäftigung', fr: 'Emploi', ko: '취업', ja: '雇用', tl: 'Trabaho', ar: 'التوظيف', zh: '就业', it: 'Occupazione', pt: 'Emprego', vi: 'Việc làm' },
+  'Employment & Career Center': { es: 'Centro de empleo y carrera', de: 'Beschäftigungs- und Karrierezentrum', fr: 'Centre emploi et carrière', ko: '취업 및 커리어 센터', ja: '雇用・キャリアセンター', tl: 'Employment at Career Center', ar: 'مركز التوظيف والمسار المهني', zh: '就业与职业中心', it: 'Centro occupazione e carriera', pt: 'Centro de emprego e carreira', vi: 'Trung tâm việc làm và nghề nghiệp' },
   'Family Readiness': { es: 'Preparación familiar', de: 'Familienbereitschaft', fr: 'Préparation familiale', ko: '가족 준비', ja: '家族準備', tl: 'Kahandaan ng Pamilya', ar: 'جاهزية العائلة', zh: '家庭准备', it: 'Prontezza familiare', pt: 'Prontidão familiar', vi: 'Sẵn sàng gia đình' },
   'Home Relocation': { es: 'Reubicación del hogar', de: 'Wohnungssuche', fr: 'Relogement', ko: '주거 이전', ja: '住居移転', tl: 'Paglipat ng Tahanan', ar: 'السكن والانتقال', zh: '住房搬迁', it: 'Trasferimento casa', pt: 'Mudança residencial', vi: 'Nhà ở & chuyển nhà' },
   'Mental Readiness': { es: 'Preparación mental', de: 'Mentale Bereitschaft', fr: 'Préparation mentale', ko: '정신 준비', ja: 'メンタル準備', tl: 'Kahandaang Pangkaisipan', ar: 'الجاهزية النفسية', zh: '心理准备', it: 'Prontezza mentale', pt: 'Prontidão mental', vi: 'Sẵn sàng tinh thần' },
@@ -34,67 +190,87 @@ const PHRASES = {
   'Next': { es: 'Siguiente', de: 'Weiter', fr: 'Suivant', ko: '다음', ja: '次へ', tl: 'Susunod', ar: 'التالي', zh: '下一步', it: 'Avanti', pt: 'Próximo', vi: 'Tiếp' },
   'Skip': { es: 'Omitir', de: 'Überspringen', fr: 'Ignorer', ko: '건너뛰기', ja: 'スキップ', tl: 'Laktawan', ar: 'تخطي', zh: '跳过', it: 'Salta', pt: 'Pular', vi: 'Bỏ qua' },
   'Open': { es: 'Abrir', de: 'Öffnen', fr: 'Ouvrir', ko: '열기', ja: '開く', tl: 'Buksan', ar: 'فتح', zh: '打开', it: 'Apri', pt: 'Abrir', vi: 'Mở' },
-  'Open Resource': { es: 'Abrir recurso', de: 'Ressource öffnen', fr: 'Ouvrir la ressource', ko: '자료 열기', ja: 'リソースを開く', tl: 'Buksan ang Resource', ar: 'فتح المورد', zh: '打开资源', it: 'Apri risorsa', pt: 'Abrir recurso', vi: 'Mở tài nguyên' },
   'Search': { es: 'Buscar', de: 'Suchen', fr: 'Rechercher', ko: '검색', ja: '検索', tl: 'Maghanap', ar: 'بحث', zh: '搜索', it: 'Cerca', pt: 'Pesquisar', vi: 'Tìm kiếm' },
   'Reset / Re-onboard': { es: 'Restablecer / reconfigurar', de: 'Zurücksetzen / neu einrichten', fr: 'Réinitialiser / refaire l’accueil', ko: '재설정 / 다시 시작', ja: 'リセット / 再設定', tl: 'I-reset / ulitin ang setup', ar: 'إعادة الضبط / البدء من جديد', zh: '重置 / 重新设置', it: 'Ripristina / nuova configurazione', pt: 'Redefinir / refazer configuração', vi: 'Đặt lại / thiết lập lại' },
   'See Demo First': { es: 'Ver demo primero', de: 'Demo zuerst ansehen', fr: 'Voir la démo d’abord', ko: '데모 먼저 보기', ja: '先にデモを見る', tl: 'Tingnan muna ang demo', ar: 'عرض العرض التوضيحي أولاً', zh: '先看演示', it: 'Vedi prima la demo', pt: 'Ver demonstração primeiro', vi: 'Xem demo trước' },
   'Launch Demo': { es: 'Iniciar demo', de: 'Demo starten', fr: 'Lancer la démo', ko: '데모 시작', ja: 'デモを開始', tl: 'Simulan ang demo', ar: 'تشغيل العرض التوضيحي', zh: '启动演示', it: 'Avvia demo', pt: 'Iniciar demo', vi: 'Mở demo' },
   'Demo Tour': { es: 'Tour demo', de: 'Demo-Tour', fr: 'Visite démo', ko: '데모 투어', ja: 'デモツアー', tl: 'Demo Tour', ar: 'جولة العرض', zh: '演示导览', it: 'Tour demo', pt: 'Tour de demonstração', vi: 'Tham quan demo' },
-  'Thank You for Your Service': { es: 'Gracias por su servicio', de: 'Vielen Dank für Ihren Dienst', fr: 'Merci pour votre service', ko: '복무에 감사드립니다', ja: 'ご奉仕に感謝します', tl: 'Salamat sa iyong serbisyo', ar: 'شكراً لخدمتك', zh: '感谢您的服役', it: 'Grazie per il tuo servizio', pt: 'Obrigado pelo seu serviço', vi: 'Cảm ơn sự phục vụ của bạn' },
-  'Route Planner': { es: 'Planificador de ruta', de: 'Routenplaner', fr: 'Planificateur d’itinéraire', ko: '경로 계획', ja: 'ルート計画', tl: 'Tagaplano ng Ruta', ar: 'مخطط الطريق', zh: '路线规划', it: 'Pianifica percorso', pt: 'Planejador de rota', vi: 'Lập tuyến đường' },
-  'Directions': { es: 'Indicaciones', de: 'Wegbeschreibung', fr: 'Itinéraires', ko: '길 안내', ja: '経路案内', tl: 'Direksyon', ar: 'الاتجاهات', zh: '路线', it: 'Indicazioni', pt: 'Direções', vi: 'Chỉ đường' },
-  'Saved Routes': { es: 'Rutas guardadas', de: 'Gespeicherte Routen', fr: 'Itinéraires enregistrés', ko: '저장된 경로', ja: '保存済みルート', tl: 'Naka-save na Ruta', ar: 'الطرق المحفوظة', zh: '已保存路线', it: 'Percorsi salvati', pt: 'Rotas salvas', vi: 'Tuyến đã lưu' },
-  'Base Map': { es: 'Mapa de la base', de: 'Basiskarte', fr: 'Carte de la base', ko: '기지 지도', ja: '基地マップ', tl: 'Mapa ng Base', ar: 'خريطة القاعدة', zh: '基地地图', it: 'Mappa base', pt: 'Mapa da base', vi: 'Bản đồ căn cứ' },
-  'Deployment': { es: 'Despliegue', de: 'Einsatz', fr: 'Déploiement', ko: '파병', ja: '派遣', tl: 'Deployment', ar: 'الانتشار', zh: '部署', it: 'Schieramento', pt: 'Mobilização', vi: 'Triển khai' },
-  'EFMP': { es: 'EFMP', de: 'EFMP', fr: 'EFMP', ko: 'EFMP', ja: 'EFMP', tl: 'EFMP', ar: 'EFMP', zh: 'EFMP', it: 'EFMP', pt: 'EFMP', vi: 'EFMP' },
-  'Employment': { es: 'Empleo', de: 'Beschäftigung', fr: 'Emploi', ko: '취업', ja: '雇用', tl: 'Trabaho', ar: 'التوظيف', zh: '就业', it: 'Occupazione', pt: 'Emprego', vi: 'Việc làm' },
-  'Permanent Resident': { es: 'Residencia permanente', de: 'Daueraufenthalt', fr: 'Résident permanent', ko: '영주권', ja: '永住者', tl: 'Permanent Resident', ar: 'الإقامة الدائمة', zh: '永久居民', it: 'Residente permanente', pt: 'Residente permanente', vi: 'Thường trú nhân' },
-  'Pets': { es: 'Mascotas', de: 'Haustiere', fr: 'Animaux', ko: '반려동물', ja: 'ペット', tl: 'Alagang hayop', ar: 'الحيوانات الأليفة', zh: '宠物', it: 'Animali domestici', pt: 'Animais de estimação', vi: 'Thú cưng' },
-  'Schools': { es: 'Escuelas', de: 'Schulen', fr: 'Écoles', ko: '학교', ja: '学校', tl: 'Mga Paaralan', ar: 'المدارس', zh: '学校', it: 'Scuole', pt: 'Escolas', vi: 'Trường học' },
-  'Home Locator': { es: 'Buscador de vivienda', de: 'Wohnungssuche', fr: 'Recherche de logement', ko: '주택 찾기', ja: '住宅検索', tl: 'Tagahanap ng Tahanan', ar: 'البحث عن السكن', zh: '住房查找', it: 'Ricerca casa', pt: 'Localizador de moradia', vi: 'Tìm nhà ở' },
-  'Inventory & Claims': { es: 'Inventario y reclamos', de: 'Inventar und Ansprüche', fr: 'Inventaire et réclamations', ko: '재고 및 청구', ja: '在庫と請求', tl: 'Imbentaryo at Claims', ar: 'الجرد والمطالبات', zh: '清单和索赔', it: 'Inventario e reclami', pt: 'Inventário e reclamações', vi: 'Kiểm kê và khiếu nại' },
-  'Move Aid': { es: 'Ayuda para mudanza', de: 'Umzugshilfe', fr: 'Aide au déménagement', ko: '이사 지원', ja: '引越し支援', tl: 'Tulong sa Paglipat', ar: 'مساعدة الانتقال', zh: '搬家援助', it: 'Aiuto trasloco', pt: 'Ajuda para mudança', vi: 'Hỗ trợ chuyển nhà' },
-  'VA Loan': { es: 'Préstamo VA', de: 'VA-Darlehen', fr: 'Prêt VA', ko: 'VA 대출', ja: 'VAローン', tl: 'VA Loan', ar: 'قرض VA', zh: 'VA贷款', it: 'Prestito VA', pt: 'Empréstimo VA', vi: 'Khoản vay VA' },
-  'Tuition Assistance': { es: 'Asistencia de matrícula', de: 'Studienbeihilfe', fr: 'Aide aux frais de scolarité', ko: '학비 지원', ja: '授業料支援', tl: 'Tulong sa Tuition', ar: 'مساعدة الرسوم الدراسية', zh: '学费援助', it: 'Assistenza tasse universitarie', pt: 'Assistência de mensalidade', vi: 'Hỗ trợ học phí' },
-  'Security Controls': { es: 'Controles de seguridad', de: 'Sicherheitskontrollen', fr: 'Contrôles de sécurité', ko: '보안 제어', ja: 'セキュリティ制御', tl: 'Mga Kontrol sa Seguridad', ar: 'ضوابط الأمان', zh: '安全控制', it: 'Controlli di sicurezza', pt: 'Controles de segurança', vi: 'Kiểm soát bảo mật' },
-  'Official public data disclaimer': { es: 'Aviso de datos públicos oficiales', de: 'Hinweis zu offiziellen öffentlichen Daten', fr: 'Avis sur les données publiques officielles', ko: '공식 공개 데이터 고지', ja: '公式公開データ免責事項', tl: 'Paunawa sa opisyal na pampublikong data', ar: 'إخلاء مسؤولية البيانات العامة الرسمية', zh: '官方公共数据免责声明', it: 'Avviso sui dati pubblici ufficiali', pt: 'Aviso de dados públicos oficiais', vi: 'Tuyên bố dữ liệu công khai chính thức' },
-  'Independent application notice': { es: 'Aviso de aplicación independiente', de: 'Hinweis zur unabhängigen Anwendung', fr: 'Avis d’application indépendante', ko: '독립 애플리케이션 고지', ja: '独立アプリ通知', tl: 'Paunawa ng independent application', ar: 'إشعار التطبيق المستقل', zh: '独立应用通知', it: 'Avviso applicazione indipendente', pt: 'Aviso de aplicativo independente', vi: 'Thông báo ứng dụng độc lập' },
-  'Manual location search': { es: 'Búsqueda manual de ubicación', de: 'Manuelle Standortsuche', fr: 'Recherche manuelle de lieu', ko: '수동 위치 검색', ja: '手動場所検索', tl: 'Manwal na paghahanap ng lokasyon', ar: 'بحث يدوي عن الموقع', zh: '手动位置搜索', it: 'Ricerca manuale posizione', pt: 'Busca manual de local', vi: 'Tìm vị trí thủ công' },
-  'Official housing links': { es: 'Enlaces oficiales de vivienda', de: 'Offizielle Wohnungslinks', fr: 'Liens officiels logement', ko: '공식 주거 링크', ja: '公式住宅リンク', tl: 'Opisyal na link sa pabahay', ar: 'روابط السكن الرسمية', zh: '官方住房链接', it: 'Link ufficiali alloggio', pt: 'Links oficiais de moradia', vi: 'Liên kết nhà ở chính thức' },
-  'Open official site': { es: 'Abrir sitio oficial', de: 'Offizielle Seite öffnen', fr: 'Ouvrir le site officiel', ko: '공식 사이트 열기', ja: '公式サイトを開く', tl: 'Buksan ang opisyal na site', ar: 'فتح الموقع الرسمي', zh: '打开官方网站', it: 'Apri sito ufficiale', pt: 'Abrir site oficial', vi: 'Mở trang chính thức' },
-
-  'Employment & Career Center': { es: 'Centro de empleo y carrera', de: 'Beschäftigungs- und Karrierezentrum', fr: 'Centre emploi et carrière', ko: '취업 및 커리어 센터', ja: '雇用・キャリアセンター', tl: 'Employment at Career Center', ar: 'مركز التوظيف والمسار المهني', zh: '就业与职业中心', it: 'Centro occupazione e carriera', pt: 'Centro de emprego e carreira', vi: 'Trung tâm việc làm và nghề nghiệp' },
-  'Job Search': { es: 'Búsqueda de empleo', de: 'Jobsuche', fr: 'Recherche d’emploi', ko: '일자리 검색', ja: '求人検索', tl: 'Paghahanap ng trabaho', ar: 'البحث عن عمل', zh: '职位搜索', it: 'Ricerca lavoro', pt: 'Busca de emprego', vi: 'Tìm việc' },
-  'Job Resources': { es: 'Recursos de empleo', de: 'Job-Ressourcen', fr: 'Ressources emploi', ko: '취업 자료', ja: '就職リソース', tl: 'Mga resource sa trabaho', ar: 'موارد التوظيف', zh: '就业资源', it: 'Risorse lavoro', pt: 'Recursos de emprego', vi: 'Tài nguyên việc làm' },
-  'Resume Assistance': { es: 'Ayuda con resume', de: 'Lebenslaufhilfe', fr: 'Aide CV', ko: '이력서 지원', ja: '履歴書支援', tl: 'Tulong sa resume', ar: 'مساعدة السيرة الذاتية', zh: '简历帮助', it: 'Aiuto curriculum', pt: 'Ajuda com currículo', vi: 'Hỗ trợ hồ sơ xin việc' },
-  'Internships': { es: 'Pasantías', de: 'Praktika', fr: 'Stages', ko: '인턴십', ja: 'インターンシップ', tl: 'Internships', ar: 'التدريب العملي', zh: '实习', it: 'Tirocini', pt: 'Estágios', vi: 'Thực tập' },
-  'Employment Education Workshops': { es: 'Talleres de empleo', de: 'Arbeits-Workshops', fr: 'Ateliers emploi', ko: '취업 교육 워크숍', ja: '雇用教育ワークショップ', tl: 'Employment workshops', ar: 'ورش التوظيف', zh: '就业教育工作坊', it: 'Workshop lavoro', pt: 'Oficinas de emprego', vi: 'Hội thảo việc làm' },
-  'Certifications': { es: 'Certificaciones', de: 'Zertifikate', fr: 'Certifications', ko: '자격증', ja: '認定', tl: 'Certifications', ar: 'الشهادات', zh: '证书', it: 'Certificazioni', pt: 'Certificações', vi: 'Chứng chỉ' },
-  'Mentorship': { es: 'Mentoría', de: 'Mentoring', fr: 'Mentorat', ko: '멘토링', ja: 'メンタリング', tl: 'Mentorship', ar: 'الإرشاد المهني', zh: '导师支持', it: 'Mentorship', pt: 'Mentoria', vi: 'Cố vấn' },
-  'Spouse Preferred': { es: 'Preferencia para cónyuges', de: 'Ehepartner bevorzugt', fr: 'Priorité conjoint', ko: '배우자 우대', ja: '配偶者優先', tl: 'Spouse preferred', ar: 'أفضلية الزوج/الزوجة', zh: '配偶优先', it: 'Preferenza coniuge', pt: 'Preferência para cônjuge', vi: 'Ưu tiên vợ/chồng' },
-  'Connections': { es: 'Conexiones', de: 'Netzwerk', fr: 'Connexions', ko: '연결', ja: 'つながり', tl: 'Koneksyon', ar: 'العلاقات المهنية', zh: '人脉', it: 'Connessioni', pt: 'Conexões', vi: 'Kết nối' },
-  'LinkedIn Workshop': { es: 'Taller de LinkedIn', de: 'LinkedIn-Workshop', fr: 'Atelier LinkedIn', ko: 'LinkedIn 워크숍', ja: 'LinkedInワークショップ', tl: 'LinkedIn workshop', ar: 'ورشة LinkedIn', zh: 'LinkedIn 工作坊', it: 'Workshop LinkedIn', pt: 'Oficina LinkedIn', vi: 'Hội thảo LinkedIn' },
-  'Entrepreneurship': { es: 'Emprendimiento', de: 'Unternehmertum', fr: 'Entrepreneuriat', ko: '창업', ja: '起業', tl: 'Pagnenegosyo', ar: 'ريادة الأعمال', zh: '创业', it: 'Imprenditorialità', pt: 'Empreendedorismo', vi: 'Khởi nghiệp' },
+  'Thank You for Your Service!': { es: '¡Gracias por su servicio!', de: 'Vielen Dank für Ihren Dienst!', fr: 'Merci pour votre service !', ko: '복무에 감사드립니다!', ja: 'ご奉仕に感謝します！', tl: 'Salamat sa iyong serbisyo!', ar: 'شكراً لخدمتك!', zh: '感谢您的服役！', it: 'Grazie per il tuo servizio!', pt: 'Obrigado pelo seu serviço!', vi: 'Cảm ơn sự phục vụ của bạn!' },
+  'Official information': { es: 'Información oficial', de: 'Offizielle Informationen', fr: 'Information officielle', ko: '공식 정보', ja: '公式情報', tl: 'Opisyal na impormasyon', ar: 'معلومات رسمية', zh: '官方信息', it: 'Informazione ufficiale', pt: 'Informação oficial', vi: 'Thông tin chính thức' },
+  'Open official resource': { es: 'Abrir recurso oficial', de: 'Offizielle Ressource öffnen', fr: 'Ouvrir la ressource officielle', ko: '공식 자료 열기', ja: '公式リソースを開く', tl: 'Buksan ang opisyal na resource', ar: 'فتح المورد الرسمي', zh: '打开官方资源', it: 'Apri risorsa ufficiale', pt: 'Abrir recurso oficial', vi: 'Mở tài nguyên chính thức' },
 };
+
+const PROPER_NOUNS = [
+  'PCS', 'PCS Express', 'USAJOBS', 'Military OneSource', 'MySECO', 'MSEP', 'MyCAA', 'TRICARE', 'DoDEA', 'DPS', 'VA', 'GI Bill', 'FAFSA',
+  'Army', 'Navy', 'Marine Corps', 'Air Force', 'Space Force', 'Coast Guard', 'DoD', 'DISA', 'EFMP', 'OCONUS', 'CONUS',
+  'LinkedIn', 'Indeed', 'ClearanceJobs', 'Hiring Our Heroes', 'SCORE', 'IVMF', 'SBA', 'VBOC',
+];
 
 function normalizeLanguage(language) {
   const code = String(language || 'en').toLowerCase();
   return SUPPORTED.has(code) ? code : 'en';
 }
 
+function compactText(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ');
+}
+
 function translateExact(original, lang) {
   if (!original || lang === 'en') return original;
   const leading = original.match(/^\s*/)?.[0] || '';
   const trailing = original.match(/\s*$/)?.[0] || '';
-  const compact = original.trim().replace(/\s+/g, ' ');
+  const compact = compactText(original);
   const translated = PHRASES[compact]?.[lang];
-  return translated ? `${leading}${translated}${trailing}` : original;
+  return translated ? `${leading}${translated}${trailing}` : null;
+}
+
+function isNumericOrSymbolOnly(text) {
+  return /^[\s\d.,:/%+$#()\-–—|·*]+$/.test(text);
+}
+
+function isKnownProperNoun(text) {
+  const compact = compactText(text);
+  if (!compact) return true;
+  if (PROPER_NOUNS.includes(compact)) return true;
+  if (/^[A-Z0-9&./ -]{2,14}$/.test(compact)) return true;
+  if (/^(Fort|Camp|Joint Base|Naval|NAS|MCAS|MCB|USAG|Ramstein|Kadena|Osan|Yokota|Schofield|Eglin|MacDill|Travis|Nellis|Luke|Minot|Hill|Patrick|Vandenberg)\b/.test(compact)) return true;
+  return false;
+}
+
+function looksLikeEnglish(text) {
+  const compact = compactText(text);
+  if (!compact || isNumericOrSymbolOnly(compact) || isKnownProperNoun(compact)) return false;
+  const letters = compact.match(/[A-Za-z]/g)?.length || 0;
+  if (letters < 3) return false;
+  const commonWords = /\b(the|and|or|for|with|from|your|you|near|official|public|information|resources|search|open|review|complete|support|move|home|family|service|military|spouse|installation|documents|checklist|profile|language|category|available|local|data|security|career|employment)\b/i;
+  return commonWords.test(compact) || letters / Math.max(compact.length, 1) > 0.45;
+}
+
+function chooseFallback(original, lang, parent) {
+  const compact = compactText(original);
+  if (!looksLikeEnglish(compact)) return original;
+  const lower = compact.toLowerCase();
+  const bundle = GENERIC[lang] || GENERIC.en;
+  const tag = parent?.tagName?.toLowerCase() || '';
+  const role = parent?.getAttribute?.('role') || '';
+
+  if (/^open\b|view|learn|visit|download|browse|launch/.test(lower)) return bundle.action;
+  if (/search|find/.test(lower)) return bundle.search;
+  if (/continue|build my pcs plan|start/.test(lower)) return bundle.continue;
+  if (/back/.test(lower)) return bundle.back;
+  if (/next/.test(lower)) return bundle.next;
+  if (tag === 'button' || role === 'button') return bundle.action;
+  if (tag === 'a') return bundle.resource;
+  if (/not available|unavailable|no .*data|cannot find|not found/.test(lower)) return bundle.unavailable;
+  if (compact.length <= 34 && !/[.!?]/.test(compact)) return bundle.section;
+  return bundle.body;
 }
 
 function shouldSkipNode(node) {
   const parent = node?.parentElement;
   if (!parent) return true;
-  if (parent.closest('script, style, noscript, textarea, code, pre, [data-no-translate], .notranslate')) return true;
+  if (parent.closest('script, style, noscript, textarea, code, pre, [data-no-language-runtime], .notranslate')) return true;
+  if (parent.closest('input, select, option')) return true;
   return false;
 }
 
@@ -110,7 +286,8 @@ function translateTextNode(node, lang) {
   }
 
   const original = node.__pcsOriginalText;
-  const translated = translateExact(original, lang);
+  let translated = lang === 'en' ? original : translateExact(original, lang);
+  if (translated === null) translated = chooseFallback(original, lang, node.parentElement);
   if (node.nodeValue !== translated) node.nodeValue = translated;
   node.__pcsTranslatedText = translated;
 }
@@ -122,7 +299,8 @@ function translateAttribute(element, attr, lang) {
   if (!current) return;
   if (!element.dataset[storeName]) element.dataset[storeName] = current;
   const original = element.dataset[storeName];
-  const translated = translateExact(original, lang);
+  let translated = lang === 'en' ? original : translateExact(original, lang);
+  if (translated === null) translated = chooseFallback(original, lang, element);
   if (current !== translated) element.setAttribute(attr, translated);
 }
 
@@ -131,8 +309,9 @@ function applyRuntimeLanguage(lang) {
   if (!root) return;
   document.documentElement.lang = lang;
   document.documentElement.dir = RTL_LANGS.has(lang) ? 'rtl' : 'ltr';
-  document.documentElement.setAttribute('translate', 'yes');
+  document.documentElement.setAttribute('translate', 'no');
   root.setAttribute('data-pcs-language-runtime', lang);
+  root.setAttribute('data-pcs-language-mode', lang === 'en' ? 'source' : 'whole-node-localized');
 
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {

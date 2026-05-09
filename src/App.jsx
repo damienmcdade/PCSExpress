@@ -162,17 +162,32 @@ function getHomeBranchInsignia(branch) {
 }
 
 const UI_PALETTE = {
-  page: '#F7F4EA',
-  pageAlt: '#EFE8D6',
-  surface: '#FFFFFF',
-  surfaceSoft: '#FBFAF5',
-  text: '#111827',
-  muted: '#56616F',
-  line: '#DDD5C2',
-  tactical: '#4F5D35',
-  tacticalDark: '#26351F',
-  gold: '#B8943A',
-  danger: '#7F1D1D',
+  page: '#07131F',
+  pageAlt: '#0A1C2C',
+  surface: '#F8FAFC',
+  surfaceSoft: '#EAF0F6',
+  text: '#0B1724',
+  muted: '#D7E0EA',
+  line: '#C8A84B',
+  tactical: '#C8A84B',
+  tacticalDark: '#07131F',
+  gold: '#C8A84B',
+  danger: '#B42318',
+};
+
+const MISSION_CONTROL_STATUS_LABELS = {
+  en: 'Mission Control',
+  es: 'Centro de misión',
+  de: 'Missionszentrale',
+  fr: 'Centre de mission',
+  ko: '임무 통제',
+  ja: 'ミッション管制',
+  tl: 'Mission Control',
+  ar: 'مركز المهمة',
+  zh: '任务控制',
+  it: 'Centro missione',
+  pt: 'Controle da missão',
+  vi: 'Trung tâm nhiệm vụ',
 };
 
 const BRANCH_THEMES = {
@@ -4243,7 +4258,7 @@ function App() {
   };
 
   if (!profile?.branch) {
-    return <Onboarding onComplete={(p) => {
+    return <div className="pcs-mission-control pcs-mission-control--onboarding"><Onboarding onComplete={(p) => {
       const normalized = normalizeProfile(p);
       setProfile(normalized);
       if (normalized?.demoMode) {
@@ -4257,7 +4272,7 @@ function App() {
         clearSessionDemoProfile();
         store.set('pcs_profile', normalized);
       }
-    }} />;
+    }} /></div>;
   }
 
   const DEMO_TIPS = [
@@ -4344,7 +4359,7 @@ function App() {
 
   if (activeTab === 'translation') {
     return (
-      <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
+      <div className="pcs-mission-control pcs-mission-control--translation" lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
         <PrivacyShield />
         {isDesktop && (
           <div style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', minHeight: '100dvh', borderRight: `2px solid ${theme.accent}30`, flexShrink: 0 }}>
@@ -4443,7 +4458,7 @@ function App() {
   }
 
   return (
-    <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: 'column' }}>
+    <div className="pcs-mission-control" lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: 'column' }}>
       <PrivacyShield />
       {/* HEADER — paddingTop uses env(safe-area-inset-top) for notch/Dynamic Island.
           Requires viewport-fit=cover in the HTML meta and contentInsetAdjustmentBehavior=never
@@ -4453,7 +4468,7 @@ function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {isDesktop && <div style={{ fontSize: 22, fontWeight: 900, color: theme.accent, letterSpacing: '-1px' }}>{theme.insignia || theme.abbr}</div>}
             <div>
-              <div style={{ fontSize: 10, letterSpacing: '.12em', color: theme.accent, fontWeight: 900 }}>PCS EXPRESS</div>
+              <div style={{ fontSize: 10, letterSpacing: '.12em', color: theme.accent, fontWeight: 900 }}>{MISSION_CONTROL_STATUS_LABELS[appLanguage] || MISSION_CONTROL_STATUS_LABELS.en} · PCS EXPRESS</div>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#FFFFFF' }}>{profile.firstName} · {isDesktop ? profile.branch : currentLabel}</div>
             </div>
           </div>
@@ -4558,7 +4573,7 @@ function App() {
               </div>
               {/* Branch label */}
               <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.22em', color: theme.primary, marginBottom: 4, textTransform: 'uppercase' }}>
-                {t('unitedStates')} {profile.branch.toUpperCase()}
+                {MISSION_CONTROL_STATUS_LABELS[appLanguage] || MISSION_CONTROL_STATUS_LABELS.en} · {t('unitedStates')} {profile.branch.toUpperCase()}
               </div>
               <div style={{ fontSize: 10, color: UI_PALETTE.muted, fontStyle: 'italic', marginBottom: 12 }}>{theme.tagline}</div>
               {/* Soldier info */}
