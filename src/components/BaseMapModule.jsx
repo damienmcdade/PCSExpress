@@ -226,16 +226,6 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
           </a>
         ))}
       </div>
-
-      <div style={{ ...cardStyle, display: 'grid', gap: 8 }}>
-        <strong style={{ color: colors.primary }}>Base map quality controls</strong>
-        <ul style={{ margin: 0, paddingLeft: 18, color: colors.text, lineHeight: 1.55 }}>
-          <li>Old hand-entered base coordinates and facility markers have been removed.</li>
-          <li>Selected onboarding installation is used first, and manual entries can be searched without relying on stale local records.</li>
-          <li>Users are pointed to official U.S. Government and military sources for verification.</li>
-          <li>No restricted gates, internal facility locations, force-protection data, CUI, or non-public map details are stored in the app.</li>
-        </ul>
-      </div>
     </section>
   );
 }

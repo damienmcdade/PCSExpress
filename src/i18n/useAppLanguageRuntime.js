@@ -342,8 +342,10 @@ function chooseFallback(original, lang, parent) {
   if (topic) {
     const label = topicTerm(topic, lang);
     const template = templateFor(lang);
-    if (compact.length <= 42 && !/[.!?]/.test(compact)) return template.heading(label);
-    return template.body(label);
+    const isShortHeading = compact.length <= 42 && !/[.!?]/.test(compact);
+    const headingTag = /^h[1-6]$/.test(tag);
+    if (isShortHeading || headingTag) return template.heading(label);
+    return original;
   }
 
   // Unknown paragraphs are left intact instead of being rewritten into one repeated sentence.
@@ -355,7 +357,7 @@ function chooseFallback(original, lang, parent) {
 function shouldSkipNode(node) {
   const parent = node?.parentElement;
   if (!parent) return true;
-  if (parent.closest('script, style, noscript, textarea, code, pre, [data-no-language-runtime], .notranslate')) return true;
+  if (parent.closest('script, style, noscript, textarea, code, pre, [data-no-translate], [data-no-language-runtime], .notranslate')) return true;
   if (parent.closest('input, select, option')) return true;
   return false;
 }
@@ -379,6 +381,7 @@ function translateTextNode(node, lang) {
 }
 
 function translateAttribute(element, attr, lang) {
+  if (element.closest?.('[data-no-translate], [data-no-language-runtime], .notranslate')) return;
   if (!element.hasAttribute(attr)) return;
   const storeName = `pcsOriginal${attr}`;
   const current = element.getAttribute(attr) || '';
@@ -397,7 +400,7 @@ function applyRuntimeLanguage(lang) {
   document.documentElement.dir = RTL_LANGS.has(lang) ? 'rtl' : 'ltr';
   document.documentElement.setAttribute('translate', 'no');
   root.setAttribute('data-pcs-language-runtime', lang);
-  root.setAttribute('data-pcs-language-mode', lang === 'en' ? 'source' : 'contextual-readable');
+  root.setAttribute('data-pcs-language-mode', lang === 'en' ? 'source' : 'exact-readable-no-repeat');
 
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {

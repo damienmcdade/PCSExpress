@@ -1515,16 +1515,19 @@ function VeteranBusinessesTab({ theme, profile }) {
   const instName = (profile?.gainingInstallation || '').split(',')[0].trim();
   const searchLocation = getInstallationSearchLocation(instName);
   const discoveryCards = veteranBusinessDiscoveryCards(instName);
-  const localBiz = (VETERAN_OWNED_BUSINESSES[instName] || []).map(b => ({ ...b, url: b.url || googleSearchUrl(`${b.name} ${searchLocation}`) }));
-  const displayBiz = localBiz.length ? localBiz : discoveryCards;
+  // Stale hand-entered veteran-business cards are intentionally not rendered.
+  // The active discovery cards below keep users on official resources and current public searches.
+  const localBiz = [];
+  const displayBiz = discoveryCards;
   const categories = ['All', ...new Set(displayBiz.map(b => b.category))];
   const filtered = filter === 'All' ? displayBiz : displayBiz.filter(b => b.category === filter);
 
   const NATIONAL_DIRS = [
-    { name: 'Veteran-Owned Business Directory', icon: '🇺🇸', desc: 'Search thousands of verified veteran-owned businesses by location and category.', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses' },
-    { name: 'SBA Veteran Business Outreach', icon: '🏛️', desc: 'Free counseling, training, and procurement opportunities for veteran entrepreneurs.', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses' },
-    { name: 'Women Veteran Entrepreneurship Training', icon: '💪', desc: 'SBA-supported entrepreneurship training for women veterans and military spouses.', url: 'https://www.sba.gov/article/2024/05/10/sba-announces-funding-awards-three-organizations-provide-women-veteran-entrepreneurship-training' },
-    { name: 'Hire Heroes USA', icon: '✈️', desc: 'Free job placement and career coaching for veterans and military spouses.', url: 'https://www.dol.gov/agencies/vets' },
+    { name: 'SBA Veteran-Owned Businesses', icon: 'SBA', desc: 'Official SBA veteran entrepreneurship, training, funding, and contracting guidance.', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses' },
+    { name: 'VetCert Small Business Search', icon: 'VOSB', desc: 'Official SBA certification portal and search for verified VOSB and SDVOSB firms.', url: 'https://veterans.certify.sba.gov/' },
+    { name: 'Veterans Business Outreach Centers', icon: 'VBOC', desc: 'Official SBA VBOC locator for free entrepreneurship counseling and training.', url: 'https://www.sba.gov/local-assistance/resource-partners/veterans-business-outreach-center-vboc-program' },
+    { name: 'VA OSDBU', icon: 'VA', desc: 'Official VA small and veteran business program information.', url: 'https://www.va.gov/osdbu/about/' },
+    { name: 'SAM.gov Entity Information', icon: 'SAM', desc: 'Official federal entity search and public registration information.', url: 'https://sam.gov/entity-information' },
   ];
 
   return (
@@ -1548,7 +1551,7 @@ function VeteranBusinessesTab({ theme, profile }) {
       </div>
 
       {/* Category filter */}
-      {localBiz.length > 0 && categories.length > 2 && (
+      {categories.length > 2 && (
         <div style={{ display: 'flex', gap: 6, marginBottom: 14, overflowX: 'auto', paddingBottom: 4 }}>
           {categories.map(cat => (
             <button key={cat} onClick={() => setFilter(cat)} style={{ flexShrink: 0, padding: '6px 12px', borderRadius: 16, border: `1.5px solid ${filter === cat ? theme.primary : '#E0E6EE'}`, background: filter === cat ? theme.primary : '#FFF', color: filter === cat ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
@@ -3442,7 +3445,7 @@ APP_TRANSLATIONS.tl = {
   gaining: 'Gaining',
   depart: 'Alis',
   faith: 'Pananampalataya',
-  nav: { home: 'Home', checklist: 'Checklist', documents: 'Dokumento', education: 'Edukasyon', family: 'Family Readiness', 'home-relocation': 'Home Relocation', 'mental-readiness': 'Mental Readiness', nav: 'Navigation', resources: 'Resources', religion: 'Spiritual Readiness', translation: 'Translation', veterans: 'Veterans' },
+  nav: { home: 'Simula', checklist: 'Listahan', documents: 'Dokumento', education: 'Edukasyon', family: 'Kahandaan ng Pamilya', 'home-relocation': 'Paglipat ng Tahanan', 'mental-readiness': 'Kahandaang Pangkaisipan', nav: 'Pag-navigate', resources: 'Mga Resource', religion: 'Kahandaang Espirituwal', translation: 'Pagsasalin', veterans: 'Mga Beterano' },
 };
 
 APP_TRANSLATIONS.ar = {
@@ -3640,14 +3643,14 @@ const KEYED_LANGUAGE_TOPICS = {
   checklist: { es: 'Lista PCS', de: 'PCS-Checkliste', fr: 'Liste PCS', ko: 'PCS 체크리스트', ja: 'PCSチェックリスト', tl: 'PCS checklist', ar: 'قائمة PCS', zh: 'PCS 清单', it: 'Checklist PCS', pt: 'Checklist PCS', vi: 'Danh sách PCS' },
   documents: { es: 'Documentos', de: 'Dokumente', fr: 'Documents', ko: '문서', ja: '書類', tl: 'Dokumento', ar: 'المستندات', zh: '文件', it: 'Documenti', pt: 'Documentos', vi: 'Tài liệu' },
   education: { es: 'Educación', de: 'Bildung', fr: 'Éducation', ko: '교육', ja: '教育', tl: 'Edukasyon', ar: 'التعليم', zh: '教育', it: 'Istruzione', pt: 'Educação', vi: 'Giáo dục' },
-  family: { es: 'Preparación familiar', de: 'Familienbereitschaft', fr: 'Préparation familiale', ko: '가족 준비', ja: '家族準備', tl: 'Family Readiness', ar: 'جاهزية العائلة', zh: '家庭准备', it: 'Prontezza familiare', pt: 'Prontidão familiar', vi: 'Sẵn sàng gia đình' },
-  'home-relocation': { es: 'Reubicación del hogar', de: 'Wohnungssuche', fr: 'Relogement', ko: '주거 이전', ja: '住居移転', tl: 'Home Relocation', ar: 'السكن والانتقال', zh: '住房搬迁', it: 'Trasferimento casa', pt: 'Mudança residencial', vi: 'Nhà ở & chuyển nhà' },
-  'mental-readiness': { es: 'Preparación mental', de: 'Mentale Bereitschaft', fr: 'Préparation mentale', ko: '정신 준비', ja: 'メンタル準備', tl: 'Mental Readiness', ar: 'الجاهزية النفسية', zh: '心理准备', it: 'Prontezza mentale', pt: 'Prontidão mental', vi: 'Sẵn sàng tinh thần' },
-  nav: { es: 'Navegación', de: 'Navigation', fr: 'Navigation', ko: '내비게이션', ja: 'ナビゲーション', tl: 'Navigation', ar: 'الملاحة', zh: '导航', it: 'Navigazione', pt: 'Navegação', vi: 'Điều hướng' },
-  resources: { es: 'Recursos', de: 'Ressourcen', fr: 'Ressources', ko: '자료', ja: 'リソース', tl: 'Resources', ar: 'الموارد', zh: '资源', it: 'Risorse', pt: 'Recursos', vi: 'Tài nguyên' },
-  religion: { es: 'Preparación espiritual', de: 'Spirituelle Bereitschaft', fr: 'Préparation spirituelle', ko: '영적 준비', ja: 'スピリチュアル準備', tl: 'Spiritual Readiness', ar: 'الجاهزية الروحية', zh: '精神准备', it: 'Prontezza spirituale', pt: 'Prontidão espiritual', vi: 'Sẵn sàng tâm linh' },
-  translation: { es: 'Traducción', de: 'Übersetzung', fr: 'Traduction', ko: '번역', ja: '翻訳', tl: 'Translation', ar: 'الترجمة', zh: '翻译', it: 'Traduzione', pt: 'Tradução', vi: 'Dịch thuật' },
-  veterans: { es: 'Veteranos', de: 'Veteranen', fr: 'Vétérans', ko: '재향군인', ja: '退役軍人', tl: 'Veterans', ar: 'المحاربون القدامى', zh: '退伍军人', it: 'Veterani', pt: 'Veteranos', vi: 'Cựu chiến binh' },
+  family: { es: 'Preparación familiar', de: 'Familienbereitschaft', fr: 'Préparation familiale', ko: '가족 준비', ja: '家族準備', tl: 'Kahandaan ng Pamilya', ar: 'جاهزية العائلة', zh: '家庭准备', it: 'Prontezza familiare', pt: 'Prontidão familiar', vi: 'Sẵn sàng gia đình' },
+  'home-relocation': { es: 'Reubicación del hogar', de: 'Wohnungssuche', fr: 'Relogement', ko: '주거 이전', ja: '住居移転', tl: 'Paglipat ng Tahanan', ar: 'السكن والانتقال', zh: '住房搬迁', it: 'Trasferimento casa', pt: 'Mudança residencial', vi: 'Nhà ở & chuyển nhà' },
+  'mental-readiness': { es: 'Preparación mental', de: 'Mentale Bereitschaft', fr: 'Préparation mentale', ko: '정신 준비', ja: 'メンタル準備', tl: 'Kahandaang Pangkaisipan', ar: 'الجاهزية النفسية', zh: '心理准备', it: 'Prontezza mentale', pt: 'Prontidão mental', vi: 'Sẵn sàng tinh thần' },
+  nav: { es: 'Navegación', de: 'Navigation', fr: 'Navigation', ko: '내비게이션', ja: 'ナビゲーション', tl: 'Pag-navigate', ar: 'الملاحة', zh: '导航', it: 'Navigazione', pt: 'Navegação', vi: 'Điều hướng' },
+  resources: { es: 'Recursos', de: 'Ressourcen', fr: 'Ressources', ko: '자료', ja: 'リソース', tl: 'Mga Resource', ar: 'الموارد', zh: '资源', it: 'Risorse', pt: 'Recursos', vi: 'Tài nguyên' },
+  religion: { es: 'Preparación espiritual', de: 'Spirituelle Bereitschaft', fr: 'Préparation spirituelle', ko: '영적 준비', ja: 'スピリチュアル準備', tl: 'Kahandaang Espirituwal', ar: 'الجاهزية الروحية', zh: '精神准备', it: 'Prontezza spirituale', pt: 'Prontidão espiritual', vi: 'Sẵn sàng tâm linh' },
+  translation: { es: 'Traducción', de: 'Übersetzung', fr: 'Traduction', ko: '번역', ja: '翻訳', tl: 'Pagsasalin', ar: 'الترجمة', zh: '翻译', it: 'Traduzione', pt: 'Tradução', vi: 'Dịch thuật' },
+  veterans: { es: 'Veteranos', de: 'Veteranen', fr: 'Vétérans', ko: '재향군인', ja: '退役軍人', tl: 'Mga Beterano', ar: 'المحاربون القدامى', zh: '退伍军人', it: 'Veterani', pt: 'Veteranos', vi: 'Cựu chiến binh' },
   security: { es: 'Seguridad y datos públicos', de: 'Sicherheit und öffentliche Daten', fr: 'Sécurité et données publiques', ko: '보안 및 공개 데이터', ja: 'セキュリティと公開データ', tl: 'Security at public data', ar: 'الأمان والبيانات العامة', zh: '安全和公共数据', it: 'Sicurezza e dati pubblici', pt: 'Segurança e dados públicos', vi: 'Bảo mật và dữ liệu công khai' },
   profile: { es: 'Perfil y configuración', de: 'Profil und Einrichtung', fr: 'Profil et configuration', ko: '프로필 및 설정', ja: 'プロフィールと設定', tl: 'Profile at setup', ar: 'الملف والإعداد', zh: '档案和设置', it: 'Profilo e configurazione', pt: 'Perfil e configuração', vi: 'Hồ sơ và thiết lập' },
   bases: { es: 'Bases e instalaciones', de: 'Standorte und Basen', fr: 'Bases et installations', ko: '기지 및 시설', ja: '基地と施設', tl: 'Bases at installations', ar: 'القواعد والمنشآت', zh: '基地和设施', it: 'Basi e installazioni', pt: 'Bases e instalações', vi: 'Căn cứ và cơ sở' },
