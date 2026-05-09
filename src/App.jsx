@@ -3649,20 +3649,76 @@ const GENERIC_LANGUAGE_FALLBACKS = {
   vi: { desc: 'Xem tài nguyên chính thức và công cụ lập kế hoạch cho danh mục này.', demoTitle: 'Bước hướng dẫn', demoBody: 'Phần này giải thích cách sử dụng khu vực này của PCS Express bằng thông tin công khai chính thức có sẵn.' },
 };
 
+
+const KEYED_LANGUAGE_TOPICS = {
+  checklist: { es: 'Lista PCS', de: 'PCS-Checkliste', fr: 'Liste PCS', ko: 'PCS 체크리스트', ja: 'PCSチェックリスト', tl: 'PCS checklist', ar: 'قائمة PCS', zh: 'PCS 清单', it: 'Checklist PCS', pt: 'Checklist PCS', vi: 'Danh sách PCS' },
+  documents: { es: 'Documentos', de: 'Dokumente', fr: 'Documents', ko: '문서', ja: '書類', tl: 'Dokumento', ar: 'المستندات', zh: '文件', it: 'Documenti', pt: 'Documentos', vi: 'Tài liệu' },
+  education: { es: 'Educación', de: 'Bildung', fr: 'Éducation', ko: '교육', ja: '教育', tl: 'Edukasyon', ar: 'التعليم', zh: '教育', it: 'Istruzione', pt: 'Educação', vi: 'Giáo dục' },
+  family: { es: 'Preparación familiar', de: 'Familienbereitschaft', fr: 'Préparation familiale', ko: '가족 준비', ja: '家族準備', tl: 'Family Readiness', ar: 'جاهزية العائلة', zh: '家庭准备', it: 'Prontezza familiare', pt: 'Prontidão familiar', vi: 'Sẵn sàng gia đình' },
+  'home-relocation': { es: 'Reubicación del hogar', de: 'Wohnungssuche', fr: 'Relogement', ko: '주거 이전', ja: '住居移転', tl: 'Home Relocation', ar: 'السكن والانتقال', zh: '住房搬迁', it: 'Trasferimento casa', pt: 'Mudança residencial', vi: 'Nhà ở & chuyển nhà' },
+  'mental-readiness': { es: 'Preparación mental', de: 'Mentale Bereitschaft', fr: 'Préparation mentale', ko: '정신 준비', ja: 'メンタル準備', tl: 'Mental Readiness', ar: 'الجاهزية النفسية', zh: '心理准备', it: 'Prontezza mentale', pt: 'Prontidão mental', vi: 'Sẵn sàng tinh thần' },
+  nav: { es: 'Navegación', de: 'Navigation', fr: 'Navigation', ko: '내비게이션', ja: 'ナビゲーション', tl: 'Navigation', ar: 'الملاحة', zh: '导航', it: 'Navigazione', pt: 'Navegação', vi: 'Điều hướng' },
+  resources: { es: 'Recursos', de: 'Ressourcen', fr: 'Ressources', ko: '자료', ja: 'リソース', tl: 'Resources', ar: 'الموارد', zh: '资源', it: 'Risorse', pt: 'Recursos', vi: 'Tài nguyên' },
+  religion: { es: 'Preparación espiritual', de: 'Spirituelle Bereitschaft', fr: 'Préparation spirituelle', ko: '영적 준비', ja: 'スピリチュアル準備', tl: 'Spiritual Readiness', ar: 'الجاهزية الروحية', zh: '精神准备', it: 'Prontezza spirituale', pt: 'Prontidão espiritual', vi: 'Sẵn sàng tâm linh' },
+  translation: { es: 'Traducción', de: 'Übersetzung', fr: 'Traduction', ko: '번역', ja: '翻訳', tl: 'Translation', ar: 'الترجمة', zh: '翻译', it: 'Traduzione', pt: 'Tradução', vi: 'Dịch thuật' },
+  veterans: { es: 'Veteranos', de: 'Veteranen', fr: 'Vétérans', ko: '재향군인', ja: '退役軍人', tl: 'Veterans', ar: 'المحاربون القدامى', zh: '退伍军人', it: 'Veterani', pt: 'Veteranos', vi: 'Cựu chiến binh' },
+  security: { es: 'Seguridad y datos públicos', de: 'Sicherheit und öffentliche Daten', fr: 'Sécurité et données publiques', ko: '보안 및 공개 데이터', ja: 'セキュリティと公開データ', tl: 'Security at public data', ar: 'الأمان والبيانات العامة', zh: '安全和公共数据', it: 'Sicurezza e dati pubblici', pt: 'Segurança e dados públicos', vi: 'Bảo mật và dữ liệu công khai' },
+  profile: { es: 'Perfil y configuración', de: 'Profil und Einrichtung', fr: 'Profil et configuration', ko: '프로필 및 설정', ja: 'プロフィールと設定', tl: 'Profile at setup', ar: 'الملف والإعداد', zh: '档案和设置', it: 'Profilo e configurazione', pt: 'Perfil e configuração', vi: 'Hồ sơ và thiết lập' },
+  bases: { es: 'Bases e instalaciones', de: 'Standorte und Basen', fr: 'Bases et installations', ko: '기지 및 시설', ja: '基地と施設', tl: 'Bases at installations', ar: 'القواعد والمنشآت', zh: '基地和设施', it: 'Basi e installazioni', pt: 'Bases e instalações', vi: 'Căn cứ và cơ sở' },
+  selector: { es: 'Selector de categorías', de: 'Kategorieauswahl', fr: 'Sélecteur de catégories', ko: '카테고리 선택', ja: 'カテゴリ選択', tl: 'Category selector', ar: 'محدد الفئات', zh: '类别选择器', it: 'Selettore categorie', pt: 'Seletor de categorias', vi: 'Bộ chọn danh mục' },
+  complete: { es: 'Gracias por su servicio', de: 'Vielen Dank für Ihren Dienst', fr: 'Merci pour votre service', ko: '복무에 감사드립니다', ja: 'ご奉仕に感謝します', tl: 'Salamat sa iyong serbisyo', ar: 'شكراً لخدمتك', zh: '感谢您的服役', it: 'Grazie per il tuo servizio', pt: 'Obrigado pelo seu serviço', vi: 'Cảm ơn sự phục vụ của bạn' },
+};
+
+const KEYED_LANGUAGE_TEMPLATES = {
+  es: { desc: (label) => `${label}: revise recursos oficiales y herramientas de planificación para esta área.`, demoTitle: (label) => label, demoBody: (label) => `Esta parte del recorrido explica cómo usar ${label} dentro de PCS Express.` },
+  de: { desc: (label) => `${label}: Prüfen Sie offizielle Ressourcen und Planungswerkzeuge für diesen Bereich.`, demoTitle: (label) => label, demoBody: (label) => `Dieser Teil der Tour erklärt, wie Sie ${label} in PCS Express nutzen.` },
+  fr: { desc: (label) => `${label} : consultez les ressources officielles et les outils de planification pour cette zone.`, demoTitle: (label) => label, demoBody: (label) => `Cette partie de la visite explique comment utiliser ${label} dans PCS Express.` },
+  ko: { desc: (label) => `${label}: 이 영역의 공식 자료와 계획 도구를 확인하십시오.`, demoTitle: (label) => label, demoBody: (label) => `이 둘러보기는 PCS Express에서 ${label}을 사용하는 방법을 설명합니다.` },
+  ja: { desc: (label) => `${label}: この領域の公式リソースと計画ツールを確認してください。`, demoTitle: (label) => label, demoBody: (label) => `このツアーではPCS Expressで${label}を使用する方法を説明します。` },
+  tl: { desc: (label) => `${label}: suriin ang opisyal na resources at planning tools para sa area na ito.`, demoTitle: (label) => label, demoBody: (label) => `Ipinapaliwanag ng bahaging ito kung paano gamitin ang ${label} sa PCS Express.` },
+  ar: { desc: (label) => `${label}: راجع الموارد الرسمية وأدوات التخطيط لهذا القسم.`, demoTitle: (label) => label, demoBody: (label) => `يشرح هذا الجزء من الجولة كيفية استخدام ${label} داخل PCS Express.` },
+  zh: { desc: (label) => `${label}：查看此区域的官方资源和规划工具。`, demoTitle: (label) => label, demoBody: (label) => `本导览说明如何在 PCS Express 中使用${label}。` },
+  it: { desc: (label) => `${label}: consulta le risorse ufficiali e gli strumenti di pianificazione per quest’area.`, demoTitle: (label) => label, demoBody: (label) => `Questa parte del tour spiega come usare ${label} in PCS Express.` },
+  pt: { desc: (label) => `${label}: revise recursos oficiais e ferramentas de planejamento para esta área.`, demoTitle: (label) => label, demoBody: (label) => `Esta parte do tour explica como usar ${label} no PCS Express.` },
+  vi: { desc: (label) => `${label}: xem tài nguyên chính thức và công cụ lập kế hoạch cho khu vực này.`, demoTitle: (label) => label, demoBody: (label) => `Phần này giải thích cách sử dụng ${label} trong PCS Express.` },
+};
+
+function keyedLanguageLabel(lang, topic) {
+  return KEYED_LANGUAGE_TOPICS[topic]?.[lang] || KEYED_LANGUAGE_TOPICS[topic]?.es || topic;
+}
+
+function topicFromTranslationKey(key) {
+  if (key.startsWith('desc.')) return key.slice(5);
+  const demo = key.replace(/^demo\./, '').replace(/Title$|Body$/, '');
+  if (/security/i.test(demo)) return 'security';
+  if (/profile/i.test(demo)) return 'profile';
+  if (/bases/i.test(demo)) return 'bases';
+  if (/family/i.test(demo)) return 'family';
+  if (/selector/i.test(demo)) return 'selector';
+  if (/complete/i.test(demo)) return 'complete';
+  return 'resources';
+}
+
 function trFrom(language, key) {
   const lang = getAppLanguage(language);
   const dict = APP_TRANSLATIONS[lang] || APP_TRANSLATIONS.en;
   const fallback = APP_TRANSLATIONS.en;
   const read = (source) => key.split('.').reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : undefined), source);
   const direct = read(dict);
-  if (direct !== undefined) return direct;
-  const generic = GENERIC_LANGUAGE_FALLBACKS[lang];
-  if (lang !== 'en' && generic) {
-    if (key.startsWith('desc.')) return generic.desc;
-    if (key.startsWith('demo.') && key.endsWith('Title')) return generic.demoTitle;
-    if (key.startsWith('demo.')) return generic.demoBody;
+  const english = read(fallback);
+  const staleEnglishFallback = lang !== 'en' && direct !== undefined && direct === english && (key.startsWith('desc.') || key.startsWith('demo.'));
+  if (direct !== undefined && !staleEnglishFallback) return direct;
+  if (lang !== 'en' && (key.startsWith('desc.') || key.startsWith('demo.'))) {
+    const template = KEYED_LANGUAGE_TEMPLATES[lang];
+    if (template) {
+      const topic = topicFromTranslationKey(key);
+      const label = keyedLanguageLabel(lang, topic);
+      if (key.startsWith('desc.')) return template.desc(label);
+      if (key.endsWith('Title')) return template.demoTitle(label);
+      return template.demoBody(label);
+    }
   }
-  return read(fallback) ?? key;
+  return english ?? key;
 }
 
 function localizeNavItems(items, language) {

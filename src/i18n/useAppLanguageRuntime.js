@@ -246,9 +246,82 @@ function looksLikeEnglish(text) {
   return commonWords.test(compact) || letters / Math.max(compact.length, 1) > 0.45;
 }
 
+
+// PCS_REPEAT_FIX_START
+const TOPIC_TERMS = {
+  checklist: { en: 'PCS checklist', es: 'la lista PCS', de: 'die PCS-Checkliste', fr: 'la liste PCS', ko: 'PCS 체크리스트', ja: 'PCSチェックリスト', tl: 'PCS checklist', ar: 'قائمة PCS', zh: 'PCS 清单', it: 'la checklist PCS', pt: 'a checklist PCS', vi: 'danh sách PCS' },
+  documents: { en: 'document tracking', es: 'el seguimiento de documentos', de: 'die Dokumentenverfolgung', fr: 'le suivi des documents', ko: '문서 추적', ja: '書類管理', tl: 'pagsubaybay ng dokumento', ar: 'تتبع المستندات', zh: '文件跟踪', it: 'il monitoraggio dei documenti', pt: 'o acompanhamento de documentos', vi: 'theo dõi tài liệu' },
+  education: { en: 'education resources', es: 'los recursos educativos', de: 'die Bildungsressourcen', fr: 'les ressources éducatives', ko: '교육 자료', ja: '教育リソース', tl: 'mga resource sa edukasyon', ar: 'موارد التعليم', zh: '教育资源', it: 'le risorse per l’istruzione', pt: 'os recursos de educação', vi: 'tài nguyên giáo dục' },
+  employment: { en: 'employment resources', es: 'los recursos de empleo', de: 'die Beschäftigungsressourcen', fr: 'les ressources d’emploi', ko: '취업 자료', ja: '雇用リソース', tl: 'mga resource sa trabaho', ar: 'موارد التوظيف', zh: '就业资源', it: 'le risorse per il lavoro', pt: 'os recursos de emprego', vi: 'tài nguyên việc làm' },
+  family: { en: 'family readiness resources', es: 'los recursos de preparación familiar', de: 'die Familienbereitschaft', fr: 'la préparation familiale', ko: '가족 준비 자료', ja: '家族準備リソース', tl: 'family readiness resources', ar: 'موارد جاهزية العائلة', zh: '家庭准备资源', it: 'le risorse familiari', pt: 'os recursos familiares', vi: 'tài nguyên sẵn sàng gia đình' },
+  housing: { en: 'housing and relocation resources', es: 'los recursos de vivienda y mudanza', de: 'die Wohnungs- und Umzugsressourcen', fr: 'les ressources logement et déménagement', ko: '주거 및 이전 자료', ja: '住宅と移転リソース', tl: 'housing at relocation resources', ar: 'موارد السكن والانتقال', zh: '住房和搬迁资源', it: 'le risorse per casa e trasferimento', pt: 'os recursos de moradia e mudança', vi: 'tài nguyên nhà ở và chuyển nhà' },
+  mental: { en: 'mental readiness resources', es: 'los recursos de preparación mental', de: 'die mentalen Ressourcen', fr: 'les ressources de santé mentale', ko: '정신 준비 자료', ja: 'メンタル準備リソース', tl: 'mental readiness resources', ar: 'موارد الجاهزية النفسية', zh: '心理准备资源', it: 'le risorse per la prontezza mentale', pt: 'os recursos de saúde mental', vi: 'tài nguyên sẵn sàng tinh thần' },
+  navigation: { en: 'navigation and base map resources', es: 'los recursos de navegación y mapa base', de: 'die Navigations- und Kartenressourcen', fr: 'les ressources de navigation et carte', ko: '내비게이션 및 기지 지도 자료', ja: 'ナビゲーションと基地地図リソース', tl: 'navigation at base map resources', ar: 'موارد الملاحة وخريطة القاعدة', zh: '导航和基地地图资源', it: 'le risorse di navigazione e mappa', pt: 'os recursos de navegação e mapa', vi: 'tài nguyên điều hướng và bản đồ căn cứ' },
+  resources: { en: 'official resources', es: 'los recursos oficiales', de: 'die offiziellen Ressourcen', fr: 'les ressources officielles', ko: '공식 자료', ja: '公式リソース', tl: 'opisyal na resources', ar: 'الموارد الرسمية', zh: '官方资源', it: 'le risorse ufficiali', pt: 'os recursos oficiais', vi: 'tài nguyên chính thức' },
+  spiritual: { en: 'spiritual readiness resources', es: 'los recursos de preparación espiritual', de: 'die spirituellen Ressourcen', fr: 'les ressources spirituelles', ko: '영적 준비 자료', ja: 'スピリチュアル準備リソース', tl: 'spiritual readiness resources', ar: 'موارد الجاهزية الروحية', zh: '精神准备资源', it: 'le risorse spirituali', pt: 'os recursos espirituais', vi: 'tài nguyên sẵn sàng tâm linh' },
+  translation: { en: 'translation tools', es: 'las herramientas de traducción', de: 'die Übersetzungswerkzeuge', fr: 'les outils de traduction', ko: '번역 도구', ja: '翻訳ツール', tl: 'translation tools', ar: 'أدوات الترجمة', zh: '翻译工具', it: 'gli strumenti di traduzione', pt: 'as ferramentas de tradução', vi: 'công cụ dịch thuật' },
+  veterans: { en: 'veteran resources', es: 'los recursos para veteranos', de: 'die Veteranenressourcen', fr: 'les ressources pour vétérans', ko: '재향군인 자료', ja: '退役軍人リソース', tl: 'veteran resources', ar: 'موارد المحاربين القدامى', zh: '退伍军人资源', it: 'le risorse per veterani', pt: 'os recursos para veteranos', vi: 'tài nguyên cựu chiến binh' },
+  security: { en: 'security information', es: 'la información de seguridad', de: 'die Sicherheitsinformationen', fr: 'les informations de sécurité', ko: '보안 정보', ja: 'セキュリティ情報', tl: 'security information', ar: 'معلومات الأمان', zh: '安全信息', it: 'le informazioni di sicurezza', pt: 'as informações de segurança', vi: 'thông tin bảo mật' },
+  profile: { en: 'profile settings', es: 'la configuración del perfil', de: 'die Profileinstellungen', fr: 'les paramètres du profil', ko: '프로필 설정', ja: 'プロフィール設定', tl: 'profile settings', ar: 'إعدادات الملف الشخصي', zh: '档案设置', it: 'le impostazioni del profilo', pt: 'as configurações do perfil', vi: 'cài đặt hồ sơ' },
+};
+
+const TOPIC_TEMPLATES = {
+  en: { body: (topic) => `Review ${topic} and verify details with the official source before acting.`, heading: (topic) => topic },
+  es: { body: (topic) => `Revise ${topic} y verifique los detalles con la fuente oficial antes de actuar.`, heading: (topic) => topic },
+  de: { body: (topic) => `Prüfen Sie ${topic} und bestätigen Sie Details vor dem Handeln bei der offiziellen Quelle.`, heading: (topic) => topic },
+  fr: { body: (topic) => `Consultez ${topic} et vérifiez les détails auprès de la source officielle avant d’agir.`, heading: (topic) => topic },
+  ko: { body: (topic) => `${topic}을 확인하고 조치하기 전에 공식 출처에서 세부 정보를 확인하십시오.`, heading: (topic) => topic },
+  ja: { body: (topic) => `${topic}を確認し、行動する前に公式ソースで詳細を確認してください。`, heading: (topic) => topic },
+  tl: { body: (topic) => `Suriin ang ${topic} at kumpirmahin ang detalye sa opisyal na source bago kumilos.`, heading: (topic) => topic },
+  ar: { body: (topic) => `راجع ${topic} وتحقق من التفاصيل من المصدر الرسمي قبل اتخاذ أي إجراء.`, heading: (topic) => topic },
+  zh: { body: (topic) => `查看${topic}，并在采取行动前向官方来源核实详细信息。`, heading: (topic) => topic },
+  it: { body: (topic) => `Consulta ${topic} e verifica i dettagli con la fonte ufficiale prima di agire.`, heading: (topic) => topic },
+  pt: { body: (topic) => `Revise ${topic} e confirme os detalhes com a fonte oficial antes de agir.`, heading: (topic) => topic },
+  vi: { body: (topic) => `Xem ${topic} và xác minh chi tiết với nguồn chính thức trước khi hành động.`, heading: (topic) => topic },
+};
+
+const TOPIC_RULES = [
+  ['employment', /job|career|resume|internship|mentor|mentorship|linkedin|certification|entrepreneur|employment|spouse preferred|workshop|salary|hiring|recruiter/i],
+  ['housing', /home relocation|housing|home locator|move aid|moving|relocation|va loan|claims|inventory|landlord|lodging|bedroom|bathroom|square footage/i],
+  ['documents', /document|orders|unit|pdf|file|record|paperwork|upload|attachment/i],
+  ['education', /education|school|college|tuition|mycaa|gi bill|fafsa|degree|certificate|enrollment|student/i],
+  ['family', /family|efmp|pet|child|children|spouse|dependent|permanent resident|deployment|readiness group/i],
+  ['navigation', /navigation|map|base map|route|directions|installation|gate|traffic|location/i],
+  ['mental', /mental|crisis|counseling|therapy|health|wellness|stress|988|support line/i],
+  ['spiritual', /spiritual|faith|religion|chaplain|chapel|worship|prayer/i],
+  ['veterans', /veteran|veterans|business owner|owned business/i],
+  ['translation', /translation|translate|language|phrase|interpreter/i],
+  ['checklist', /checklist|task|phase|milestone|progress|deadline|complete/i],
+  ['security', /security|privacy|public data|classified|cui|disa|dod|encrypted|local device/i],
+  ['resources', /resource|official source|link|benefit|program|assistance|support/i],
+  ['profile', /profile|onboarding|branch|component|rank|pay grade|preferred language/i],
+];
+
+function topicTerm(topic, lang) {
+  return TOPIC_TERMS[topic]?.[lang] || TOPIC_TERMS[topic]?.en || TOPIC_TERMS.resources[lang] || TOPIC_TERMS.resources.en;
+}
+
+function templateFor(lang) {
+  return TOPIC_TEMPLATES[lang] || TOPIC_TEMPLATES.en;
+}
+
+function topicFor(text, parent) {
+  const parts = [text];
+  let node = parent;
+  for (let i = 0; node && i < 3; i += 1) {
+    parts.push(node.id || '', typeof node.className === 'string' ? node.className : '', node.getAttribute?.('aria-label') || '');
+    node = node.parentElement;
+  }
+  const context = parts.join(' ');
+  const match = TOPIC_RULES.find(([, pattern]) => pattern.test(context));
+  return match?.[0] || null;
+}
+// PCS_REPEAT_FIX_END
+
 function chooseFallback(original, lang, parent) {
   const compact = compactText(original);
   if (!looksLikeEnglish(compact)) return original;
+
   const lower = compact.toLowerCase();
   const bundle = GENERIC[lang] || GENERIC.en;
   const tag = parent?.tagName?.toLowerCase() || '';
@@ -262,8 +335,19 @@ function chooseFallback(original, lang, parent) {
   if (tag === 'button' || role === 'button') return bundle.action;
   if (tag === 'a') return bundle.resource;
   if (/not available|unavailable|no .*data|cannot find|not found/.test(lower)) return bundle.unavailable;
-  if (compact.length <= 34 && !/[.!?]/.test(compact)) return bundle.section;
-  return bundle.body;
+
+  const topic = topicFor(compact, parent);
+  if (topic) {
+    const label = topicTerm(topic, lang);
+    const template = templateFor(lang);
+    if (compact.length <= 42 && !/[.!?]/.test(compact)) return template.heading(label);
+    return template.body(label);
+  }
+
+  // Unknown paragraphs are left intact instead of being rewritten into one repeated sentence.
+  // This preserves legibility and prevents the repeated-phrase bug while exact/localized UI
+  // strings continue to translate through PHRASES and source-level dictionaries.
+  return original;
 }
 
 function shouldSkipNode(node) {
@@ -311,7 +395,7 @@ function applyRuntimeLanguage(lang) {
   document.documentElement.dir = RTL_LANGS.has(lang) ? 'rtl' : 'ltr';
   document.documentElement.setAttribute('translate', 'no');
   root.setAttribute('data-pcs-language-runtime', lang);
-  root.setAttribute('data-pcs-language-mode', lang === 'en' ? 'source' : 'whole-node-localized');
+  root.setAttribute('data-pcs-language-mode', lang === 'en' ? 'source' : 'contextual-readable');
 
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
