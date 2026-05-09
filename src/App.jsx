@@ -22,6 +22,7 @@ import PrivacyShield from './components/PrivacyShield'
 import SyncStatusIndicator from './components/SyncStatusIndicator'
 import { AuditLogger, secureLocalStore, readLegacyJson } from './security/SecurityExtensions'
 import { ALL_BASES } from './components/BaseMapModule'
+import { useAppLanguageRuntime } from './i18n/useAppLanguageRuntime'
 
 const store = {
   get: (k) => readLegacyJson(k, null),
@@ -4162,6 +4163,7 @@ function App() {
   const appLanguage = getAppLanguage(profile?.language);
   const appDir = appLanguage === 'ar' ? 'rtl' : 'ltr';
   const t = (key) => trFrom(appLanguage, key);
+  useAppLanguageRuntime(appLanguage);
   useEffect(() => {
     document.documentElement.lang = appLanguage;
     document.documentElement.dir = appDir;
