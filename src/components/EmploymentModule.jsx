@@ -325,12 +325,9 @@ Object.keys(COMMON_NON_EN.resourceText).forEach((lang) => {
   TEXT[lang].tabConnections = TEXT[lang].tabConnections || TEXT.en.tabConnections
   TEXT[lang].tabLinkedIn = TEXT[lang].tabLinkedIn || TEXT.en.tabLinkedIn
   TEXT[lang].tabEntrepreneurship = TEXT[lang].tabEntrepreneurship || TEXT.en.tabEntrepreneurship
-  ;['leadJobSearch', 'leadJobResources', 'leadResume', 'leadInternships', 'leadWorkshops', 'leadCertifications', 'leadMentorship', 'leadSpousePreferred', 'leadConnections', 'leadLinkedIn', 'leadEntrepreneurship'].forEach((key) => {
-    TEXT[lang][key] = TEXT[lang].resourceText
-  })
-  ;['resumeTipsTitle', 'tip1', 'tip2', 'tip3', 'tip4', 'tip5', 'linkedinStepsTitle', 'linkedinStep1', 'linkedinStep2', 'linkedinStep3', 'linkedinStep4'].forEach((key) => {
-    if (!TEXT[lang][key]) TEXT[lang][key] = TEXT[lang].resourceText
-  })
+  // Detailed leads and checklist-style guidance intentionally fall back to
+  // the English source text so the app-wide language runtime can produce
+  // topic-specific localized guidance instead of repeating one generic phrase.
 })
 
 const TAB_ORDER = [
@@ -536,7 +533,7 @@ function EmploymentModule({ theme, profile }) {
   const renderCards = (items) => items.map((item) => <Card key={`${item.name}-${item.url}`} item={item} copy={copy} />)
 
   return (
-    <div data-no-translate style={{ padding: 16 }} dir={copy.lang === 'ar' ? 'rtl' : 'ltr'} lang={copy.lang}>
+    <div style={{ padding: 16 }} dir={copy.lang === 'ar' ? 'rtl' : 'ltr'} lang={copy.lang}>
       <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 2 }}>{copy.text('title')}</div>
       <div style={{ fontSize: 11, color: '#46586B', marginBottom: 10 }}>{copy.text('subtitle')} {searchCity}</div>
       <div style={{ background: '#EDF4FA', border: '1px solid #D7E0EA', borderRadius: 8, padding: 12, marginBottom: 12 }}>
