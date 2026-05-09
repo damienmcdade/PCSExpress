@@ -1,6 +1,6 @@
 # PCS Express Veterans, Base Map, and Language Patch
 
-Applied: 2026-05-09T18:02:45.080Z
+Applied: 2026-05-09T18:26:29.490Z
 
 ## Veterans
 - Replaced the visible Veterans section with active official resource links and current public local-search cards.
