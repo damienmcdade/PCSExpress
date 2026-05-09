@@ -5,7 +5,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
-import SyncStatusIndicator from './SyncStatusIndicator';
 
 const STORAGE_KEY = 'pcs_efmp_checks';
 
@@ -133,7 +132,6 @@ export default function EFMPTab({ theme, profile }) {
           <h2>Exceptional Family Member PCS Checklist</h2>
           <p>Official public guidance for medical, education, assignment, and family support requirements tailored to {branch} families.</p>
         </div>
-        <SyncStatusIndicator />
       </div>
 
       <section className="efmp-source-note">

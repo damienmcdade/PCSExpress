@@ -818,6 +818,65 @@ const VET_BIZ_CITY = {
   'Camp Humphreys':'Pyeongtaek South Korea',
 };
 
+
+function getInstallationSearchLocation(installation) {
+  const base = (installation || '').split(',')[0].trim();
+  if (!base) return 'military installation';
+  const alias = {
+    'Fort Bragg': 'Fort Liberty',
+    'Fort Hood': 'Fort Cavazos',
+    'Fort Gordon': 'Fort Eisenhower',
+    'Fort Lee': 'Fort Gregg-Adams',
+    'Fort Rucker': 'Fort Novosel',
+    'Camp Lejeune': 'Marine Corps Base Camp Lejeune',
+    'Marine Corps Base Quantico': 'MCB Quantico',
+  }[base] || base;
+  if (VET_BIZ_CITY[base]) return VET_BIZ_CITY[base];
+  if (VET_BIZ_CITY[alias]) return VET_BIZ_CITY[alias];
+  const mapBase = ALL_BASES.find(b => b.name === base || b.name === alias || base.includes(b.name) || b.name.includes(base));
+  return mapBase ? `${mapBase.name} ${mapBase.state}` : alias;
+}
+
+function googleSearchUrl(query) {
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+}
+
+function officialSchoolSearchUrl(name, city) {
+  return googleSearchUrl(`${name} ${city || ''} official school site:nces.ed.gov OR site:dodea.edu OR site:.edu`);
+}
+
+function officialCollegeCards(installation) {
+  const loc = getInstallationSearchLocation(installation);
+  return [
+    { name: 'VA GI Bill Comparison Tool', desc: 'Official VA tool for comparing GI Bill-approved colleges, caution flags, benefits, and veteran indicators.', url: 'https://www.va.gov/gi-bill-comparison-tool/' },
+    { name: `NCES College Navigator near ${loc}`, desc: 'Official Department of Education college search and institutional data.', url: googleSearchUrl(`${loc} colleges site:nces.ed.gov/collegenavigator`) },
+    { name: 'DoD MOU Participating Institutions', desc: 'Official DoD voluntary education institution participation source.', url: 'https://www.dodmou.com/' },
+    { name: `Official admissions search near ${loc}`, desc: 'Google search restricted toward official college and admissions pages for the selected gaining area.', url: googleSearchUrl(`${loc} college admissions official site:.edu`) },
+  ];
+}
+
+function officialSchoolCards(installation) {
+  const loc = getInstallationSearchLocation(installation);
+  return [
+    { name: `NCES K-12 school search near ${loc}`, desc: 'Official National Center for Education Statistics public/private school search.', url: 'https://nces.ed.gov/ccd/schoolsearch/' },
+    { name: 'DoDEA Find Your School', desc: 'Official DoDEA school finder for installations with DoDEA schools.', url: 'https://www.dodea.edu/find-your-school' },
+    { name: 'School Liaison Program', desc: 'Official Military OneSource school liaison support for military-connected children.', url: 'https://www.militaryonesource.mil/benefits/school-liaison-program/' },
+    { name: `Official school web search for ${loc}`, desc: 'Google search focused on official public school, DoDEA, district, and education agency sources.', url: googleSearchUrl(`${loc} schools military family official site:.gov OR site:dodea.edu`) },
+  ];
+}
+
+function veteranBusinessDiscoveryCards(installation) {
+  const loc = getInstallationSearchLocation(installation);
+  return [
+    { name: `Veteran-owned businesses near ${loc}`, category: 'Google Search', desc: 'Search current public listings near the gaining installation. Verify ownership, hours, and ratings directly before visiting.', url: googleSearchUrl(`veteran owned businesses near ${loc}`), icon: 'SEARCH' },
+    { name: `Veteran-owned restaurants near ${loc}`, category: 'Food', desc: 'Current public search for veteran-owned restaurants and cafes near the gaining installation.', url: googleSearchUrl(`veteran owned restaurant near ${loc}`), icon: 'FOOD' },
+    { name: `Veteran-owned home services near ${loc}`, category: 'Home Services', desc: 'Current public search for veteran-owned home repair, moving, real estate, and local services.', url: googleSearchUrl(`veteran owned home services near ${loc}`), icon: 'HOME' },
+    { name: 'SBA Veteran-Owned Business Resources', category: 'SBA', desc: 'Official SBA training, funding, and contracting resources for veteran-owned businesses.', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses', icon: 'SBA' },
+    { name: 'VA OSDBU Veteran Business Resources', category: 'Federal Contracting', desc: 'Official VA small and veteran business program information.', url: 'https://www.va.gov/osdbu/', icon: 'VA' },
+  ];
+}
+
+
 const VETERAN_OWNED_BUSINESSES = {
   // ── ARMY CONUS ────────────────────────────────────────────────────────────
   "Fort Liberty": [
@@ -1283,6 +1342,8 @@ function SchoolsTab({ theme, profile }) {
   const instName = (profile?.gainingInstallation || '').split(',')[0].trim();
   const schools = INSTALLATION_SCHOOLS[instName] || [];
   const daycares = DAYCARE_DATA[instName] || [];
+  const searchLocation = getInstallationSearchLocation(instName);
+  const schoolFinderCards = officialSchoolCards(instName);
 
   const agesFromProfile = profile?.childAges?.length > 0
     ? profile.childAges.filter(a => !isNaN(Number(a))).map(Number)
@@ -1344,7 +1405,18 @@ function SchoolsTab({ theme, profile }) {
             </div>
           )}
           {!instName && <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12 }}>Complete onboarding to see schools near your installation.</div>}
-          {instName && filteredSchools.length === 0 && <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12, marginBottom: 12 }}>No school data yet for this installation. Try "Find Schools" above.</div>}
+          {instName && filteredSchools.length === 0 && (
+            <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 6 }}>Official school sources for {searchLocation}</div>
+              <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 10 }}>PCS Express has not stored a local school card for this installation yet, so it provides official public school and DoDEA source paths instead of showing a dead-end message.</div>
+              {schoolFinderCards.map(card => (
+                <a key={card.name} href={card.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 10, borderRadius: 10, border: '1px solid #E0E6EE', marginTop: 8, textDecoration: 'none', background: '#F8FAFC' }}>
+                  <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821' }}>{card.name}</div>
+                  <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.45, marginTop: 3 }}>{card.desc}</div>
+                </a>
+              ))}
+            </div>
+          )}
           {filteredSchools.map((school, idx) => (
             <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
@@ -1354,7 +1426,7 @@ function SchoolsTab({ theme, profile }) {
               <div style={{ marginBottom: 6 }}><StarRating rating={school.rating} /></div>
               <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 6 }}>{school.desc}</div>
               <div style={{ fontSize: 11, color: '#888', marginBottom: 10 }}>📍 {school.city}</div>
-              <a href={school.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '9px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>Visit School Website</a>
+              <a href={school.url || officialSchoolSearchUrl(school.name, school.city)} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '9px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>{school.url ? 'Visit School Website' : 'Find Official School Info'}</a>
             </div>
           ))}
           {agesFromProfile.length > 0 && !showAll && schools.length > filteredSchools.length && (
@@ -1373,7 +1445,7 @@ function SchoolsTab({ theme, profile }) {
           </div>
           {daycares.length === 0 && (
             <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12, marginBottom: 14 }}>
-              No CDC data for this installation. Call your installation's Child &amp; Youth Services (CYS) office directly.
+              No local CDC card is stored for this installation yet. Use the official childcare and installation-directory links below to verify Child Development Center, school liaison, and family program contacts.
             </div>
           )}
           {daycares.map((dc, idx) => (
@@ -1392,8 +1464,8 @@ function SchoolsTab({ theme, profile }) {
             </div>
           ))}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 4 }}>
-            <a href="https://installations.militaryonesource.mil/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 10, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>ChildCare Aware Military</a>
-            <a href="https://www.militaryonesource.mil/parenting/child-care/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 10, background: theme.secondary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>ChildCare.gov</a>
+            <a href="https://militarychildcare.com/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 10, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>MilitaryChildCare.com</a>
+            <a href="https://www.militaryonesource.mil/parenting/child-care/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 10, background: theme.secondary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>Military OneSource Child Care</a>
           </div>
         </>
       )}
@@ -1414,7 +1486,7 @@ function SchoolsTab({ theme, profile }) {
               </div>
             </div>
             {searchAge && <div style={{ fontSize: 11, color: '#56697C', marginBottom: 10 }}>Grade level: <strong>{gradeForAge(parseInt(searchAge))}</strong></div>}
-            <button onClick={handleSearch} style={{ width: '100%', padding: '12px', borderRadius: 10, background: theme.primary, color: '#FFF', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>Search on GreatSchools →</button>
+            <button onClick={handleSearch} style={{ width: '100%', padding: '12px', borderRadius: 10, background: theme.primary, color: '#FFF', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>Search Official School Sources →</button>
           </div>
           <div style={{ fontSize: 12, fontWeight: 800, color: '#56697C', marginBottom: 10 }}>SCHOOL FINDER RESOURCES</div>
           {[
@@ -1439,9 +1511,12 @@ function SchoolsTab({ theme, profile }) {
 function VeteranBusinessesTab({ theme, profile }) {
   const [filter, setFilter] = useState('All');
   const instName = (profile?.gainingInstallation || '').split(',')[0].trim();
-  const localBiz = VETERAN_OWNED_BUSINESSES[instName] || [];
-  const categories = ['All', ...new Set(localBiz.map(b => b.category))];
-  const filtered = filter === 'All' ? localBiz : localBiz.filter(b => b.category === filter);
+  const searchLocation = getInstallationSearchLocation(instName);
+  const discoveryCards = veteranBusinessDiscoveryCards(instName);
+  const localBiz = (VETERAN_OWNED_BUSINESSES[instName] || []).map(b => ({ ...b, url: b.url || googleSearchUrl(`${b.name} ${searchLocation}`) }));
+  const displayBiz = localBiz.length ? localBiz : discoveryCards;
+  const categories = ['All', ...new Set(displayBiz.map(b => b.category))];
+  const filtered = filter === 'All' ? displayBiz : displayBiz.filter(b => b.category === filter);
 
   const NATIONAL_DIRS = [
     { name: 'Veteran-Owned Business Directory', icon: '🇺🇸', desc: 'Search thousands of verified veteran-owned businesses by location and category.', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses' },
@@ -1454,7 +1529,7 @@ function VeteranBusinessesTab({ theme, profile }) {
     <div style={{ padding: 16 }}>
       <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Veteran Owned & Veteran Operated Businesses</div>
       <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>
-        {instName ? <>Local businesses near <strong>{instName}</strong></> : 'Complete onboarding to see businesses near your installation.'}
+        {instName ? <>Veteran-owned business discovery near <strong>{searchLocation}</strong></> : 'Complete onboarding to tailor veteran-owned business discovery to your installation.'}
       </div>
 
       {/* National directory quick links */}
@@ -1482,7 +1557,7 @@ function VeteranBusinessesTab({ theme, profile }) {
       )}
 
       {/* Local listings */}
-      {localBiz.length === 0 && (
+      {false && localBiz.length === 0 && (
         <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center' }}>
           <div style={{ fontSize: 20, marginBottom: 8 }}>⭐</div>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 4 }}>No local listings yet for this installation</div>
@@ -2826,11 +2901,15 @@ function EducationBenefitsTab({ theme, profile }) {
               })}
             </>
           ) : (
-            <div style={{ background: '#F0F4F8', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 8 }}>No college data for this installation yet</div>
-              <div style={{ fontSize: 11, color: '#56697C', marginBottom: 14 }}>Use the resources below to find accredited schools near your gaining installation.</div>
-              <a href="https://www.va.gov/gi-bill-comparison-tool/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '10px', borderRadius: 10, background: theme.primary, color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 12, marginBottom: 8 }}>VA GI Bill School Comparison Tool</a>
-              <a href="https://nces.ed.gov/collegenavigator/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '10px', borderRadius: 10, background: '#E8F5E9', color: '#1B5E20', textDecoration: 'none', fontWeight: 700, fontSize: 12 }}>NCES College Navigator</a>
+            <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 6 }}>Official college sources for {getInstallationSearchLocation(resolvedInstall)}</div>
+              <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 12 }}>PCS Express has not stored local college cards for this installation yet, so it provides official public education search paths instead of a no-data message.</div>
+              {officialCollegeCards(resolvedInstall).map(card => (
+                <a key={card.name} href={card.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '10px', borderRadius: 10, background: '#F8FAFC', border: '1px solid #E0E6EE', color: '#0D1821', textDecoration: 'none', fontWeight: 700, fontSize: 12, marginBottom: 8 }}>
+                  <span style={{ display: 'block' }}>{card.name}</span>
+                  <span style={{ display: 'block', fontSize: 10, color: '#56697C', fontWeight: 500, lineHeight: 1.45, marginTop: 3 }}>{card.desc}</span>
+                </a>
+              ))}
             </div>
           )}
         </div>
@@ -2971,15 +3050,6 @@ function ResourcesTab({ theme, profile }) {
 
   return (
     <div style={{ padding: 16 }}>
-      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Military Resources</div>
-      <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>Official military & government resources, tailored to {branch}</div>
-
-      {/* Quick links */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-        <a href="https://www.tricare.mil" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 10, background: '#1565C0', color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 12 }}>TRICARE →</a>
-        <a href="https://www.militaryonesource.mil" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 10, background: '#2E7D32', color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 12 }}>MilitaryOneSource →</a>
-      </div>
-
       {/* Section tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
         {SECTIONS.map(s => (

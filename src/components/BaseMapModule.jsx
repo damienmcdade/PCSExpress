@@ -21,6 +21,8 @@ async function loadLeaflet() {
 const OFFICIAL_INSTALLATION_DIRECTORY = 'https://installations.militaryonesource.mil/';
 
 const getOfficialInstallationUrl = () => OFFICIAL_INSTALLATION_DIRECTORY;
+const getPublicMapSearchUrl = (label) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(label || 'military installation')}`;
+const getPublicMapEmbedUrl = (label) => `https://maps.google.com/maps?q=${encodeURIComponent(label || 'military installation')}&output=embed`;
 
 const coordinateIsPublicAndUsable = (baseInfo) =>
   Number.isFinite(baseInfo?.lat) &&
@@ -1131,7 +1133,7 @@ export default function BaseMapModule({ theme, profile }) {
     const baseInfo = getBaseData(selectedBase);
     if (!baseInfo || !coordinateIsPublicAndUsable(baseInfo)) {
       setNoData(true);
-      setMapError('Official public base location data is not available for this installation at this time.');
+      setMapError('Exact public center coordinates are not stored locally for this onboarding installation. A public Google Maps search view is shown below; verify official installation details through MilitaryINSTALLATIONS.');
       return;
     }
     setNoData(false);
@@ -1238,6 +1240,7 @@ export default function BaseMapModule({ theme, profile }) {
   const baseInfo = getBaseData(selectedBase);
   const facilityCount = getFacilities(selectedBase).length;
   const sortedBases = [...ALL_BASES].sort((a, b) => a.name.localeCompare(b.name));
+  const selectedInList = sortedBases.some(b => NORM(b.name) === NORM(selectedBase));
   const conus = sortedBases.filter(b => !b.country);
   const oconus = sortedBases.filter(b => b.country);
 
@@ -1253,6 +1256,7 @@ export default function BaseMapModule({ theme, profile }) {
           onChange={e => setSelectedBase(e.target.value)}
           style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: `1px solid ${theme.accent}40`, background: '#FFFFFF', fontSize: 12, fontWeight: 700, color: '#0D1821', appearance: 'none' }}
         >
+          {selectedBase && !selectedInList && <option value={selectedBase}>{selectedBase} (onboarding selection)</option>}
           <optgroup label="── CONUS ──────────────────────">
             {conus.map(b => <option key={b.name} value={b.name}>{b.name}, {b.state} ({b.branch})</option>)}
           </optgroup>
@@ -1279,9 +1283,18 @@ export default function BaseMapModule({ theme, profile }) {
         ref={mapRef}
         style={{ width: '100%', height: '52vh', background: '#e8f0f8', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       >
+        {noData && selectedBase && (
+          <iframe
+            title={`${selectedBase} public map search`}
+            src={getPublicMapEmbedUrl(selectedBase)}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        )}
         {mapError && noData && (
-          <div style={{ maxWidth: 360, background: '#FFFFFF', border: `1px solid ${theme.accent}55`, borderRadius: 12, padding: 14, color: '#27384a', fontSize: 12, lineHeight: 1.5, boxShadow: '0 6px 20px rgba(13,24,33,0.12)' }}>
-            <strong style={{ display: 'block', color: '#0D1821', marginBottom: 6 }}>Official map fallback</strong>
+          <div style={{ position: 'absolute', left: 12, right: 12, bottom: 12, background: 'rgba(255,255,255,0.94)', border: `1px solid ${theme.accent}55`, borderRadius: 12, padding: 12, color: '#27384a', fontSize: 11, lineHeight: 1.45, boxShadow: '0 6px 20px rgba(13,24,33,0.12)' }}>
+            <strong style={{ display: 'block', color: '#0D1821', marginBottom: 4 }}>Public map search view</strong>
             {mapError}
           </div>
         )}
@@ -1295,6 +1308,12 @@ export default function BaseMapModule({ theme, profile }) {
           <a href={getOfficialInstallationUrl(baseInfo)} target="_blank" rel="noopener noreferrer" style={{ display: 'block', marginTop: 10, background: '#FFFFFF', border: '1px solid #D7E3EF', borderLeft: `4px solid ${theme.primary}`, borderRadius: 10, padding: 12, textDecoration: 'none' }}>
             <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821' }}>Verify {baseInfo.name} on MilitaryINSTALLATIONS</div>
             <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5, marginTop: 3 }}>Use the official public installation directory for current contacts, programs, services, housing, and visitor guidance.</div>
+          </a>
+        )}
+        {!baseInfo && selectedBase && (
+          <a href={getPublicMapSearchUrl(selectedBase)} target="_blank" rel="noopener noreferrer" style={{ display: 'block', marginTop: 10, background: '#FFFFFF', border: '1px solid #D7E3EF', borderLeft: `4px solid ${theme.primary}`, borderRadius: 10, padding: 12, textDecoration: 'none' }}>
+            <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821' }}>Open public map search for {selectedBase}</div>
+            <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5, marginTop: 3 }}>Public map search only. Do not use PCS Express for restricted, CUI, force-protection, internal building, or non-public route information.</div>
           </a>
         )}
       </div>

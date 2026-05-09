@@ -590,34 +590,61 @@ function EmploymentModule({ theme, profile }) {
               : 'All Industries';
             const kw = encodeURIComponent([...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.keywords || '').join(' ') || 'military spouse');
             const loc = encodeURIComponent(searchCity);
-            const makeUsaJobs = (name, keyword, badge, desc, color, remote = 'Use USAJOBS filters for telework, remote, full-time, part-time, and agency options.') => ({
-              name,
-              badge,
-              desc,
-              url: `https://www.usajobs.gov/Search/Results?keyword=${encodeURIComponent(keyword)}&LocationName=${loc}&Radius=${radius}`,
-              color,
-              remote,
-            });
+            const sourceQuery = [...selectedIndustries].map(id => INDUSTRIES.find(i => i.id === id)?.keywords || '').filter(Boolean).join(' ') || 'military spouse';
             const jobCards = [
-              makeUsaJobs('Administrative Support Assistant', 'administrative support assistant military spouse', 'Admin', `Open current administrative support listings within ${radius} miles of ${searchCity}.`, '#1565C0'),
-              makeUsaJobs('Human Resources Specialist', 'human resources specialist military spouse', 'HR', `Open current HR listings near ${searchCity}, including spouse-friendly federal hiring paths when available.`, '#6A1B9A'),
-              makeUsaJobs('Information Technology Specialist', 'information technology specialist cybersecurity military spouse', 'IT', `Open current IT and cybersecurity listings within ${radius} miles of ${searchCity}.`, '#283593'),
-              makeUsaJobs('Registered Nurse / Clinical Staff', 'registered nurse clinical medical military spouse', 'Health', `Open current medical and clinical support listings near ${searchCity}.`, '#00796B'),
-              makeUsaJobs('Logistics Management Specialist', 'logistics management specialist supply military spouse', 'Logistics', `Open current logistics, supply, and operations listings near ${searchCity}.`, '#5D4037'),
-              makeUsaJobs('Contract Specialist', 'contract specialist acquisition military spouse', 'Contracting', `Open current contracting and acquisition listings near ${searchCity}.`, '#AD1457'),
-              makeUsaJobs('Security Specialist', 'security specialist clearance military spouse', 'Security', `Open current security and clearance-friendly federal listings near ${searchCity}.`, '#37474F'),
-              makeUsaJobs('Child and Youth Program Assistant', 'child youth program assistant military spouse', 'Family', `Open current child and youth support listings near ${searchCity}.`, '#EF6C00'),
-              { name: 'Remote federal opportunities', badge: 'Remote', desc: 'Open current federal jobs marked remote or virtual, useful during PCS transitions.', url: `https://www.usajobs.gov/Search/Results?RemoteIndicator=true&keyword=${kw}`, color: '#00838F', remote: 'Remote-only search path.' },
-              { name: 'Military spouse hiring path', badge: 'Spouse', desc: 'Official USAJOBS military spouse hiring path entry point for eligible spouses.', url: 'https://milspouse.usajobs.gov/', color: '#4A148C', remote: 'Supports remote and local federal searches.' },
-              { name: 'MySECO / MSEP spouse employment', badge: 'MSEP', desc: 'Official DoD spouse career portal and Military Spouse Employment Partnership entry point.', url: 'https://myseco.militaryonesource.mil/portal/', color: '#880E4F', remote: 'Employer listings may include remote-friendly roles.' },
+              {
+                name: 'USAJOBS local openings',
+                badge: 'Federal',
+                desc: `Broad current federal listings near ${searchCity}. Open this first when narrow job-title searches return no results.`,
+                url: `https://www.usajobs.gov/Search/Results?l=${loc}`,
+                color: '#1565C0',
+                remote: 'Use USAJOBS filters for agency, telework, remote, series, and hiring path.',
+              },
+              {
+                name: 'USAJOBS military spouse hiring path',
+                badge: 'Spouse',
+                desc: 'Official federal hiring path for eligible military spouses.',
+                url: 'https://milspouse.usajobs.gov/',
+                color: '#4A148C',
+                remote: 'Supports local, remote, and telework federal searches.',
+              },
+              {
+                name: 'LinkedIn local listings',
+                badge: 'External',
+                desc: `Current local listings near ${searchCity}. Search opens broad enough to avoid empty job pages.`,
+                url: `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(sourceQuery)}&location=${loc}`,
+                color: '#0A66C2',
+                remote: 'Use LinkedIn filters for remote, hybrid, and military-spouse-friendly employers.',
+              },
+              {
+                name: 'Indeed local listings',
+                badge: 'External',
+                desc: `Current local listings near ${searchCity} using the selected industry filters.`,
+                url: `https://www.indeed.com/jobs?q=${encodeURIComponent(sourceQuery)}&l=${loc}`,
+                color: '#2557A7',
+                remote: 'Use Indeed filters for remote and distance.',
+              },
+              {
+                name: 'ClearanceJobs listings',
+                badge: 'Clearance',
+                desc: `Clearance-friendly roles near ${searchCity}; useful for service members and spouses with clearance eligibility.`,
+                url: `https://www.clearancejobs.com/jobs?keywords=${encodeURIComponent(sourceQuery)}&location=${loc}`,
+                color: '#37474F',
+                remote: 'Use ClearanceJobs filters for remote and clearance level.',
+              },
+              {
+                name: 'MySECO / MSEP spouse employers',
+                badge: 'MSEP',
+                desc: 'Official DoD spouse career portal and Military Spouse Employment Partnership entry point.',
+                url: 'https://myseco.militaryonesource.mil/portal/',
+                color: '#880E4F',
+                remote: 'Employer listings may include remote-friendly roles.',
+              },
             ];
             return (
               <div>
                 <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', letterSpacing: '.1em', marginBottom: 12 }}>
                   LIVE JOB SEARCHES - {selectedLabels} · {radius}mi of {searchCity}
-                </div>
-                <div style={{ background: '#F0F8FF', border: '1px solid #ADD8E6', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 11, color: '#0C5A7E', lineHeight: 1.5 }}>
-                  PCS Express no longer stores static job cards because openings change quickly. These links open official government and military employment resources using the selected radius, installation area, and industry filters where supported.
                 </div>
                 {jobCards.map(job => (
                   <a key={job.name} href={job.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${job.color}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
