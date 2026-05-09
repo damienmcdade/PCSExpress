@@ -1,0 +1,92 @@
+{
+  "generatedAt": "2026-05-09T18:12:41.770Z",
+  "project": "/Users/damiengantt-mcdade/PCSExpress",
+  "status": "PASS",
+  "comparisons": [
+    {
+      "target": "ios/App/App/public",
+      "distFileCount": 10,
+      "targetFileCount": 12,
+      "missing": [],
+      "mismatched": [],
+      "extra": [],
+      "extraAssets": [],
+      "ok": true
+    },
+    {
+      "target": "android/app/src/main/assets/public",
+      "distFileCount": 10,
+      "targetFileCount": 12,
+      "missing": [],
+      "mismatched": [],
+      "extra": [],
+      "extraAssets": [],
+      "ok": true
+    }
+  ],
+  "icons": {
+    "web1024": {
+      "path": "public/icon-1024.png",
+      "bytes": 726350,
+      "sha256": "cf1a9c9d804a3963f03cbd353f6ba07b5b110bf0ef7b18212e06ed6a01e39617"
+    },
+    "dist1024": {
+      "path": "dist/icon-1024.png",
+      "bytes": 726350,
+      "sha256": "cf1a9c9d804a3963f03cbd353f6ba07b5b110bf0ef7b18212e06ed6a01e39617"
+    },
+    "ios1024": {
+      "path": "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png",
+      "bytes": 726350,
+      "sha256": "cf1a9c9d804a3963f03cbd353f6ba07b5b110bf0ef7b18212e06ed6a01e39617"
+    },
+    "androidMipmapXxxhdpi": {
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "bytes": 55192,
+      "sha256": "b3583ae1018e836082f3544151d77c24528f5db2a9579e4d5a89ad70b90b7a95"
+    }
+  },
+  "currentBuildFiles": [
+    "assets/index-BDKl7SQO.js",
+    "assets/index-Cv5vLrvC.css",
+    "family-icon-1024.png",
+    "favicon.svg",
+    "icon-1024.png",
+    "icon-180.png",
+    "icon-192.png",
+    "icon-512.png",
+    "index.html",
+    "manifest.json"
+  ],
+  "gitStatus": [
+    " D dist/assets/index-C_TgYDAE.js",
+    " M dist/family-icon-1024.png",
+    " M dist/icon-1024.png",
+    " M dist/icon-180.png",
+    " M dist/icon-192.png",
+    " M dist/icon-512.png",
+    " M dist/index.html",
+    "?? build-sync-reports/",
+    "?? dist/assets/index-BDKl7SQO.js",
+    "?? icon-backups/",
+    "?? src/App.css.bak.20260509103923",
+    "?? src/App.css.bak.20260509103935",
+    "?? src/App.css.bak.ui-revert.20260509104702",
+    "?? src/App.css.bak.ui-revert.20260509104712",
+    "?? src/App.jsx.bak.20260509103923",
+    "?? src/App.jsx.bak.20260509103935",
+    "?? src/App.jsx.bak.language-repeat.20260509104609",
+    "?? src/App.jsx.bak.language-repeat.20260509104620",
+    "?? src/App.jsx.bak.ui-revert.20260509104702",
+    "?? src/App.jsx.bak.ui-revert.20260509104712",
+    "?? src/App.jsx.bak.vet-map-lang.20260509180237",
+    "?? src/components/BaseMapModule.jsx.bak.vet-map-lang.20260509180237",
+    "?? src/components/EmploymentModule.jsx.bak.20260509101812",
+    "?? src/components/EmploymentModule.jsx.bak.20260509101827",
+    "?? src/i18n/useAppLanguageRuntime.js.bak.20260509103923",
+    "?? src/i18n/useAppLanguageRuntime.js.bak.20260509103935",
+    "?? src/i18n/useAppLanguageRuntime.js.bak.language-repeat.20260509104609",
+    "?? src/i18n/useAppLanguageRuntime.js.bak.language-repeat.20260509104620",
+    "?? src/i18n/useAppLanguageRuntime.js.bak.vet-map-lang.20260509180237"
+  ]
+}
