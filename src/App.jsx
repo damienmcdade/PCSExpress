@@ -18,6 +18,9 @@ import PetRelocationChecklistTab from './components/PetRelocationChecklistTab'
 import EFMPTab from './components/EFMPTab'
 import HomeRelocationTab from './components/HomeRelocationTab'
 import HomeLocatorTab from './components/HomeLocatorTab'
+import BaseIntelligenceReviews from './components/BaseIntelligenceReviews'
+import DynamicTimeline from './components/DynamicTimeline'
+import PPMFinancialEstimator from './components/PPMFinancialEstimator'
 import PrivacyShield from './components/PrivacyShield'
 import SyncStatusIndicator from './components/SyncStatusIndicator'
 import { AuditLogger, secureLocalStore, readLegacyJson } from './security/SecurityExtensions'
@@ -1037,6 +1040,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
   return (
     <div style={{ padding: 16 }}>
       <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 16 }}>PCS Checklist</div>
+      <DynamicTimeline theme={theme} profile={profile} />
 
       {/* Overdue warning banner */}
       {phaseIsOverdue && (
@@ -2972,6 +2976,7 @@ const APP_TRANSLATIONS = {
     tasksRemaining: 'tasks remaining',
     nav: {
       home: 'Home',
+      'base-intelligence': 'Base Intelligence',
       checklist: 'Checklist',
       documents: 'Documents',
       education: 'Education',
@@ -2985,11 +2990,12 @@ const APP_TRANSLATIONS = {
       veterans: 'Veterans',
     },
     desc: {
-      checklist: 'Track PCS requirements by phase, keep milestone progress visible, and tap square controls to save progress without uploading documents.',
+      'base-intelligence': 'Compare housing, schools, and childcare reviews with Military Family Verified badges while avoiding raw PII in community review data.',
+      checklist: 'Track PCS requirements by phase, use the 90-day timeline, toggle milestone reminders, and tap square controls to save progress without uploading documents.',
       documents: 'Use checklist-only record tracking for PCS documents users need to gather, verify, or carry. File upload and attachment capability has been removed.',
       education: 'Review colleges, GI Bill chapters, MyCAA, and branch-specific Tuition Assistance guidance.',
       family: 'Plan family-impact PCS needs across Deployment, EFMP, Employment, Permanent Resident, Pets, and Schools in one organized category.',
-      'home-relocation': 'Find official housing resources, move aid, VA loan guidance, inventory tracking, claims deadlines, and replacement value planning.',
+      'home-relocation': 'Find official housing resources, move aid, PPM financial estimates, VA loan guidance, inventory tracking, claims deadlines, and replacement value planning.',
       'mental-readiness': 'Connect service members and dependents to free counseling, crisis support, family support, and self-care resources.',
       nav: 'Plan routes, save directions, and view public installation map information without restricted or non-public base details.',
       resources: 'Use one organized hub for official public military, government, family, financial, healthcare, PCS, education, and career resources.',
@@ -3435,6 +3441,7 @@ const GENERIC_LANGUAGE_FALLBACKS = {
 
 
 const KEYED_LANGUAGE_TOPICS = {
+  'base-intelligence': { es: 'Inteligencia de base', de: 'Standortinformationen', fr: 'Informations base', ko: '기지 정보', ja: '基地情報', tl: 'Base intelligence', ar: 'معلومات القاعدة', zh: '基地情报', it: 'Informazioni base', pt: 'Inteligência da base', vi: 'Thông tin căn cứ' },
   checklist: { es: 'Lista PCS', de: 'PCS-Checkliste', fr: 'Liste PCS', ko: 'PCS 체크리스트', ja: 'PCSチェックリスト', tl: 'PCS checklist', ar: 'قائمة PCS', zh: 'PCS 清单', it: 'Checklist PCS', pt: 'Checklist PCS', vi: 'Danh sách PCS' },
   documents: { es: 'Documentos', de: 'Dokumente', fr: 'Documents', ko: '문서', ja: '書類', tl: 'Dokumento', ar: 'المستندات', zh: '文件', it: 'Documenti', pt: 'Documentos', vi: 'Tài liệu' },
   education: { es: 'Educación', de: 'Bildung', fr: 'Éducation', ko: '교육', ja: '教育', tl: 'Edukasyon', ar: 'التعليم', zh: '教育', it: 'Istruzione', pt: 'Educação', vi: 'Giáo dục' },
@@ -3638,6 +3645,11 @@ function trFrom(language, key) {
   const read = (source) => key.split('.').reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : undefined), source);
   const direct = read(dict);
   const english = read(fallback);
+  if (lang !== 'en' && key.startsWith('nav.')) {
+    const topic = key.slice(4);
+    const localizedNav = keyedLanguageLabel(lang, topic);
+    if (localizedNav && localizedNav !== topic) return localizedNav;
+  }
   if (lang !== 'en' && key.startsWith('desc.')) {
     const topic = key.slice(5);
     const localizedDesc = CATEGORY_DESC_TRANSLATIONS[lang]?.[topic];
@@ -4076,6 +4088,7 @@ function HomeRelocationUnifiedTab({ theme, profile }) {
     { id: 'home-locator', label: 'Home Locator' },
     { id: 'inventory-claims', label: 'Inventory & Claims' },
     { id: 'move-aid', label: 'Move Aid' },
+    { id: 'ppm-estimator', label: 'PPM Estimator' },
     { id: 'va-loan', label: 'VA Loan' },
   ];
   const [tab, setTab] = useState('home-locator');
@@ -4084,6 +4097,7 @@ function HomeRelocationUnifiedTab({ theme, profile }) {
       {tab === 'home-locator' && <HomeLocatorTab theme={theme} profile={profile} />}
       {tab === 'inventory-claims' && <HomeRelocationTab theme={theme} profile={profile} />}
       {tab === 'move-aid' && <MovingFinancialAssistanceTab theme={theme} profile={profile} />}
+      {tab === 'ppm-estimator' && <PPMFinancialEstimator theme={theme} profile={profile} />}
       {tab === 'va-loan' && <VAHomeLoanPanel theme={theme} profile={profile} />}
     </CategoryTabShell>
   );
@@ -4274,6 +4288,7 @@ function App() {
     { tab: 'home', title: t('demo.basesTitle'), body: t('demo.basesBody') },
     { tab: 'home', title: t('demo.familyTitle'), body: t('demo.familyBody') },
     { tab: 'home', title: t('demo.selectorTitle'), body: t('demo.selectorBody') },
+    { tab: 'base-intelligence', title: t('nav.base-intelligence'), body: t('desc.base-intelligence') },
     { tab: 'checklist', title: t('nav.checklist'), body: t('desc.checklist') },
     { tab: 'documents', title: t('nav.documents'), body: t('desc.documents') },
     { tab: 'education', title: t('nav.education'), body: t('desc.education') },
@@ -4290,6 +4305,7 @@ function App() {
 
   const BOTTOM_NAV = [
     { id: 'home',        label: 'Home',                 icon: 'HQ',  iosIcon: '🏠', color: '#0D1821' },
+    { id: 'base-intelligence', label: 'Base Intelligence', icon: 'BAS', iosIcon: '🛡️', color: '#26351F' },
     { id: 'checklist',   label: 'Checklist',            icon: 'PCK', iosIcon: '✅', color: '#1565C0' },
     { id: 'documents',   label: 'Documents',            icon: 'DOC', iosIcon: '📋', color: '#5D4037' },
     { id: 'education',   label: 'Education',            icon: 'EDU', iosIcon: '📚', color: '#1565C0' },
@@ -4316,6 +4332,7 @@ function App() {
   const currentLabel = LOCALIZED_BOTTOM_NAV.find(n => n.id === activeTab)?.label || t('nav.home');
   const activeNavItem = LOCALIZED_BOTTOM_NAV.find(n => n.id === activeTab);
   const CATEGORY_DESCRIPTIONS = {
+    'base-intelligence': t('desc.base-intelligence'),
     checklist: t('desc.checklist'),
     documents: t('desc.documents'),
     education: t('desc.education'),
@@ -4605,6 +4622,7 @@ function App() {
           </div>
         )}
 
+        {activeTab === 'base-intelligence' && renderCategoryFrame('base-intelligence', <BaseIntelligenceReviews theme={theme} profile={profile} />)}
         {activeTab === 'checklist' && renderCategoryFrame('checklist', <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />)}
         {activeTab === 'documents' && renderCategoryFrame('documents', <PCSDocumentsModule theme={theme} profile={profile} />)}
         {activeTab === 'education' && renderCategoryFrame('education', <EducationBenefitsTab theme={theme} profile={profile} />)}

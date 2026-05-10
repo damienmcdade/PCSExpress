@@ -80,6 +80,40 @@ app.get('/api/health', (req, res) => {
 })
 
 // === API ROUTES (MUST BE BEFORE STATIC/FRONTEND) ===
+
+// === BASE REVIEWS PUBLIC METADATA ENDPOINTS ===
+// IL2-style data handling: these endpoints reject raw PII and expose public
+// review metadata only. Raw .mil email addresses, orders, DoD IDs, phone
+// numbers, addresses, and documents must be verified upstream and represented
+// only as a verification status or non-reversible token hash.
+const BASE_REVIEW_SCHEMA = Object.freeze({
+  table: 'BaseReviews',
+  fields: ['InstallationName', 'Category', 'Rating', 'UserRank', 'MilitaryFamilyVerified', 'VerificationMethod'],
+  categories: ['Housing', 'Schools', 'Childcare'],
+  piiExcluded: ['raw_email', 'orders', 'dod_id', 'phone', 'home_address', 'documents'],
+});
+
+function containsLikelyPii(value) {
+  const text = JSON.stringify(value || {});
+  return /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(text) || /\b\d{10}\b/.test(text) || /\b\d{3}-\d{2}-\d{4}\b/.test(text);
+}
+
+app.get('/api/base-reviews/schema', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.status(200).json(BASE_REVIEW_SCHEMA);
+});
+
+app.post('/api/base-reviews/validate', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  const { InstallationName, Category, Rating, UserRank } = req.body || {};
+  if (containsLikelyPii(req.body)) return res.status(400).json({ error: 'Raw PII is not accepted by this endpoint.' });
+  if (!InstallationName || typeof InstallationName !== 'string') return res.status(400).json({ error: 'InstallationName is required.' });
+  if (!BASE_REVIEW_SCHEMA.categories.includes(Category)) return res.status(400).json({ error: 'Category must be Housing, Schools, or Childcare.' });
+  if (!Number.isFinite(Number(Rating)) || Number(Rating) < 1 || Number(Rating) > 5) return res.status(400).json({ error: 'Rating must be 1 through 5.' });
+  if (!/^(E|O|W)-[1-9]0?$/.test(String(UserRank || ''))) return res.status(400).json({ error: 'UserRank must be a paygrade such as E-5 or O-3.' });
+  res.status(200).json({ ok: true, message: 'Review metadata passes public-schema validation. Persist with the BaseReviews SQL schema after authenticated verification.' });
+});
+
 app.post('/api/ai', async (req, res) => {
   try {
     const { system, user } = req.body

@@ -1,0 +1,112 @@
+/*
+ * Purpose: Mobile-first PPM estimator UI for PCS Express.
+ * Third-party dependencies: React.
+ */
+
+import { useMemo, useState } from 'react';
+import { PPM_PAYGRADES, calculatePPMEstimate, formatCurrency } from '../lib/ppmCalculator';
+
+const fieldStyle = {
+  width: '100%',
+  border: '1px solid #D8DEE7',
+  borderRadius: 12,
+  padding: '11px 12px',
+  fontSize: 14,
+  color: '#111827',
+  background: '#FFFFFF',
+  boxSizing: 'border-box',
+};
+
+function MetricCard({ label, value, note, tone = '#1565C0' }) {
+  return (
+    <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${tone}`, borderRadius: 14, padding: 14 }}>
+      <div style={{ fontSize: 10, fontWeight: 900, color: '#56697C', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 20, fontWeight: 950, color: '#0D1821', lineHeight: 1.1 }}>{value}</div>
+      {note && <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.45, marginTop: 6 }}>{note}</div>}
+    </div>
+  );
+}
+
+export default function PPMFinancialEstimator({ theme, profile }) {
+  const [rank, setRank] = useState(profile?.paygrade || 'E-5');
+  const [yearsOfService, setYearsOfService] = useState('6');
+  const [distanceMiles, setDistanceMiles] = useState('850');
+  const [estimatedWeightLbs, setEstimatedWeightLbs] = useState('7500');
+
+  const estimate = useMemo(() => calculatePPMEstimate({
+    rank,
+    yearsOfService,
+    distanceMiles,
+    estimatedWeightLbs,
+  }), [rank, yearsOfService, distanceMiles, estimatedWeightLbs]);
+
+  const meterWidth = `${Math.max(0, estimate.profitMeterPercent)}%`;
+  const isProfit = estimate.estimatedCashInPocket >= 0;
+
+  return (
+    <div style={{ padding: 16 }}>
+      <div style={{ background: theme.secondary, borderRadius: 18, padding: 16, marginBottom: 14, color: '#FFFFFF', border: `1px solid ${theme.accent}55` }}>
+        <div style={{ fontSize: 10, fontWeight: 950, color: theme.accent, letterSpacing: '.16em', marginBottom: 6 }}>PPM FINANCIAL ESTIMATOR</div>
+        <div style={{ fontSize: 17, fontWeight: 950, marginBottom: 6 }}>Personally Procured Move cash-flow planner</div>
+        <div style={{ fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,0.78)' }}>
+          Estimates 95 percent of a planning Government Constructive Cost against rental truck, fuel, labor, supplies, and tax withholding. Official PPM payment amounts must come from DPS, your PPPO/TMO, and current JTR guidance.
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+        <label style={{ fontSize: 11, fontWeight: 900, color: theme.primary }}>
+          RANK
+          <select value={rank} onChange={(e) => setRank(e.target.value)} style={{ ...fieldStyle, marginTop: 5 }}>
+            {PPM_PAYGRADES.map(pg => <option key={pg} value={pg}>{pg}</option>)}
+          </select>
+        </label>
+        <label style={{ fontSize: 11, fontWeight: 900, color: theme.primary }}>
+          YEARS OF SERVICE
+          <input inputMode="numeric" min="0" max="40" value={yearsOfService} onChange={(e) => setYearsOfService(e.target.value)} style={{ ...fieldStyle, marginTop: 5 }} />
+        </label>
+        <label style={{ fontSize: 11, fontWeight: 900, color: theme.primary }}>
+          MOVE DISTANCE
+          <input inputMode="numeric" min="0" value={distanceMiles} onChange={(e) => setDistanceMiles(e.target.value)} style={{ ...fieldStyle, marginTop: 5 }} />
+        </label>
+        <label style={{ fontSize: 11, fontWeight: 900, color: theme.primary }}>
+          EST. WEIGHT
+          <input inputMode="numeric" min="0" value={estimatedWeightLbs} onChange={(e) => setEstimatedWeightLbs(e.target.value)} style={{ ...fieldStyle, marginTop: 5 }} />
+        </label>
+      </div>
+
+      <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 16, padding: 16, marginBottom: 14, boxShadow: '0 10px 26px rgba(13,24,33,0.08)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
+          <div>
+            <div style={{ fontSize: 11, color: '#56697C', fontWeight: 900, letterSpacing: '.08em' }}>PROFIT METER</div>
+            <div style={{ fontSize: 24, color: isProfit ? '#1B5E20' : '#B71C1C', fontWeight: 950 }}>{formatCurrency(estimate.estimatedCashInPocket)}</div>
+          </div>
+          <div style={{ textAlign: 'right', fontSize: 11, color: '#56697C', lineHeight: 1.45 }}>
+            <strong>{estimate.profitMeterPercent}%</strong><br />estimated cash-in-pocket after taxes
+          </div>
+        </div>
+        <div style={{ height: 13, borderRadius: 999, background: '#EEF2F6', overflow: 'hidden', border: '1px solid #D8DEE7' }}>
+          <div style={{ width: isProfit ? meterWidth : '8%', height: '100%', background: isProfit ? `linear-gradient(90deg, ${theme.primary}, ${theme.accent})` : '#B71C1C', transition: 'width .2s ease' }} />
+        </div>
+        <div style={{ marginTop: 10, fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>
+          Weight above the rank planning allowance is excluded from the reimbursable estimate. This is a planning tool, not an entitlement decision.
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+        <MetricCard label="95% GCC estimate" value={formatCurrency(estimate.grossIncentive)} note={`${estimate.reimbursableWeightLbs.toLocaleString()} reimbursable lbs of ${estimate.estimatedWeightLbs.toLocaleString()} entered`} tone={theme.primary} />
+        <MetricCard label="Tax withholding" value={formatCurrency(estimate.estimatedTaxWithholding)} note={`${Math.round(estimate.federalTaxWithholdingRate * 100)}% planning holdback`} tone="#7A4A00" />
+        <MetricCard label="Truck and fuel" value={formatCurrency(estimate.rentalTruckAndFuelCost)} note={`${estimate.travelDays} travel day estimate`} tone="#455A64" />
+        <MetricCard label="Official weight cap" value={`${estimate.authorizedWeightLbs.toLocaleString()} lbs`} note={estimate.excessWeightLbs > 0 ? `${estimate.excessWeightLbs.toLocaleString()} lbs may be excess` : 'No excess weight shown'} tone={estimate.excessWeightLbs > 0 ? '#B71C1C' : '#1B5E20'} />
+      </div>
+
+      <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 14, padding: 14, fontSize: 11, color: '#6D4C00', lineHeight: 1.6, marginBottom: 12 }}>
+        JTR and PPM incentive rates can change. In 2025, DTMO published changes clarifying 100 percent Best Value cost and a temporary 130 percent PPM rate; this module keeps the requested 95 percent formula as a conservative planning setting until the user verifies the official DPS/PPPO estimate.
+      </div>
+
+      <div style={{ display: 'grid', gap: 8 }}>
+        <a href="https://www.travel.dod.mil/Policy-Regulations/Joint-Travel-Regulations/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, borderRadius: 12, background: theme.primary, color: '#FFFFFF', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900 }}>Open Joint Travel Regulations</a>
+        <a href="https://dps.move.mil/cust/standard/user/home.xhtml" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, borderRadius: 12, background: '#F3F4F6', color: '#111827', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900, border: '1px solid #E5E7EB' }}>Open DPS / Move.mil</a>
+      </div>
+    </div>
+  );
+}
