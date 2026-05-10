@@ -653,30 +653,46 @@ export function useAppLanguageRuntime(language) {
   const lang = normalizeLanguage(language);
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
-    let applying = false;
+
+    // Persist language separately so it survives profile-reload races
+    try { localStorage.setItem('pcs_user_language', lang); } catch {}
+
     let scheduled = 0;
+    const catchUpTimers = [];
+
+    // No `applying` guard — the guard caused a race condition where React
+    // re-renders triggered while applying=true would be permanently dropped.
+    // Without it, each RAF cancels duplicates via `scheduled`, and
+    // translateTextNode is idempotent (no-op when already translated).
     const run = () => {
       scheduled = 0;
-      applying = true;
-      try {
-        applyRuntimeLanguage(lang);
-      } finally {
-        window.setTimeout(() => { applying = false; }, 0);
-      }
+      applyRuntimeLanguage(lang);
     };
     const schedule = () => {
-      if (applying || scheduled) return;
+      if (scheduled) return;
       scheduled = window.requestAnimationFrame(run);
     };
 
     run();
+
     const root = document.getElementById('root') || document.body;
     const observer = new MutationObserver(schedule);
-    observer.observe(root, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'aria-label', 'aria-description', 'title'] });
+    observer.observe(root, {
+      childList: true, subtree: true, characterData: true,
+      attributes: true, attributeFilter: ['placeholder', 'aria-label', 'aria-description', 'title'],
+    });
     window.addEventListener('pcs-language-refresh', schedule);
+
+    // Catch-up passes for async-rendered content (lazy routes, data-driven lists)
+    if (lang !== 'en') {
+      [300, 800, 1800, 3500].forEach(delay => {
+        catchUpTimers.push(window.setTimeout(schedule, delay));
+      });
+    }
 
     return () => {
       if (scheduled) window.cancelAnimationFrame(scheduled);
+      catchUpTimers.forEach(id => window.clearTimeout(id));
       observer.disconnect();
       window.removeEventListener('pcs-language-refresh', schedule);
     };

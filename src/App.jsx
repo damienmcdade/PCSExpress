@@ -4180,7 +4180,16 @@ function App() {
 
 
 
-  const [profile, setProfile] = useState(() => normalizeProfile(getSessionDemoProfile() || store.get('pcs_profile')));
+  const [profile, setProfile] = useState(() => {
+    const p = normalizeProfile(getSessionDemoProfile() || store.get('pcs_profile'));
+    // Bootstrap language from the separate fast-path key so it's available
+    // before the async secureLocalStore.get resolves and sets the full profile.
+    if (p && !p.language) {
+      const fastLang = (() => { try { return localStorage.getItem('pcs_user_language'); } catch { return null; } })();
+      if (fastLang) p.language = fastLang;
+    }
+    return p;
+  });
   const [activeTab, setActiveTab] = useState('home');
   const [navOpen, setNavOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -4203,6 +4212,10 @@ function App() {
       const normalized = normalizeProfile(saved);
       if (normalized?.branch) {
         setProfile(current => current?.demoMode ? current : normalized);
+        // Keep the fast-path language key in sync
+        if (normalized?.language) {
+          try { localStorage.setItem('pcs_user_language', normalized.language); } catch {}
+        }
       }
     });
     secureLocalStore.get('pcs_checklist_checks', null).then(saved => {
@@ -4216,7 +4229,10 @@ function App() {
   const safeProfile = profile && profile.branch ? profile : null;
   const theme = BRANCH_THEMES[safeProfile?.branch] || BRANCH_THEMES.Army;
   const homeInsignia = getHomeBranchInsignia(profile?.branch);
-  const appLanguage = getAppLanguage(profile?.language);
+  const appLanguage = getAppLanguage(
+    profile?.language ||
+    ((() => { try { return localStorage.getItem('pcs_user_language'); } catch { return null; } })())
+  );
   const appDir = appLanguage === 'ar' ? 'rtl' : 'ltr';
   const t = (key) => trFrom(appLanguage, key);
   useAppLanguageRuntime(appLanguage);
@@ -4262,6 +4278,10 @@ function App() {
     setActiveTab(legacyRoutes[tab] || tab);
     setNavOpen(false);
     setShowNotifs(false);
+    // Re-apply language translations after new tab content renders
+    window.requestAnimationFrame(() =>
+      window.dispatchEvent(new CustomEvent('pcs-language-refresh'))
+    );
   };
 
   if (!profile?.branch) {
@@ -4278,6 +4298,10 @@ function App() {
       } else {
         clearSessionDemoProfile();
         store.set('pcs_profile', normalized);
+        // Persist language separately for fast startup reads
+        if (normalized?.language) {
+          try { localStorage.setItem('pcs_user_language', normalized.language); } catch {}
+        }
       }
     }} />;
   }
