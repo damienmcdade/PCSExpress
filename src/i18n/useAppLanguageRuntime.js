@@ -278,6 +278,18 @@ const PHRASES = {
   'College Website': tr('Sitio de la universidad', 'Website der Hochschule', 'Site de l’établissement', '대학 웹사이트', '大学ウェブサイト', 'Website ng kolehiyo', 'موقع الكلية', '大学网站', 'Sito del college', 'Site da faculdade', 'Trang web trường'),
   'Verified enrollment link': tr('Enlace de inscripción verificado', 'Verifizierter Einschreibungslink', 'Lien d’inscription vérifié', '확인된 등록 링크', '確認済み入学リンク', 'Beripikadong enrollment link', 'رابط تسجيل موثّق', '已验证注册链接', 'Link iscrizione verificato', 'Link de matrícula verificado', 'Liên kết ghi danh đã xác minh'),
   'Enrollment link under official review': tr('Enlace de inscripción en revisión oficial', 'Einschreibungslink in offizieller Prüfung', 'Lien d’inscription en vérification officielle', '등록 링크 공식 검토 중', '入学リンクは公式確認中', 'Enrollment link ay sinusuri pa', 'رابط التسجيل قيد المراجعة الرسمية', '注册链接正在官方审核', 'Link iscrizione in verifica ufficiale', 'Link de matrícula em revisão oficial', 'Liên kết ghi danh đang được xác minh'),
+  'In Progress': tr('En progreso', 'In Bearbeitung', 'En cours', '진행 중', '進行中', 'Kasalukuyang ginagawa', 'قيد التنفيذ', '进行中', 'In corso', 'Em andamento', 'Đang tiến hành'),
+  'Move Complete': tr('Mudanza completada', 'Umzug abgeschlossen', 'Déménagement terminé', '이사 완료', '引越し完了', 'Kumpleto na ang paglipat', 'اكتمل الانتقال', '搞迁完成', 'Trasloco completato', 'Mudança concluída', 'Hoàn tất chuyển nhà'),
+  'Schools & Childcare': tr('Escuelas y guardería', 'Schulen & Kinderbetreuung', 'Écoles et garde d\'enfants', '학교 및 보육', '学校と保育', 'Mga Paaralan at Pag-aalaga ng Bata', 'المدارس ورعاية الأطفال', '学校与托儿', 'Scuole e asilo nido', 'Escolas e creche', 'Trường học và trông trẻ'),
+  'Search by Location': tr('Buscar por ubicación', 'Nach Standort suchen', 'Chercher par lieu', '위치별 검색', '場所で検索', 'Maghanap sa lokasyon', 'البحث حسب الموقع', '按地点搜索', 'Cerca per posizione', 'Buscar por localização', 'Tìm theo vị trí'),
+  'Open active source': tr('Abrir fuente activa', 'Aktive Quelle öffnen', 'Ouvrir la source active', '활성 출처 열기', 'アクティブソースを開く', 'Buksan ang aktibong source', 'فتح المصدر النشط', '打开活跃来源', 'Apri fonte attiva', 'Abrir fonte ativa', 'Mở nguồn hoạt động'),
+  'Apply Online': tr('Solicitar en línea', 'Online bewerben', 'Postuler en ligne', '온라인 신청', 'オンラインで申請', 'Mag-apply online', 'التقدم عبر الإنترنت', '在线申请', 'Candidati online', 'Candidatar-se online', 'Đăng ký trực tuyến'),
+  'Pending Actions': tr('Acciones pendientes', 'Ausstehende Aktionen', 'Actions en attente', '대기 중인 작업', '保留中のアクション', 'Mga nakabinbing aksyon', 'الإجراءات المعلقة', '待处理操作', 'Azioni in sospeso', 'Ações pendentes', 'Hành động đang chờ'),
+  'Overdue Action': tr('Acción vencida', 'Überfällige Aktion', 'Action en retard', '기한 초과 작업', '期限超過のアクション', 'Nasobrahan nang aksyon', 'إجراء متأخر', '逾期操作', 'Azione scaduta', 'Ação em atraso', 'Hành động quá hạn'),
+  'Overdue Actions': tr('Acciones vencidas', 'Überfällige Aktionen', 'Actions en retard', '기한 초과 작업들', '期限超過のアクション', 'Mga nasobrahan nang aksyon', 'إجراءات متأخرة', '逾期操作', 'Azioni scadute', 'Ações em atraso', 'Các hành động quá hạn'),
+  'Due Now': tr('Vence ahora', 'Jetzt fällig', 'À faire maintenant', '지금 기한', '今すぐ', 'Kailangang gawin na ngayon', 'مستحق الآن', '现在到期', 'Scade ora', 'Vence agora', 'Đến hạn ngay'),
+  'task remaining': tr('tarea pendiente', 'Aufgabe verbleibt', 'tâche restante', '남은 작업', '残りタスク', 'natitirang gawain', 'مهمة متبقية', '剩余任务', 'attività rimanente', 'tarefa restante', 'nhiệm vụ còn lại'),
+  'Veteran Owned & Veteran Operated Businesses': tr('Negocios de propiedad y operación de veteranos', 'Unternehmen von Veteranen', 'Entreprises détenues par des vétérans', '재향군인 소유·운영 사업체', '退役軍人所有・経営の企機', 'Mga negosyong pag-aari at pinapatakbo ng beterano', 'مشاريع مملوكة ومُدارة من محاربين قدامى', '退伍军人拥有和经营的企业', 'Imprese di veterani', 'Empresas de veteranos', 'Doanh nghiệp cựu chiến binh'),
 };
 
 const PHRASE_LOOKUP = Object.fromEntries(
@@ -441,7 +453,10 @@ function looksLikeEnglish(text) {
   if (!compact || isNumericOrSymbolOnly(compact) || isKnownProperNoun(compact)) return false;
   const letters = compact.match(/[A-Za-z]/g)?.length || 0;
   if (letters < 3) return false;
-  return COMMON_WORDS.test(compact) || hasVerbLikeEnglish(compact) || letters / Math.max(compact.length, 1) > 0.45;
+  // Only flag text containing known English function words or action verbs.
+  // The prior letter-ratio fallback was removed: it caused proper names (school
+  // names, installation names) to match and get replaced with garbled topic sentences.
+  return COMMON_WORDS.test(compact) || hasVerbLikeEnglish(compact);
 }
 
 function topicFor(text, parent) {
@@ -553,6 +568,9 @@ function chooseFallback(original, lang, parent) {
   const compactRaw = compactText(original);
   const [marker, compact] = splitMarker(compactRaw);
   if (!looksLikeEnglish(compact)) return original;
+  // Strings > 40 chars without an exact PHRASES match are data content.
+  // The generic sentence fallback produces garbled output -- keep English.
+  if (compact.length > 40) return original;
 
   const lower = compact.toLowerCase();
   const bundle = GENERIC[lang] || GENERIC.es;
