@@ -367,3 +367,95 @@ export function formatCurrencyBAH(amount) {
   if (amount === null || amount === undefined) return '—';
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
 }
+
+// Aliases: profile name variants → canonical key (handles renames, abbreviations, USAG vs Camp, etc.)
+const CANONICAL_ALIASES = {
+  // Installation renames
+  'fort bragg':                     'Fort Liberty',
+  'fort gordon':                    'Fort Eisenhower',
+  'fort lee':                       'Fort Gregg-Adams',
+  'fort polk':                      'Fort Johnson',
+  'fort benning':                   'Fort Moore',
+  // USAG / Camp variants
+  'camp humphreys':                 'USAG Humphreys',
+  'usag humphreys':                 'USAG Humphreys',
+  'camp humphreys (usag humphreys)':'USAG Humphreys',
+  // Navy
+  'ns norfolk':                     'Naval Station Norfolk',
+  'ns norfolk va':                  'Naval Station Norfolk',
+  'naval station norfolk':          'Naval Station Norfolk',
+  'nas pensacola':                  'NAS Pensacola',
+  'ns pensacola':                   'NAS Pensacola',
+  'nas jacksonville fl':            'NAS Jacksonville',
+  'nas jacksonville':               'NAS Jacksonville',
+  'ns mayport fl':                  'NS Mayport',
+  'naval air station jacksonville': 'NAS Jacksonville',
+  'great lakes naval station':      'NS Great Lakes',
+  'naval station great lakes':      'NS Great Lakes',
+  // Marine Corps
+  'mcb camp lejeune':               'Camp Lejeune',
+  'marine corps base camp lejeune': 'Camp Lejeune',
+  'mcas quantico':                  'MCB Quantico',
+  'marine corps base quantico':     'MCB Quantico',
+  'mcb camp pendleton':             'MCB Camp Pendleton',
+  'camp pendleton ca':              'MCB Camp Pendleton',
+  'camp pendleton':                 'MCB Camp Pendleton',
+  // Joint Bases
+  'jblm':                           'Joint Base Lewis-McChord',
+  'joint base lewis-mcchord':       'Joint Base Lewis-McChord',
+  'jbsa':                           'Fort Sam Houston',
+  'joint base san antonio':         'Fort Sam Houston',
+  'jble':                           'Langley AFB',
+  // Army abbreviated/common names
+  'fort george g. meade':           'Fort Meade',
+  'fort george g meade':            'Fort Meade',
+  'schofield barracks hi':          'Schofield Barracks',
+  'fort shafter hi':                'Fort Shafter',
+  'fort richardson ak':             'Fort Richardson',
+  'fort wainwright ak':             'Fort Wainwright',
+};
+
+/**
+ * Resolves a profile gainingInstallation name to the best-matching key
+ * from the provided list of available keys (INSTALLATION_MHA_MAP or INSTALLATION_DIRECTORY).
+ * Returns '' if no match found.
+ */
+export function resolveInstallation(profileName, availableKeys) {
+  if (!profileName || !availableKeys || availableKeys.length === 0) return '';
+  const trimmed = profileName.trim();
+
+  // 1. Exact match
+  if (availableKeys.includes(trimmed)) return trimmed;
+
+  const lower = trimmed.toLowerCase();
+
+  // 2. Case-insensitive exact match
+  const exactCI = availableKeys.find(k => k.toLowerCase() === lower);
+  if (exactCI) return exactCI;
+
+  // 3. Canonical alias table
+  const aliasResult = CANONICAL_ALIASES[lower];
+  if (aliasResult && availableKeys.includes(aliasResult)) return aliasResult;
+
+  // 4. Profile name contains a key (e.g. "Fort Liberty, NC" → "Fort Liberty")
+  const containsKey = availableKeys.find(k => lower.includes(k.toLowerCase()) && k.length > 5);
+  if (containsKey) return containsKey;
+
+  // 5. Key contains profile name (e.g. "MCB Camp Lejeune" matched by "Camp Lejeune")
+  const keyContainsProfile = availableKeys.find(k => k.toLowerCase().includes(lower) && lower.length > 5);
+  if (keyContainsProfile) return keyContainsProfile;
+
+  // 6. Significant word overlap — share 2+ meaningful words
+  const stopWords = new Set(['the','and','of','at','in','on','for','joint','base','station','air','force','army','naval','marine','corps','camp','fort','nas','nsa','ns','mcb','mcas','usag','afb','sfb']);
+  const profileWords = lower.split(/[\s,\-\/()]+/).filter(w => w.length > 2 && !stopWords.has(w));
+  let bestKey = '';
+  let bestScore = 1; // require at least 2 shared words
+  for (const k of availableKeys) {
+    const keyWords = k.toLowerCase().split(/[\s,\-\/()]+/).filter(w => w.length > 2 && !stopWords.has(w));
+    const shared = profileWords.filter(w => keyWords.includes(w)).length;
+    if (shared > bestScore) { bestScore = shared; bestKey = k; }
+  }
+  if (bestKey) return bestKey;
+
+  return '';
+}
