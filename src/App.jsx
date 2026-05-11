@@ -4836,6 +4836,23 @@ function getAppLanguage(language) {
   return APP_TRANSLATIONS[code] ? code : 'en';
 }
 
+// Honest disclosure for non-English users: navigation, headers, and short
+// labels are fully localized; longer descriptive paragraphs remain in English
+// to avoid generic auto-substitutions that diverge from the actual content.
+const TRANSLATION_BANNER_TEXT = {
+  es: 'Navegación, encabezados y etiquetas están traducidos. Los textos largos pueden aparecer en inglés; use la traducción de su navegador para verlos en español.',
+  de: 'Navigation, Überschriften und Beschriftungen sind übersetzt. Längere Texte erscheinen ggf. weiterhin in Englisch — nutzen Sie die Übersetzungsfunktion Ihres Browsers.',
+  fr: 'La navigation, les en-têtes et les libellés sont traduits. Les textes longs peuvent rester en anglais — utilisez la traduction de votre navigateur.',
+  ko: '내비게이션, 제목, 짧은 라벨은 번역되어 있습니다. 긴 문장은 영어로 표시될 수 있으며 브라우저 번역 기능을 사용하세요.',
+  ja: 'ナビゲーション、見出し、短いラベルは翻訳されています。長文は英語で表示される場合があります。ブラウザの翻訳機能をご利用ください。',
+  tl: 'Naka-translate ang navigation, mga heading, at maiikling label. Maaaring nasa English pa rin ang mahahabang teksto — gamitin ang translation ng browser.',
+  ar: 'تمت ترجمة التنقل والعناوين والعلامات القصيرة. قد تظل النصوص الطويلة باللغة الإنجليزية — استخدم ترجمة المتصفح.',
+  zh: '导航、标题和短标签已翻译。较长的文本可能仍以英文显示，请使用浏览器翻译。',
+  it: 'Navigazione, intestazioni ed etichette sono tradotte. I testi lunghi possono restare in inglese — usa la traduzione del browser.',
+  pt: 'Navegação, cabeçalhos e rótulos curtos estão traduzidos. Textos longos podem permanecer em inglês — use a tradução do seu navegador.',
+  vi: 'Điều hướng, tiêu đề và nhãn ngắn đã được dịch. Văn bản dài có thể vẫn ở tiếng Anh — hãy dùng tính năng dịch của trình duyệt.',
+};
+
 
 const GENERIC_LANGUAGE_FALLBACKS = {
   es: { desc: 'Revise recursos oficiales y herramientas de planificacion para esta categoria.', demoTitle: 'Paso del recorrido', demoBody: 'Esta parte del recorrido explica como usar esta area de PCS Express con la informacion publica oficial disponible.' },
@@ -5971,6 +5988,27 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* TRANSLATION SCOPE BANNER — appears when user picks a non-English language.
+          Honest about what's translated: navigation, headers, and short labels are
+          localized; longer descriptive text remains in English to preserve accuracy.
+          Banner is dismissible per-session via localStorage. */}
+      {appLanguage !== 'en' && (() => {
+        let dismissed = false;
+        try { dismissed = window.localStorage.getItem('pcs_translation_banner_dismissed_v1') === '1'; } catch {}
+        if (dismissed) return null;
+        const txt = TRANSLATION_BANNER_TEXT[appLanguage] || TRANSLATION_BANNER_TEXT.es;
+        return (
+          <div data-no-language-runtime style={{ background: '#FFF8E1', borderBottom: '1px solid #FFE082', padding: '8px 12px', display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 11, lineHeight: 1.45, color: '#6D4C00' }}>
+            <div style={{ flex: 1 }}>{txt}</div>
+            <button
+              onClick={() => { try { window.localStorage.setItem('pcs_translation_banner_dismissed_v1', '1'); } catch {} ; window.dispatchEvent(new Event('pcs-language-refresh')); }}
+              style={{ background: 'transparent', border: 'none', color: '#6D4C00', fontSize: 14, cursor: 'pointer', padding: 0, lineHeight: 1, marginTop: 1 }}
+              aria-label="Dismiss"
+            >✕</button>
+          </div>
+        );
+      })()}
 
       {/* SLIDE-DOWN NAV DRAWER — web mobile only (iOS native uses bottom tab bar instead) */}
       {!isDesktop && !isNative && navOpen && (

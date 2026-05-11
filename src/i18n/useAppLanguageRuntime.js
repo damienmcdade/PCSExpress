@@ -290,6 +290,109 @@ const PHRASES = {
   'Due Now': tr('Vence ahora', 'Jetzt fällig', 'À faire maintenant', '지금 기한', '今すぐ', 'Kailangang gawin na ngayon', 'مستحق الآن', '现在到期', 'Scade ora', 'Vence agora', 'Đến hạn ngay'),
   'task remaining': tr('tarea pendiente', 'Aufgabe verbleibt', 'tâche restante', '남은 작업', '残りタスク', 'natitirang gawain', 'مهمة متبقية', '剩余任务', 'attività rimanente', 'tarefa restante', 'nhiệm vụ còn lại'),
   'Veteran Owned & Veteran Operated Businesses': tr('Negocios de propiedad y operación de veteranos', 'Unternehmen von Veteranen', 'Entreprises détenues par des vétérans', '재향군인 소유·운영 사업체', '退役軍人所有・経営の企機', 'Mga negosyong pag-aari at pinapatakbo ng beterano', 'مشاريع مملوكة ومُدارة من محاربين قدامى', '退伍军人拥有和经营的企业', 'Imprese di veterani', 'Empresas de veteranos', 'Doanh nghiệp cựu chiến binh'),
+
+  // Common UI content strings added 2026-05 to improve full-app translation coverage.
+  'Active Duty': tr('Servicio activo', 'Aktiver Dienst', 'Service actif', '현역', '現役', 'Active duty', 'الخدمة الفعلية', '现役', 'Servizio attivo', 'Serviço ativo', 'Tại ngũ'),
+  'Reserve': tr('Reserva', 'Reserve', 'Réserve', '예비군', '予備役', 'Reserve', 'الاحتياط', '预备役', 'Riserva', 'Reserva', 'Dự bị'),
+  'National Guard': tr('Guardia Nacional', 'Nationalgarde', 'Garde nationale', '주방위군', '州兵', 'National Guard', 'الحرس الوطني', '国民警卫队', 'Guardia Nazionale', 'Guarda Nacional', 'Vệ binh Quốc gia'),
+  'AGR': tr('AGR', 'AGR', 'AGR', 'AGR', 'AGR', 'AGR', 'AGR', 'AGR', 'AGR', 'AGR', 'AGR'),
+  'Dependent': tr('Dependiente', 'Angehöriger', 'Personne à charge', '가족 구성원', '扶養家族', 'Dependent', 'تابع', '家属', 'Familiare a carico', 'Dependente', 'Người phụ thuộc'),
+  'No Preference': tr('Sin preferencia', 'Keine Präferenz', 'Aucune préférence', '선호 없음', '希望なし', 'Walang preferensya', 'لا تفضيل', '无偏好', 'Nessuna preferenza', 'Sem preferência', 'Không ưu tiên'),
+  'Component': tr('Componente', 'Komponente', 'Composante', '구성', '区分', 'Component', 'المكون', '组别', 'Componente', 'Componente', 'Thành phần'),
+  'COMPONENT': tr('COMPONENTE', 'KOMPONENTE', 'COMPOSANTE', '구성', '区分', 'COMPONENT', 'المكون', '组别', 'COMPONENTE', 'COMPONENTE', 'THÀNH PHẦN'),
+  'FIRST NAME': tr('NOMBRE', 'VORNAME', 'PRÉNOM', '이름', '名', 'PANGALAN', 'الاسم الأول', '名字', 'NOME', 'NOME', 'TÊN'),
+  'LAST NAME': tr('APELLIDO', 'NACHNAME', 'NOM', '성', '姓', 'APELYIDO', 'اسم العائلة', '姓氏', 'COGNOME', 'SOBRENOME', 'HỌ'),
+  'First Name': tr('Nombre', 'Vorname', 'Prénom', '이름', '名', 'Pangalan', 'الاسم الأول', '名字', 'Nome', 'Nome', 'Tên'),
+  'Last Name': tr('Apellido', 'Nachname', 'Nom', '성', '姓', 'Apelyido', 'اسم العائلة', '姓氏', 'Cognome', 'Sobrenome', 'Họ'),
+  'PAY GRADE & RANK': tr('GRADO Y RANGO', 'BESOLDUNGSGRUPPE & DIENSTGRAD', 'GRADE ET RANG', '계급 및 급여등급', '給与等級と階級', 'PAY GRADE AT RANK', 'الرتبة ودرجة الراتب', '军衔与级别', 'GRADO E RANGO', 'GRADUAÇÃO E POSTO', 'CẤP BẬC'),
+  'Pay Grade & Rank': tr('Grado y rango', 'Besoldungsgruppe & Dienstgrad', 'Grade et rang', '계급 및 급여등급', '給与等級と階級', 'Pay grade at rank', 'الرتبة ودرجة الراتب', '军衔与级别', 'Grado e rango', 'Graduação e posto', 'Cấp bậc'),
+  'PREFERRED LANGUAGE': tr('IDIOMA PREFERIDO', 'BEVORZUGTE SPRACHE', 'LANGUE PRÉFÉRÉE', '선호 언어', '希望言語', 'GUSTONG WIKA', 'اللغة المفضلة', '首选语言', 'LINGUA PREFERITA', 'IDIOMA PREFERIDO', 'NGÔN NGỮ ƯU TIÊN'),
+  'optional': tr('opcional', 'optional', 'facultatif', '선택', '任意', 'opsyonal', 'اختياري', '可选', 'opzionale', 'opcional', 'tùy chọn'),
+  '(optional)': tr('(opcional)', '(optional)', '(facultatif)', '(선택)', '(任意)', '(opsyonal)', '(اختياري)', '(可选)', '(opzionale)', '(opcional)', '(tùy chọn)'),
+  'Branch & Profile': tr('Rama y perfil', 'Teilstreitkraft & Profil', 'Branche et profil', '군별 및 프로필', '軍種とプロフィール', 'Sangay at profile', 'الفرع والملف الشخصي', '军种与档案', 'Forza armata e profilo', 'Ramo e perfil', 'Quân chủng và hồ sơ'),
+
+  // Branch mottos & taglines
+  "This We'll Defend": tr('Esto defenderemos', 'Dies werden wir verteidigen', 'Voici ce que nous défendrons', '이를 우리는 지킨다', 'これを我々は守る', 'Ito ang aming ipagtatanggol', 'هذا ما سندافع عنه', '此乃我等所卫', 'Questo difenderemo', 'Isto defenderemos', 'Đây là điều chúng tôi bảo vệ'),
+  'A Global Force for Good': tr('Una fuerza global para el bien', 'Eine globale Kraft zum Guten', 'Une force mondiale pour le bien', '선을 위한 글로벌 군대', '善のための地球規模の力', 'Pandaigdigang puwersa para sa kabutihan', 'قوة عالمية للخير', '为善而生的全球力量', 'Una forza globale per il bene', 'Uma força global para o bem', 'Lực lượng toàn cầu vì điều thiện'),
+  'The Few. The Proud.': tr('Los pocos. Los orgullosos.', 'Die Wenigen. Die Stolzen.', 'Les rares. Les fiers.', '소수, 자랑스러운 자.', '少数の誇り高き者。', 'Ang iilan. Ang ipinagmamalaki.', 'القلة. الفخورون.', '少数精英，引以为傲。', 'I pochi. I fieri.', 'Os poucos. Os orgulhosos.', 'Số ít. Niềm tự hào.'),
+  'Fly–Fight–Win': tr('Volar–Luchar–Vencer', 'Fliegen–Kämpfen–Siegen', 'Voler–Combattre–Vaincre', '비행–전투–승리', '飛び・戦い・勝つ', 'Lipad–Lumaban–Manalo', 'حلّق–قاتل–انتصر', '飞行–战斗–胜利', 'Volare–Combattere–Vincere', 'Voar–Lutar–Vencer', 'Bay–Chiến–Thắng'),
+  'Guardians of the High Ground': tr('Guardianes del terreno elevado', 'Wächter der Höhe', 'Gardiens des hauteurs', '높은 지대의 수호자', '高所の守護者', 'Tagapagbantay ng matataas', 'حراس المرتفعات', '高地的守护者', 'Guardiani della posizione elevata', 'Guardiões das alturas', 'Người bảo vệ cao điểm'),
+  'Always Ready': tr('Siempre listos', 'Stets bereit', 'Toujours prêt', '항상 준비', '常に備える', 'Laging handa', 'دائماً مستعد', '时刻准备', 'Sempre pronti', 'Sempre pronto', 'Luôn sẵn sàng'),
+  'HOOAH': tr('HOOAH', 'HOOAH', 'HOOAH', 'HOOAH', 'HOOAH', 'HOOAH', 'HOOAH', 'HOOAH', 'HOOAH', 'HOOAH', 'HOOAH'),
+  'BRAVO ZULU': tr('BRAVO ZULU', 'BRAVO ZULU', 'BRAVO ZULU', 'BRAVO ZULU', 'BRAVO ZULU', 'BRAVO ZULU', 'BRAVO ZULU', 'BRAVO ZULU', 'BRAVO ZULU', 'BRAVO ZULU', 'BRAVO ZULU'),
+  'SEMPER FIDELIS': tr('SEMPER FIDELIS', 'SEMPER FIDELIS', 'SEMPER FIDELIS', 'SEMPER FIDELIS', 'SEMPER FIDELIS', 'SEMPER FIDELIS', 'SEMPER FIDELIS', 'SEMPER FIDELIS', 'SEMPER FIDELIS', 'SEMPER FIDELIS', 'SEMPER FIDELIS'),
+  'AIM HIGH': tr('APUNTA ALTO', 'ZIELE HOCH', 'VISE HAUT', '높이 겨냥하라', '高く狙え', 'TUMINGIN SA TAAS', 'استهدف العالي', '志存高远', 'PUNTA IN ALTO', 'MIRE ALTO', 'NHẮM CAO'),
+  'SEMPER SUPRA': tr('SEMPER SUPRA', 'SEMPER SUPRA', 'SEMPER SUPRA', 'SEMPER SUPRA', 'SEMPER SUPRA', 'SEMPER SUPRA', 'SEMPER SUPRA', 'SEMPER SUPRA', 'SEMPER SUPRA', 'SEMPER SUPRA', 'SEMPER SUPRA'),
+  'SEMPER PARATUS': tr('SEMPER PARATUS', 'SEMPER PARATUS', 'SEMPER PARATUS', 'SEMPER PARATUS', 'SEMPER PARATUS', 'SEMPER PARATUS', 'SEMPER PARATUS', 'SEMPER PARATUS', 'SEMPER PARATUS', 'SEMPER PARATUS', 'SEMPER PARATUS'),
+
+  // Headers & section labels
+  'SECURITY CONTROLS': tr('CONTROLES DE SEGURIDAD', 'SICHERHEITSKONTROLLEN', 'CONTRÔLES DE SÉCURITÉ', '보안 제어', 'セキュリティ制御', 'SECURITY CONTROLS', 'ضوابط الأمان', '安全控制', 'CONTROLLI DI SICUREZZA', 'CONTROLES DE SEGURANÇA', 'KIỂM SOÁT BẢO MẬT'),
+  'Security Controls': tr('Controles de seguridad', 'Sicherheitskontrollen', 'Contrôles de sécurité', '보안 제어', 'セキュリティ制御', 'Security controls', 'ضوابط الأمان', '安全控制', 'Controlli di sicurezza', 'Controles de segurança', 'Kiểm soát bảo mật'),
+  'My Profile': tr('Mi perfil', 'Mein Profil', 'Mon profil', '내 프로필', 'マイプロフィール', 'Aking profile', 'ملفي الشخصي', '我的档案', 'Il mio profilo', 'Meu perfil', 'Hồ sơ của tôi'),
+  'MY PROFILE': tr('MI PERFIL', 'MEIN PROFIL', 'MON PROFIL', '내 프로필', 'マイプロフィール', 'AKING PROFILE', 'ملفي الشخصي', '我的档案', 'IL MIO PROFILO', 'MEU PERFIL', 'HỒ SƠ CỦA TÔI'),
+  'YOUR PROFILE': tr('TU PERFIL', 'IHR PROFIL', 'VOTRE PROFIL', '귀하의 프로필', 'あなたのプロフィール', 'IYONG PROFILE', 'ملفك الشخصي', '您的档案', 'IL TUO PROFILO', 'SEU PERFIL', 'HỒ SƠ CỦA BẠN'),
+  'BASE INTELLIGENCE': tr('INTELIGENCIA DE BASE', 'STANDORTINFORMATIONEN', 'INFORMATIONS BASE', '기지 정보', '基地情報', 'BASE INTELLIGENCE', 'معلومات القاعدة', '基地情报', 'INFORMAZIONI BASE', 'INTELIGÊNCIA DA BASE', 'THÔNG TIN CĂN CỨ'),
+  'BAH ENTITLEMENT CALCULATOR': tr('CALCULADORA DE BAH', 'BAH-RECHNER', 'CALCULATEUR BAH', 'BAH 계산기', 'BAH計算機', 'BAH calculator', 'حاسبة BAH', 'BAH 计算器', 'Calcolatore BAH', 'Calculadora BAH', 'Máy tính BAH'),
+  'DUTY STATION DIRECTORY': tr('DIRECTORIO DE INSTALACIONES', 'STANDORTVERZEICHNIS', 'ANNUAIRE DES INSTALLATIONS', '기지 목록', '基地ディレクトリ', 'Duty station directory', 'دليل المنشآت', '基地目录', 'Directory installazioni', 'Diretório de instalações', 'Danh bạ căn cứ'),
+  'Installation Intelligence': tr('Inteligencia de instalación', 'Standortinformationen', 'Informations installation', '기지 정보', '基地情報', 'Installation intelligence', 'معلومات المنشأة', '基地情报', 'Informazioni installazione', 'Inteligência da instalação', 'Thông tin căn cứ'),
+  'ON-POST HOUSING WAIT TIME': tr('TIEMPO DE ESPERA EN POST', 'WARTEZEIT POSTWOHNUNG', 'TEMPS D\'ATTENTE LOGEMENT', '기지 내 주택 대기시간', '基地内住宅待機', 'WAITLIST NG ON-POST HOUSING', 'مدة انتظار سكن القاعدة', '基地内住房等候时间', 'TEMPO ATTESA ALLOGGIO BASE', 'TEMPO DE ESPERA NA BASE', 'THỜI GIAN CHỜ NHÀ TRONG CĂN CỨ'),
+  'ON-POST OPERATOR': tr('OPERADOR EN POST', 'BASIS-BETREIBER', 'OPÉRATEUR DE BASE', '기지 운영자', '基地運営者', 'On-post operator', 'مشغل القاعدة', '基地运营商', 'Gestore della base', 'Operador na base', 'Đơn vị quản lý căn cứ'),
+  'OFF-POST NOTES': tr('NOTAS FUERA DEL POST', 'AUSSERHALB DES STANDORTS', 'NOTES HORS BASE', '기지 외부 정보', '基地外メモ', 'Off-post notes', 'ملاحظات خارج القاعدة', '基地外注释', 'Note fuori base', 'Notas fora da base', 'Ghi chú ngoài căn cứ'),
+  'TRICARE REGION': tr('REGIÓN TRICARE', 'TRICARE-REGION', 'RÉGION TRICARE', 'TRICARE 지역', 'TRICAREリージョン', 'TRICARE region', 'منطقة TRICARE', 'TRICARE 区域', 'Regione TRICARE', 'Região TRICARE', 'Khu vực TRICARE'),
+  'MILITARY TREATMENT FACILITY (MTF)': tr('CENTRO MILITAR DE TRATAMIENTO (MTF)', 'MILITÄRISCHE BEHANDLUNGSEINRICHTUNG (MTF)', 'INSTALLATION DE TRAITEMENT MILITAIRE (MTF)', '군 의료시설 (MTF)', '軍医療施設 (MTF)', 'Military Treatment Facility (MTF)', 'منشأة العلاج العسكرية (MTF)', '军事医疗机构 (MTF)', 'Struttura medica militare (MTF)', 'Instalação Médica Militar (MTF)', 'Cơ sở Y tế Quân đội (MTF)'),
+  'Prime Available': tr('Prime disponible', 'Prime verfügbar', 'Prime disponible', 'Prime 이용가능', 'Prime利用可', 'Prime available', 'Prime متاح', 'Prime 可用', 'Prime disponibile', 'Prime disponível', 'Có Prime'),
+  'Select Available': tr('Select disponible', 'Select verfügbar', 'Select disponible', 'Select 이용가능', 'Select利用可', 'Select available', 'Select متاح', 'Select 可用', 'Select disponibile', 'Select disponível', 'Có Select'),
+  'Annual Projection': tr('Proyección anual', 'Jährliche Schätzung', 'Projection annuelle', '연간 예상', '年間予測', 'Annual projection', 'التوقع السنوي', '年度预估', 'Proiezione annuale', 'Projeção anual', 'Dự kiến hằng năm'),
+  'Monthly BAH': tr('BAH mensual', 'Monatliche BAH', 'BAH mensuel', '월간 BAH', '月額BAH', 'Monthly BAH', 'BAH الشهري', '月度 BAH', 'BAH mensile', 'BAH mensal', 'BAH hằng tháng'),
+  'Months': tr('Meses', 'Monate', 'Mois', '개월', 'ヶ月', 'Buwan', 'أشهر', '个月', 'Mesi', 'Meses', 'Tháng'),
+  'Annual BAH': tr('BAH anual', 'Jährliche BAH', 'BAH annuel', '연간 BAH', '年額BAH', 'Annual BAH', 'BAH السنوي', '年度 BAH', 'BAH annuale', 'BAH anual', 'BAH hằng năm'),
+  'With Dependents': tr('Con dependientes', 'Mit Angehörigen', 'Avec personnes à charge', '부양가족 있음', '扶養家族あり', 'May dependents', 'مع التابعين', '有家属', 'Con familiari', 'Com dependentes', 'Có người phụ thuộc'),
+  'Without Dependents': tr('Sin dependientes', 'Ohne Angehörige', 'Sans personnes à charge', '부양가족 없음', '扶養家族なし', 'Walang dependents', 'بدون التابعين', '无家属', 'Senza familiari', 'Sem dependentes', 'Không có người phụ thuộc'),
+  'Pay Grade': tr('Grado de pago', 'Besoldungsgruppe', 'Grade', '급여등급', '給与等級', 'Pay grade', 'درجة الراتب', '军衔', 'Grado retributivo', 'Graduação', 'Cấp lương'),
+  'Dependents': tr('Dependientes', 'Angehörige', 'Personnes à charge', '부양가족', '扶養家族', 'Dependents', 'التابعون', '家属', 'Familiari a carico', 'Dependentes', 'Người phụ thuộc'),
+  'Gaining Duty Station': tr('Estación de destino', 'Zielstandort', 'Affectation d\'arrivée', '도착 기지', '赴任先基地', 'Destinasyon', 'محطة الواجب الجديدة', '新驻地', 'Stazione di arrivo', 'Estação de destino', 'Trạm đến'),
+  'Housing': tr('Vivienda', 'Wohnen', 'Logement', '주거', '住居', 'Pabahay', 'السكن', '住房', 'Alloggio', 'Moradia', 'Nhà ở'),
+  'TRICARE': tr('TRICARE', 'TRICARE', 'TRICARE', 'TRICARE', 'TRICARE', 'TRICARE', 'TRICARE', 'TRICARE', 'TRICARE', 'TRICARE', 'TRICARE'),
+  'Contacts': tr('Contactos', 'Kontakte', 'Contacts', '연락처', '連絡先', 'Mga contact', 'جهات الاتصال', '联系方式', 'Contatti', 'Contatos', 'Liên hệ'),
+  'Community Reviews': tr('Reseñas de la comunidad', 'Community-Bewertungen', 'Avis de la communauté', '커뮤니티 리뷰', 'コミュニティレビュー', 'Mga review ng komunidad', 'مراجعات المجتمع', '社区评价', 'Recensioni della comunità', 'Avaliações da comunidade', 'Đánh giá cộng đồng'),
+  'Childcare': tr('Cuidado infantil', 'Kinderbetreuung', 'Garde d\'enfants', '보육', '保育', 'Pag-aalaga ng bata', 'رعاية الأطفال', '托儿', 'Asilo nido', 'Creche', 'Trông trẻ'),
+  'Reviewer rank': tr('Rango del revisor', 'Rang des Verfassers', 'Rang du critique', '평가자 계급', 'レビュアー階級', 'Rank ng reviewer', 'رتبة المراجع', '评论者军衔', 'Rango del recensore', 'Posto do avaliador', 'Cấp bậc người đánh giá'),
+  'Military Family Verified': tr('Verificado por familia militar', 'Militärfamilie verifiziert', 'Famille militaire vérifiée', '군 가족 인증', '軍人家族認証済み', 'Military Family Verified', 'تم التحقق من عائلة عسكرية', '军人家庭已认证', 'Famiglia militare verificata', 'Família militar verificada', 'Đã xác minh gia đình quân nhân'),
+
+  // Onboarding
+  'Your move, simplified.': tr('Tu mudanza, simplificada.', 'Ihr Umzug, vereinfacht.', 'Votre déménagement, simplifié.', '이사 준비를 간단하게.', '引越し準備をシンプルに。', 'Pinapadali ang iyong paglipat.', 'انتقالك بشكل أبسط.', '搬迁，从未如此简单。', 'Il tuo trasloco, semplificato.', 'Sua mudança, simplificada.', 'Chuyển nhà của bạn, đơn giản hơn.'),
+  'Your Bases': tr('Tus bases', 'Ihre Standorte', 'Vos bases', '귀하의 기지', 'あなたの基地', 'Iyong bases', 'قواعدك', '您的基地', 'Le tue basi', 'Suas bases', 'Căn cứ của bạn'),
+  'Your Profile': tr('Tu perfil', 'Ihr Profil', 'Votre profil', '귀하의 프로필', 'あなたのプロフィール', 'Iyong profile', 'ملفك الشخصي', '您的档案', 'Il tuo profilo', 'Seu perfil', 'Hồ sơ của bạn'),
+  'Build My PCS Plan': tr('Crear mi plan PCS', 'Meinen PCS-Plan erstellen', 'Créer mon plan PCS', '나의 PCS 계획 만들기', 'PCSプランを作成', 'Gumawa ng PCS plan', 'إنشاء خطة PCS', '生成我的 PCS 计划', 'Crea il mio piano PCS', 'Criar meu plano PCS', 'Tạo kế hoạch PCS của tôi'),
+  'DEPARTING FROM (LOSING INSTALLATION)': tr('PARTIENDO DE (INSTALACIÓN DE SALIDA)', 'ABREISE VON (VERLASSENER STANDORT)', 'DÉPART (INSTALLATION DE DÉPART)', '출발 (이전 기지)', '出発元（離任基地）', 'PAALIS GALING (LOSING INSTALLATION)', 'مغادرة من (المنشأة السابقة)', '离开基地（原驻地）', 'PARTENZA DA (BASE DI ORIGINE)', 'SAINDO DE (INSTALAÇÃO ANTERIOR)', 'KHỞI HÀNH TỪ (CĂN CỨ CŨ)'),
+  'REPORTING TO (GAINING INSTALLATION)': tr('REPORTANDO A (INSTALACIÓN DE DESTINO)', 'MELDUNG BEI (ZIELSTANDORT)', 'AFFECTATION À (INSTALLATION D\'ARRIVÉE)', '도착 (새 기지)', '着任先（赴任基地）', 'PUPUNTA SA (GAINING INSTALLATION)', 'الوصول إلى (المنشأة الجديدة)', '新驻地（前往基地）', 'DESTINAZIONE (BASE D\'ARRIVO)', 'INDO PARA (NOVA INSTALAÇÃO)', 'BÁO CÁO ĐẾN (CĂN CỨ MỚI)'),
+  'DEPARTING DATE': tr('FECHA DE SALIDA', 'ABREISEDATUM', 'DATE DE DÉPART', '출발일', '出発日', 'PETSA NG PAGALIS', 'تاريخ المغادرة', '出发日期', 'DATA DI PARTENZA', 'DATA DE PARTIDA', 'NGÀY KHỞI HÀNH'),
+  'OCONUS — Overseas move detected': tr('OCONUS — Mudanza al extranjero detectada', 'OCONUS — Auslandsumzug erkannt', 'OCONUS — Déménagement à l\'étranger détecté', 'OCONUS — 해외 이동 감지', 'OCONUS — 海外移動を検出', 'OCONUS — Natukoy ang overseas move', 'OCONUS — تم اكتشاف انتقال للخارج', 'OCONUS — 检测到海外搬迁', 'OCONUS — Trasferimento all\'estero rilevato', 'OCONUS — Mudança internacional detectada', 'OCONUS — Phát hiện chuyển ra nước ngoài'),
+
+  // Common status & action words
+  'Auto-filled from profile': tr('Autocompletado del perfil', 'Aus Profil ausgefüllt', 'Rempli depuis le profil', '프로필에서 자동입력', 'プロフィールから自動入力', 'Auto-fill mula sa profile', 'تعبئة تلقائية من الملف', '从档案自动填写', 'Compilato automaticamente dal profilo', 'Preenchido pelo perfil', 'Tự điền từ hồ sơ'),
+  'Change': tr('Cambiar', 'Ändern', 'Modifier', '변경', '変更', 'Baguhin', 'تغيير', '更改', 'Cambia', 'Alterar', 'Thay đổi'),
+  'Reset': tr('Restablecer', 'Zurücksetzen', 'Réinitialiser', '초기화', 'リセット', 'I-reset', 'إعادة الضبط', '重置', 'Reimposta', 'Redefinir', 'Đặt lại'),
+  'Save': tr('Guardar', 'Speichern', 'Enregistrer', '저장', '保存', 'I-save', 'حفظ', '保存', 'Salva', 'Salvar', 'Lưu'),
+  'Loading...': tr('Cargando...', 'Lädt…', 'Chargement…', '로딩 중...', '読み込み中...', 'Naglo-load...', 'جاري التحميل...', '加载中...', 'Caricamento…', 'Carregando...', 'Đang tải...'),
+  'Today': tr('Hoy', 'Heute', 'Aujourd\'hui', '오늘', '今日', 'Ngayon', 'اليوم', '今天', 'Oggi', 'Hoje', 'Hôm nay'),
+  'Yesterday': tr('Ayer', 'Gestern', 'Hier', '어제', '昨日', 'Kahapon', 'أمس', '昨天', 'Ieri', 'Ontem', 'Hôm qua'),
+  'Apply': tr('Aplicar', 'Anwenden', 'Appliquer', '적용', '適用', 'Mag-apply', 'تطبيق', '应用', 'Applica', 'Aplicar', 'Áp dụng'),
+  'Cancel': tr('Cancelar', 'Abbrechen', 'Annuler', '취소', 'キャンセル', 'Kanselahin', 'إلغاء', '取消', 'Annulla', 'Cancelar', 'Hủy'),
+  'OK': tr('OK', 'OK', 'OK', '확인', 'OK', 'OK', 'موافق', '确定', 'OK', 'OK', 'OK'),
+  'Close': tr('Cerrar', 'Schließen', 'Fermer', '닫기', '閉じる', 'Isara', 'إغلاق', '关闭', 'Chiudi', 'Fechar', 'Đóng'),
+  'No results': tr('Sin resultados', 'Keine Ergebnisse', 'Aucun résultat', '결과 없음', '結果なし', 'Walang resulta', 'لا توجد نتائج', '无结果', 'Nessun risultato', 'Sem resultados', 'Không có kết quả'),
+  'Departing': tr('Saliendo', 'Abreise', 'Départ', '출발', '出発', 'Paalis', 'مغادرة', '离开', 'In partenza', 'Partindo', 'Khởi hành'),
+  'Arriving': tr('Llegando', 'Ankunft', 'Arrivée', '도착', '到着', 'Pagdating', 'وصول', '到达', 'In arrivo', 'Chegando', 'Đến'),
+  'Religion': tr('Religión', 'Religion', 'Religion', '종교', '宗教', 'Relihiyon', 'الدين', '宗教', 'Religione', 'Religião', 'Tôn giáo'),
+  'Faith': tr('Fe', 'Glaube', 'Foi', '신앙', '信仰', 'Pananampalataya', 'الإيمان', '信仰', 'Fede', 'Fé', 'Tín ngưỡng'),
+
+  // Calculator / housing context
+  'Your Estimated Monthly BAH': tr('Tu BAH mensual estimado', 'Ihre geschätzte monatliche BAH', 'Votre BAH mensuel estimé', '예상 월간 BAH', '推定月額BAH', 'Iyong estimated monthly BAH', 'BAH الشهري المقدر لك', '您的预估月度 BAH', 'BAH mensile stimato', 'Seu BAH mensal estimado', 'BAH hằng tháng dự tính của bạn'),
+  'YOUR ESTIMATED MONTHLY BAH': tr('TU BAH MENSUAL ESTIMADO', 'IHRE GESCHÄTZTE MONATLICHE BAH', 'VOTRE BAH MENSUEL ESTIMÉ', '예상 월간 BAH', '推定月額BAH', 'ESTIMATED MONTHLY BAH MO', 'BAH الشهري المقدر لك', '您的预估月度 BAH', 'BAH MENSILE STIMATO', 'SEU BAH MENSAL ESTIMADO', 'BAH HẰNG THÁNG DỰ TÍNH'),
+
+  // Privacy / security
+  'PCS Express uses a no-document-upload design': tr('PCS Express usa un diseño sin carga de documentos', 'PCS Express verwendet ein Design ohne Dokument-Upload', 'PCS Express utilise une conception sans téléversement de documents', 'PCS Express는 문서 업로드 없는 설계를 사용합니다', 'PCS Expressは書類アップロード不要の設計を採用', 'Walang document upload ang PCS Express', 'PCS Express يستخدم تصميماً بدون رفع وثائق', 'PCS Express 采用免文档上传的设计', 'PCS Express usa un design senza caricamento documenti', 'PCS Express usa design sem upload de documentos', 'PCS Express dùng thiết kế không tải tài liệu'),
 };
 
 const PHRASE_LOOKUP = Object.fromEntries(
@@ -568,9 +671,16 @@ function chooseFallback(original, lang, parent) {
   const compactRaw = compactText(original);
   const [marker, compact] = splitMarker(compactRaw);
   if (!looksLikeEnglish(compact)) return original;
-  // Strings > 40 chars without an exact PHRASES match are data content.
-  // The generic sentence fallback produces garbled output -- keep English.
-  if (compact.length > 40) return original;
+  // Cap raised from 40 → 150 chars so medium-length content gets a
+  // topic-localized rendering in the user's language instead of falling
+  // back to English. Tradeoff: the sentence is generic (built from
+  // topic + intent terms) and does not preserve the exact source
+  // wording, but the previous behavior of dropping back to English for
+  // anything >40 chars was reported as "language reverts to English".
+  // Strings >150 chars are paragraph content where the generic fallback
+  // diverges too far and would mislead — those stay in English and the
+  // TRANSLATION_BANNER advises users to use browser-level translation.
+  if (compact.length > 150) return original;
 
   const lower = compact.toLowerCase();
   const bundle = GENERIC[lang] || GENERIC.es;
