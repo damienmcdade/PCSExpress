@@ -21,6 +21,9 @@ import HomeLocatorTab from './components/HomeLocatorTab'
 import BaseIntelligenceReviews from './components/BaseIntelligenceReviews'
 import DynamicTimeline from './components/DynamicTimeline'
 import PPMFinancialEstimator from './components/PPMFinancialEstimator'
+import BAHCalculatorTab from './components/BAHCalculatorTab'
+import MoveBudgetTracker from './components/MoveBudgetTracker'
+import DutyStationDirectory from './components/DutyStationDirectory'
 import PrivacyShield from './components/PrivacyShield'
 import SyncStatusIndicator from './components/SyncStatusIndicator'
 import { AuditLogger, secureLocalStore, readLegacyJson } from './security/SecurityExtensions'
@@ -1286,72 +1289,465 @@ function veteranBusinessDiscoveryCards(installation) {
 const VETERAN_OWNED_BUSINESSES = {}; // Legacy static cards removed from rendering because several entries had no active source links.
 
 
-const PCS_CHECKLIST = {
-  "Orders Received": [
-    "Request official PCS orders from unit S1",
-    "Review orders for report date and gaining unit",
-    "Make copies of orders (keep 10+)",
-    "Notify current landlord/housing office",
-    "Begin home sale or lease termination process",
-    "Notify your chain of command",
-  ],
-  "90 Days Out": [
-    "Schedule transportation appointment (TMO/PPPO)",
-    "Create household goods inventory",
-    "Research gaining installation housing options",
-    "Apply for on-post housing at gaining installation",
-    "Research schools for children",
-    "Update vehicle registrations and insurance",
-    "Arrange POV shipment if going OCONUS",
-    "Begin passport/visa process if going OCONUS",
-  ],
-  "60 Days Out": [
-    "Schedule medical/dental appointments",
-    "Obtain medical and dental records",
-    "Update SGLI and beneficiary info",
-    "Obtain school records for children",
-    "Notify financial institutions of address change",
-    "Begin decluttering for household move",
-    "Research employment opportunities at gaining installation",
-    "Connect with gaining unit Family Readiness Group",
-  ],
-  "30 Days Out": [
-    "Confirm pack-out dates with moving company",
-    "Arrange lodging for travel days",
-    "Notify DEERS of upcoming move",
-    "Forward mail via USPS",
-    "Cancel or transfer local subscriptions/utilities",
-    "Settle any outstanding debts locally",
-    "Prepare vehicles for long-distance travel",
-    "Pack personal bag for travel (do not ship)",
-  ],
-  "Move Week": [
-    "Be present for household goods pack-out",
-    "Verify all items on inventory sheet",
-    "Photograph all rooms before departure",
-    "Do final walkthrough of residence",
-    "Return keys, base decals, and library books",
-    "Pick up cleared documents from unit",
-    "Ensure pets have travel documentation",
-    "Verify TRICARE coverage is active and transferable",
-    "Transfer TRICARE enrollment to gaining region (tricare.mil)",
-    "Check weather and route for travel day",
-  ],
-  "In-Processing": [
-    "Report to gaining unit by report date",
-    "Complete in-processing checklist at gaining unit S1",
-    "Obtain new base access credentials/decal",
-    "Set up bank account or update address at bank",
-    "Register children in schools",
-    "Transfer vehicles to new state registration",
-    "Set up new utilities",
-    "Schedule household goods delivery",
-    "Update ID cards if expiring",
-    "Register with new installation medical (MTF)",
-    "Enroll family in TRICARE at gaining installation's MTF",
-    "Verify TRICARE Prime/Select enrollment and dependents' coverage",
-  ],
+const BRANCH_PCS_CHECKLISTS = {
+  Army: {
+    "Orders Received": [
+      "Review PCS orders for accuracy — report date, gaining unit, special instructions",
+      "Make certified copies of orders (keep 10+ — finance, housing, schools require them)",
+      "Notify chain of command and request PCS leave (DA 31) immediately",
+      "Contact gaining unit S1 to be assigned a sponsor",
+      "Contact Army Community Service (ACS) sponsorship program at gaining post",
+      "Notify current landlord or installation housing office of departure",
+      "Begin home sale or lease termination process",
+      "Request Dislocation Allowance (DLA) paperwork from finance",
+      "Open Move Budget Tracker to set PCS spending plan",
+    ],
+    "90 Days Out": [
+      "Schedule TMO (Transportation Management Office) appointment — do this first, slots fill quickly",
+      "Create detailed household goods inventory with photos and video",
+      "Research gaining installation housing options on-post and off-post",
+      "Apply for on-post housing at gaining installation (waitlists can be 6+ months)",
+      "Request home search leave if entitled under JTR",
+      "Research schools for dependent children near gaining installation",
+      "Update vehicle registrations and insurance for new state",
+      "Arrange POV (privately owned vehicle) shipment if going OCONUS",
+      "Begin passport and visa process for family if going OCONUS",
+      "Research TRICARE network at new duty station via tricare.mil",
+      "Update SRB (Soldier Record Brief) at current unit",
+    ],
+    "60 Days Out": [
+      "Schedule all medical, dental, and vision appointments for family",
+      "Obtain sealed medical and dental records for all family members",
+      "Update SGLI beneficiary designations and check coverage amounts",
+      "Obtain school records for dependent children (sealed for transfer)",
+      "Notify all financial institutions of upcoming address change",
+      "Begin decluttering — sell, donate, or dispose of excess household goods",
+      "Research employment opportunities at gaining installation (Army Career Program)",
+      "Connect with gaining unit Family Readiness Group (FRG) online",
+      "Update drivers licenses and military ID cards before move",
+      "Arrange pet transport — obtain health certificates from vet (required 10 days before travel)",
+      "Complete IPPS-A records update at current S1",
+    ],
+    "30 Days Out": [
+      "Confirm pack-out dates and weight estimates with moving company via DPS",
+      "Arrange TLE (Temporary Lodging Expense) lodging at new duty station",
+      "Update DEERS with upcoming address change",
+      "Set up USPS mail forwarding at usps.com",
+      "Cancel or transfer local subscriptions, utilities, gym memberships",
+      "Settle all outstanding local debts and accounts",
+      "Service vehicles for long-distance travel (oil, tires, fluids)",
+      "Pack a personal travel bag for first 2 weeks — do not ship these items",
+      "Confirm per diem entitlements and TLE lodging reservations",
+      "Complete out-processing checklist at ACS, Transportation, Finance, Medical, Housing",
+      "Return all installation recreational equipment and library items",
+    ],
+    "Move Week": [
+      "Be present for the entire household goods pack-out — do not leave",
+      "Verify all items and condition on DPS inventory sheet — note exceptions immediately in writing",
+      "Photograph all rooms before and after pack-out for damage documentation",
+      "Do final walkthrough of residence and note pre-existing damage",
+      "Return all installation property: keys, decals, TA-50, sensitive items",
+      "Pick up all cleared documents from unit (medical, finance, HR, S1)",
+      "Verify all pets have current vaccination records and health certificates",
+      "Activate TRICARE transfer at tricare.mil before departure",
+      "File USPS, bank, IRS, and Social Security change of address",
+      "Check weather and plan alternate routes for travel day",
+    ],
+    "In-Processing": [
+      "Report to gaining unit by official report date on orders",
+      "Complete installation in-processing at gaining unit S1",
+      "Obtain new base access credentials (CAC) and vehicle decal",
+      "Update banking and direct deposit information at finance",
+      "Enroll children in local schools with transferred records",
+      "Transfer vehicle registrations to new state (30-day window typical)",
+      "Set up utilities at new residence",
+      "Schedule and be present for household goods delivery",
+      "Inspect all HHG for damage — file DPS claims within 9 months",
+      "Update DEERS with new address",
+      "Register with MTF (Military Treatment Facility) at gaining installation",
+      "Enroll family in TRICARE at gaining installation's MTF",
+      "Update emergency data records (DD 93) at gaining S1",
+      "Update SRB with gaining unit and new duty station information",
+      "Brief gaining chain of command within 24 hours of report date",
+    ],
+  },
+  Navy: {
+    "Orders Received": [
+      "Log into MyNavy HR portal and verify NAVPERS orders for accuracy",
+      "Contact gaining command sponsor program — request sponsor assignment",
+      "Notify current command immediately upon receipt of orders",
+      "Notify current landlord or installation housing office",
+      "Begin home sale or lease termination process",
+      "Request Dislocation Allowance (DLA) via pay office",
+      "Open Move Budget Tracker to set PCS spending plan",
+      "Download PCS orders from BOL (Bureau of Naval Personnel) if needed",
+    ],
+    "90 Days Out": [
+      "Submit DPS self-service booking via MyNavy Portal for HHG",
+      "Contact NAVPTO (Navy Personal Transportation Office) for transportation assistance",
+      "Create detailed household goods inventory with photos and video",
+      "Research gaining installation housing options on base and off",
+      "Apply for on-base housing at gaining installation (waitlists vary widely)",
+      "Request home search leave if entitled under JTR",
+      "Research schools for dependent children",
+      "Arrange POV shipment if going OCONUS",
+      "Begin passport and visa process for family if going OCONUS",
+      "Research TRICARE network at new duty station",
+    ],
+    "60 Days Out": [
+      "Schedule all medical, dental, and vision appointments for family",
+      "Obtain sealed medical and dental records for all family members",
+      "Update SGLI beneficiary designations",
+      "Obtain school records for dependent children",
+      "Notify all financial institutions of upcoming address change",
+      "Begin decluttering household goods",
+      "Update NAVPERS 1070/605 (Admin Page 2) at current command",
+      "Review BAH/OHA authorization in advance with pay office",
+      "Connect with gaining command Ombudsman or Family Support Group",
+      "Arrange pet transport if needed",
+    ],
+    "30 Days Out": [
+      "Confirm HHG pack-out dates with moving company",
+      "Arrange TLE lodging at new duty station",
+      "Update DEERS with upcoming address change",
+      "Set up USPS mail forwarding",
+      "Cancel or transfer local subscriptions and utilities",
+      "Settle outstanding local debts",
+      "Service vehicles for long-distance travel",
+      "Pack personal travel bag for first 2 weeks — do not ship",
+      "Contact PSC (Personnel Support Center) for final pay entitlements verification",
+      "Complete Navy out-processing checklist at current command",
+    ],
+    "Move Week": [
+      "Be present for entire household goods pack-out",
+      "Verify all items on DPS inventory — note exceptions in writing immediately",
+      "Photograph all rooms before and after pack-out",
+      "Return all command and installation property",
+      "Submit final departure report — update MOL (Marine Online Navy equivalent)",
+      "Pick up all cleared documents from command",
+      "Verify all pets have current vaccination records",
+      "Activate TRICARE transfer at tricare.mil",
+      "File change of address with USPS, banks, IRS",
+      "Check weather and alternate routes for travel day",
+    ],
+    "In-Processing": [
+      "Report to gaining command by official report date",
+      "Sign in via PRIMS at gaining command (Personnel Records Information Management System)",
+      "Obtain new base access credentials and vehicle decal",
+      "Update banking and direct deposit at finance",
+      "Enroll children in local schools",
+      "Transfer vehicle registrations to new state",
+      "Set up utilities at new residence",
+      "Schedule household goods delivery",
+      "Inspect HHG for damage — file DPS claims within 9 months",
+      "Update DEERS with new address",
+      "Register with MTF at gaining installation — enroll in TRICARE",
+      "Complete Medical and Legal in-processing requirements at gaining command",
+      "Update Page 2 (NAVPERS 1070/602) at gaining Personnel Office",
+      "Brief gaining chain of command within 24 hours of report date",
+    ],
+  },
+  "Marine Corps": {
+    "Orders Received": [
+      "Log into MOL (Marine Online) and verify MMIA (Manpower Management Information Activity) assignment",
+      "Contact gaining unit IPAC (Installation Personnel Administration Center)",
+      "Request command sponsor from gaining unit",
+      "Notify current command immediately upon receipt of orders",
+      "Notify current landlord or installation housing office",
+      "Begin home sale or lease termination process",
+      "Request DLA (Dislocation Allowance) paperwork from finance",
+      "Open Move Budget Tracker to set PCS spending plan",
+    ],
+    "90 Days Out": [
+      "Schedule TMO via base transportation office — book early",
+      "Create detailed household goods inventory with photos and video",
+      "Request SNCOIC or administrative briefing at IPAC",
+      "Research gaining installation housing (Corporals Course waitlist advice varies by station)",
+      "Apply for on-base housing at gaining installation",
+      "Request home search leave if entitled",
+      "Research schools for dependent children",
+      "Arrange POV shipment if going OCONUS",
+      "Begin passport and visa process for family if going OCONUS",
+      "Research TRICARE at new duty station",
+    ],
+    "60 Days Out": [
+      "Schedule all medical, dental, and vision appointments",
+      "Obtain sealed medical and dental records for all family members",
+      "Update SGLI beneficiary designations",
+      "Obtain school records for dependent children",
+      "Update Service Record Book (SRB) and verify OMPF is current",
+      "Notify financial institutions of upcoming address change",
+      "Begin decluttering household goods",
+      "Connect with gaining unit Key Volunteer Network (KVN)",
+      "Arrange pet transport if needed",
+      "Research MCCS employment resources at gaining station",
+    ],
+    "30 Days Out": [
+      "Confirm HHG pack-out dates and weight with moving company",
+      "Arrange TLE lodging at new duty station",
+      "Update DEERS with upcoming address change",
+      "Set up USPS mail forwarding",
+      "Cancel or transfer local subscriptions and utilities",
+      "Complete out-processing via MOL Out-Processing checklist",
+      "Service vehicles for long-distance travel",
+      "Pack personal travel bag for first 2 weeks — do not ship",
+      "Verify DLA and travel entitlements with finance",
+    ],
+    "Move Week": [
+      "Be present for entire household goods pack-out",
+      "Verify all items on DPS inventory — note exceptions in writing immediately",
+      "Photograph all rooms before and after pack-out",
+      "Return all Marine Corps equipment via Supply warehouse",
+      "Return base property: keys, decals, range cards, sensitive items",
+      "Pick up all cleared documents from unit",
+      "Verify all pets have current vaccination records",
+      "Activate TRICARE transfer at tricare.mil",
+      "File change of address with USPS, banks, IRS",
+      "Check weather and alternate routes for travel day",
+    ],
+    "In-Processing": [
+      "Report to IPAC at gaining installation for PCS in-processing",
+      "Report to gaining unit within 24 hours of arrival",
+      "Obtain new base access credentials (CAC) and vehicle decal",
+      "Update banking and direct deposit at finance",
+      "Enroll children in DoDEA or local schools",
+      "Transfer vehicle registrations to new state",
+      "Set up utilities at new residence",
+      "Schedule household goods delivery",
+      "Inspect HHG for damage — file DPS claims within 9 months",
+      "Update DEERS with new address",
+      "Register with MTF at gaining installation — enroll in TRICARE",
+      "Update Page 2 (NAVMC 118(3)) at IPAC",
+      "Check in with MCCS for family support services",
+      "Brief gaining chain of command",
+    ],
+  },
+  "Air Force": {
+    "Orders Received": [
+      "Log into myPers portal (mypers.us.af.mil) and verify orders",
+      "Contact gaining unit sponsor program for sponsor assignment",
+      "Notify current unit and commander upon receipt of orders",
+      "Notify current landlord or installation housing office",
+      "Begin home sale or lease termination process",
+      "Request DLA (Dislocation Allowance) via finance office",
+      "Open Move Budget Tracker to set PCS spending plan",
+      "Review AF Form 4380 PCS Travel Planning requirements",
+    ],
+    "90 Days Out": [
+      "Schedule TMO appointment via Air Force TMO portal — do this first",
+      "Create detailed household goods inventory with photos and video",
+      "Research gaining installation housing via Housing Referral Office",
+      "Apply for on-base housing at gaining installation",
+      "Request home search leave if entitled under JTR",
+      "Research schools for dependent children",
+      "Update vehicle registrations and insurance",
+      "Arrange POV shipment if going OCONUS",
+      "Begin passport and visa process for family if going OCONUS",
+      "Research TRICARE network at new duty station",
+    ],
+    "60 Days Out": [
+      "Schedule all medical, dental, and vision appointments",
+      "Obtain sealed medical and dental records for all family members",
+      "Update SGLI beneficiary designations",
+      "Obtain school records for dependent children",
+      "Notify financial institutions of upcoming address change",
+      "Begin decluttering household goods",
+      "Update records in myPers and verify assignment data is correct",
+      "Connect with gaining unit Key Spouse or Airman/Guardian Family Program",
+      "Arrange pet transport if needed",
+      "Research AFAS (Air Force Aid Society) at gaining installation",
+    ],
+    "30 Days Out": [
+      "Confirm HHG pack-out dates and weight",
+      "Arrange TLE lodging at new duty station via billeting",
+      "Update DEERS with upcoming address change",
+      "Set up USPS mail forwarding",
+      "Cancel or transfer local subscriptions and utilities",
+      "Schedule out-processing through Airman/Guardian & Family Readiness Center",
+      "Service vehicles for long-distance travel",
+      "Pack personal travel bag for first 2 weeks — do not ship",
+      "Verify per diem and DLA entitlements with finance",
+    ],
+    "Move Week": [
+      "Be present for entire household goods pack-out",
+      "Verify all items on DPS inventory — note exceptions in writing immediately",
+      "Photograph all rooms before and after pack-out",
+      "Return all Air Force/Space Force property: keys, decals, equipment",
+      "Pick up all cleared documents from unit",
+      "Verify all pets have current vaccination records",
+      "Activate TRICARE transfer at tricare.mil",
+      "File change of address with USPS, banks, IRS",
+      "Check weather and alternate routes for travel day",
+    ],
+    "In-Processing": [
+      "Report to gaining unit by official report date on orders",
+      "Complete in-processing with MPF (Military Personnel Flight) at gaining base",
+      "Obtain new base access credentials and vehicle decal",
+      "Update banking and direct deposit at finance",
+      "Enroll children in DoDEA or local schools",
+      "Transfer vehicle registrations to new state",
+      "Set up utilities at new residence",
+      "Schedule household goods delivery",
+      "Inspect HHG for damage — file DPS claims within 9 months",
+      "Update DEERS with new address",
+      "Register with MTF at gaining installation — enroll in TRICARE",
+      "Update PRSD (Personnel Records) at gaining MPF",
+      "Brief gaining chain of command within 24 hours of report date",
+      "Check in with Airman & Family Readiness Center at gaining base",
+    ],
+  },
+  "Space Force": {
+    "Orders Received": [
+      "Log into myPers portal and verify Space Force assignment orders",
+      "Contact gaining unit sponsor program for Guardian sponsor assignment",
+      "Notify current unit and commander upon receipt of orders",
+      "Notify current landlord or installation housing office",
+      "Begin home sale or lease termination process",
+      "Request DLA (Dislocation Allowance) via finance office",
+      "Open Move Budget Tracker to set PCS spending plan",
+    ],
+    "90 Days Out": [
+      "Schedule TMO appointment via base transportation — do this first",
+      "Create detailed household goods inventory with photos and video",
+      "Research gaining installation housing options",
+      "Apply for on-base housing at gaining installation",
+      "Request home search leave if entitled",
+      "Research schools for dependent children",
+      "Update vehicle registrations and insurance",
+      "Arrange POV shipment if going OCONUS",
+      "Begin passport and visa process for family if going OCONUS",
+      "Research TRICARE network at new duty station",
+    ],
+    "60 Days Out": [
+      "Schedule all medical, dental, and vision appointments",
+      "Obtain sealed medical and dental records for all family members",
+      "Update SGLI beneficiary designations",
+      "Obtain school records for dependent children",
+      "Notify financial institutions of upcoming address change",
+      "Update records in myPers — verify Guardian assignment data",
+      "Begin decluttering household goods",
+      "Connect with gaining unit Guardian family support resources",
+      "Arrange pet transport if needed",
+    ],
+    "30 Days Out": [
+      "Confirm HHG pack-out dates and weight",
+      "Arrange TLE lodging at new duty station",
+      "Update DEERS with upcoming address change",
+      "Set up USPS mail forwarding",
+      "Cancel or transfer local subscriptions and utilities",
+      "Complete out-processing at current installation",
+      "Service vehicles for long-distance travel",
+      "Pack personal travel bag for first 2 weeks — do not ship",
+      "Verify per diem and DLA entitlements with finance",
+    ],
+    "Move Week": [
+      "Be present for entire household goods pack-out",
+      "Verify all items on DPS inventory sheet — note exceptions in writing",
+      "Photograph all rooms before and after pack-out",
+      "Return all Space Force/Air Force property at current installation",
+      "Pick up all cleared documents from unit",
+      "Verify pets have current vaccination records",
+      "Activate TRICARE transfer at tricare.mil",
+      "File change of address with USPS, banks, IRS",
+      "Check weather and alternate routes for travel day",
+    ],
+    "In-Processing": [
+      "Report to gaining unit by official report date on orders",
+      "Complete in-processing with MPF at gaining installation",
+      "Obtain new base access credentials and vehicle decal",
+      "Update banking and direct deposit at finance",
+      "Enroll children in schools with transferred records",
+      "Transfer vehicle registrations to new state",
+      "Set up utilities at new residence",
+      "Schedule household goods delivery",
+      "Inspect HHG for damage — file DPS claims within 9 months",
+      "Update DEERS with new address",
+      "Register with MTF and enroll in TRICARE",
+      "Update Guardian personnel records at gaining MPF",
+      "Brief gaining chain of command within 24 hours",
+    ],
+  },
+  "Coast Guard": {
+    "Orders Received": [
+      "Log into Direct Access (CGOne) and verify assignment orders",
+      "Contact PSC-RPM (Personnel Service Center — Recruiting and Permanent Change of Station) for entitlements",
+      "Contact gaining unit and request sponsor assignment",
+      "Notify current CO (Commanding Officer) upon receipt of orders",
+      "Notify current landlord or installation housing office",
+      "Begin home sale or lease termination process",
+      "Request DLA (Dislocation Allowance) via finance",
+      "Open Move Budget Tracker to set PCS spending plan",
+    ],
+    "90 Days Out": [
+      "Contact Assignment Officer (AO) at PSC to confirm PCS entitlements",
+      "Schedule TMO appointment for household goods pickup",
+      "Create detailed household goods inventory with photos and video",
+      "Research gaining unit housing options on base and off",
+      "Apply for on-base housing if available at gaining installation",
+      "Request home search leave if entitled",
+      "Research schools for dependent children",
+      "Arrange POV shipment if going OCONUS",
+      "Begin passport and visa process for family if going OCONUS",
+      "Research TRICARE network at new duty station",
+    ],
+    "60 Days Out": [
+      "Schedule all medical, dental, and vision appointments",
+      "Obtain sealed medical and dental records for all family members",
+      "Update SGLI beneficiary designations",
+      "Obtain school records for dependent children",
+      "Update Direct Access payroll data — verify BAH/OHA authorization",
+      "Notify financial institutions of upcoming address change",
+      "Begin decluttering household goods",
+      "Connect with gaining unit Work-Life staff or Family Support",
+      "Arrange pet transport if needed",
+      "Contact CGMAHQ (Coast Guard Mutual Assistance) for transition support",
+    ],
+    "30 Days Out": [
+      "Confirm HHG pack-out dates and weight",
+      "Arrange TLE lodging at new duty station",
+      "Update DEERS with upcoming address change",
+      "Set up USPS mail forwarding",
+      "Cancel or transfer local subscriptions and utilities",
+      "Complete Coast Guard outprocessing checklist at current unit",
+      "Service vehicles for long-distance travel",
+      "Pack personal travel bag for first 2 weeks — do not ship",
+      "Verify per diem and DLA entitlements with finance",
+    ],
+    "Move Week": [
+      "Be present for entire household goods pack-out",
+      "Verify all items on inventory sheet — note exceptions in writing immediately",
+      "Photograph all rooms before and after pack-out",
+      "Return all Coast Guard equipment to unit supply",
+      "Return base property: keys, decals, library materials",
+      "Pick up all cleared documents from unit",
+      "Verify pets have current vaccination records and health certificates",
+      "Activate TRICARE transfer at tricare.mil",
+      "File change of address with USPS, banks, IRS",
+      "Check weather and alternate routes for travel day",
+    ],
+    "In-Processing": [
+      "Report to gaining unit by official report date on orders",
+      "Sign into Direct Access at gaining unit to complete administrative check-in",
+      "Complete Administrative In-processing Checklist at gaining command",
+      "Obtain new base access credentials and vehicle decal",
+      "Update banking and direct deposit at finance",
+      "Enroll children in local schools with transferred records",
+      "Transfer vehicle registrations to new state",
+      "Set up utilities at new residence",
+      "Schedule household goods delivery",
+      "Inspect HHG for damage — file DPS claims within 9 months",
+      "Update DEERS with new address",
+      "Register with MTF or civilian provider and enroll in TRICARE",
+      "Brief gaining chain of command within 24 hours of arrival",
+    ],
+  },
 };
+
+function getBranchChecklist(branch) {
+  return BRANCH_PCS_CHECKLISTS[branch] || BRANCH_PCS_CHECKLISTS['Army'];
+}
+
+const PCS_CHECKLIST = getBranchChecklist('Army');
 
 const SCHOOL_DISTRICTS = {
   'Fort Liberty NC': { name: 'Cumberland County Schools', ages: 'K-12', rating: 4.5 },
@@ -1557,7 +1953,8 @@ function StarRating({ rating }) {
 }
 
 function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
-  const [activePhase, setActivePhase] = useState(Object.keys(PCS_CHECKLIST)[0]);
+  const branchChecklist = getBranchChecklist(profile?.branch || 'Army');
+  const [activePhase, setActivePhase] = useState(Object.keys(branchChecklist)[0]);
 
   const daysUntil = getDaysUntilDeparture(profile?.departingDate);
 
@@ -1571,7 +1968,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
     });
   };
 
-  const allTasks = Object.entries(PCS_CHECKLIST).flatMap(([phase, tasks]) => tasks.map((_, i) => `${phase}-${i}`));
+  const allTasks = Object.entries(branchChecklist).flatMap(([phase, tasks]) => tasks.map((_, i) => `${phase}-${i}`));
   const done = allTasks.filter(k => checklistItems[k]).length;
   const pct = allTasks.length ? Math.round((done / allTasks.length) * 100) : 0;
 
@@ -1579,7 +1976,13 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
 
   return (
     <div style={{ padding: 16 }}>
-      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 16 }}>PCS Checklist</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821' }}>PCS Checklist</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ fontSize: 10, fontWeight: 900, background: theme.primary, color: '#FFF', borderRadius: 6, padding: '3px 8px', letterSpacing: '.06em' }}>{profile?.branch || 'Army'}</div>
+          <div style={{ fontSize: 10, color: '#56697C', fontWeight: 600 }}>{allTasks.length} tasks</div>
+        </div>
+      </div>
       <DynamicTimeline theme={theme} profile={profile} />
 
       {/* Overdue warning banner */}
@@ -1618,8 +2021,8 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
 
       {/* Phase tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
-        {Object.keys(PCS_CHECKLIST).map(phase => {
-          const phaseTasks = PCS_CHECKLIST[phase].map((_, i) => `${phase}-${i}`);
+        {Object.keys(branchChecklist).map(phase => {
+          const phaseTasks = branchChecklist[phase].map((_, i) => `${phase}-${i}`);
           const phaseDone = phaseTasks.filter(k => checklistItems[k]).length;
           const phaseOverdue = daysUntil !== null && PHASE_WINDOWS[phase] && daysUntil < PHASE_WINDOWS[phase].overdueAt && phaseDone < phaseTasks.length;
           return (
@@ -1632,7 +2035,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
 
       {/* Tasks */}
       <div>
-        {PCS_CHECKLIST[activePhase].map((task, i) => {
+        {(branchChecklist[activePhase] || []).map((task, i) => {
           const checked = !!checklistItems[`${activePhase}-${i}`];
           const taskOverdue = phaseIsOverdue && !checked;
           return (
@@ -4626,19 +5029,37 @@ function VAHomeLoanPanel({ theme, profile }) {
 function HomeRelocationUnifiedTab({ theme, profile }) {
   const tabs = [
     { id: 'home-locator', label: 'Home Locator' },
+    { id: 'bah-calculator', label: 'BAH Calculator' },
+    { id: 'ppm-estimator', label: 'PPM Estimator' },
+    { id: 'budget-tracker', label: 'Budget Tracker' },
     { id: 'inventory-claims', label: 'Inventory & Claims' },
     { id: 'move-aid', label: 'Move Aid' },
-    { id: 'ppm-estimator', label: 'PPM Estimator' },
     { id: 'va-loan', label: 'VA Loan' },
   ];
   const [tab, setTab] = useState('home-locator');
   return (
     <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
       {tab === 'home-locator' && <HomeLocatorTab theme={theme} profile={profile} />}
+      {tab === 'bah-calculator' && <BAHCalculatorTab theme={theme} profile={profile} />}
+      {tab === 'ppm-estimator' && <PPMFinancialEstimator theme={theme} profile={profile} />}
+      {tab === 'budget-tracker' && <MoveBudgetTracker theme={theme} profile={profile} />}
       {tab === 'inventory-claims' && <HomeRelocationTab theme={theme} profile={profile} />}
       {tab === 'move-aid' && <MovingFinancialAssistanceTab theme={theme} profile={profile} />}
-      {tab === 'ppm-estimator' && <PPMFinancialEstimator theme={theme} profile={profile} />}
       {tab === 'va-loan' && <VAHomeLoanPanel theme={theme} profile={profile} />}
+    </CategoryTabShell>
+  );
+}
+
+function BaseIntelligenceUnifiedTab({ theme, profile }) {
+  const tabs = [
+    { id: 'directory', label: 'Duty Station Directory' },
+    { id: 'reviews', label: 'Community Reviews' },
+  ];
+  const [tab, setTab] = useState('directory');
+  return (
+    <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
+      {tab === 'directory' && <DutyStationDirectory theme={theme} profile={profile} />}
+      {tab === 'reviews' && <BaseIntelligenceReviews theme={theme} profile={profile} />}
     </CategoryTabShell>
   );
 }
@@ -4787,14 +5208,14 @@ function App() {
     ? Object.entries(PHASE_WINDOWS)
         .filter(([phase, win]) => {
           if (daysUntilDeparture === null || daysUntilDeparture > win.activeAt) return false;
-          const tasks = PCS_CHECKLIST[phase] || [];
+          const tasks = (getBranchChecklist(profile?.branch || 'Army')[phase]) || [];
           return tasks.some((_, i) => !checklistItems[`${phase}-${i}`]);
         })
         .map(([phase, win]) => ({
           phase,
           overdue: daysUntilDeparture < win.overdueAt,
           daysUntil: daysUntilDeparture,
-          count: (PCS_CHECKLIST[phase] || []).filter((_, i) => !checklistItems[`${phase}-${i}`]).length,
+          count: ((getBranchChecklist(profile?.branch || 'Army')[phase]) || []).filter((_, i) => !checklistItems[`${phase}-${i}`]).length,
         }))
     : [];
   const overdueCount = pendingAlerts.filter(a => a.overdue).length;
@@ -5186,7 +5607,7 @@ function App() {
           </div>
         )}
 
-        {activeTab === 'base-intelligence' && renderCategoryFrame('base-intelligence', <BaseIntelligenceReviews theme={theme} profile={profile} />)}
+        {activeTab === 'base-intelligence' && renderCategoryFrame('base-intelligence', <BaseIntelligenceUnifiedTab theme={theme} profile={profile} />)}
         {activeTab === 'checklist' && renderCategoryFrame('checklist', <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />)}
         {activeTab === 'documents' && renderCategoryFrame('documents', <PCSDocumentsModule theme={theme} profile={profile} />)}
         {activeTab === 'education' && renderCategoryFrame('education', <EducationBenefitsTab theme={theme} profile={profile} />)}
