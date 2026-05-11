@@ -1121,6 +1121,157 @@ const INSTALLATION_SCHOOLS = {
     { name: "Misawa Middle School (DoDEA)", grades: "6-8", rating: 4.2, desc: "DoDEA school at Misawa AB, northern Japan. Serves F-16/P-8 wing families. Small, tight-knit campus.", url: "", city: "Misawa, Japan" },
     { name: "Sollars Elementary School (DoDEA)", grades: "K-5", rating: 4.3, desc: "DoDEA elementary at Misawa AB. Fully accredited. Strong support for military family PCS transitions.", url: "", city: "Misawa, Japan" },
   ],
+  "USAG Stuttgart": [
+    { name: "Stuttgart High School (DoDEA)", grades: "9-12", rating: 4.7, desc: "DoDEA Europe HS in Böblingen. AP, IB, JROTC, athletics. Frequently ranked among DoDEA top performers.", url: "", city: "Böblingen, Germany" },
+    { name: "Patch Elementary School (DoDEA)", grades: "K-5", rating: 4.6, desc: "On-post DoDEA elementary at Patch Barracks. Strong academic services and special education support.", url: "", city: "Stuttgart, Germany" },
+    { name: "Böblingen Elementary / Middle School (DoDEA)", grades: "K-8", rating: 4.5, desc: "DoDEA school serving Stuttgart military community. Many State Department and contractor families also enrolled.", url: "", city: "Böblingen, Germany" },
+  ],
+  "USAG Wiesbaden": [
+    { name: "Wiesbaden High School (DoDEA)", grades: "9-12", rating: 4.6, desc: "DoDEA Europe HS at Wiesbaden Army Garrison. Strong academics, IB programme, robust sports and arts.", url: "", city: "Wiesbaden, Germany" },
+    { name: "Hainerberg Elementary (DoDEA)", grades: "K-5", rating: 4.5, desc: "DoDEA elementary at Hainerberg Housing Area. Highly rated; strong PCS transition support.", url: "", city: "Wiesbaden, Germany" },
+    { name: "Aukamm Elementary (DoDEA)", grades: "K-5", rating: 4.5, desc: "DoDEA elementary at Aukamm Housing Area. Smaller campus, tight-knit community.", url: "", city: "Wiesbaden, Germany" },
+  ],
+  "USAG Bavaria": [
+    { name: "Vilseck High School (DoDEA)", grades: "9-12", rating: 4.4, desc: "DoDEA HS serving Vilseck/Grafenwoehr community. Rural Bavarian setting.", url: "", city: "Vilseck, Germany" },
+    { name: "Grafenwoehr Elementary (DoDEA)", grades: "K-5", rating: 4.5, desc: "DoDEA elementary at Grafenwoehr. Strong DoDEA standards.", url: "", city: "Grafenwoehr, Germany" },
+  ],
+  "USAG Italy": [
+    { name: "Vicenza High School (DoDEA)", grades: "9-12", rating: 4.6, desc: "DoDEA Europe HS at Del Din. Italian-American cultural exchange opportunities. Strong academics.", url: "", city: "Vicenza, Italy" },
+    { name: "Vicenza Middle School (DoDEA)", grades: "6-8", rating: 4.5, desc: "DoDEA middle school at Vicenza. Solid academics, AVID program for college prep.", url: "", city: "Vicenza, Italy" },
+    { name: "Del Din Elementary (DoDEA)", grades: "K-5", rating: 4.6, desc: "DoDEA elementary at Caserma Del Din. Excellent transition support for PCS families.", url: "", city: "Vicenza, Italy" },
+  ],
+  "USAG Humphreys": [
+    { name: "Humphreys High School (DoDEA)", grades: "9-12", rating: 4.6, desc: "DoDEA Pacific HS at Camp Humphreys. AP courses, dual enrollment, strong athletics.", url: "", city: "Pyeongtaek, South Korea" },
+    { name: "Humphreys Middle School (DoDEA)", grades: "6-8", rating: 4.4, desc: "DoDEA MS at Camp Humphreys. Newer facilities; rapidly growing student body.", url: "", city: "Pyeongtaek, South Korea" },
+    { name: "Humphreys Central Elementary (DoDEA)", grades: "K-5", rating: 4.5, desc: "DoDEA elementary at Camp Humphreys. Strong support for transient military families.", url: "", city: "Pyeongtaek, South Korea" },
+  ],
+  "USAG Daegu": [
+    { name: "Daegu American High School (DoDEA)", grades: "9-12", rating: 4.4, desc: "DoDEA HS serving Daegu enclave. Smaller community campus.", url: "", city: "Daegu, South Korea" },
+    { name: "Daegu Elementary (DoDEA)", grades: "K-5", rating: 4.4, desc: "DoDEA elementary at Camp Walker. Strong family services.", url: "", city: "Daegu, South Korea" },
+  ],
+  "NAS Whidbey Island": [
+    { name: "Oak Harbor High School", grades: "9-12", rating: 4.2, desc: "Oak Harbor SD high school with strong military family services. Variety of CTE and AP options.", url: "", city: "Oak Harbor, WA" },
+    { name: "North Whidbey Middle School", grades: "6-8", rating: 4.1, desc: "Oak Harbor SD middle school with active military family liaison. Music and athletics programs.", url: "", city: "Oak Harbor, WA" },
+    { name: "Crescent Harbor Elementary", grades: "K-5", rating: 4.3, desc: "Oak Harbor SD elementary serving NAS Whidbey families. Strong parent involvement.", url: "", city: "Oak Harbor, WA" },
+  ],
+  "NS Bremerton": [
+    { name: "Central Kitsap High School", grades: "9-12", rating: 4.3, desc: "Central Kitsap SD school serving NS Bremerton/Bangor families. Strong AP and AVID programs.", url: "", city: "Silverdale, WA" },
+    { name: "Bremerton High School", grades: "9-12", rating: 3.9, desc: "Bremerton SD high school with active military family services.", url: "", city: "Bremerton, WA" },
+    { name: "Brownsville Elementary", grades: "K-5", rating: 4.3, desc: "Central Kitsap SD elementary with high military enrollment. Strong PCS transition support.", url: "", city: "Bremerton, WA" },
+  ],
+  "NAS North Island": [
+    { name: "Coronado High School", grades: "9-12", rating: 4.7, desc: "Coronado USD high school. Highly rated; substantial military family enrollment.", url: "", city: "Coronado, CA" },
+    { name: "Coronado Middle School", grades: "6-8", rating: 4.6, desc: "Coronado USD middle school. Strong academics with island community feel.", url: "", city: "Coronado, CA" },
+    { name: "Silver Strand Elementary", grades: "K-5", rating: 4.5, desc: "Coronado USD elementary on the Silver Strand. Many Navy families.", url: "", city: "Coronado, CA" },
+  ],
+  "NS San Diego": [
+    { name: "Hilltop High School", grades: "9-12", rating: 4.2, desc: "Sweetwater UHSD school serving Chula Vista military families. Strong CTE programs.", url: "", city: "Chula Vista, CA" },
+    { name: "Chula Vista Middle School", grades: "6-8", rating: 4.0, desc: "Chula Vista Elementary district school. Active military family liaison.", url: "", city: "Chula Vista, CA" },
+    { name: "Loma Verde Elementary", grades: "K-5", rating: 4.3, desc: "Chula Vista Elementary district school. High military enrollment.", url: "", city: "Chula Vista, CA" },
+  ],
+  "NAS Lemoore": [
+    { name: "Lemoore High School", grades: "9-12", rating: 4.0, desc: "Lemoore UHSD school with strong military family services. Active JROTC and athletics.", url: "", city: "Lemoore, CA" },
+    { name: "Lemoore Middle School", grades: "6-8", rating: 3.9, desc: "Lemoore Union Elementary district MS. Military family liaison on staff.", url: "", city: "Lemoore, CA" },
+  ],
+  "NS Everett": [
+    { name: "Cascade High School", grades: "9-12", rating: 4.3, desc: "Everett SD high school. Strong AP and arts programs. Military family liaison.", url: "", city: "Everett, WA" },
+    { name: "Eisenhower Middle School", grades: "6-8", rating: 4.2, desc: "Everett SD middle school with active military family services.", url: "", city: "Everett, WA" },
+  ],
+  "MCB Hawaii": [
+    { name: "Mokapu Elementary (DoDEA)", grades: "K-5", rating: 4.5, desc: "DoDEA elementary at MCB Hawaii Kaneohe Bay. Strong PCS transition support, multicultural community.", url: "", city: "Kaneohe, HI" },
+    { name: "Kailua High School", grades: "9-12", rating: 4.2, desc: "Hawaii DOE school serving MCB Hawaii families. Beach proximity, surf culture.", url: "", city: "Kailua, HI" },
+    { name: "Aikahi Elementary", grades: "K-5", rating: 4.4, desc: "Hawaii DOE elementary in Kailua. High military enrollment.", url: "", city: "Kailua, HI" },
+  ],
+  "MCAS Beaufort": [
+    { name: "Beaufort High School", grades: "9-12", rating: 4.2, desc: "Beaufort County SD high school. Strong academics; serves military and civilian families.", url: "", city: "Beaufort, SC" },
+    { name: "Lady's Island Middle School", grades: "6-8", rating: 4.1, desc: "Beaufort County SD middle school. Active military family liaison.", url: "", city: "Lady's Island, SC" },
+  ],
+  "Patrick SFB": [
+    { name: "Cocoa Beach Junior/Senior High", grades: "7-12", rating: 4.5, desc: "Brevard County SD school. Strong academics; surfers' culture. Space Coast amenities.", url: "", city: "Cocoa Beach, FL" },
+    { name: "Roosevelt Elementary", grades: "K-6", rating: 4.4, desc: "Brevard County SD elementary serving Patrick SFB families.", url: "", city: "Cocoa Beach, FL" },
+  ],
+  "Mountain Home AFB": [
+    { name: "Mountain Home Senior High School", grades: "9-12", rating: 4.0, desc: "Mountain Home SD school with active military family services.", url: "", city: "Mountain Home, ID" },
+    { name: "Stephensen Elementary", grades: "K-5", rating: 4.1, desc: "Mountain Home SD elementary near AFB. High military enrollment.", url: "", city: "Mountain Home, ID" },
+  ],
+  "Holloman AFB": [
+    { name: "Alamogordo High School", grades: "9-12", rating: 4.0, desc: "Alamogordo Public Schools HS. Active military family services.", url: "", city: "Alamogordo, NM" },
+    { name: "Holloman Middle School", grades: "6-8", rating: 3.9, desc: "On-base DoDEA-affiliated middle school serving Holloman families.", url: "", city: "Holloman AFB, NM" },
+  ],
+  "Kirtland AFB": [
+    { name: "La Cueva High School", grades: "9-12", rating: 4.6, desc: "Albuquerque Public Schools school in the highest-rated APS zone. AP and IB programs.", url: "", city: "Albuquerque, NM" },
+    { name: "Eldorado High School", grades: "9-12", rating: 4.4, desc: "Albuquerque Public Schools school in NE Heights. Many Kirtland families zoned here.", url: "", city: "Albuquerque, NM" },
+  ],
+  "Maxwell AFB": [
+    { name: "Maxwell Air Force Base Elementary/Middle (DoDEA)", grades: "K-8", rating: 4.4, desc: "DoDEA on-base school at Maxwell AFB. Strong academics and PCS family support.", url: "", city: "Montgomery, AL" },
+    { name: "Prattville High School", grades: "9-12", rating: 4.1, desc: "Autauga County BOE school. Many Maxwell families choose Prattville for schools.", url: "", city: "Prattville, AL" },
+  ],
+  "Cannon AFB": [
+    { name: "Clovis High School", grades: "9-12", rating: 3.9, desc: "Clovis Municipal Schools HS. Active military family liaison.", url: "", city: "Clovis, NM" },
+    { name: "Lockwood Elementary", grades: "K-5", rating: 4.0, desc: "Clovis Municipal Schools elementary near Cannon AFB.", url: "", city: "Clovis, NM" },
+  ],
+  "F.E. Warren AFB": [
+    { name: "Central High School", grades: "9-12", rating: 4.2, desc: "Laramie County SD 1 high school. AP and IB programs. Active military family services.", url: "", city: "Cheyenne, WY" },
+    { name: "Freedom Elementary", grades: "K-5", rating: 4.3, desc: "Laramie County SD 1 elementary serving F.E. Warren AFB families.", url: "", city: "Cheyenne, WY" },
+  ],
+  "Grand Forks AFB": [
+    { name: "Grand Forks Central High School", grades: "9-12", rating: 4.1, desc: "Grand Forks Public Schools HS. Active military family services.", url: "", city: "Grand Forks, ND" },
+    { name: "Grand Forks AFB Elementary (DoDEA)", grades: "K-5", rating: 4.2, desc: "DoDEA-affiliated on-base elementary.", url: "", city: "Grand Forks, ND" },
+  ],
+  "Tyndall AFB": [
+    { name: "Mosley High School", grades: "9-12", rating: 4.1, desc: "Bay District Schools HS in Lynn Haven. Many Tyndall families zoned here.", url: "", city: "Lynn Haven, FL" },
+    { name: "Patronis Elementary", grades: "K-5", rating: 4.4, desc: "Bay District Schools elementary in Panama City Beach.", url: "", city: "Panama City Beach, FL" },
+  ],
+  "Langley AFB": [
+    { name: "Tabb High School", grades: "9-12", rating: 4.5, desc: "York County School Division. Among top high schools in Hampton Roads. Many Langley families zoned here.", url: "", city: "Yorktown, VA" },
+    { name: "Bethel High School", grades: "9-12", rating: 4.0, desc: "Hampton City Schools HS. Active military family liaison.", url: "", city: "Hampton, VA" },
+    { name: "Magruder Primary School", grades: "K-2", rating: 4.5, desc: "York County School Division near Langley AFB.", url: "", city: "Yorktown, VA" },
+  ],
+  "Robins AFB": [
+    { name: "Houston County High School", grades: "9-12", rating: 4.4, desc: "Houston County School District HS in Warner Robins. Highly rated. Active military family services.", url: "", city: "Warner Robins, GA" },
+    { name: "Linwood Elementary", grades: "K-5", rating: 4.3, desc: "Houston County SD elementary near Robins AFB.", url: "", city: "Warner Robins, GA" },
+  ],
+  "Whiteman AFB": [
+    { name: "Knob Noster High School", grades: "9-12", rating: 4.2, desc: "Knob Noster R-VIII SD high school adjacent to Whiteman AFB. Strong military family services.", url: "", city: "Knob Noster, MO" },
+    { name: "Knob Noster Elementary", grades: "K-5", rating: 4.2, desc: "Knob Noster R-VIII SD elementary serving Whiteman families.", url: "", city: "Knob Noster, MO" },
+  ],
+  "Sheppard AFB": [
+    { name: "Wichita Falls High School", grades: "9-12", rating: 3.8, desc: "Wichita Falls ISD HS. Active military family services.", url: "", city: "Wichita Falls, TX" },
+    { name: "Hirschi High School", grades: "9-12", rating: 3.9, desc: "Wichita Falls ISD HS with magnet programs.", url: "", city: "Wichita Falls, TX" },
+  ],
+  "Goodfellow AFB": [
+    { name: "Central High School", grades: "9-12", rating: 4.0, desc: "San Angelo ISD HS. Active military family services for Goodfellow students.", url: "", city: "San Angelo, TX" },
+    { name: "Lake View High School", grades: "9-12", rating: 3.9, desc: "San Angelo ISD HS.", url: "", city: "San Angelo, TX" },
+  ],
+  "Laughlin AFB": [
+    { name: "Del Rio High School", grades: "9-12", rating: 3.8, desc: "San Felipe Del Rio CISD HS. Active military family services.", url: "", city: "Del Rio, TX" },
+  ],
+  "Lackland AFB": [
+    { name: "Lackland Elementary (DoDEA)", grades: "K-5", rating: 4.4, desc: "DoDEA on-base elementary at Lackland. Strong PCS transition support.", url: "", city: "JBSA Lackland, TX" },
+    { name: "John Jay High School", grades: "9-12", rating: 4.2, desc: "Northside ISD HS popular with JBSA Lackland families.", url: "", city: "San Antonio, TX" },
+  ],
+  "Randolph AFB": [
+    { name: "Randolph High School", grades: "9-12", rating: 4.7, desc: "Randolph Field ISD HS on JBSA Randolph. Top-rated in Texas. Highly competitive academics.", url: "", city: "JBSA Randolph, TX" },
+    { name: "Randolph Elementary", grades: "K-5", rating: 4.6, desc: "Randolph Field ISD elementary on base.", url: "", city: "JBSA Randolph, TX" },
+  ],
+  "MCAS Kaneohe Bay": [
+    { name: "Mokapu Elementary (DoDEA)", grades: "K-5", rating: 4.5, desc: "DoDEA elementary on MCAS Kaneohe Bay. Strong PCS transition support.", url: "", city: "Kaneohe, HI" },
+    { name: "Castle High School", grades: "9-12", rating: 4.2, desc: "Hawaii DOE HS serving Kailua/Kaneohe military community.", url: "", city: "Kaneohe, HI" },
+  ],
+  "Camp Zama": [
+    { name: "Zama American High School (DoDEA)", grades: "9-12", rating: 4.5, desc: "DoDEA HS at Camp Zama. AP courses, athletics, performing arts. Strong PCS transition.", url: "", city: "Zama, Japan" },
+    { name: "Zama Middle/High School (DoDEA)", grades: "6-12", rating: 4.5, desc: "DoDEA combined MS/HS at Zama. Smaller campus community.", url: "", city: "Zama, Japan" },
+    { name: "Arnn Elementary (DoDEA)", grades: "K-5", rating: 4.5, desc: "DoDEA elementary at SHA Sagamihara housing area.", url: "", city: "Sagamihara, Japan" },
+  ],
+  "NS Rota": [
+    { name: "David Glasgow Farragut High School (DoDEA)", grades: "9-12", rating: 4.4, desc: "DoDEA HS at NS Rota. Strong AP and IB programs.", url: "", city: "Rota, Spain" },
+    { name: "Rota Elementary School (DoDEA)", grades: "K-5", rating: 4.5, desc: "DoDEA elementary at NS Rota.", url: "", city: "Rota, Spain" },
+  ],
+  "Aberdeen Proving Ground": [
+    { name: "C. Milton Wright High School", grades: "9-12", rating: 4.5, desc: "Harford County Public Schools HS. Highly rated; many APG families zoned here.", url: "", city: "Bel Air, MD" },
+    { name: "Aberdeen High School", grades: "9-12", rating: 4.2, desc: "Harford County Public Schools HS near APG.", url: "", city: "Aberdeen, MD" },
+    { name: "Bakerfield Elementary", grades: "K-5", rating: 4.3, desc: "Harford County Public Schools elementary serving APG families.", url: "", city: "Aberdeen, MD" },
+  ],
 };
 
 // City lookup used for search fallback URLs
@@ -2183,6 +2334,78 @@ const DAYCARE_DATA = {
   'Osan AB': [
     { name: 'Osan AB CDC (CYSS)', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'Air Force CDC at Osan AB, South Korea. Priority for active duty. Subsidized rates based on rank.', phone: 'DSN 784-1611', waitlist: '1–3 weeks' },
     { name: 'Osan School Age Services', type: 'School-Age / After-School', ages: '5–12 yrs', rating: 4.1, desc: 'Before/after school care on post at Osan AB. Background-checked staff.', phone: 'DSN 784-1611', waitlist: 'None typically' },
+  ],
+  'USAG Stuttgart': [
+    { name: 'Patch Barracks CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.5, desc: 'CYSS-operated CDC at Patch Barracks. Strong priority for dual-military and EFMP families. Hourly drop-in available.', phone: 'DSN 596-2940', waitlist: '2–4 weeks' },
+    { name: 'Robinson Barracks SAS', type: 'School-Age / After-School', ages: '5–12 yrs', rating: 4.4, desc: 'School Age Services at Robinson Barracks. Before/after school care plus summer programs.', phone: 'DSN 421-3000', waitlist: 'None typically' },
+  ],
+  'USAG Wiesbaden': [
+    { name: 'Hainerberg CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.4, desc: 'CYSS-operated CDC in Hainerberg Housing Area. Priority for dual-military families.', phone: 'DSN 548-9800', waitlist: '2–4 weeks' },
+  ],
+  'USAG Bavaria': [
+    { name: 'Vilseck CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'CYSS CDC at Vilseck (Rose Barracks). Rural Bavarian setting, strong PCS family support.', phone: 'DSN 476-2762', waitlist: '1–3 weeks' },
+    { name: 'Grafenwoehr CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'CYSS CDC at Tower Barracks Grafenwoehr.', phone: 'DSN 475-7011', waitlist: '1–3 weeks' },
+  ],
+  'USAG Italy': [
+    { name: 'Vicenza CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.4, desc: 'CYSS CDC at Caserma Ederle / Del Din. Strong PCS transition support.', phone: 'CIV +39 0444-71-7000', waitlist: '2–4 weeks' },
+  ],
+  'NAS Whidbey Island': [
+    { name: 'NAS Whidbey CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'Navy CDC at NAS Whidbey. Priority for active duty. Small-island community feel.', phone: '(360) 257-2415', waitlist: '4–6 weeks' },
+  ],
+  'NS Bremerton': [
+    { name: 'Bangor / Bremerton CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'Navy CDC serving NS Bremerton / NBK Bangor. Priority for active duty and dual-military.', phone: '(360) 396-4203', waitlist: '4–8 weeks' },
+  ],
+  'NAS North Island': [
+    { name: 'NAS North Island CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.2, desc: 'Navy CDC on Coronado. Priority for active duty. High demand — apply early.', phone: '(619) 545-9301', waitlist: '6–10 weeks' },
+  ],
+  'NS San Diego': [
+    { name: 'NS San Diego CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.1, desc: 'Navy CDC at 32nd Street Naval Station. Priority for active duty.', phone: '(619) 556-7404', waitlist: '6–10 weeks' },
+  ],
+  'NAS Lemoore': [
+    { name: 'NAS Lemoore CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.0, desc: 'Navy CDC at NAS Lemoore. Smaller-base feel; shorter waitlist than coastal NAS sites.', phone: '(559) 998-4481', waitlist: '2–4 weeks' },
+  ],
+  'NS Everett': [
+    { name: 'NS Everett CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.1, desc: 'Navy CDC at NS Everett. Priority for active duty.', phone: '(425) 304-3144', waitlist: '4–6 weeks' },
+  ],
+  'MCB Hawaii': [
+    { name: 'MCB Hawaii CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'Marine Corps CDC at Kaneohe Bay. Priority for active duty. Hourly drop-in care available.', phone: '(808) 257-7781', waitlist: '4–8 weeks' },
+  ],
+  'MCAS Beaufort': [
+    { name: 'MCAS Beaufort CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.2, desc: 'Marine Corps CDC at MCAS Beaufort. Smaller base community, shorter waitlists than larger MCAS sites.', phone: '(843) 228-7220', waitlist: '2–4 weeks' },
+  ],
+  'Hill AFB': [
+    { name: 'Hill AFB CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.4, desc: 'AF CDC at Hill AFB. Strong priority for dual-military families.', phone: '(801) 777-3009', waitlist: '4–8 weeks' },
+  ],
+  'Nellis AFB': [
+    { name: 'Nellis AFB CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.2, desc: 'AF CDC at Nellis. Priority for active duty.', phone: '(702) 652-2061', waitlist: '6–10 weeks' },
+  ],
+  'Travis AFB': [
+    { name: 'Travis AFB CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'AF CDC at Travis. Priority for active duty.', phone: '(707) 424-2486', waitlist: '4–8 weeks' },
+  ],
+  'Buckley SFB': [
+    { name: 'Buckley SFB CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.4, desc: 'Space Force CDC at Buckley SFB. Strong PCS transition support.', phone: '(720) 847-9355', waitlist: '4–6 weeks' },
+  ],
+  'Peterson SFB': [
+    { name: 'Peterson SFB CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'Space Force CDC at Peterson. Shared waitlist with Schriever SFB families.', phone: '(719) 556-7569', waitlist: '4–8 weeks' },
+  ],
+  'Patrick SFB': [
+    { name: 'Patrick SFB CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'Space Force CDC at Patrick SFB. Space Coast community feel.', phone: '(321) 494-4747', waitlist: '4–6 weeks' },
+  ],
+  'Fort Belvoir': [
+    { name: 'Fort Belvoir CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.4, desc: 'Army CDC at Belvoir. NoVA demand is extremely high — apply day 1 of orders.', phone: '(703) 805-3168', waitlist: '8–12 weeks' },
+    { name: 'Belvoir SAS', type: 'School-Age / After-School', ages: '5–12 yrs', rating: 4.3, desc: 'Belvoir CYSS School Age Services. Summer day camps fill early.', phone: '(703) 805-3940', waitlist: '2–4 weeks' },
+  ],
+  'Fort Meade': [
+    { name: 'Fort Meade CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.2, desc: 'Army CDC at Fort Meade. High demand from NSA/Cyber Command families.', phone: '(301) 677-7023', waitlist: '6–10 weeks' },
+  ],
+  'Fort Drum': [
+    { name: 'Fort Drum CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'Army CDC at Fort Drum. Strong PCS support for 10th Mountain families.', phone: '(315) 772-6422', waitlist: '4–6 weeks' },
+  ],
+  'Schofield Barracks': [
+    { name: 'Schofield CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'Army CDC at Schofield. Hawaii demand is high — apply early on orders.', phone: '(808) 655-4227', waitlist: '6–10 weeks' },
+  ],
+  'MCB Quantico': [
+    { name: 'MCB Quantico CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.2, desc: 'Marine Corps CDC at Quantico. NoVA demand is high.', phone: '(703) 784-2536', waitlist: '6–10 weeks' },
   ],
 };
 

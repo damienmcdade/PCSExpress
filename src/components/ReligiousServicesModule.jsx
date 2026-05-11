@@ -198,7 +198,109 @@ const RELIGIOUS_SERVICES = {
     { id: 1, name: 'Fort Drum Main Post Chapel – Catholic', denomination: 'Catholic', address: '10550 Arnold Way, Fort Drum, NY 13602', phone: '(315) 772-5542', mass: ['Sunday 9:30 AM & 11:00 AM', 'Saturday Vigil 4:00 PM', 'Daily 12:05 PM'], onBase: true, community_reviews: ['Warm community that really supports families during long winter deployments', 'Chaplain team is outstanding'] },
     { id: 2, name: 'Fort Drum Main Post Chapel – Protestant', denomination: 'Protestant', address: '10550 Arnold Way, Fort Drum, NY 13602', phone: '(315) 772-5542', mass: ['Sunday 10:00 AM', 'Wednesday 6:00 PM'], onBase: true, community_reviews: ['Small-town feel makes for a tight community', 'Wednesday services are well-attended even in the harsh winters'] },
   ],
-}
+  'Fort Belvoir': [
+    { id: 1, name: 'Belvoir Chapel – Catholic', denomination: 'Catholic', address: 'Belvoir Rd, Fort Belvoir, VA 22060', phone: '(703) 805-2113', mass: ['Sunday 9:00 AM & 11:00 AM', 'Saturday Vigil 5:00 PM', 'Daily 12:05 PM'], onBase: true, community_reviews: ['Large parish, very organized RCIA and family ministries', 'Chaplain team handles a diverse joint-service congregation well'] },
+    { id: 2, name: 'Belvoir Chapel – Protestant', denomination: 'Protestant', address: 'Belvoir Rd, Fort Belvoir, VA 22060', phone: '(703) 805-2113', mass: ['Sunday 10:00 AM Contemporary', 'Sunday 11:30 AM Traditional', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Two distinct service styles serve the joint NCR community', 'Strong youth and young adult ministry programs'] },
+    { id: 3, name: 'Belvoir Chapel – Jewish Services', denomination: 'Jewish', address: 'Belvoir Rd, Fort Belvoir, VA 22060', phone: '(703) 805-2113', mass: ['Friday Shabbat 7:00 PM', 'High Holiday services coordinated annually'], onBase: true, community_reviews: ['Jewish Welfare Board representation is strong', 'Annual Seder is a notable community event'] },
+  ],
+  'Fort Meade': [
+    { id: 1, name: 'Argonne Hills Chapel – Catholic', denomination: 'Catholic', address: '7100 Rockenbach Rd, Fort Meade, MD 20755', phone: '(301) 677-6703', mass: ['Sunday 9:00 AM & 11:00 AM', 'Saturday Vigil 5:00 PM', 'Daily 12:05 PM'], onBase: true, community_reviews: ['Diverse joint-service congregation reflecting NSA/Cyber Command tenants', 'Chaplain team is responsive to mission-area schedules'] },
+    { id: 2, name: 'Argonne Hills Chapel – Protestant', denomination: 'Protestant', address: '7100 Rockenbach Rd, Fort Meade, MD 20755', phone: '(301) 677-6703', mass: ['Sunday 10:00 AM', 'Wednesday 6:00 PM'], onBase: true, community_reviews: ['Strong family programs', 'Newcomer outreach is active'] },
+  ],
+  'MCB Quantico': [
+    { id: 1, name: 'Liversedge Hall Chapel – Catholic', denomination: 'Catholic', address: 'MCB Quantico, VA 22134', phone: '(703) 784-2261', mass: ['Sunday 8:30 AM & 11:00 AM', 'Saturday Vigil 5:00 PM', 'Daily 11:30 AM'], onBase: true, community_reviews: ['Historic chapel; deeply connected to Marine officer training pipeline', 'Strong Knights of Columbus presence on post'] },
+    { id: 2, name: 'Memorial Chapel – Protestant', denomination: 'Protestant', address: 'MCB Quantico, VA 22134', phone: '(703) 784-2261', mass: ['Sunday 10:00 AM Traditional', 'Sunday 11:30 AM Contemporary'], onBase: true, community_reviews: ['Memorial Chapel is well-known for OCS/TBS graduations', 'Two service styles fit different unit schedules'] },
+  ],
+  'Eglin AFB': [
+    { id: 1, name: 'Eglin Chapel 2 – Catholic', denomination: 'Catholic', address: '101 W Van Matre Ave, Eglin AFB, FL 32542', phone: '(850) 882-2111', mass: ['Sunday 8:30 AM & 11:00 AM', 'Saturday Vigil 5:00 PM', 'Daily 11:30 AM'], onBase: true, community_reviews: ['Excellent chaplain corps; large active Catholic community', 'Strong sacramental preparation programs'] },
+    { id: 2, name: 'Eglin Chapel 1 – Protestant', denomination: 'Protestant', address: '101 W Van Matre Ave, Eglin AFB, FL 32542', phone: '(850) 882-2111', mass: ['Sunday 9:00 AM Contemporary', 'Sunday 11:00 AM Traditional', 'Wednesday 6:00 PM'], onBase: true, community_reviews: ['Multiple service styles', 'Active family ministry and youth programs'] },
+  ],
+  'MacDill AFB': [
+    { id: 1, name: 'MacDill Chapel – Catholic', denomination: 'Catholic', address: '7345 Bayshore Blvd, Tampa, FL 33621', phone: '(813) 828-3621', mass: ['Sunday 9:00 AM & 11:00 AM', 'Saturday Vigil 5:00 PM', 'Daily 11:30 AM'], onBase: true, community_reviews: ['Active joint-service congregation (CENTCOM/SOCOM)', 'Strong daily Mass attendance'] },
+    { id: 2, name: 'MacDill Chapel – Protestant', denomination: 'Protestant', address: '7345 Bayshore Blvd, Tampa, FL 33621', phone: '(813) 828-3621', mass: ['Sunday 10:00 AM', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Welcoming joint community', 'Active deployment family support'] },
+  ],
+  'Wright-Patterson AFB': [
+    { id: 1, name: 'WPAFB Chapel 2 – Catholic', denomination: 'Catholic', address: 'Wright-Patterson AFB, OH 45433', phone: '(937) 257-7682', mass: ['Sunday 9:00 AM & 11:00 AM', 'Saturday Vigil 5:00 PM', 'Daily 11:30 AM'], onBase: true, community_reviews: ['Strong Catholic community including AFIT students', 'Active religious education for kids'] },
+    { id: 2, name: 'WPAFB Chapel 1 – Protestant', denomination: 'Protestant', address: 'Wright-Patterson AFB, OH 45433', phone: '(937) 257-7682', mass: ['Sunday 10:00 AM Contemporary', 'Sunday 11:30 AM Traditional', 'Wednesday 6:00 PM'], onBase: true, community_reviews: ['Excellent music ministry', 'Active outreach to PCS families'] },
+  ],
+  'NAS Pensacola': [
+    { id: 1, name: 'NAS Pensacola Chapel – Catholic', denomination: 'Catholic', address: 'NAS Pensacola, FL 32508', phone: '(850) 452-2341', mass: ['Sunday 8:30 AM & 11:00 AM', 'Saturday Vigil 5:00 PM', 'Daily 11:30 AM'], onBase: true, community_reviews: ['Historic chapel near the Cradle of Naval Aviation', 'Active community supporting flight training students'] },
+    { id: 2, name: 'NAS Pensacola Chapel – Protestant', denomination: 'Protestant', address: 'NAS Pensacola, FL 32508', phone: '(850) 452-2341', mass: ['Sunday 10:00 AM', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Welcoming to student aviators and families', 'Strong chaplain support during deployment workups'] },
+  ],
+  'Fort Knox': [
+    { id: 1, name: 'Fort Knox Memorial Chapel – Catholic', denomination: 'Catholic', address: 'Knox Ave, Fort Knox, KY 40121', phone: '(502) 624-3464', mass: ['Sunday 9:00 AM & 11:00 AM', 'Saturday Vigil 5:00 PM'], onBase: true, community_reviews: ['Historic chapel architecture', 'Active community supporting Cadet Summer Training in summer months'] },
+    { id: 2, name: 'Fort Knox Memorial Chapel – Protestant', denomination: 'Protestant', address: 'Knox Ave, Fort Knox, KY 40121', phone: '(502) 624-3464', mass: ['Sunday 10:00 AM', 'Wednesday 6:00 PM'], onBase: true, community_reviews: ['Strong family ministries', 'Active newcomer outreach'] },
+  ],
+  'Fort Jackson': [
+    { id: 1, name: 'Fort Jackson Main Post Chapel – Catholic', denomination: 'Catholic', address: '4477 Magruder Ave, Fort Jackson, SC 29207', phone: '(803) 751-4061', mass: ['Sunday 9:00 AM & 11:00 AM', 'Saturday Vigil 5:00 PM', 'Daily 11:30 AM'], onBase: true, community_reviews: ['High-tempo trainee chapel — many Sunday Mass attendees are new recruits', 'Strong religious support during BCT cycles'] },
+    { id: 2, name: 'Fort Jackson Main Post Chapel – Protestant', denomination: 'Protestant', address: '4477 Magruder Ave, Fort Jackson, SC 29207', phone: '(803) 751-4061', mass: ['Sunday 10:00 AM', 'Wednesday 6:00 PM'], onBase: true, community_reviews: ['Energetic services with strong trainee participation', 'Active permanent party family ministry'] },
+  ],
+  'Fort Sill': [
+    { id: 1, name: 'Fort Sill Main Post Chapel – Catholic', denomination: 'Catholic', address: 'Sherman St, Fort Sill, OK 73503', phone: '(580) 442-4842', mass: ['Sunday 9:00 AM & 11:00 AM', 'Saturday Vigil 5:00 PM'], onBase: true, community_reviews: ['Active trainee Mass attendance', 'Strong permanent party Catholic community'] },
+    { id: 2, name: 'Fort Sill Main Post Chapel – Protestant', denomination: 'Protestant', address: 'Sherman St, Fort Sill, OK 73503', phone: '(580) 442-4842', mass: ['Sunday 10:00 AM', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Family-oriented services', 'Wednesday programs include youth group'] },
+  ],
+  'USAG Stuttgart': [
+    { id: 1, name: 'Patch Barracks Chapel – Catholic', denomination: 'Catholic', address: 'Patch Barracks, Stuttgart, Germany', phone: 'DSN 596-2987', mass: ['Sunday 9:00 AM & 11:00 AM', 'Saturday Vigil 5:00 PM'], onBase: true, community_reviews: ['Diverse multinational congregation including EUCOM tenants', 'Active religious education program'] },
+    { id: 2, name: 'Patch Barracks Chapel – Protestant', denomination: 'Protestant', address: 'Patch Barracks, Stuttgart, Germany', phone: 'DSN 596-2987', mass: ['Sunday 10:00 AM', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Active community across NATO commands', 'Strong family programs'] },
+  ],
+  'USAG Wiesbaden': [
+    { id: 1, name: 'Wiesbaden Chapel – Catholic', denomination: 'Catholic', address: 'Hainerberg Housing Area, Wiesbaden, Germany', phone: 'DSN 548-9800', mass: ['Sunday 9:00 AM & 11:00 AM', 'Saturday Vigil 5:00 PM'], onBase: true, community_reviews: ['Welcoming community with strong family programs', 'Active sacramental preparation'] },
+    { id: 2, name: 'Wiesbaden Chapel – Protestant', denomination: 'Protestant', address: 'Hainerberg Housing Area, Wiesbaden, Germany', phone: 'DSN 548-9800', mass: ['Sunday 10:00 AM', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Active community supporting USAREUR-AF', 'Strong family ministries'] },
+  ],
+  'USAG Bavaria': [
+    { id: 1, name: 'Vilseck Chapel – Catholic', denomination: 'Catholic', address: 'Rose Barracks, Vilseck, Germany', phone: 'DSN 476-2762', mass: ['Sunday 9:30 AM', 'Saturday Vigil 5:00 PM'], onBase: true, community_reviews: ['Active in this rural Bavarian community', 'Small but devoted congregation'] },
+    { id: 2, name: 'Tower Barracks Chapel – Protestant', denomination: 'Protestant', address: 'Tower Barracks, Grafenwoehr, Germany', phone: 'DSN 475-7011', mass: ['Sunday 10:00 AM', 'Wednesday 6:00 PM'], onBase: true, community_reviews: ['Strong community supporting rotational unit families', 'Active during training brigade rotations'] },
+  ],
+  'USAG Italy': [
+    { id: 1, name: 'Vicenza Chapel – Catholic', denomination: 'Catholic', address: 'Caserma Ederle, Vicenza, Italy', phone: 'CIV +39 0444-71-7000', mass: ['Sunday 10:00 AM', 'Saturday Vigil 5:00 PM', 'Daily 11:30 AM'], onBase: true, community_reviews: ['Catholic community here is unique — strong ties with Italian parishes too', 'Beautiful chapel setting'] },
+    { id: 2, name: 'Vicenza Chapel – Protestant', denomination: 'Protestant', address: 'Caserma Ederle, Vicenza, Italy', phone: 'CIV +39 0444-71-7000', mass: ['Sunday 11:00 AM', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Smaller but active congregation', 'Strong family programs'] },
+  ],
+  'Yokota AB': [
+    { id: 1, name: 'Yokota Chapel – Catholic', denomination: 'Catholic', address: 'Bldg 315, Yokota AB, Fussa, Japan', phone: 'DSN 225-7777', mass: ['Sunday 9:00 AM & 11:00 AM', 'Saturday Vigil 5:00 PM'], onBase: true, community_reviews: ['Active community supporting USFJ headquarters families', 'Chaplain is outstanding'] },
+    { id: 2, name: 'Yokota Chapel – Protestant', denomination: 'Protestant', address: 'Bldg 315, Yokota AB, Fussa, Japan', phone: 'DSN 225-7777', mass: ['Sunday 10:00 AM', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Active children and youth programs', 'Welcoming to families new to Japan'] },
+  ],
+  'Hill AFB': [
+    { id: 1, name: 'Hill AFB Chapel – Catholic', denomination: 'Catholic', address: 'Hill AFB, UT 84056', phone: '(801) 777-2106', mass: ['Sunday 9:00 AM', 'Saturday Vigil 5:00 PM'], onBase: true, community_reviews: ['Small but active congregation', 'Welcoming to PCS families'] },
+    { id: 2, name: 'Hill AFB Chapel – Protestant', denomination: 'Protestant', address: 'Hill AFB, UT 84056', phone: '(801) 777-2106', mass: ['Sunday 10:00 AM', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Active community with strong family programs', 'Newcomer outreach is steady'] },
+  ],
+  'Nellis AFB': [
+    { id: 1, name: 'Nellis Chapel – Catholic', denomination: 'Catholic', address: 'Nellis AFB, NV 89191', phone: '(702) 652-2061', mass: ['Sunday 9:00 AM & 11:00 AM', 'Saturday Vigil 5:00 PM'], onBase: true, community_reviews: ['Active joint-service congregation', 'Strong sacramental life'] },
+    { id: 2, name: 'Nellis Chapel – Protestant', denomination: 'Protestant', address: 'Nellis AFB, NV 89191', phone: '(702) 652-2061', mass: ['Sunday 10:00 AM Contemporary', 'Sunday 11:30 AM Traditional', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Two services styles fit different schedules', 'Active family ministries'] },
+  ],
+  'Patrick SFB': [
+    { id: 1, name: 'Patrick SFB Chapel – Catholic', denomination: 'Catholic', address: 'Patrick SFB, FL 32925', phone: '(321) 494-4073', mass: ['Sunday 9:00 AM', 'Saturday Vigil 4:30 PM'], onBase: true, community_reviews: ['Beach community feel', 'Welcoming to Space Coast families'] },
+    { id: 2, name: 'Patrick SFB Chapel – Protestant', denomination: 'Protestant', address: 'Patrick SFB, FL 32925', phone: '(321) 494-4073', mass: ['Sunday 10:30 AM'], onBase: true, community_reviews: ['Family-friendly services', 'Active in the Space Force / 45th SW community'] },
+  ],
+  'Schofield Barracks': [
+    { id: 1, name: 'Schofield Barracks Main Post Chapel – Catholic', denomination: 'Catholic', address: 'Schofield Barracks, HI 96857', phone: '(808) 655-9307', mass: ['Sunday 9:00 AM & 11:00 AM', 'Saturday Vigil 5:00 PM', 'Daily 11:30 AM'], onBase: true, community_reviews: ['Active Catholic community across the 25th ID footprint', 'Multilingual services available'] },
+    { id: 2, name: 'Schofield Barracks Main Post Chapel – Protestant', denomination: 'Protestant', address: 'Schofield Barracks, HI 96857', phone: '(808) 655-9307', mass: ['Sunday 10:00 AM', 'Sunday 11:30 AM Gospel', 'Wednesday 6:00 PM'], onBase: true, community_reviews: ['Multiple service styles', 'Gospel service is a highlight'] },
+    { id: 3, name: 'Schofield Barracks Buddhist Services', denomination: 'Buddhist', address: 'Schofield Barracks, HI 96857', phone: '(808) 655-9307', mass: ['Sunday 1:00 PM Dharma Talk'], onBase: true, community_reviews: ['Unique dedicated Buddhist services on a major Army post', 'Welcoming to all interested in meditation'] },
+  ],
+  'Joint Base Pearl Harbor-Hickam': [
+    { id: 1, name: 'JBPHH Chapel – Catholic', denomination: 'Catholic', address: 'JBPHH, HI 96860', phone: '(808) 473-3971', mass: ['Sunday 8:30 AM & 11:00 AM', 'Saturday Vigil 5:00 PM', 'Daily 11:30 AM'], onBase: true, community_reviews: ['Joint Navy/Air Force community', 'Historic location near the USS Arizona Memorial area'] },
+    { id: 2, name: 'JBPHH Chapel – Protestant', denomination: 'Protestant', address: 'JBPHH, HI 96860', phone: '(808) 473-3971', mass: ['Sunday 10:00 AM', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Active joint-service congregation', 'Strong deployment family support'] },
+  ],
+  'Naval Station Pearl Harbor': [
+    { id: 1, name: 'NS Pearl Harbor Chapel – Catholic', denomination: 'Catholic', address: 'JBPHH, HI 96860', phone: '(808) 473-3971', mass: ['Sunday 8:30 AM & 11:00 AM', 'Saturday Vigil 5:00 PM'], onBase: true, community_reviews: ['Historic location with strong Navy tradition', 'Active deployment family support'] },
+    { id: 2, name: 'NS Pearl Harbor Chapel – Protestant', denomination: 'Protestant', address: 'JBPHH, HI 96860', phone: '(808) 473-3971', mass: ['Sunday 10:00 AM', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Active joint Navy/USCG community', 'Family programs include underway family support'] },
+  ],
+  'MCB Hawaii': [
+    { id: 1, name: 'MCB Hawaii Chapel – Catholic', denomination: 'Catholic', address: 'MCB Hawaii Kaneohe Bay, HI 96863', phone: '(808) 257-3552', mass: ['Sunday 9:30 AM', 'Saturday Vigil 5:00 PM'], onBase: true, community_reviews: ['Windward side community feel', 'Active family ministries'] },
+    { id: 2, name: 'MCB Hawaii Chapel – Protestant', denomination: 'Protestant', address: 'MCB Hawaii Kaneohe Bay, HI 96863', phone: '(808) 257-3552', mass: ['Sunday 11:00 AM', 'Wednesday 6:00 PM'], onBase: true, community_reviews: ['Active Marine and Navy families community', 'Beautiful chapel setting'] },
+  ],
+  'NS San Diego': [
+    { id: 1, name: 'NS San Diego Chapel – Catholic', denomination: 'Catholic', address: '32nd St, San Diego, CA 92136', phone: '(619) 556-7233', mass: ['Sunday 9:00 AM & 11:00 AM', 'Saturday Vigil 5:00 PM'], onBase: true, community_reviews: ['Active joint-service Catholic community', 'Strong deployment family support for Pacific Fleet'] },
+    { id: 2, name: 'NS San Diego Chapel – Protestant', denomination: 'Protestant', address: '32nd St, San Diego, CA 92136', phone: '(619) 556-7233', mass: ['Sunday 10:00 AM', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Active Navy community', 'Strong family ministries'] },
+  ],
+  'MCAS Miramar': [
+    { id: 1, name: 'MCAS Miramar Chapel – Catholic', denomination: 'Catholic', address: 'MCAS Miramar, CA 92145', phone: '(858) 577-1448', mass: ['Sunday 9:00 AM', 'Saturday Vigil 5:00 PM'], onBase: true, community_reviews: ['Active Marine aviation community', 'Strong family programs'] },
+    { id: 2, name: 'MCAS Miramar Chapel – Protestant', denomination: 'Protestant', address: 'MCAS Miramar, CA 92145', phone: '(858) 577-1448', mass: ['Sunday 10:30 AM', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Welcoming community', 'Active deployment family support'] },
+  ],
+  'NAS Whidbey Island': [
+    { id: 1, name: 'NAS Whidbey Chapel – Catholic', denomination: 'Catholic', address: 'NAS Whidbey Island, WA 98278', phone: '(360) 257-2126', mass: ['Sunday 9:30 AM', 'Saturday Vigil 5:00 PM'], onBase: true, community_reviews: ['Tight-knit island community', 'Active deployment family support'] },
+    { id: 2, name: 'NAS Whidbey Chapel – Protestant', denomination: 'Protestant', address: 'NAS Whidbey Island, WA 98278', phone: '(360) 257-2126', mass: ['Sunday 10:30 AM', 'Wednesday 6:30 PM'], onBase: true, community_reviews: ['Strong small-town feel', 'Active children\'s ministry'] },
+  ],
+};
 
 const ONLINE_RESOURCES = [
   { name: 'MilitaryINSTALLATIONS', branches: ['ALL'], url: 'https://installations.militaryonesource.mil/', description: 'Find installation chaplain offices, support centers, contacts, and public installation resources.' },
