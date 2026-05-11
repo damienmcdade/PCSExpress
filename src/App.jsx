@@ -4355,6 +4355,17 @@ const APP_TRANSLATIONS = {
     departingFrom: 'DEPARTING FROM (LOSING INSTALLATION)',
     reportingToLabel: 'REPORTING TO (GAINING INSTALLATION)',
     departingDate: 'DEPARTING DATE',
+    spouseDepsTravel: 'Spouse / Dependents traveling with me',
+    childrensAges: "CHILDREN'S AGES",
+    addChild: '+ Add Child',
+    noChildrenYet: 'No children added yet',
+    childN: 'Child',
+    yrs: 'yrs',
+    agePlaceholder: 'Age',
+    religiousPreference: 'RELIGIOUS PREFERENCE',
+    religiousPreferenceNote: '(for chaplain & community resources)',
+    religiousPreferenceHelp: 'Optional — helps surface relevant chapel and community resources',
+    typeBaseName: 'Type base name...',
     seeDemoFirst: 'See Demo First',
     continue: 'Continue',
     launchDemo: 'Launch Demo',
@@ -4451,6 +4462,17 @@ APP_TRANSLATIONS.es = {
   departingFrom: 'SALIENDO DE (INSTALACIÓN ANTERIOR)',
   reportingToLabel: 'DESTINO (NUEVA INSTALACIÓN)',
   departingDate: 'FECHA DE SALIDA',
+  spouseDepsTravel: 'Cónyuge / Dependientes que viajan conmigo',
+  childrensAges: 'EDADES DE LOS HIJOS',
+  addChild: '+ Agregar hijo/a',
+  noChildrenYet: 'Aún no se agregaron hijos',
+  childN: 'Hijo/a',
+  yrs: 'años',
+  agePlaceholder: 'Edad',
+  religiousPreference: 'PREFERENCIA RELIGIOSA',
+  religiousPreferenceNote: '(para capellán y recursos comunitarios)',
+  religiousPreferenceHelp: 'Opcional — ayuda a mostrar capilla y recursos comunitarios relevantes',
+  typeBaseName: 'Escriba el nombre de la base...',
   seeDemoFirst: 'Ver demostración primero',
   continue: 'Continuar',
   launchDemo: 'Iniciar demostración',
@@ -4512,6 +4534,17 @@ APP_TRANSLATIONS.de = {
   departingFrom: 'ABREISE VON (FRÜHERER STANDORT)',
   reportingToLabel: 'ZIEL (NEUER STANDORT)',
   departingDate: 'ABREISEDATUM',
+  spouseDepsTravel: 'Ehepartner / Angehörige reisen mit',
+  childrensAges: 'ALTER DER KINDER',
+  addChild: '+ Kind hinzufügen',
+  noChildrenYet: 'Noch keine Kinder hinzugefügt',
+  childN: 'Kind',
+  yrs: 'Jahre',
+  agePlaceholder: 'Alter',
+  religiousPreference: 'RELIGIONSZUGEHÖRIGKEIT',
+  religiousPreferenceNote: '(für Seelsorge- und Gemeinschaftsangebote)',
+  religiousPreferenceHelp: 'Optional — hilft, relevante Kapellen- und Gemeinschaftsangebote anzuzeigen',
+  typeBaseName: 'Name des Standorts eingeben...',
   seeDemoFirst: 'Demo zuerst ansehen',
   continue: 'Weiter',
   launchDemo: 'Demo starten',
@@ -4549,6 +4582,17 @@ APP_TRANSLATIONS.fr = {
   departingFrom: 'DÉPART DE (ANCIENNE INSTALLATION)',
   reportingToLabel: 'AFFECTATION (NOUVELLE INSTALLATION)',
   departingDate: 'DATE DE DÉPART',
+  spouseDepsTravel: 'Conjoint / personnes à charge voyageant avec moi',
+  childrensAges: 'ÂGES DES ENFANTS',
+  addChild: '+ Ajouter un enfant',
+  noChildrenYet: 'Aucun enfant ajouté pour le moment',
+  childN: 'Enfant',
+  yrs: 'ans',
+  agePlaceholder: 'Âge',
+  religiousPreference: 'PRÉFÉRENCE RELIGIEUSE',
+  religiousPreferenceNote: '(pour aumônerie et ressources communautaires)',
+  religiousPreferenceHelp: 'Facultatif — aide à afficher chapelle et ressources communautaires pertinentes',
+  typeBaseName: 'Saisir le nom de la base...',
   seeDemoFirst: 'Voir la démo d’abord',
   continue: 'Continuer',
   launchDemo: 'Lancer la démo',
@@ -4586,6 +4630,17 @@ APP_TRANSLATIONS.ko = {
   departingFrom: '출발지 (이전 기지)',
   reportingToLabel: '도착지 (새 기지)',
   departingDate: '출발일',
+  spouseDepsTravel: '배우자 / 부양가족 동반',
+  childrensAges: '자녀 연령',
+  addChild: '+ 자녀 추가',
+  noChildrenYet: '아직 자녀가 추가되지 않았습니다',
+  childN: '자녀',
+  yrs: '세',
+  agePlaceholder: '나이',
+  religiousPreference: '종교 선호',
+  religiousPreferenceNote: '(군종 및 커뮤니티 자료용)',
+  religiousPreferenceHelp: '선택 사항 — 관련 채플 및 커뮤니티 자료 표시에 도움',
+  typeBaseName: '기지 이름 입력...',
   seeDemoFirst: '데모 먼저 보기',
   continue: '계속',
   launchDemo: '데모 시작',
@@ -4623,6 +4678,17 @@ APP_TRANSLATIONS.ja = {
   departingFrom: '出発元 (前任地)',
   reportingToLabel: '着任先 (新任地)',
   departingDate: '出発日',
+  spouseDepsTravel: '配偶者 / 扶養家族同行',
+  childrensAges: '子どもの年齢',
+  addChild: '+ 子どもを追加',
+  noChildrenYet: 'まだ子どもが追加されていません',
+  childN: '子ども',
+  yrs: '歳',
+  agePlaceholder: '年齢',
+  religiousPreference: '宗教の希望',
+  religiousPreferenceNote: '(チャプレンとコミュニティ情報用)',
+  religiousPreferenceHelp: '任意 — 関連するチャペルとコミュニティ情報の表示に役立ちます',
+  typeBaseName: '基地名を入力...',
   seeDemoFirst: '先にデモを見る',
   continue: '続行',
   launchDemo: 'デモを開始',
@@ -4660,6 +4726,17 @@ APP_TRANSLATIONS.tl = {
   departingFrom: 'PAALIS GALING (DATING INSTALLATION)',
   reportingToLabel: 'PUPUNTA SA (BAGONG INSTALLATION)',
   departingDate: 'PETSA NG PAALIS',
+  spouseDepsTravel: 'Asawa / Dependents na kasama sa paglipat',
+  childrensAges: 'EDAD NG MGA ANAK',
+  addChild: '+ Magdagdag ng anak',
+  noChildrenYet: 'Wala pang naidaragdag na anak',
+  childN: 'Anak',
+  yrs: 'taon',
+  agePlaceholder: 'Edad',
+  religiousPreference: 'KAGUSTUHANG RELIHIYON',
+  religiousPreferenceNote: '(para sa chaplain at community resources)',
+  religiousPreferenceHelp: 'Opsyonal — tumutulong magpakita ng chapel at community resources',
+  typeBaseName: 'I-type ang pangalan ng base...',
   seeDemoFirst: 'Tingnan muna ang demo',
   continue: 'Magpatuloy',
   launchDemo: 'Simulan ang demo',
@@ -4697,6 +4774,17 @@ APP_TRANSLATIONS.ar = {
   departingFrom: 'مغادرة من (المنشأة السابقة)',
   reportingToLabel: 'الوصول إلى (المنشأة الجديدة)',
   departingDate: 'تاريخ المغادرة',
+  spouseDepsTravel: 'الزوج/الزوجة / التابعون المسافرون معي',
+  childrensAges: 'أعمار الأطفال',
+  addChild: '+ إضافة طفل',
+  noChildrenYet: 'لم يُضف أطفال بعد',
+  childN: 'طفل',
+  yrs: 'سنوات',
+  agePlaceholder: 'العمر',
+  religiousPreference: 'التفضيل الديني',
+  religiousPreferenceNote: '(لخدمات الكاهن وموارد المجتمع)',
+  religiousPreferenceHelp: 'اختياري — يساعد في عرض الكنيسة وموارد المجتمع ذات الصلة',
+  typeBaseName: 'اكتب اسم القاعدة...',
   seeDemoFirst: 'شاهد العرض أولاً',
   continue: 'متابعة',
   launchDemo: 'بدء العرض',
@@ -4734,6 +4822,17 @@ APP_TRANSLATIONS.zh = {
   departingFrom: '离开 (原驻地)',
   reportingToLabel: '前往 (新驻地)',
   departingDate: '出发日期',
+  spouseDepsTravel: '配偶 / 家属随行',
+  childrensAges: '子女年龄',
+  addChild: '+ 添加子女',
+  noChildrenYet: '尚未添加子女',
+  childN: '子女',
+  yrs: '岁',
+  agePlaceholder: '年龄',
+  religiousPreference: '宗教偏好',
+  religiousPreferenceNote: '(用于随军牧师和社区资源)',
+  religiousPreferenceHelp: '可选 — 帮助显示相关教堂和社区资源',
+  typeBaseName: '输入基地名称...',
   seeDemoFirst: '先看演示',
   continue: '继续',
   launchDemo: '启动演示',
@@ -4771,6 +4870,17 @@ APP_TRANSLATIONS.it = {
   departingFrom: 'PARTENZA DA (BASE PRECEDENTE)',
   reportingToLabel: 'DESTINAZIONE (NUOVA BASE)',
   departingDate: 'DATA DI PARTENZA',
+  spouseDepsTravel: 'Coniuge / Familiari a carico in viaggio con me',
+  childrensAges: "ETÀ DEI FIGLI",
+  addChild: '+ Aggiungi figlio',
+  noChildrenYet: 'Nessun figlio aggiunto',
+  childN: 'Figlio',
+  yrs: 'anni',
+  agePlaceholder: 'Età',
+  religiousPreference: 'PREFERENZA RELIGIOSA',
+  religiousPreferenceNote: '(per cappellano e risorse comunitarie)',
+  religiousPreferenceHelp: 'Facoltativo — aiuta a mostrare cappella e risorse comunitarie',
+  typeBaseName: 'Digita il nome della base...',
   seeDemoFirst: 'Vedi prima la demo',
   continue: 'Continua',
   launchDemo: 'Avvia demo',
@@ -4808,6 +4918,17 @@ APP_TRANSLATIONS.pt = {
   departingFrom: 'SAINDO DE (INSTALAÇÃO ANTERIOR)',
   reportingToLabel: 'INDO PARA (NOVA INSTALAÇÃO)',
   departingDate: 'DATA DE PARTIDA',
+  spouseDepsTravel: 'Cônjuge / Dependentes viajando comigo',
+  childrensAges: 'IDADES DOS FILHOS',
+  addChild: '+ Adicionar filho',
+  noChildrenYet: 'Nenhum filho adicionado ainda',
+  childN: 'Filho',
+  yrs: 'anos',
+  agePlaceholder: 'Idade',
+  religiousPreference: 'PREFERÊNCIA RELIGIOSA',
+  religiousPreferenceNote: '(para capelão e recursos comunitários)',
+  religiousPreferenceHelp: 'Opcional — ajuda a exibir capela e recursos comunitários relevantes',
+  typeBaseName: 'Digite o nome da base...',
   seeDemoFirst: 'Ver demonstração primeiro',
   continue: 'Continuar',
   launchDemo: 'Iniciar demonstração',
@@ -4845,6 +4966,17 @@ APP_TRANSLATIONS.vi = {
   departingFrom: 'KHỞI HÀNH TỪ (CĂN CỨ CŨ)',
   reportingToLabel: 'BÁO CÁO ĐẾN (CĂN CỨ MỚI)',
   departingDate: 'NGÀY KHỞI HÀNH',
+  spouseDepsTravel: 'Vợ/chồng / Người phụ thuộc đi cùng',
+  childrensAges: 'TUỔI CỦA CON',
+  addChild: '+ Thêm con',
+  noChildrenYet: 'Chưa thêm con',
+  childN: 'Con',
+  yrs: 'tuổi',
+  agePlaceholder: 'Tuổi',
+  religiousPreference: 'TÔN GIÁO ƯU TIÊN',
+  religiousPreferenceNote: '(dùng cho mục sư và tài nguyên cộng đồng)',
+  religiousPreferenceHelp: 'Tùy chọn — giúp hiển thị nhà nguyện và tài nguyên cộng đồng phù hợp',
+  typeBaseName: 'Nhập tên căn cứ...',
   seeDemoFirst: 'Xem demo trước',
   continue: 'Tiếp tục',
   launchDemo: 'Mở demo',
@@ -4876,17 +5008,17 @@ function getAppLanguage(language) {
 // labels are fully localized; longer descriptive paragraphs remain in English
 // to avoid generic auto-substitutions that diverge from the actual content.
 const TRANSLATION_BANNER_TEXT = {
-  es: 'Navegación, encabezados y etiquetas están traducidos. Los textos largos pueden aparecer en inglés; use la traducción de su navegador para verlos en español.',
-  de: 'Navigation, Überschriften und Beschriftungen sind übersetzt. Längere Texte erscheinen ggf. weiterhin in Englisch — nutzen Sie die Übersetzungsfunktion Ihres Browsers.',
-  fr: 'La navigation, les en-têtes et les libellés sont traduits. Les textes longs peuvent rester en anglais — utilisez la traduction de votre navigateur.',
-  ko: '내비게이션, 제목, 짧은 라벨은 번역되어 있습니다. 긴 문장은 영어로 표시될 수 있으며 브라우저 번역 기능을 사용하세요.',
-  ja: 'ナビゲーション、見出し、短いラベルは翻訳されています。長文は英語で表示される場合があります。ブラウザの翻訳機能をご利用ください。',
-  tl: 'Naka-translate ang navigation, mga heading, at maiikling label. Maaaring nasa English pa rin ang mahahabang teksto — gamitin ang translation ng browser.',
-  ar: 'تمت ترجمة التنقل والعناوين والعلامات القصيرة. قد تظل النصوص الطويلة باللغة الإنجليزية — استخدم ترجمة المتصفح.',
-  zh: '导航、标题和短标签已翻译。较长的文本可能仍以英文显示，请使用浏览器翻译。',
-  it: 'Navigazione, intestazioni ed etichette sono tradotte. I testi lunghi possono restare in inglese — usa la traduzione del browser.',
-  pt: 'Navegação, cabeçalhos e rótulos curtos estão traduzidos. Textos longos podem permanecer em inglês — use a tradução do seu navegador.',
-  vi: 'Điều hướng, tiêu đề và nhãn ngắn đã được dịch. Văn bản dài có thể vẫn ở tiếng Anh — hãy dùng tính năng dịch của trình duyệt.',
+  es: 'Toda la aplicación se muestra en español. Las instrucciones detalladas pueden aparecer generalizadas; consulte el inglés original o la fuente oficial antes de actuar.',
+  de: 'Die gesamte App wird auf Deutsch angezeigt. Detaillierte Anweisungen können verallgemeinert sein — prüfen Sie das englische Original oder die offizielle Quelle vor dem Handeln.',
+  fr: 'L\'application complète s\'affiche en français. Les instructions détaillées peuvent apparaître généralisées — consultez l\'original anglais ou la source officielle avant d\'agir.',
+  ko: '앱 전체가 한국어로 표시됩니다. 상세 지침은 일반화되어 표시될 수 있으니, 실행 전 영어 원문이나 공식 출처를 확인하세요.',
+  ja: 'アプリ全体が日本語で表示されます。詳細な手順は一般化された表現になる場合があります。実行前に英語原文または公式ソースをご確認ください。',
+  tl: 'Buong app ay nasa wikang pinili mo. Ang mga detalyadong tagubilin ay maaaring maging pangkalahatan — tingnan ang orihinal na Ingles o opisyal na source bago kumilos.',
+  ar: 'يُعرض التطبيق بالكامل بلغتك المختارة. قد تظهر التعليمات التفصيلية بشكل عام — راجع النص الأصلي بالإنجليزية أو المصدر الرسمي قبل اتخاذ أي إجراء.',
+  zh: '整个应用程序以您选择的语言显示。详细说明可能显示为通用表述,采取行动前请查阅英文原文或官方来源。',
+  it: 'L\'intera app è in italiano. Le istruzioni dettagliate possono essere generalizzate — consulta l\'originale inglese o la fonte ufficiale prima di agire.',
+  pt: 'O aplicativo inteiro está em português. As instruções detalhadas podem aparecer generalizadas — consulte o inglês original ou a fonte oficial antes de agir.',
+  vi: 'Toàn bộ ứng dụng hiển thị bằng ngôn ngữ bạn chọn. Hướng dẫn chi tiết có thể được hiển thị tổng quát — xem bản gốc tiếng Anh hoặc nguồn chính thức trước khi thực hiện.',
 };
 
 
@@ -5146,6 +5278,25 @@ const RELIGIOUS_PREFERENCES = [
   'Prefer not to say', 'Other',
 ];
 
+// Per-language religious preference labels. <option> elements are
+// excluded from the runtime DOM walker (intentional — browsers render
+// native option lists in OS locale), so we localize them explicitly.
+const RELIGIOUS_PREF_LABELS = {
+  'No Preference':            { en: 'No Preference', es: 'Sin preferencia', de: 'Keine Präferenz', fr: 'Aucune préférence', ko: '선호 없음', ja: '希望なし', tl: 'Walang preperensya', ar: 'لا تفضيل', zh: '无偏好', it: 'Nessuna preferenza', pt: 'Sem preferência', vi: 'Không có ưu tiên' },
+  'Protestant / Christian':   { en: 'Protestant / Christian', es: 'Protestante / Cristiano', de: 'Protestantisch / Christlich', fr: 'Protestant / Chrétien', ko: '개신교 / 기독교', ja: 'プロテスタント / キリスト教', tl: 'Protestante / Kristiyano', ar: 'بروتستانتي / مسيحي', zh: '新教 / 基督教', it: 'Protestante / Cristiano', pt: 'Protestante / Cristão', vi: 'Tin Lành / Cơ Đốc' },
+  'Catholic':                 { en: 'Catholic', es: 'Católico', de: 'Katholisch', fr: 'Catholique', ko: '천주교', ja: 'カトリック', tl: 'Katoliko', ar: 'كاثوليكي', zh: '天主教', it: 'Cattolico', pt: 'Católico', vi: 'Công giáo' },
+  'Orthodox Christian':       { en: 'Orthodox Christian', es: 'Cristiano Ortodoxo', de: 'Orthodoxes Christentum', fr: 'Chrétien Orthodoxe', ko: '정교회', ja: '正教会', tl: 'Ortodokso Kristiyano', ar: 'مسيحي أرثوذكسي', zh: '东正教', it: 'Cristiano Ortodosso', pt: 'Cristão Ortodoxo', vi: 'Chính Thống giáo' },
+  'Jewish':                   { en: 'Jewish', es: 'Judío', de: 'Jüdisch', fr: 'Juif', ko: '유대교', ja: 'ユダヤ教', tl: 'Hudyo', ar: 'يهودي', zh: '犹太教', it: 'Ebraico', pt: 'Judeu', vi: 'Do Thái giáo' },
+  'Muslim / Islam':           { en: 'Muslim / Islam', es: 'Musulmán / Islam', de: 'Muslimisch / Islam', fr: 'Musulman / Islam', ko: '이슬람교', ja: 'イスラム教', tl: 'Muslim / Islam', ar: 'مسلم / إسلام', zh: '伊斯兰教', it: 'Musulmano / Islam', pt: 'Muçulmano / Islã', vi: 'Hồi giáo / Islam' },
+  'Buddhist':                 { en: 'Buddhist', es: 'Budista', de: 'Buddhistisch', fr: 'Bouddhiste', ko: '불교', ja: '仏教', tl: 'Budista', ar: 'بوذي', zh: '佛教', it: 'Buddista', pt: 'Budista', vi: 'Phật giáo' },
+  'Hindu':                    { en: 'Hindu', es: 'Hindú', de: 'Hinduistisch', fr: 'Hindou', ko: '힌두교', ja: 'ヒンドゥー教', tl: 'Hindu', ar: 'هندوسي', zh: '印度教', it: 'Indù', pt: 'Hindu', vi: 'Hindu giáo' },
+  'Sikh':                     { en: 'Sikh', es: 'Sij', de: 'Sikh', fr: 'Sikh', ko: '시크교', ja: 'シーク教', tl: 'Sikh', ar: 'سيخي', zh: '锡克教', it: 'Sikh', pt: 'Sikh', vi: 'Sikh giáo' },
+  'LDS / Mormon':             { en: 'LDS / Mormon', es: 'SUD / Mormón', de: 'LDS / Mormonen', fr: 'SDJ / Mormon', ko: '말일성도 / 모르몬', ja: '末日聖徒 / モルモン', tl: 'LDS / Mormon', ar: 'قديسي اليوم الأخير / مورمون', zh: '后期圣徒 / 摩门教', it: 'SUG / Mormone', pt: 'SUD / Mórmon', vi: 'LDS / Mormon' },
+  'Unitarian Universalist':   { en: 'Unitarian Universalist', es: 'Unitario Universalista', de: 'Unitarisch-Universalistisch', fr: 'Unitarien Universaliste', ko: '유니테리언 유니버설리스트', ja: 'ユニテリアン・ユニバーサリスト', tl: 'Unitarian Universalist', ar: 'وحدوي عالمي', zh: '一神普救派', it: 'Unitariano Universalista', pt: 'Unitarista Universalista', vi: 'Unitarian Universalist' },
+  'Prefer not to say':        { en: 'Prefer not to say', es: 'Prefiero no decir', de: 'Möchte nicht angeben', fr: 'Préfère ne pas dire', ko: '답변 안 함', ja: '回答しない', tl: 'Ayaw sabihin', ar: 'أفضل عدم القول', zh: '不愿透露', it: 'Preferisco non dire', pt: 'Prefiro não dizer', vi: 'Không muốn nêu' },
+  'Other':                    { en: 'Other', es: 'Otro', de: 'Andere', fr: 'Autre', ko: '기타', ja: 'その他', tl: 'Iba pa', ar: 'أخرى', zh: '其他', it: 'Altro', pt: 'Outro', vi: 'Khác' },
+};
+
 const DEMO_PROFILE = {
   demoMode: true,
   firstName: 'Marcus', lastName: 'Thompson',
@@ -5358,7 +5509,7 @@ function Onboarding({ onComplete }) {
                 <input
                   value={losingSearch || p.losingInstallation}
                   onChange={e => { setLosingSearch(e.target.value); upd('losingInstallation', e.target.value); }}
-                  placeholder="Type base name..."
+                  placeholder={ot('typeBaseName')}
                   style={inputSt}
                 />
                 <SuggestionList items={losingSuggestions} onSelect={name => { upd('losingInstallation', name); setLosingSearch(''); }} />
@@ -5370,7 +5521,7 @@ function Onboarding({ onComplete }) {
                 <input
                   value={gainingSearch || p.gainingInstallation}
                   onChange={e => { setGainingSearch(e.target.value); updGaining(e.target.value); }}
-                  placeholder="Type base name..."
+                  placeholder={ot('typeBaseName')}
                   style={inputSt}
                 />
                 <SuggestionList items={gainingSuggestions} onSelect={name => { updGaining(name); setGainingSearch(''); }} />
@@ -5393,28 +5544,28 @@ function Onboarding({ onComplete }) {
           {/* Step 2 — Family, Religion & Housing */}
           {step === 2 && (
             <>
-              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>Family & Preferences</div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>{ot('familyPreferences')}</div>
 
               {/* Dependent travel */}
               <div onClick={() => upd('hasDependents', !p.hasDependents)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, marginBottom: 10, background: p.hasDependents ? `${theme.accent}20` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${p.hasDependents ? `${theme.accent}66` : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer' }}>
                 <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${p.hasDependents ? theme.accent : 'rgba(255,255,255,0.25)'}`, background: p.hasDependents ? theme.accent : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {p.hasDependents && <span style={{ color: theme.secondary, fontSize: 13, fontWeight: 900 }}>✓</span>}
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>Spouse / Dependents traveling with me</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>{ot('spouseDepsTravel')}</div>
               </div>
 
               {/* Children ages */}
               <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 14, marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent }}>CHILDREN'S AGES</label>
-                  <button onClick={() => upd('childAges', [...p.childAges, ''])} style={{ padding: '5px 12px', borderRadius: 8, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>+ Add Child</button>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent }}>{ot('childrensAges')}</label>
+                  <button onClick={() => upd('childAges', [...p.childAges, ''])} style={{ padding: '5px 12px', borderRadius: 8, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>{ot('addChild')}</button>
                 </div>
-                {p.childAges.length === 0 && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '6px 0' }}>No children added yet</div>}
+                {p.childAges.length === 0 && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '6px 0' }}>{ot('noChildrenYet')}</div>}
                 {p.childAges.map((age, idx) => (
                   <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', minWidth: 60 }}>Child {idx + 1}</div>
-                    <input type="number" min="0" max="25" value={age} onChange={e => { const a = [...p.childAges]; a[idx] = e.target.value; upd('childAges', a); }} placeholder="Age" style={{ ...inputSt, width: 80, flexShrink: 0 }} />
-                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>yrs</span>
+                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', minWidth: 60 }}>{ot('childN')} {idx + 1}</div>
+                    <input type="number" min="0" max="25" value={age} onChange={e => { const a = [...p.childAges]; a[idx] = e.target.value; upd('childAges', a); }} placeholder={ot('agePlaceholder')} style={{ ...inputSt, width: 80, flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{ot('yrs')}</span>
                     <button onClick={() => upd('childAges', p.childAges.filter((_, i) => i !== idx))} style={{ marginLeft: 'auto', padding: '4px 9px', borderRadius: 7, background: 'rgba(255,80,80,0.2)', border: '1px solid rgba(255,80,80,0.35)', color: '#FF8080', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>✕</button>
                   </div>
                 ))}
@@ -5423,12 +5574,12 @@ function Onboarding({ onComplete }) {
               {/* Religious preference */}
               <div style={{ marginBottom: 16 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
-                  RELIGIOUS PREFERENCE <span style={{ fontWeight: 400, opacity: 0.55, fontSize: 10 }}>(for chaplain & community resources)</span>
+                  {ot('religiousPreference')} <span style={{ fontWeight: 400, opacity: 0.55, fontSize: 10 }}>{ot('religiousPreferenceNote')}</span>
                 </label>
                 <select value={p.religiousPreference} onChange={e => upd('religiousPreference', e.target.value)} style={inputSt}>
-                  {RELIGIOUS_PREFERENCES.map(r => <option key={r}>{r}</option>)}
+                  {RELIGIOUS_PREFERENCES.map(r => <option key={r} value={r}>{RELIGIOUS_PREF_LABELS[r]?.[onboardingLanguage] || r}</option>)}
                 </select>
-                <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>Optional - helps surface relevant chapel and community resources</div>
+                <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{ot('religiousPreferenceHelp')}</div>
               </div>
 
               <div style={{ display: 'flex', gap: 10 }}>

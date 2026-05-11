@@ -671,16 +671,15 @@ function chooseFallback(original, lang, parent) {
   const compactRaw = compactText(original);
   const [marker, compact] = splitMarker(compactRaw);
   if (!looksLikeEnglish(compact)) return original;
-  // Cap raised from 40 → 150 chars so medium-length content gets a
-  // topic-localized rendering in the user's language instead of falling
-  // back to English. Tradeoff: the sentence is generic (built from
-  // topic + intent terms) and does not preserve the exact source
-  // wording, but the previous behavior of dropping back to English for
-  // anything >40 chars was reported as "language reverts to English".
-  // Strings >150 chars are paragraph content where the generic fallback
-  // diverges too far and would mislead — those stay in English and the
-  // TRANSLATION_BANNER advises users to use browser-level translation.
-  if (compact.length > 150) return original;
+  // Full-translation mode: long content (checklists, docs, education
+  // descriptions) gets a topic-localized sentence in the target
+  // language instead of staying English. The fallback sentence is
+  // generic — it preserves topic + intent but loses the source's
+  // specific wording. The TRANSLATION_BANNER tells non-English users
+  // to expect generalized phrasing on long content. Only paragraphs
+  // longer than 500 chars (true essays, multi-sentence blocks) stay in
+  // English; those would be too lossy to generalize into one sentence.
+  if (compact.length > 500) return original;
 
   const lower = compact.toLowerCase();
   const bundle = GENERIC[lang] || GENERIC.es;
