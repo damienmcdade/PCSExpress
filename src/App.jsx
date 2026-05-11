@@ -4352,6 +4352,9 @@ const APP_TRANSLATIONS = {
     optional: 'optional',
     preferredLanguage: 'PREFERRED LANGUAGE',
     languageHelp: 'Used for navigation, translation support, and language-specific resources.',
+    departingFrom: 'DEPARTING FROM (LOSING INSTALLATION)',
+    reportingTo: 'REPORTING TO (GAINING INSTALLATION)',
+    departingDate: 'DEPARTING DATE',
     seeDemoFirst: 'See Demo First',
     continue: 'Continue',
     launchDemo: 'Launch Demo',
@@ -4445,6 +4448,9 @@ APP_TRANSLATIONS.es = {
   optional: 'opcional',
   preferredLanguage: 'IDIOMA PREFERIDO',
   languageHelp: 'Se usa para navegación, traducción y recursos específicos del idioma.',
+  departingFrom: 'SALIENDO DE (INSTALACIÓN ANTERIOR)',
+  reportingTo: 'DESTINO (NUEVA INSTALACIÓN)',
+  departingDate: 'FECHA DE SALIDA',
   seeDemoFirst: 'Ver demostración primero',
   continue: 'Continuar',
   launchDemo: 'Iniciar demostración',
@@ -4503,6 +4509,9 @@ APP_TRANSLATIONS.de = {
   payGradeRank: 'BESOLDUNG UND DIENSTGRAD',
   preferredLanguage: 'BEVORZUGTE SPRACHE',
   languageHelp: 'Wird für Navigation, Übersetzung und sprachspezifische Ressourcen verwendet.',
+  departingFrom: 'ABREISE VON (FRÜHERER STANDORT)',
+  reportingTo: 'ZIEL (NEUER STANDORT)',
+  departingDate: 'ABREISEDATUM',
   seeDemoFirst: 'Demo zuerst ansehen',
   continue: 'Weiter',
   launchDemo: 'Demo starten',
@@ -4537,6 +4546,9 @@ APP_TRANSLATIONS.fr = {
   payGradeRank: 'GRADE ET RANG',
   preferredLanguage: 'LANGUE PRÉFÉRÉE',
   languageHelp: 'Utilisé pour la navigation, la traduction et les ressources linguistiques.',
+  departingFrom: 'DÉPART DE (ANCIENNE INSTALLATION)',
+  reportingTo: 'AFFECTATION (NOUVELLE INSTALLATION)',
+  departingDate: 'DATE DE DÉPART',
   seeDemoFirst: 'Voir la démo d’abord',
   continue: 'Continuer',
   launchDemo: 'Lancer la démo',
@@ -4571,6 +4583,9 @@ APP_TRANSLATIONS.ko = {
   payGradeRank: '계급 및 급여등급',
   preferredLanguage: '선호 언어',
   languageHelp: '내비게이션, 번역 지원 및 언어별 자료에 사용됩니다.',
+  departingFrom: '출발지 (이전 기지)',
+  reportingTo: '도착지 (새 기지)',
+  departingDate: '출발일',
   seeDemoFirst: '데모 먼저 보기',
   continue: '계속',
   launchDemo: '데모 시작',
@@ -4605,6 +4620,9 @@ APP_TRANSLATIONS.ja = {
   payGradeRank: '給与等級と階級',
   preferredLanguage: '希望言語',
   languageHelp: 'ナビゲーション、翻訳支援、言語別リソースに使用されます。',
+  departingFrom: '出発元 (前任地)',
+  reportingTo: '着任先 (新任地)',
+  departingDate: '出発日',
   seeDemoFirst: '先にデモを見る',
   continue: '続行',
   launchDemo: 'デモを開始',
@@ -4639,6 +4657,9 @@ APP_TRANSLATIONS.tl = {
   payGradeRank: 'PAY GRADE AT RANGGO',
   preferredLanguage: 'GUSTONG WIKA',
   languageHelp: 'Ginagamit para sa navigation, translation support, at resources ayon sa wika.',
+  departingFrom: 'PAALIS GALING (DATING INSTALLATION)',
+  reportingTo: 'PUPUNTA SA (BAGONG INSTALLATION)',
+  departingDate: 'PETSA NG PAALIS',
   seeDemoFirst: 'Tingnan muna ang demo',
   continue: 'Magpatuloy',
   launchDemo: 'Simulan ang demo',
@@ -4673,6 +4694,9 @@ APP_TRANSLATIONS.ar = {
   payGradeRank: 'الرتبة ودرجة الراتب',
   preferredLanguage: 'اللغة المفضلة',
   languageHelp: 'تُستخدم للتنقل ودعم الترجمة والموارد حسب اللغة.',
+  departingFrom: 'مغادرة من (المنشأة السابقة)',
+  reportingTo: 'الوصول إلى (المنشأة الجديدة)',
+  departingDate: 'تاريخ المغادرة',
   seeDemoFirst: 'شاهد العرض أولاً',
   continue: 'متابعة',
   launchDemo: 'بدء العرض',
@@ -4707,6 +4731,9 @@ APP_TRANSLATIONS.zh = {
   payGradeRank: '薪级与军衔',
   preferredLanguage: '首选语言',
   languageHelp: '用于导航、翻译支持和语言相关资源。',
+  departingFrom: '离开 (原驻地)',
+  reportingTo: '前往 (新驻地)',
+  departingDate: '出发日期',
   seeDemoFirst: '先看演示',
   continue: '继续',
   launchDemo: '启动演示',
@@ -4741,6 +4768,9 @@ APP_TRANSLATIONS.it = {
   payGradeRank: 'GRADO E RANGO',
   preferredLanguage: 'LINGUA PREFERITA',
   languageHelp: 'Usata per navigazione, traduzione e risorse linguistiche.',
+  departingFrom: 'PARTENZA DA (BASE PRECEDENTE)',
+  reportingTo: 'DESTINAZIONE (NUOVA BASE)',
+  departingDate: 'DATA DI PARTENZA',
   seeDemoFirst: 'Vedi prima la demo',
   continue: 'Continua',
   launchDemo: 'Avvia demo',
@@ -4775,6 +4805,9 @@ APP_TRANSLATIONS.pt = {
   payGradeRank: 'GRAU E PATENTE',
   preferredLanguage: 'IDIOMA PREFERIDO',
   languageHelp: 'Usado para navegação, tradução e recursos do idioma.',
+  departingFrom: 'SAINDO DE (INSTALAÇÃO ANTERIOR)',
+  reportingTo: 'INDO PARA (NOVA INSTALAÇÃO)',
+  departingDate: 'DATA DE PARTIDA',
   seeDemoFirst: 'Ver demonstração primeiro',
   continue: 'Continuar',
   launchDemo: 'Iniciar demonstração',
@@ -4809,6 +4842,9 @@ APP_TRANSLATIONS.vi = {
   payGradeRank: 'BẬC LƯƠNG VÀ CẤP BẬC',
   preferredLanguage: 'NGÔN NGỮ ƯU TIÊN',
   languageHelp: 'Dùng cho điều hướng, hỗ trợ dịch và tài nguyên theo ngôn ngữ.',
+  departingFrom: 'KHỞI HÀNH TỪ (CĂN CỨ CŨ)',
+  reportingTo: 'BÁO CÁO ĐẾN (CĂN CỨ MỚI)',
+  departingDate: 'NGÀY KHỞI HÀNH',
   seeDemoFirst: 'Xem demo trước',
   continue: 'Tiếp tục',
   launchDemo: 'Mở demo',
@@ -5318,7 +5354,7 @@ function Onboarding({ onComplete }) {
 
               {/* Losing installation */}
               <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>DEPARTING FROM (LOSING INSTALLATION)</label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('departingFrom')}</label>
                 <input
                   value={losingSearch || p.losingInstallation}
                   onChange={e => { setLosingSearch(e.target.value); upd('losingInstallation', e.target.value); }}
@@ -5330,7 +5366,7 @@ function Onboarding({ onComplete }) {
 
               {/* Gaining installation */}
               <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>REPORTING TO (GAINING INSTALLATION)</label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('reportingTo')}</label>
                 <input
                   value={gainingSearch || p.gainingInstallation}
                   onChange={e => { setGainingSearch(e.target.value); updGaining(e.target.value); }}
@@ -5343,7 +5379,7 @@ function Onboarding({ onComplete }) {
 
               {/* Departing date */}
               <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>DEPARTING DATE</label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('departingDate')}</label>
                 <input type="date" value={p.departingDate} onChange={e => upd('departingDate', e.target.value)} style={{ ...inputSt, colorScheme: 'dark' }} />
               </div>
 
