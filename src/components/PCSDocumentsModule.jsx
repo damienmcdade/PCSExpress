@@ -65,6 +65,9 @@ const BASE_DOCS = {
   family: [
     { id: 'deers_update',        name: 'DEERS Enrollment Update',         form: 'DD Form 1172-2',          required: true,  desc: 'Update dependent information and address in DEERS at gaining installation ID card office' },
     { id: 'id_cards',            name: 'ID Cards (CAC + Dependents)',     form: 'DD Form 1172',            required: true,  desc: 'Check all expiration dates — update CAC and dependent IDs before or at gaining installation' },
+    { id: 'dd93_emergency_data', name: 'Record of Emergency Data',        form: 'DD Form 93',              required: true,  desc: 'Update emergency contacts and next-of-kin information at gaining installation S1 / personnel office', formUrl: 'https://www.esd.whs.mil/Portals/54/Documents/DD/forms/dd/dd0093.pdf' },
+    { id: 'sgli_beneficiary',    name: 'SGLI Beneficiary Election',       form: 'SGLV 8286',               required: true,  desc: 'Servicemembers Group Life Insurance beneficiary designations — verify before PCS, update at gaining S1', formUrl: 'https://www.benefits.va.gov/INSURANCE/forms/SGLV_8286_ed_2020-08.pdf' },
+    { id: 'family_care_plan',    name: 'Family Care Plan',                form: 'Branch-Specific',         required: false, desc: 'Required for single parents and dual-military couples with dependents — coordinate alternate caregivers' },
     { id: 'birth_certificates',  name: 'Birth Certificates',              form: 'Certified Copies',        required: true,  desc: 'Certified copies for member and all dependents — required for DEERS, passports, and enrollment' },
     { id: 'marriage_cert',       name: 'Marriage Certificate',            form: 'Certified Copy',          required: false, desc: 'Certified marriage certificate for BAH with dependents and family benefits' },
     { id: 'school_records',      name: 'School Records & Transcripts',    form: 'Academic Records',        required: false, desc: 'Official transcripts, IEP, 504 plans — request sealed copies from current school counselor' },
@@ -77,6 +80,7 @@ const BASE_DOCS = {
     { id: 'official_passport_mbr', name: 'Official Passport (Member)',    form: 'DS-11 / DS-82',           required: true,  desc: 'Official (black cover) government passport — apply through installation passport office at least 3 months before PCS' },
     { id: 'tourist_passport_mbr',  name: 'Tourist Passport (Member)',     form: 'DS-11 / DS-82',           required: false, desc: 'Personal blue-cover passport for off-duty travel in host country — highly recommended' },
     { id: 'dependent_passports',   name: 'Dependent Passports (All)',     form: 'DS-11 / DS-82',           required: true,  desc: 'Official and tourist passports for all authorized traveling dependents' },
+    { id: 'no_fee_passport_auth',  name: 'No-Fee Passport Authorization', form: 'DD Form 1056',            required: true,  desc: 'Authorizes free no-fee government passport applications for sponsor and family — endorsement from gaining command before passport office visit' },
     { id: 'sofa',                  name: 'SOFA Agreement Documentation',  form: 'SOFA',                    required: true,  desc: 'Status of Forces Agreement — defines your legal status and rights in the host country' },
     { id: 'visa',                  name: 'Visa / Entry Documentation',    form: 'Host Nation Visa',        required: false, desc: 'Entry permit required by host nation — check with gaining installation S2/Security office' },
     { id: 'pet_import',            name: 'Pet Import Documentation',      form: 'USDA APHIS 7001',         required: false, desc: 'Health certificate, microchip proof, and host-nation pet import requirements — research 6+ months early' },
@@ -93,63 +97,78 @@ const BRANCH_EXTRA = {
     orders: [
       { id: 'da31_leave',       name: 'Leave Form (DA 31)',                form: 'DA Form 31',              required: true,  desc: 'Request and Authority for Leave covering all authorized PCS travel days — signed by commander' },
       { id: 'iperms_review',    name: 'iPERMS Records Verification',       form: 'iPERMS',                  required: true,  desc: 'Confirm all official records (evals, awards, training) are filed before departure', formUrl: 'https://iperms.hrc.army.mil' },
+      { id: 'srb_review',       name: 'Soldier Record Brief (SRB / IPPS-A)', form: 'IPPS-A SRB',           required: true,  desc: 'Verify SRB is current via IPPS-A before departure — dependents, awards, evals, RNLTD, gaining UIC', formUrl: 'https://ipps-a.army.mil' },
       { id: 'ncoer_oer',        name: 'NCOER / OER Completion',            form: 'DA 2166-9 / 67-10',      required: true,  desc: 'Ensure all evaluations are completed, signed, and filed in iPERMS before PCS departure' },
-      { id: 'da4187',           name: 'DA 4187 Personnel Actions',         form: 'DA Form 4187',            required: false, desc: 'Personnel action requests (address change, BAH updates, SGLI) submitted through S1' },
+      { id: 'da4187',           name: 'DA 4187 Personnel Actions',         form: 'DA Form 4187',            required: false, desc: 'Personnel action requests (address change, BAH updates, SGLI, PTDY) submitted through S1' },
     ],
     family: [
       { id: 'da137_clearance',  name: 'Installation Clearance Record',     form: 'DA Form 137-1/2',        required: true,  desc: 'Clear finance, housing, library, medical, and unit arms room at losing installation' },
       { id: 'da5960_bah',       name: 'BAH Authorization (DA 5960)',       form: 'DA Form 5960',            required: true,  desc: 'Start/Stop/Change BAH — submit to S1 before or upon arrival at gaining installation' },
       { id: 'da7695_efmp',      name: 'EFMP Screening (DA 7695)',          form: 'DA Form 7695',            required: false, desc: 'Army EFMP enrollment/screening through ACS or Medical — required if any dependent has special needs' },
+      { id: 'da5305_fcp',       name: 'Family Care Plan (DA 5305)',        form: 'DA Form 5305',            required: false, desc: 'Required for single parents and dual-military soldiers with dependents — coordinate alternate caregivers via S1' },
     ],
   },
   Navy: {
     orders: [
       { id: 'navpers_detach',   name: 'Report of Detachment',              form: 'NAVPERS 1300/16',        required: true,  desc: 'Official report of detachment from losing command — processed via MyNavy HR portal', formUrl: 'https://www.mynavyhr.navy.mil' },
       { id: 'bupers_verify',    name: 'BUPERS Orders Verification',        form: 'MyNavy HR',               required: true,  desc: 'Confirm PCS orders and endorsements are accurate in MyNavy HR before proceeding' },
+      { id: 'navpers_1070_605', name: 'Admin Remarks (Page 13) — Losing',  form: 'NAVPERS 1070/605',        required: true,  desc: 'Page 13 entry at current command documenting PCS transfer, address change, or dependency status' },
+      { id: 'opnav_overseas',   name: 'Overseas Screening (OPNAV 1300/16)', form: 'OPNAV 1300/16',          required: false, desc: 'Required for OCONUS PCS — sponsor and family medical/dental/admin screening before report date' },
     ],
     family: [
       { id: 'navy_checkout',    name: 'Command Check-Out Sheet',           form: 'Command Form',            required: true,  desc: 'Signed check-out sheet from all required losing command department heads' },
       { id: 'eval_fitrep',      name: 'EVAL / FITREP Review',              form: 'EVAL / FITREP',           required: true,  desc: 'Ensure all evaluations are finalized and accessible in BUPERS before detachment date' },
+      { id: 'navpers_1070_602', name: 'Dependency Application (Page 2)',   form: 'NAVPERS 1070/602',        required: true,  desc: 'Update Page 2 at gaining Personnel Support Detachment with current dependent information' },
       { id: 'ffsc_brief',       name: 'Fleet & Family Relocation Brief',   form: 'FFSC Brief',              required: false, desc: 'Attend PCS relocation brief at Fleet & Family Support Center for transition resources' },
     ],
   },
   'Marine Corps': {
     orders: [
       { id: 'cmc_orders',       name: 'CMC Orders (MCTFS)',                form: 'CMC Orders',              required: true,  desc: 'Official Marine Corps PCS orders — verify accuracy via Marine Corps Total Force System' },
+      { id: 'navmc_118',        name: 'Service Record Book Page Entry',    form: 'NAVMC 118(3)',            required: true,  desc: 'Page 11/12 administrative remarks entry at IPAC documenting transfer, dependents, or admin updates' },
+      { id: 'mol_outprocess',   name: 'MOL Out-Processing Checklist',      form: 'MOL Checklist',           required: true,  desc: 'Complete Marine Online out-processing checklist before detachment — all sections verified' },
     ],
     family: [
       { id: 'mco_checkout',     name: 'Command Check-Out Checklist',       form: 'MCO 4600.39',             required: true,  desc: 'Complete check-out per MCO 4600.39 — all required signatures from unit staff before departure' },
       { id: 'msr_review',       name: 'Service Record Review (MSR/ESR)',   form: 'MSR / ESR',               required: true,  desc: 'Verify Master Service Record and Electronic Service Record are complete and current' },
       { id: 'mccs_brief',       name: 'MCCS Relocation Brief',             form: 'MCCS Brief',              required: false, desc: 'PCS relocation counseling brief through Marine Corps Community Services' },
+      { id: 'usmc_fcp',         name: 'Family Care Plan',                  form: 'MCO 1740.13 FCP',         required: false, desc: 'Required for single parents and dual-military Marines with dependents — coordinated through IPAC' },
     ],
   },
   'Air Force': {
     orders: [
-      { id: 'af_mypers',        name: 'AF PCS Orders via myPers',          form: 'AF Orders',               required: true,  desc: 'Official AF PCS orders from AFPC — verify in myPers portal and print all endorsements', formUrl: '' },
+      { id: 'af_mypers',        name: 'AF PCS Orders via myPers',          form: 'AF Orders',               required: true,  desc: 'Official AF PCS orders from AFPC — verify in myPers portal and print all endorsements', formUrl: 'https://mypers.us.af.mil' },
+      { id: 'af988_leave',      name: 'Leave Request (AF Form 988)',       form: 'AF Form 988',             required: true,  desc: 'Request and Authority for Leave covering PCS travel days — signed by commander' },
+      { id: 'af4380_pcs_plan',  name: 'PCS Travel Planning',               form: 'AF Form 4380',            required: true,  desc: 'AF Form 4380 PCS Travel Planning — completed at Airman & Family Readiness Center before departure' },
     ],
     family: [
       { id: 'af907',            name: 'Relocation Preparation Checklist',  form: 'AF Form 907',             required: true,  desc: 'Complete AF Form 907 with Airman & Family Readiness Center counselor before departure' },
       { id: 'af_outprocess',    name: 'Base / Unit Out-Processing',        form: 'AF Out-Processing Sheet', required: true,  desc: 'Complete all base out-processing appointments: MPF, finance, housing, medical' },
       { id: 'vmpf_review',      name: 'vMPF Records Review',               form: 'AFPC vMPF',               required: true,  desc: 'Verify all records are current in Air Force Personnel Center virtual MPF before departure' },
+      { id: 'af1466_efmp',      name: 'EFMP Identification (AF 1466)',     form: 'AF Form 1466',            required: false, desc: 'Request to identify exceptional family members for AF EFMP enrollment — required if dependents have special needs' },
     ],
   },
   'Space Force': {
     orders: [
-      { id: 'sf_mypers',        name: 'Space Force PCS Orders via myPers', form: 'SF Orders',               required: true,  desc: 'Official Space Force PCS orders via myPers (shared AF/SF system)', formUrl: '' },
+      { id: 'sf_mypers',        name: 'Space Force PCS Orders via myPers', form: 'SF Orders',               required: true,  desc: 'Official Space Force PCS orders via myPers (shared AF/SF system)', formUrl: 'https://mypers.us.af.mil' },
+      { id: 'sf_af988_leave',   name: 'Leave Request (AF Form 988)',       form: 'AF Form 988',             required: true,  desc: 'Space Force uses the AF leave form — request and authority for PCS travel leave, signed by commander' },
     ],
     family: [
       { id: 'sf_outprocess',    name: 'Delta / Unit Out-Processing',       form: 'SF Out-Processing',       required: true,  desc: 'Complete all out-processing at losing Delta/unit and Space Force installation' },
       { id: 'gdp_review',       name: 'Guardian Development Plan',         form: 'GDP',                     required: false, desc: 'Review and update Guardian Development Plan before PCS for career continuity' },
+      { id: 'sf_af1466_efmp',   name: 'EFMP Identification (AF 1466)',     form: 'AF Form 1466',            required: false, desc: 'Space Force uses the AF EFMP form — required if any dependent has special needs' },
     ],
   },
   'Coast Guard': {
     orders: [
       { id: 'cg3103',           name: 'CG Transfer Orders (CG-3103)',      form: 'CG-3103',                 required: true,  desc: 'Official Coast Guard PCS transfer orders — access and verify via Direct Access portal' },
       { id: 'cg_direct_access', name: 'Direct Access Records Verification', form: 'CG Direct Access',       required: true,  desc: 'Verify all personnel records are current and accurate in CGBI / Direct Access' },
+      { id: 'cg3307_remarks',   name: 'Administrative Remarks (CG-3307)',  form: 'CG-3307',                 required: true,  desc: 'Page 7 administrative remarks entry at SPO documenting transfer, dependents, leave, or admin updates' },
     ],
     family: [
       { id: 'cg_unit_checkout', name: 'Unit Check-Out Sheet',              form: 'CG Form',                 required: true,  desc: 'Signed check-out from losing unit Command Master Chief and department heads' },
       { id: 'cg_work_life',     name: 'CG Work-Life Relocation Brief',     form: 'Work-Life Brief',         required: false, desc: 'Relocation counseling through Coast Guard Work-Life program prior to PCS' },
+      { id: 'cg_fcp',           name: 'Family Care Plan',                  form: 'CG Family Care Plan',     required: false, desc: 'Required for single-parent and dual-military Coast Guardsmen with dependents' },
     ],
   },
 };
