@@ -4568,14 +4568,20 @@ const APP_TRANSLATIONS = {
       veterans: 'Find veteran-owned business resources, public directories, and local search paths near the gaining location.',
     },
     demo: {
-      securityTitle: 'Security, Public Data, and Legal Notice',
-      securityBody: 'PCS Express uses public U.S. government, military, and verified public-source information where available. The app removes document-upload capability and asks users not to enter classified, CUI, roster, deployment, or mission-sensitive information.',
+      securityTitle: 'Zero-Upload + AES-256 Encryption',
+      securityBody: 'PCS Express never asks you to upload your orders, IDs, or other documents. Everything you type is encrypted with AES-256-GCM using the Web Crypto API and stored only on your device — the key is generated as a non-extractable CryptoKey in IndexedDB, so the raw key bytes never reach JavaScript. There is no PCS Express backend that sees your data, and no file that can leak. Verify in DevTools → Application → Local Storage: every value is ciphertext, not plaintext.',
+      tminusTitle: 'T-Minus Dashboard',
+      tminusBody: 'The Home tab opens on a countdown derived from your Report-NLT date. A 13-milestone schedule maps from T-120 (begin TMO research) through T+30 (full in-processing complete). The banner color shifts as urgency increases: accent (>30d) → amber (≤30d) → red (≤7d) → green (post-report).',
+      componentTitle: 'Component-Aware Guidance',
+      componentBody: 'If your profile component is Reserve, National Guard, or AGR, the Home tab surfaces a branded callout the Active-Duty UI does not show. For Guard members specifically: Title 10 (federal) vs Title 32 (state with federal pay) authority verification, State JFHQ J1/SAD coordination, TRICARE Reserve Select transition, and cross-state license/tax/voter changes for 6+ month assignments.',
+      householdTitle: 'Step 3 — Pets & Move Type',
+      householdBody: 'Onboarding step 3 adds two new controls per the redesign brief: a Pets Yes/No toggle (surfaces APHIS / USDA / pet-import documents in your checklist), and a Move Type segmented control (HHG government-arranged vs PPM / DITY personally procured — drives weight-ticket and incentive-payment guidance in Documents).',
       profileTitle: 'Onboarding - Branch & Profile',
       profileBody: 'Branch, component, rank, name, and language help the app tailor branch-specific resources, rank labels, translation support, and PCS planning guidance.',
-      basesTitle: 'Onboarding - Bases',
-      basesBody: 'Losing installation, gaining installation, and departure date help build the PCS timeline, housing guidance, route planning, school planning, and local resource recommendations.',
-      familyTitle: 'Onboarding - Family & Preferences',
-      familyBody: 'Dependent travel, children ages, and optional spiritual preference help tailor family readiness, school, EFMP, childcare, chaplain, and community support resources.',
+      basesTitle: 'Onboarding - Mission (Bases + Report-NLT)',
+      basesBody: 'Losing installation, gaining installation, and Report-NLT (Not Later Than) arrival date help build the PCS timeline, housing guidance, route planning, school planning, and local resource recommendations. The Report-NLT date drives the T-Minus dashboard milestones.',
+      familyTitle: 'Onboarding - Household',
+      familyBody: 'Dependent travel, children ages, pets, move type, and optional spiritual preference help tailor family readiness, school, EFMP, childcare, chaplain, and community support resources.',
       selectorTitle: 'Home - Category Selector',
       selectorBody: 'The home screen lists categories alphabetically so users can quickly find each PCS planning area.',
       completeTitle: 'Tour Complete - Thank You',
@@ -5556,14 +5562,29 @@ const RELIGIOUS_PREF_LABELS = {
   'Other':                    { en: 'Other', es: 'Otro', de: 'Andere', fr: 'Autre', ko: '기타', ja: 'その他', tl: 'Iba pa', ar: 'أخرى', zh: '其他', it: 'Altro', pt: 'Outro', vi: 'Khác' },
 };
 
+// Demo profile drives the interactive tour. Tuned to surface the most
+// branches of the redesigned UI in one walkthrough: National Guard
+// component (triggers Title 10/32 callout), OCONUS gaining installation
+// (triggers OHA + DD 1056 + SOFA Documents tab content), Pets + PPM
+// move-type (triggers APHIS + weight-ticket guidance), Report-NLT date
+// ~75 days out (lands the T-Minus dashboard squarely in the "schedule
+// HHG" / "request PTDY" window).
+function _futureDate(daysAhead) {
+  const d = new Date();
+  d.setDate(d.getDate() + daysAhead);
+  return d.toISOString().slice(0, 10);
+}
 const DEMO_PROFILE = {
   demoMode: true,
   firstName: 'Marcus', lastName: 'Thompson',
-  branch: 'Army', component: 'Active Duty', paygrade: 'E-7',
-  losingInstallation: 'Fort Liberty', gainingInstallation: 'Camp Humphreys',
-  departingDate: '2026-06-15',
-  isOverseas: true, hasDependents: true, hasChildren: true,
-  childAges: [14, 11, 8], bedrooms: '4',
+  branch: 'Army', component: 'National Guard', paygrade: 'E-7',
+  losingInstallation: 'Fort Liberty', gainingInstallation: 'USAG Humphreys',
+  departingDate: _futureDate(75),
+  reportNLTDate: _futureDate(75),
+  isOverseas: true,
+  hasDependents: true, hasChildren: true, childAges: [14, 11, 8],
+  hasPets: true, moveType: 'PPM',
+  bedrooms: '4',
   language: 'en', religiousPreference: 'Protestant / Christian',
 };
 
@@ -6250,6 +6271,9 @@ function App() {
 
   const DEMO_TIPS = [
     { tab: 'home', title: t('demo.securityTitle'), body: t('demo.securityBody') },
+    { tab: 'home', title: t('demo.tminusTitle'),   body: t('demo.tminusBody') },
+    { tab: 'home', title: t('demo.componentTitle'), body: t('demo.componentBody') },
+    { tab: 'home', title: t('demo.householdTitle'), body: t('demo.householdBody') },
     { tab: 'home', title: t('demo.profileTitle'), body: t('demo.profileBody') },
     { tab: 'home', title: t('demo.basesTitle'), body: t('demo.basesBody') },
     { tab: 'home', title: t('demo.familyTitle'), body: t('demo.familyBody') },

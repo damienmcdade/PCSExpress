@@ -1,31 +1,34 @@
 /*
- * Purpose: Additive browser safety, local persistence, and audit helpers for PCS Express.
- * Third-party dependencies: browser localStorage; no npm dependencies.
+ * Purpose: Local persistence, audit, and AES-256-GCM-backed secure storage
+ * for PCS Express.
+ *
+ * Encryption flow:
+ *   - secureLocalStore.set(key, value) JSON-encodes the value, wraps it
+ *     in an AES-256-GCM envelope via cryptoStore.encryptJSON(), and
+ *     writes the stringified envelope to localStorage.
+ *   - secureLocalStore.get(key, fallback) reads the string, parses it,
+ *     detects whether it's an encrypted envelope or legacy plain JSON,
+ *     decrypts via cryptoStore.decryptJSON() if needed, and returns the
+ *     deserialized value.
+ *   - Legacy plain-JSON values are upgraded transparently: get() returns
+ *     them as-is, and the next set() re-writes them encrypted.
+ *
+ * Fallback: on browsers without window.crypto.subtle (insecure context,
+ * very old environment), encryption is skipped and we behave like the
+ * old plain-JSON store. encryptionAvailable() reports this to callers
+ * so the UI can warn instead of silently making a false promise.
  */
+
+import {
+  encryptJSON,
+  decryptJSON,
+  isSecureEnvelope,
+  encryptionAvailable,
+} from './cryptoStore.js';
 
 const AUDIT_KEY = 'pcs_audit_log';
 export const LAST_LOCAL_SAVE_KEY = 'pcs_last_local_save_at';
-const MAX_LOCAL_VALUE_BYTES = 750_000;
-
-function isLegacySecureEnvelope(value) {
-  return !!(value && typeof value === 'object' && value.alg === 'AES-256-GCM' && value.iv && value.data);
-}
-
-export function readLegacyJson(key, fallback = null) {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    const parsed = JSON.parse(raw);
-    if (isLegacySecureEnvelope(parsed)) {
-      localStorage.removeItem(key);
-      window.dispatchEvent(new CustomEvent('pcs-local-storage-reset', { detail: { key } }));
-      return fallback;
-    }
-    return parsed;
-  } catch {
-    return fallback;
-  }
-}
+const MAX_LOCAL_VALUE_BYTES = 1_500_000; // ciphertext + base64 overhead is ~1.35x source
 
 function safeSerialize(value) {
   const serialized = JSON.stringify(value);
@@ -35,21 +38,79 @@ function safeSerialize(value) {
   return serialized;
 }
 
+// Read raw JSON (envelope OR plain) without decryption. Used by legacy
+// synchronous call sites that can't await a Promise. Plain JSON is
+// returned as-is; envelopes are returned as the envelope object — callers
+// using readLegacyJson directly should expect to upgrade to secureLocalStore.
+export function readLegacyJson(key, fallback = null) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    // If we hit an envelope synchronously, we cannot decrypt without await.
+    // Return fallback and let the async path pick it up. Better silent miss
+    // than crashing the legacy synchronous code path.
+    if (isSecureEnvelope(parsed)) return fallback;
+    return parsed;
+  } catch {
+    return fallback;
+  }
+}
+
+export { encryptionAvailable };
+
 export const secureLocalStore = {
   async get(key, fallback = null) {
-    return readLegacyJson(key, fallback);
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return fallback;
+      let parsed;
+      try { parsed = JSON.parse(raw); } catch { return fallback; }
+      if (isSecureEnvelope(parsed)) {
+        if (!encryptionAvailable()) {
+          // Envelope present but we cannot decrypt — surface the failure.
+          window.dispatchEvent(new CustomEvent('pcs-local-storage-error', { detail: { key, reason: 'crypto-unavailable' } }));
+          return fallback;
+        }
+        try {
+          return await decryptJSON(parsed);
+        } catch (e) {
+          window.dispatchEvent(new CustomEvent('pcs-local-storage-error', { detail: { key, reason: 'decrypt-failed' } }));
+          return fallback;
+        }
+      }
+      // Legacy plain JSON — return as-is; the next set() will encrypt.
+      return parsed;
+    } catch {
+      return fallback;
+    }
   },
 
   async set(key, value) {
     try {
-      localStorage.setItem(key, safeSerialize(value));
-      if (key !== LAST_LOCAL_SAVE_KEY) {
-        localStorage.setItem(LAST_LOCAL_SAVE_KEY, safeSerialize(new Date().toISOString()));
+      let payload;
+      if (encryptionAvailable()) {
+        try {
+          const envelope = await encryptJSON(value);
+          payload = safeSerialize(envelope);
+        } catch (e) {
+          // Encryption failed unexpectedly — fall back to plain JSON.
+          // Better to persist than to drop user data. Audit the event.
+          payload = safeSerialize(value);
+          window.dispatchEvent(new CustomEvent('pcs-local-storage-error', { detail: { key, reason: 'encrypt-failed' } }));
+        }
+      } else {
+        payload = safeSerialize(value);
       }
-      window.dispatchEvent(new CustomEvent('pcs-local-sync', { detail: { key, savedAt: readLegacyJson(LAST_LOCAL_SAVE_KEY, null) } }));
+      localStorage.setItem(key, payload);
+      if (key !== LAST_LOCAL_SAVE_KEY) {
+        const stamp = JSON.stringify(new Date().toISOString());
+        localStorage.setItem(LAST_LOCAL_SAVE_KEY, stamp);
+      }
+      window.dispatchEvent(new CustomEvent('pcs-local-sync', { detail: { key, encrypted: encryptionAvailable() } }));
       return true;
     } catch {
-      window.dispatchEvent(new CustomEvent('pcs-local-storage-error', { detail: { key } }));
+      window.dispatchEvent(new CustomEvent('pcs-local-storage-error', { detail: { key, reason: 'write-failed' } }));
       return false;
     }
   },
@@ -75,7 +136,7 @@ export class AuditLogger {
     return entry;
   }
 
-  static list() {
-    return readLegacyJson(AUDIT_KEY, []);
+  static async list() {
+    return (await secureLocalStore.get(AUDIT_KEY, []));
   }
 }
