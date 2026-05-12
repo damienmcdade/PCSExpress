@@ -69,7 +69,7 @@ function prepareInteractiveDemoLaunch() {
 // last-save timestamp, language fast-path, encryption key, and any
 // demo session preview state.
 async function eraseAllUserData() {
-  // localStorage — all our keys plus anything that begins with pcs_
+  // 1. localStorage — every key the app writes
   try {
     const toRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
@@ -78,20 +78,45 @@ async function eraseAllUserData() {
     }
     toRemove.forEach(k => localStorage.removeItem(k));
   } catch {}
-  // sessionStorage — demo profile preview
+
+  // 2. sessionStorage — demo profile preview, banner-dismissal flags
   try { sessionStorage.clear(); } catch {}
-  // IndexedDB — wipe the cryptoStore so the next session generates a
-  // fresh AES-256 key. Without this, the new profile would be encrypted
-  // with the same key as the old one — usually fine, but for a true
-  // "fresh restart" we rotate.
+
+  // 3. Cache API — wipe any cached responses the browser may have stored
+  //    (PWA / service-worker style caches). Best-effort.
   try {
-    if (window.indexedDB) {
-      await new Promise((resolve) => {
-        const req = indexedDB.deleteDatabase('pcs-express-crypto');
-        req.onsuccess = req.onerror = req.onblocked = () => resolve();
-      });
+    if (typeof caches !== 'undefined' && caches.keys) {
+      const names = await caches.keys();
+      await Promise.all(names.map(n => caches.delete(n)));
     }
   } catch {}
+
+  // 4. IndexedDB — wipe the cryptoStore so the next session generates a
+  //    fresh AES-256 key. Critically: close the cached connection FIRST,
+  //    otherwise deleteDatabase fires onblocked and never completes.
+  try {
+    const { closeCryptoStoreDB } = await import('./security/cryptoStore.js');
+    closeCryptoStoreDB();
+  } catch {}
+  try {
+    if (window.indexedDB) {
+      // Discover every database this origin holds (Chrome/Firefox/Safari
+      // 14+) and delete each one to be thorough — drops not just our
+      // crypto DB but any future ones too.
+      let dbNames = ['pcs-express-crypto'];
+      try {
+        if (indexedDB.databases) {
+          const all = await indexedDB.databases();
+          dbNames = [...new Set([...dbNames, ...all.map(d => d.name).filter(Boolean)])];
+        }
+      } catch {}
+      await Promise.all(dbNames.map(name => new Promise((resolve) => {
+        const req = indexedDB.deleteDatabase(name);
+        req.onsuccess = req.onerror = req.onblocked = () => resolve();
+      })));
+    }
+  } catch {}
+
   window.dispatchEvent(new CustomEvent('pcs-user-data-erased'));
 }
 
@@ -100,6 +125,59 @@ async function eraseAllUserData() {
 // Listens for the pcs-local-sync event (dispatched by secureLocalStore
 // on every successful set) and updates the relative time string.
 // Click reveals a longer explanation (also lives in the demo tour).
+// Prominent in-app warning modal shown when the user taps Reset / Re-onboard.
+// Replaces the previous tiny window.confirm so the user sees clearly what
+// will be deleted before they confirm. The "Yes, Delete Everything" button
+// is intentionally far from the X / Cancel and uses a destructive red.
+function ResetWarningModal({ theme, onConfirm, onCancel }) {
+  return (
+    <div data-no-language-runtime role="dialog" aria-modal="true" aria-labelledby="reset-warning-title" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ background: '#FFFFFF', borderRadius: 16, maxWidth: 480, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 30px 60px rgba(0,0,0,0.4)', borderTop: `6px solid #DC2626` }}>
+        {/* Header */}
+        <div style={{ background: '#7F1D1D', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 28 }}>⚠️</span>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 950, color: '#FCA5A5', letterSpacing: '.14em' }}>WARNING — DESTRUCTIVE ACTION</div>
+            <h2 id="reset-warning-title" style={{ margin: 0, fontSize: 18, fontWeight: 950, color: '#FFFFFF' }}>Reset will delete everything on this device</h2>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: '18px 20px' }}>
+          <p style={{ fontSize: 14, lineHeight: 1.55, color: '#1F2937', margin: '0 0 12px', fontWeight: 600 }}>
+            If you continue, all your saved progress is permanently removed from this device. <strong>You will have to start over from onboarding.</strong> This cannot be undone.
+          </p>
+          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: 12, marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, color: '#7F1D1D', marginBottom: 6, letterSpacing: '.06em' }}>WHAT GETS DELETED:</div>
+            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, lineHeight: 1.65, color: '#7F1D1D' }}>
+              <li>Your profile (branch, rank, name, installations, dates)</li>
+              <li>Family info (dependents, children, pets, religion)</li>
+              <li>All checklist progress across every phase</li>
+              <li>All document gather-status marks</li>
+              <li>Saved translations from the Translate tab</li>
+              <li>The encryption key your data was sealed with</li>
+              <li>Audit log entries</li>
+            </ul>
+          </div>
+          <div style={{ background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: 10, padding: 12, marginBottom: 16, fontSize: 11, lineHeight: 1.6, color: '#374151' }}>
+            <strong>Why am I seeing my old profile on refresh?</strong> That's normal — PCS Express autosaves your data encrypted on this device so a refresh doesn't lose your progress. Reset is the only way to wipe it.
+          </div>
+
+          {/* Action buttons — Cancel on the left, destructive Confirm on the right */}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={onCancel} style={{ flex: 1, padding: '14px', borderRadius: 10, background: '#F3F4F6', color: '#1F2937', border: '1.5px solid #D1D5DB', fontSize: 13, fontWeight: 800, cursor: 'pointer' }}>
+              Cancel — keep my data
+            </button>
+            <button onClick={onConfirm} style={{ flex: 1, padding: '14px', borderRadius: 10, background: '#DC2626', color: '#FFFFFF', border: 'none', fontSize: 13, fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 12px rgba(220,38,38,0.4)' }}>
+              Yes, delete everything
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SaveStatusIndicator({ theme }) {
   const [lastSave, setLastSave] = useState(null);
   const [open, setOpen] = useState(false);
@@ -6287,6 +6365,24 @@ function App() {
   const [navOpen, setNavOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
+  const [showResetWarning, setShowResetWarning] = useState(false);
+
+  // Single source-of-truth for executing the destructive Reset action.
+  // Wipes everything via eraseAllUserData(), then force a hard reload so
+  // any in-memory React state (profile, checklist, demo session, etc.)
+  // is also flushed — otherwise the user could refresh moments after
+  // Reset and see remnants of their old session bleeding through.
+  const confirmReset = async () => {
+    await eraseAllUserData();
+    setShowResetWarning(false);
+    setProfile(null);
+    setChecklistItems({});
+    setMoreOpen(false);
+    setNavOpen(false);
+    // Hard reload guarantees no React state lingers. Replace the URL so
+    // the back button doesn't return to the post-reset transient view.
+    try { window.location.replace(window.location.pathname); } catch { window.location.reload(); }
+  };
   const [checklistItems, setChecklistItems] = useState(() => {
     return readLegacyJson('pcs_checklist_checks', {});
   });
@@ -6505,6 +6601,9 @@ function App() {
       <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
         <PrivacyShield />
       <SaveStatusIndicator theme={theme} />
+      {showResetWarning && (
+        <ResetWarningModal theme={theme} onConfirm={confirmReset} onCancel={() => setShowResetWarning(false)} />
+      )}
         {isDesktop && (
           <div style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', minHeight: '100dvh', borderRight: `2px solid ${theme.accent}30`, flexShrink: 0 }}>
             <div style={{ padding: '20px 16px 12px', borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
@@ -6605,6 +6704,9 @@ function App() {
     <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: 'column' }}>
       <PrivacyShield />
       <SaveStatusIndicator theme={theme} />
+      {showResetWarning && (
+        <ResetWarningModal theme={theme} onConfirm={confirmReset} onCancel={() => setShowResetWarning(false)} />
+      )}
       {/* HEADER — paddingTop uses env(safe-area-inset-top) for notch/Dynamic Island.
           Requires viewport-fit=cover in the HTML meta and contentInsetAdjustmentBehavior=never
           in capacitor.config.json to receive non-zero values from the OS. */}
@@ -6667,7 +6769,7 @@ function App() {
               </button>
             ))}
           </div>
-          <button onClick={async () => { if (window.confirm('Reset will delete ALL profile, checklist, and document data from this device. This cannot be undone. Continue?')) { await eraseAllUserData(); setProfile(null); setChecklistItems({}); } }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.15)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,100,100,0.9)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
+          <button onClick={() => { setShowResetWarning(true); setNavOpen(false); }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.15)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,100,100,0.9)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
             Reset / Re-onboard
           </button>
         </div>
@@ -6877,7 +6979,7 @@ function App() {
               ))}
             </div>
             <div style={{ padding: '10px 12px 4px' }}>
-              <button onClick={async () => { if (window.confirm('Reset will delete ALL profile, checklist, and document data from this device. This cannot be undone. Continue?')) { await eraseAllUserData(); setProfile(null); setChecklistItems({}); setMoreOpen(false); } }} style={{ width: '100%', padding: '12px', background: 'rgba(255,60,60,0.12)', border: '1px solid rgba(255,60,60,0.2)', borderRadius: 12, color: 'rgba(255,100,100,0.9)', fontSize: 13, cursor: 'pointer', fontWeight: 700 }}>
+              <button onClick={() => { setShowResetWarning(true); setMoreOpen(false); }} style={{ width: '100%', padding: '12px', background: 'rgba(255,60,60,0.12)', border: '1px solid rgba(255,60,60,0.2)', borderRadius: 12, color: 'rgba(255,100,100,0.9)', fontSize: 13, cursor: 'pointer', fontWeight: 700 }}>
                 Reset / Re-onboard
               </button>
             </div>

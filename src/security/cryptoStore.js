@@ -35,16 +35,38 @@ export function encryptionAvailable() {
   return _available;
 }
 
+// Cache the open IDB connection so we can close it explicitly before
+// deleteDatabase() during Reset. Without an explicit close, the delete
+// fires onblocked and never actually succeeds — the AES key would
+// persist across Reset, defeating the "fresh restart" promise the UI
+// makes to users.
+let _openDB = null;
 function openDB() {
+  if (_openDB) return Promise.resolve(_openDB);
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
     };
-    req.onsuccess = () => resolve(req.result);
+    req.onsuccess = () => {
+      _openDB = req.result;
+      // If we ever lose the connection (e.g., user opens app in another
+      // tab and that tab calls deleteDatabase), forget the cache.
+      _openDB.onclose = () => { _openDB = null; };
+      _openDB.onversionchange = () => { try { _openDB?.close(); } catch {} ; _openDB = null; };
+      resolve(req.result);
+    };
     req.onerror = () => reject(req.error);
   });
+}
+
+export function closeCryptoStoreDB() {
+  _keyPromise = null;
+  if (_openDB) {
+    try { _openDB.close(); } catch {}
+    _openDB = null;
+  }
 }
 
 async function readStoredKey() {
