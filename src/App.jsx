@@ -156,8 +156,8 @@ function SaveStatusIndicator({ theme }) {
       </button>
       {open && (
         <div role="dialog" style={{ position: 'absolute', bottom: 'calc(100% + 8px)', right: 0, width: 260, background: '#FFFFFF', border: `1px solid ${theme.accent}55`, borderRadius: 12, padding: 12, color: '#111827', fontSize: 11, lineHeight: 1.55, boxShadow: '0 12px 30px rgba(0,0,0,0.22)' }}>
-          <div style={{ fontWeight: 950, color: theme.primary, fontSize: 11, letterSpacing: '.08em', marginBottom: 6 }}>AUTOSAVED & ENCRYPTED</div>
-          Your profile, checklist, and document state are written to <strong>local storage on this device</strong> after every change, sealed in AES-256-GCM. The encryption key never leaves the browser. There is no PCS Express backend that sees your data. The badge in the corner updates each time a save completes.
+          <div style={{ fontWeight: 950, color: theme.primary, fontSize: 11, letterSpacing: '.08em', marginBottom: 6 }}>SAVED ON THIS DEVICE</div>
+          Your profile, checklist, and documents are saved every time you change something. The data is scrambled with strong encryption (AES-256) and stays only on this device — we never see it. This badge updates each time a save happens.
         </div>
       )}
     </div>
@@ -306,19 +306,19 @@ const UI_PALETTE = {
 // the most recently passed one. Keys map into the existing localization
 // system via ot()/runtime walker.
 const TMINUS_MILESTONES = [
-  { days: -120, label: 'Begin TMO research / DPS counseling',                 phase: '90 Days Out' },
-  { days: -90,  label: 'Schedule HHG pickup / file DPS application',          phase: '90 Days Out' },
-  { days: -75,  label: 'Request house-hunting leave (PTDY) if entitled',      phase: '90 Days Out' },
-  { days: -60,  label: 'Medical / dental records pulled and sealed',          phase: '60 Days Out' },
-  { days: -45,  label: 'School records requested, EFMP screening confirmed',  phase: '60 Days Out' },
-  { days: -30,  label: 'Out-process unit / set up TLE lodging',               phase: '30 Days Out' },
-  { days: -14,  label: 'HHG pack-out window — be present',                    phase: 'Move Week' },
-  { days: -7,   label: 'Final lease walkthrough / final pay screening',       phase: 'Move Week' },
-  { days: -5,   label: 'Final Out: clear quarters / installation',            phase: 'Move Week' },
-  { days: 0,    label: 'Report to gaining unit / arrive at gaining base',     phase: 'In-Processing' },
-  { days: 5,    label: 'Submit travel voucher (DD 1351-2) within 5 days',     phase: 'In-Processing' },
-  { days: 14,   label: 'Schedule HHG delivery + inspection',                  phase: 'In-Processing' },
-  { days: 30,   label: 'Full in-processing complete / DEERS updated',         phase: 'In-Processing' },
+  { days: -120, label: 'Start looking into your move. Talk to TMO about options.',          phase: '90 Days Out' },
+  { days: -90,  label: 'Book your household goods pickup in DPS.',                          phase: '90 Days Out' },
+  { days: -75,  label: 'Ask for house-hunting leave (PTDY) if you qualify.',                phase: '90 Days Out' },
+  { days: -60,  label: 'Get sealed copies of medical and dental records.',                  phase: '60 Days Out' },
+  { days: -45,  label: 'Get school records. If you have EFMP, finish the screening.',       phase: '60 Days Out' },
+  { days: -30,  label: 'Start clearing your current base. Book lodging at the new one.',    phase: '30 Days Out' },
+  { days: -14,  label: 'Pack-out week — be home when the movers come.',                     phase: 'Move Week' },
+  { days: -7,   label: 'Walk through your old place. Pick up your final pay paperwork.',    phase: 'Move Week' },
+  { days: -5,   label: 'Final out: turn in housing and clear the base.',                    phase: 'Move Week' },
+  { days: 0,    label: 'Report to your new unit. Sign in.',                                 phase: 'In-Processing' },
+  { days: 5,    label: 'Turn in your travel voucher (DD 1351-2) within 5 work days.',       phase: 'In-Processing' },
+  { days: 14,   label: 'Schedule your household goods delivery and check for damage.',      phase: 'In-Processing' },
+  { days: 30,   label: 'Finish in-processing. Update DEERS with your new address.',         phase: 'In-Processing' },
 ];
 
 function TMinusDashboard({ theme, profile }) {
@@ -388,25 +388,25 @@ function getBranchTerm(branch, key) {
 // this map when component != 'Active Duty'.
 const COMPONENT_NOTES = {
   'Active Duty': null,
-  'Reserve':     { headline: 'Reserve Component Notes',
+  'Reserve':     { headline: 'For Reservists',
                    bullets: [
-                     'Verify the PCS orders cite the correct authority (Title 10 mobilization vs. drill / AT) and your gaining Reserve unit / TPU before reporting.',
-                     'Confirm pay continuity through the IDT/AT to Active orders bridge — pay system gaps are common at this transition.',
-                     'Coordinate with the losing Reserve unit Admin (or Career Counselor) to ensure your IRR transfer code is correct.',
-                     'TRICARE Reserve Select members: confirm whether activation moves you to TRICARE Prime/Select and start the enrollment switch early.',
+                     'Check what your orders say — Title 10 (mobilization) is different from drill or annual training. Confirm with your losing unit which one this is.',
+                     'Watch your pay carefully during the switch from drill to active. Gaps are common.',
+                     'Talk to your Reserve unit admin about your IRR transfer code — it needs to be right.',
+                     'If you use TRICARE Reserve Select, start the enrollment switch early — your dependents need uninterrupted coverage.',
                    ] },
-  'National Guard': { headline: 'National Guard Notes — Title 10 / Title 32',
+  'National Guard': { headline: 'For Guard members',
                       bullets: [
-                        'Confirm orders cite Title 10 (federal active service) or Title 32 (state active duty under federal pay) and that the gaining unit can receive you under that authority.',
-                        'Notify the State Joint Force Headquarters (JFHQ) J1 / SAD office before departure if state benefits (state tuition, license plates) need updating.',
-                        'Verify whether you remain on the State retention roster or detach to federal service for the duration of orders.',
-                        'TRICARE Reserve Select / Prime Remote transitions: enroll within 60 days of activation to avoid coverage gaps for dependents.',
-                        'Coordinate state license, tax residency, and voter registration if Title 10 orders move you across state lines for 6+ months.',
+                        'Look at your orders. They say either "Title 10" (federal) or "Title 32" (state, paid by feds). Your gaining unit has to be able to take you under that type — confirm before you go.',
+                        'Tell your State HQ (J1 office) before you leave if you need to update state benefits like in-state tuition or military plates.',
+                        'Check if you stay on the State roster or fully transfer to federal service during your orders.',
+                        'Sign up for TRICARE Reserve Select or Prime within 60 days of activation. Don\'t let your dependents lose coverage.',
+                        'If your orders move you to a different state for 6+ months, update your driver\'s license, tax residency, and voter registration.',
                       ] },
-  'AGR':            { headline: 'AGR Notes',
+  'AGR':            { headline: 'For AGR members',
                       bullets: [
-                        'AGR (Active Guard/Reserve) tours follow Title 10 PCS rules — confirm your AGR status and pay band remain active through transition.',
-                        'Coordinate with both the losing AGR unit and the gaining unit on any change in BSO or PEC code.',
+                        'AGR tours follow regular Title 10 PCS rules. Confirm your AGR status and pay band stay active through the move.',
+                        'Both your losing and gaining units need to update any BSO or PEC codes that change.',
                       ] },
   'Dependent':      null,
 };
@@ -4602,7 +4602,7 @@ const APP_TRANSLATIONS = {
     payGradeRank: 'PAY GRADE & RANK',
     optional: 'optional',
     preferredLanguage: 'PREFERRED LANGUAGE',
-    languageHelp: 'Used for navigation, translation support, and language-specific resources.',
+    languageHelp: 'Pick your language. The app switches right away.',
     departingFrom: 'DEPARTING FROM (LOSING INSTALLATION)',
     reportingToLabel: 'REPORTING TO (GAINING INSTALLATION)',
     departingDate: 'DEPARTING DATE',
@@ -4617,17 +4617,17 @@ const APP_TRANSLATIONS = {
     religiousPreferenceNote: '(for chaplain & community resources)',
     religiousPreferenceHelp: 'Optional — helps surface relevant chapel and community resources',
     typeBaseName: 'Type base name...',
-    hasPetsLabel: 'I have pets traveling with me',
-    hasPetsHelp: 'Surfaces APHIS, USDA, and pet-import documents in your checklist',
-    moveType: 'MOVE TYPE',
-    moveTypeHHG: 'HHG (Government)',
-    moveTypeHHGHelp: 'TMO arranges packers and carriers. No weight tickets required.',
-    moveTypePPM: 'PPM / DITY',
-    moveTypePPMHelp: 'You move yourself. Keep weight tickets for incentive payment.',
-    zeroUploadTitle: 'WHY WE DON\'T ASK FOR UPLOADS',
-    zeroUploadBody: "PCS Express never stores your orders, IDs, or other documents. Everything you enter stays on your device, encrypted with AES-256. We never see it — and there's no file to leak. Your data is yours alone.",
+    hasPetsLabel: 'I have pets coming with me',
+    hasPetsHelp: 'We\'ll add USDA and pet paperwork to your list.',
+    moveType: 'HOW ARE YOU MOVING?',
+    moveTypeHHG: 'HHG (Government movers)',
+    moveTypeHHGHelp: 'Movers arrange packing and shipping. No weight tickets needed.',
+    moveTypePPM: 'PPM (Move yourself, get paid back)',
+    moveTypePPMHelp: 'You move your own stuff. Save weight tickets — the government pays you for moving it.',
+    zeroUploadTitle: 'WHY WE DON\'T ASK FOR DOCUMENTS',
+    zeroUploadBody: "We never want copies of your orders, IDs, or other documents. Everything you type stays on this phone, scrambled with strong encryption (AES-256). We never see it. There's nothing to leak because there's no server holding your data.",
     reportNLTDate: 'REPORT-NLT DATE',
-    reportNLTHelp: 'The "Not Later Than" arrival date on your orders. T-Minus milestones count down from this date.',
+    reportNLTHelp: 'The "must arrive by" date on your orders. Your countdown clock counts down from this date.',
     seeDemoFirst: 'See Demo First',
     continue: 'Continue',
     launchDemo: 'Launch Demo',
@@ -4692,24 +4692,24 @@ const APP_TRANSLATIONS = {
       veterans: 'Find veteran-owned business resources, public directories, and local search paths near the gaining location.',
     },
     demo: {
-      securityTitle: 'Autosave, Reset, and AES-256 Encryption',
-      securityBody: 'PCS Express writes your profile, checklist, and document state to local storage after every change — sealed in an AES-256-GCM envelope using a non-extractable Web Crypto key persisted in IndexedDB. A "Saved Xs ago" badge in the bottom-right corner of every screen confirms the autosave is running; click it for a one-line explanation. There is no upload, no backend, and no file that can leak. When you want a fresh start, the "Reset / Re-onboard" button at the bottom of the More drawer wipes everything from this device — profile, checklist progress, saved documents, audit log, the AES key itself — and returns you to onboarding. Verify any time in DevTools → Application → Local Storage: every value is ciphertext, never plaintext.',
-      tminusTitle: 'T-Minus Dashboard',
-      tminusBody: 'The Home tab opens on a countdown derived from your Report-NLT date. A 13-milestone schedule maps from T-120 (begin TMO research) through T+30 (full in-processing complete). The banner color shifts as urgency increases: accent (>30d) → amber (≤30d) → red (≤7d) → green (post-report).',
-      componentTitle: 'Component-Aware Guidance',
-      componentBody: 'If your profile component is Reserve, National Guard, or AGR, the Home tab surfaces a branded callout the Active-Duty UI does not show. For Guard members specifically: Title 10 (federal) vs Title 32 (state with federal pay) authority verification, State JFHQ J1/SAD coordination, TRICARE Reserve Select transition, and cross-state license/tax/voter changes for 6+ month assignments.',
-      householdTitle: 'Step 3 — Pets & Move Type',
-      householdBody: 'Onboarding step 3 adds two new controls per the redesign brief: a Pets Yes/No toggle (surfaces APHIS / USDA / pet-import documents in your checklist), and a Move Type segmented control (HHG government-arranged vs PPM / DITY personally procured — drives weight-ticket and incentive-payment guidance in Documents).',
-      profileTitle: 'Onboarding - Branch & Profile',
-      profileBody: 'Branch, component, rank, name, and language help the app tailor branch-specific resources, rank labels, translation support, and PCS planning guidance.',
-      basesTitle: 'Onboarding - Mission (Bases + Report-NLT)',
-      basesBody: 'Losing installation, gaining installation, and Report-NLT (Not Later Than) arrival date help build the PCS timeline, housing guidance, route planning, school planning, and local resource recommendations. The Report-NLT date drives the T-Minus dashboard milestones.',
-      familyTitle: 'Onboarding - Household',
-      familyBody: 'Dependent travel, children ages, pets, move type, and optional spiritual preference help tailor family readiness, school, EFMP, childcare, chaplain, and community support resources.',
-      selectorTitle: 'Home - Category Selector',
-      selectorBody: 'The home screen lists categories alphabetically so users can quickly find each PCS planning area.',
-      completeTitle: 'Tour Complete - Thank You',
-      completeBody: 'You have reached the end of the PCS Express tour. Thank you for your service.',
+      securityTitle: 'Your data stays on your phone',
+      securityBody: 'Everything you type goes into a locked-down storage area on this device. We scramble it with strong encryption (AES-256) so even if someone steals your phone, they can\'t read it. We don\'t send your data anywhere. There\'s no PCS Express account, no upload, no cloud. The small "Saved" button in the bottom corner shows when your last change was saved. If you want to start fresh, the red Reset button in the More menu wipes everything from this device.',
+      tminusTitle: 'Your countdown clock',
+      tminusBody: 'The Home screen shows how many days until you need to report to your new base. Each milestone tells you what to do next — schedule your move, get medical records, out-process — and the color changes as you get closer (green when you\'ve arrived, amber when it\'s under a month, red when it\'s the final week).',
+      componentTitle: 'Tips for your component',
+      componentBody: 'If you\'re Guard, Reserve, or AGR — not Active Duty — the Home screen shows a tips card just for you. It covers things Active Duty users don\'t worry about, like checking whether your orders are Title 10 or Title 32, calling your State HQ, switching TRICARE coverage, and updating your state license if you\'re moving across state lines.',
+      householdTitle: 'Step 3 — Pets and how you\'re moving',
+      householdBody: 'In step 3, tell us if you have pets (we\'ll add USDA and pet paperwork to your list) and pick how you\'re moving: government movers (HHG) or moving yourself for cash back (PPM / DITY). Your choice shows different paperwork — weight tickets and pro-gear forms only show if you picked PPM.',
+      profileTitle: 'Step 1 — About you',
+      profileBody: 'Step 1 asks your branch, component (Active / Guard / Reserve), rank, name, and preferred language. We use this to show you the right forms (DA 31 for Army, NAVPERS for Navy, etc.), the right job titles, and to translate the app if you pick a different language.',
+      basesTitle: 'Step 2 — Where you\'re moving',
+      basesBody: 'Step 2 asks where you\'re leaving from, where you\'re reporting to, and your Report-NLT date (the "must arrive by" date on your orders). The Report-NLT date drives your countdown clock on the Home screen.',
+      familyTitle: 'Step 3 — Your household',
+      familyBody: 'Step 3 asks if your spouse and kids are coming with you, their ages, if you have pets, how you\'re moving, and your faith preference. This tailors the rest of the app so you only see what applies to you — school stuff if you have kids, pet stuff if you have pets, chaplain options that match your faith.',
+      selectorTitle: 'Home — Pick a category',
+      selectorBody: 'The home screen has all the planning areas in alphabetical order so you can jump straight to what you need.',
+      completeTitle: 'Tour complete — Thank you',
+      completeBody: 'That\'s the quick tour. Thank you for your service. Reset anytime from the More menu if you want to start over.',
     },
   },
 };
@@ -6194,15 +6194,15 @@ function HomeLegalBanners({ theme }) {
   return (
     <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
       <div style={{ background: UI_PALETTE.surface, borderRadius: 12, padding: 14, border: `1px solid ${UI_PALETTE.line}`, borderLeft: `4px solid ${theme.primary}`, color: UI_PALETTE.text }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <span style={{ fontSize: 14 }}>🔒</span>
-          <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em' }}>SECURITY CONTROLS · AES-256</div>
+          <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em' }}>YOUR DATA STAYS ON YOUR PHONE</div>
         </div>
-        <div style={{ fontSize: 11, lineHeight: 1.6, color: '#1F2937', fontWeight: 600, marginBottom: 8 }}>
-          <strong>Your data is encrypted on this device with AES-256-GCM.</strong> The encryption key is generated by the Web Crypto API as a non-extractable <code style={{ background: '#F3F4F6', padding: '1px 4px', borderRadius: 3, fontSize: 10 }}>CryptoKey</code> and persisted in IndexedDB — the raw key bytes never reach JavaScript, so there is no copy a script could exfiltrate. Every value written to local storage is a sealed envelope: <code style={{ background: '#F3F4F6', padding: '1px 4px', borderRadius: 3, fontSize: 10 }}>{`{v:1, alg:'AES-256-GCM', iv, data}`}</code>.
+        <div style={{ fontSize: 12, lineHeight: 1.6, color: '#1F2937', fontWeight: 600, marginBottom: 8 }}>
+          Everything you type is scrambled with strong encryption (AES-256) and saved only on this device. Even if someone steals your phone, they can’t read it. We never see your data — there’s no PCS Express server that stores anything.
         </div>
-        <div style={{ fontSize: 11, lineHeight: 1.6, color: '#1F2937', fontWeight: 600 }}>
-          PCS Express uses a no-document-upload design, hardened browser headers, privacy shielding, and disabled device permissions to reduce sensitive-data exposure. There is no PCS Express backend that sees your data — nothing to leak. Do not enter classified information, CUI, rosters, deployment details, or non-public mission information.
+        <div style={{ fontSize: 11, lineHeight: 1.55, color: '#56697C' }}>
+          <strong>Heads up:</strong> Don’t enter classified information, CUI, rosters, deployment details, or anything else that isn’t public. The Translation “Translate” tab is the one exception — free text there is sent to a translation service; do not paste sensitive info there.
         </div>
       </div>
       <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, color: '#34495E', fontSize: 11, lineHeight: 1.6 }}>

@@ -206,9 +206,9 @@ export default function TranslationModule({ theme, profile }) {
               The user must understand that before they paste sensitive
               information here. */}
           <div data-no-language-runtime style={{ background: '#7F1D1D', border: '1px solid #B91C1C', borderRadius: 12, padding: '12px 14px', marginBottom: 14, color: '#FECACA' }}>
-            <div style={{ fontSize: 11, fontWeight: 950, color: '#FCA5A5', letterSpacing: '.08em', marginBottom: 6 }}>⚠ OPSEC — TRANSLATION LEAVES THIS DEVICE</div>
+            <div style={{ fontSize: 11, fontWeight: 950, color: '#FCA5A5', letterSpacing: '.08em', marginBottom: 6 }}>⚠ THIS TAB SENDS YOUR TEXT TO A TRANSLATION SERVICE</div>
             <div style={{ fontSize: 11, lineHeight: 1.55, color: '#FFFFFF', fontWeight: 600 }}>
-              Free-text in this tab is sent to a 3rd-party AI translation service (not local, not encrypted in transit by this app). <strong>Do not enter</strong> classified, CUI, names, ranks, unit identifiers, locations, dates of operations, EFMP details, family member names, dependent ages, or any other operationally sensitive information. For static phrases, use the <strong>Common Phrases</strong> tab — those run fully on-device with no network egress.
+              Anything you type here gets sent over the internet to translate. <strong>Don't type anything sensitive</strong> — no names, ranks, units, locations, operation dates, EFMP details, or classified info. For everyday phrases, use the <strong>Common Phrases</strong> tab — those translations run on this device and never leave.
             </div>
           </div>
 

@@ -1,16 +1,16 @@
 /*
  * Interactive demo tour for PCS Express.
  *
- * Walks the user (running on the demo profile — Marcus Thompson, Army
- * National Guard, Fort Liberty → USAG Humphreys, OCONUS, PPM move with
- * pets and dependents) through the redesigned feature set. Each step
- * highlights one feature, gives a one-line orientation, and lists the
- * concrete details a user should look at on that screen.
+ * Plain-language pass: every step explains one feature in 1–2 short
+ * sentences plus a bullet list of what to look at. No crypto jargon
+ * ("non-extractable CryptoKey", "envelope shape"), no military shorthand
+ * the user might not know yet ("MEDDAC", "MILPDS"). Branch-specific
+ * form numbers stay (DA 31, NAVPERS) because those are the words users
+ * are trained on.
  *
- * Steps are tab-aware: clicking the action button switches to the
- * relevant tab so the user can see the live UI while reading the
- * description. "Highlight" identifies which bottom-nav category the step
- * relates to so future versions can ring-light it.
+ * The demo profile that backs this tour: SFC Marcus Thompson, Army
+ * National Guard, Fort Liberty → USAG Humphreys, OCONUS PCS in 75 days,
+ * spouse + 3 kids + pets, moving himself (PPM).
  */
 
 import { useState } from 'react';
@@ -20,87 +20,87 @@ const DEMO_STEPS = [
   {
     id: 'welcome',
     title: 'Welcome to PCS Express',
-    description: "You're now in interactive demo mode as SFC Marcus Thompson — Army National Guard, Fort Liberty → USAG Humphreys, OCONUS PCS in 75 days with spouse, 3 children, pets, and a Personally Procured (PPM) move.",
-    content: 'This tour walks you through the redesigned 3-step onboarding, the Zero-Upload promise, the T-Minus dashboard, branch-aware terminology, component-specific guidance (Title 10 / Title 32 for Guard), and the full PCS Checklist + Documents workflow.\n\nClick Next to begin. You can Skip at any time.',
+    description: "You're in demo mode as SFC Marcus Thompson — Army National Guard, moving from Fort Liberty to USAG Humphreys overseas in 75 days, with spouse, 3 kids, pets, and moving yourself (PPM).",
+    content: 'This quick tour shows the main features. You can skip it any time.\n\nTap Next to start.',
     action: null,
   },
   {
     id: 'home-tminus',
-    title: 'T-Minus Dashboard',
-    description: 'The Home tab opens on the T-Minus countdown derived from your Report-NLT date.',
-    content: 'For this demo (Report-NLT in 75 days):\n• T-90 — Schedule HHG pickup / file DPS application (already passed)\n• T-75 — Request house-hunting leave (PTDY) if entitled (today)\n• T-60 — Pull medical / dental records\n• T-45 — School records, EFMP screening confirmed\n\nThe banner color reflects urgency: green (post-report) → accent (>30d) → amber (≤30d) → red (≤7d).',
+    title: 'Your countdown clock',
+    description: 'The Home screen shows how many days until you need to report. Each line tells you what to do next.',
+    content: 'You\'ll see things like:\n• 90 days out — Book your household goods pickup\n• 75 days out — Ask for house-hunting leave\n• 60 days out — Get your medical and dental records\n• Move week — Be home when the movers come\n\nThe color changes as you get closer:\n• Green — You\'ve already arrived\n• Yellow / amber — Under a month to go\n• Red — Final week',
     action: 'Go to Home',
     target: 'home',
   },
   {
     id: 'home-component',
-    title: 'Component-Aware Guidance',
-    description: 'Marcus is in the National Guard, so the Home tab surfaces a Title 10 / Title 32 callout the Active-Duty UI doesn\'t show.',
-    content: 'Scroll down on the Home tab. The "National Guard Notes" card covers:\n• Confirming whether orders cite Title 10 (federal) or Title 32 (state with federal pay)\n• Notifying your State JFHQ J1 / SAD office before departure\n• State retention roster vs. detach-to-federal-service\n• TRICARE Reserve Select → Prime enrollment within 60 days\n• Cross-state license, tax residency, voter registration for 6+ month assignments',
+    title: 'Tips just for Guard members',
+    description: "Because Marcus is in the National Guard, the Home screen shows a card with tips Active Duty users don't see.",
+    content: 'For Guard members:\n• Check whether your orders are Title 10 (federal) or Title 32 (state, paid by feds)\n• Call your State HQ before you leave if you need to update state benefits\n• Sign up for TRICARE Reserve Select within 60 days so your family doesn\'t lose coverage\n• Update your driver\'s license, taxes, and voter registration if you\'re moving to a new state for 6+ months\n\nReservists and AGR see similar cards tailored to their situation.',
     action: 'Go to Home',
     target: 'home',
   },
   {
     id: 'zero-upload',
-    title: '🔒 Zero-Upload Privacy Promise — AES-256',
-    description: "Why we never ask you to upload documents.",
-    content: 'PCS Express never stores your orders, IDs, or any other files. Everything you type stays on your device, encrypted with AES-256-GCM via the Web Crypto API.\n\n• Key: 256-bit AES-GCM, generated by the browser, persisted as a non-extractable CryptoKey in IndexedDB. The raw key bytes never reach JavaScript.\n• Storage: every value written to localStorage is an envelope { v: 1, alg: \'AES-256-GCM\', iv, data }. The plaintext never touches disk.\n• No server: there is no PCS Express backend that sees your data — we have nothing to leak.\n\nOpen your browser DevTools → Application → Local Storage to verify: every value is ciphertext, not your name or installation.',
+    title: 'Your data stays on your phone',
+    description: 'PCS Express never asks for copies of your orders, IDs, or any other files.',
+    content: "Here's how it works:\n• Everything you type is scrambled with strong encryption (AES-256) and saved only on this device.\n• Even if someone steals your phone, they can't read it.\n• We never see your data. There's no PCS Express server that stores anything.\n• Nothing to hack means nothing to leak.\n\nThere's a small 🔒 button in the bottom corner that says \"Just saved\" or \"Saved 30s ago\" — that's just confirming your changes are saved. Tap it for details.",
     action: null,
     target: 'home',
   },
   {
     id: 'translation',
-    title: '🌍 12-Language Translation Runtime',
-    description: 'Pick any language during onboarding and the whole app shifts.',
-    content: 'Supported: English, Español, Deutsch, Français, 한국어, 日本語, Tagalog, العربية, 中文, Italiano, Português, Tiếng Việt.\n\n• Navigation, headings, and explicit labels are translated through a per-language dictionary (the ot()/trFrom helper).\n• Longer content uses a topic-localized runtime fallback — Specific wording may generalize. The Home tab banner reminds non-English users to consult the English original or official source before acting.\n• Re-onboard from More → Reset to switch languages; the picker shows every supported language in its native script.',
+    title: '12 languages',
+    description: 'Pick your language during onboarding and the whole app switches.',
+    content: 'Supported: English, Spanish, German, French, Korean, Japanese, Tagalog, Arabic, Chinese, Italian, Portuguese, Vietnamese.\n\nNavigation, headings, and labels are translated word-for-word. Longer how-to text may stay in English on some screens — when that happens, a small banner reminds you to check the English original or the official source before acting on it.\n\nTo change languages later, tap More → Reset / Re-onboard and pick a new one.',
     action: null,
     target: 'home',
   },
   {
     id: 'documents',
-    title: '📋 PCS Documents — Branch-Tailored',
-    description: 'Every form in your branch\'s checklist has a corresponding gather-and-check item in Documents, sorted into 7 tabs.',
-    content: 'For Marcus (Army National Guard, OCONUS):\n• Unit (Orders): DA 31 Leave, SRB / IPPS-A snapshot, DA 4187\n• Family & Admin: DD 93 Emergency Data, SGLV 8286 SGLI Beneficiary, DA 5305 Family Care Plan, DA 5960 BAH, DA 7695 EFMP\n• OCONUS: DD 1056 No-Fee Passport Authorization, Official + dependent passports, SOFA documentation, Country Clearance\n• Household Goods: HHG counseling + DPS application, weight tickets, inventory & damage report, POV shipment\n• Travel & Finance: DD 1351-2 voucher, DD 2560 advance/DLA, lodging + mileage receipts\n• Housing: BAH lookup, lease termination (SCRA)\n• Medical: SF 600/603 transfer, immunizations, TRICARE switch\n\nEach card has a checkbox — no upload, just mark-as-gathered.',
+    title: 'PCS Documents',
+    description: "All the forms you need, sorted into 7 tabs — and only the ones that apply to you.",
+    content: 'For Marcus (Army Guard, moving overseas) you\'ll see:\n• Unit: PCS orders, leave form (DA 31), soldier record brief\n• Family & Admin: emergency data (DD 93), SGLI beneficiary, family care plan, school records\n• OCONUS: passports, no-fee passport letter (DD 1056), country clearance\n• Household Goods: weight tickets (PPM only), inventory, pro-gear list\n• Travel & Finance: travel voucher, lodging receipts, mileage log\n• Housing: BAH paperwork\n• Medical: records transfer, immunizations, TRICARE switch\n\nCheck each off as you gather it. We don\'t want copies — just a checkmark.',
     action: 'Go to Documents',
     target: 'documents',
   },
   {
     id: 'checklist',
-    title: '✓ PCS Checklist — 102 Tasks Across 6 Phases',
-    description: 'The checklist is branch-specific and runs from Orders Received through In-Processing.',
-    content: 'For Army users, 102 phased tasks across:\n• Orders Received (13 tasks)\n• 90 Days Out (17 tasks) — TMO appointment, DPS counseling, BAH lookup, EFMP enrollment\n• 60 Days Out (18 tasks) — medical/dental records, SGLI update, OMPF print, OCONUS overseas screening\n• 30 Days Out (17 tasks) — confirm pack-out, TLE lodging, out-process ACS/Transport/Finance\n• Move Week (15 tasks) — pack-out witnessing, HHG inventory, hand-carry list, TRICARE switch\n• In-Processing (22 tasks) — report, DD 1351-2 voucher, DEERS, MTF enrollment, brief gaining commander\n\nNavy, Marine Corps, Air Force, Space Force, and Coast Guard each have parallel 100+ task checklists with branch-native terminology (NSIPS, MOL, myPers, Direct Access).',
+    title: 'PCS Checklist',
+    description: 'A full task list, one phase at a time, written for your branch.',
+    content: 'Six phases:\n• Orders Received\n• 90 Days Out\n• 60 Days Out\n• 30 Days Out\n• Move Week\n• In-Processing\n\nThere are about 100 tasks per branch. Each task uses the words your branch uses — Soldiers see "IPPS-A", Sailors see "NSIPS", Marines see "MOL", Airmen and Guardians see "myPers", Coast Guard sees "Direct Access".\n\nTasks that don\'t apply to you (pet stuff, school stuff, OCONUS-only items) are hidden automatically.',
     action: 'Go to Checklist',
     target: 'checklist',
   },
   {
     id: 'home-relocation',
-    title: '🏠 Home Relocation Calculators',
-    description: 'BAH, OHA, PPM/DITY incentive estimator, and Move Budget Tracker in one tab.',
-    content: 'For Marcus heading OCONUS:\n• OHA Calculator: rate by duty country, pay grade, and family size (BAH does not apply OCONUS)\n• PPM Calculator: estimated incentive payment based on government-arranged HHG cost vs. your actual move cost — Marcus picked PPM at onboarding, so this is the relevant calculator\n• Move Budget Tracker: side-by-side comparison of entitlement estimates vs. actual spending — helps avoid the ~$5,000 average unreimbursed loss per move\n• Duty Station Directory: housing wait times, TRICARE MTF, school districts, and base office numbers for 139 installations',
+    title: 'Home & Money',
+    description: 'BAH, OHA, PPM (DITY) payment estimator, and a budget tracker all in one tab.',
+    content: 'For Marcus going overseas:\n• OHA calculator: rate by country, rank, and family size (BAH doesn\'t apply overseas)\n• PPM calculator: estimate how much the government pays you back for moving yourself — Marcus picked PPM at onboarding, so this is the one for him\n• Budget tracker: compare what the government pays vs. what you actually spent. Helps avoid the average $5,000 unexpected loss many families have on a move.\n• Duty Station Directory: housing wait times, schools, medical, and base office numbers for 139 installations.',
     action: 'Go to Home Relocation',
     target: 'home-relocation',
   },
   {
     id: 'base-intel',
-    title: '🎖️ Base Intelligence',
-    description: 'Community reviews from verified service members for the gaining installation.',
-    content: 'For USAG Humphreys you\'ll see:\n• Verified reviews tagged "Military Family Verified" or "Community review"\n• Honest empty-state UX when no reviews exist for an installation (we never auto-generate fake reviews)\n• Categories: Housing, Schools, Childcare\n• Source diligence: reviews are paraphrased from public community channels and reviewed before inclusion; no PII or scraped content is stored.',
+    title: 'Base Intel',
+    description: 'What real military families say about your new base.',
+    content: 'For USAG Humphreys you\'ll see:\n• Verified reviews from service members and dependents\n• Reviews are tagged "Military Family Verified" when we can confirm with a .mil email\n• Honest empty state if no one has reviewed a base yet — we never make up fake reviews\n• Categories: Housing, Schools, Childcare',
     action: 'Go to Base Intelligence',
     target: 'base-intelligence',
   },
   {
     id: 'family-readiness',
-    title: '👨‍👩‍👧 Family Readiness',
-    description: 'Sub-tabs for Deployment, EFMP, Employment, Permanent Resident, Pets, and Schools.',
-    content: 'Marcus has Pets toggled on, so the Pets sub-tab is especially relevant:\n• APHIS / USDA pet-import certificate workflow for OCONUS\n• Veterinary checklist (rabies, microchip, broad-spectrum vaccinations)\n• Host-nation quarantine rules (Korea is rabies-controlled — typically no quarantine for compliant pets)\n• Carrier reservations and temperature embargo dates\n\nThe Employment sub-tab includes MyCAA / SECO resources for spouse employment continuity.',
+    title: 'Family Readiness',
+    description: 'Sub-tabs for deployment, EFMP, jobs, immigration, pets, and schools.',
+    content: "Marcus has pets, so the Pets tab is important:\n• APHIS / USDA paperwork for getting pets overseas\n• Vet checklist (rabies shot, microchip)\n• Korea's pet rules (Korea usually doesn\'t require quarantine if your paperwork is in order)\n• How to book pets on the flight\n\nThe Employment tab has spouse job help — SECO and MyCAA.",
     action: 'Go to Family Readiness',
     target: 'family',
   },
   {
     id: 'finish',
-    title: '✨ Tour Complete',
-    description: 'You have walked through the full PCS Express feature set on the demo profile.',
-    content: "Ready to set up your own profile?\n\n1. Close this tour\n2. Tap Reset / Re-onboard in More menu\n3. Enter your real branch, component, installations, and Report-NLT date\n4. Your data is encrypted with AES-256-GCM and stored only on this device\n\nIf you ever spot UI text that still appears in English when a different language is selected, the in-app banner explains the translation scope — long instructional content may generalize.\n\nWelcome aboard.",
+    title: 'That\'s the tour',
+    description: 'You\'ve seen the main features.',
+    content: "Ready to set up your own profile?\n\n1. Close this tour.\n2. In the More menu, tap Reset / Re-onboard.\n3. Enter your real branch, installations, and Report-NLT date.\n4. Your data is encrypted on this device — we never see it.\n\nIf any text looks weird in a non-English language, a small banner in the app explains: shorter labels translate exactly, longer explanations may stay in English.\n\nWelcome aboard. Safe travels.",
     action: 'Close Demo',
     target: null,
   },
