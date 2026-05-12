@@ -72,11 +72,18 @@ const PROFILE_DEFAULTS = {
   losingInstallation: '',
   gainingInstallation: '',
   departingDate: '',
+  // Report-NLT (Not Later Than) is the hard-deadline arrival date the
+  // T-Minus dashboard counts down to. Separate from departingDate so
+  // legacy code that reads `departingDate` keeps working.
+  reportNLTDate: '',
   isOverseas: false,
   hasDependents: false,
   hasChildren: false,
   childAges: [],
   childrenAges: '',
+  // New step-3 toggles per redesign brief
+  hasPets: false,
+  moveType: 'HHG', // 'HHG' = government-arranged Household Goods move; 'PPM' = Personally Procured Move (DITY)
   language: 'en',
   religiousPreference: 'No Preference',
 };
@@ -99,6 +106,9 @@ function normalizeProfile(raw) {
     losingInstallation: String(raw.losingInstallation || ''),
     gainingInstallation: String(raw.gainingInstallation || ''),
     departingDate: String(raw.departingDate || ''),
+    reportNLTDate: String(raw.reportNLTDate || raw.departingDate || ''),
+    hasPets: !!raw.hasPets,
+    moveType: ['HHG', 'PPM'].includes(raw.moveType) ? raw.moveType : PROFILE_DEFAULTS.moveType,
     childAges,
     childrenAges: childAges.join(', '),
     hasChildren: childAges.length > 0,
@@ -182,6 +192,123 @@ const UI_PALETTE = {
   danger: '#7F1D1D',
 };
 
+
+// Per-branch terminology mapping per redesign brief. Use BRANCH_TERMS[branch].key
+// so the app speaks each branch's native language (a Sailor sees "Sailor" /
+// "Ship or NAS"; a Marine sees "Marine" / "MCB or MCAS"; etc.). Falls back to
+// Army terms if a branch is missing a key. Keep the keys small and focused
+// on phrases that genuinely change across branches — over-specializing makes
+// the table brittle.
+// T-Minus milestone schedule. Each milestone is an offset (negative = days
+// before Report-NLT, positive = days after report date) plus a key. The
+// dashboard sorts these against today and surfaces the upcoming three and
+// the most recently passed one. Keys map into the existing localization
+// system via ot()/runtime walker.
+const TMINUS_MILESTONES = [
+  { days: -120, label: 'Begin TMO research / DPS counseling',                 phase: '90 Days Out' },
+  { days: -90,  label: 'Schedule HHG pickup / file DPS application',          phase: '90 Days Out' },
+  { days: -75,  label: 'Request house-hunting leave (PTDY) if entitled',      phase: '90 Days Out' },
+  { days: -60,  label: 'Medical / dental records pulled and sealed',          phase: '60 Days Out' },
+  { days: -45,  label: 'School records requested, EFMP screening confirmed',  phase: '60 Days Out' },
+  { days: -30,  label: 'Out-process unit / set up TLE lodging',               phase: '30 Days Out' },
+  { days: -14,  label: 'HHG pack-out window — be present',                    phase: 'Move Week' },
+  { days: -7,   label: 'Final lease walkthrough / final pay screening',       phase: 'Move Week' },
+  { days: -5,   label: 'Final Out: clear quarters / installation',            phase: 'Move Week' },
+  { days: 0,    label: 'Report to gaining unit / arrive at gaining base',     phase: 'In-Processing' },
+  { days: 5,    label: 'Submit travel voucher (DD 1351-2) within 5 days',     phase: 'In-Processing' },
+  { days: 14,   label: 'Schedule HHG delivery + inspection',                  phase: 'In-Processing' },
+  { days: 30,   label: 'Full in-processing complete / DEERS updated',         phase: 'In-Processing' },
+];
+
+function TMinusDashboard({ theme, profile }) {
+  const target = profile?.reportNLTDate || profile?.departingDate;
+  if (!target) return null;
+  const targetDate = new Date(target);
+  if (isNaN(targetDate.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysUntil = Math.floor((targetDate - today) / 86400000);
+
+  const upcoming = TMINUS_MILESTONES
+    .map(m => ({ ...m, dueDate: new Date(targetDate.getTime() + m.days * 86400000), tMinus: -m.days - daysUntil }))
+    .filter(m => m.tMinus <= 14 && m.tMinus >= -14)
+    .sort((a, b) => a.tMinus - b.tMinus);
+
+  const tLabel = daysUntil >= 0 ? `T-${daysUntil}` : `T+${Math.abs(daysUntil)}`;
+  const tColor = daysUntil < 0 ? '#16A34A' : daysUntil <= 7 ? '#DC2626' : daysUntil <= 30 ? '#F59E0B' : theme.accent;
+
+  return (
+    <div style={{ background: '#FFFFFF', border: `1px solid ${UI_PALETTE.line}`, borderLeft: `4px solid ${tColor}`, borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 950, color: theme.primary, letterSpacing: '.12em' }}>T-MINUS · REPORT-NLT</div>
+          <div style={{ fontSize: 11, color: UI_PALETTE.muted, marginTop: 2 }}>{target}</div>
+        </div>
+        <div style={{ fontSize: 28, fontWeight: 950, color: tColor, letterSpacing: '-1px' }}>{tLabel}</div>
+      </div>
+      {upcoming.length === 0 ? (
+        <div style={{ fontSize: 12, color: UI_PALETTE.muted, lineHeight: 1.5 }}>
+          {daysUntil > 14 ? 'More than two weeks out — your detailed checklist phases are active in the PCS Checklist tab.' : 'In-processing window is complete. Track residual administrative items in your checklist.'}
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: 6 }}>
+          {upcoming.slice(0, 4).map((m, idx) => {
+            const passed = m.tMinus < 0;
+            const tag = m.days >= 0 ? `T+${m.days}` : `T${m.days}`;
+            return (
+              <div key={idx} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 0', borderBottom: idx === Math.min(upcoming.length, 4) - 1 ? 'none' : `1px dashed ${UI_PALETTE.line}` }}>
+                <div style={{ flexShrink: 0, minWidth: 44, fontSize: 11, fontWeight: 900, color: passed ? '#9CA3AF' : tColor, textAlign: 'center', padding: '2px 0' }}>{tag}</div>
+                <div style={{ flex: 1, fontSize: 12, color: passed ? '#9CA3AF' : UI_PALETTE.text, lineHeight: 1.45, textDecoration: passed ? 'line-through' : 'none' }}>{m.label}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const BRANCH_TERMS = {
+  Army:           { servicemember: 'Soldier',       installation: 'Post',          installationLong: 'Installation', commander: 'Commander',          personnel: 'S1',  finance: 'Finance Office',     hr: 'IPPS-A',         orders: 'PCS Orders',     leave: 'DA Form 31 (Leave)',  evaluation: 'NCOER / OER',       record: 'Soldier Record Brief (SRB)' },
+  Navy:           { servicemember: 'Sailor',        installation: 'Station',       installationLong: 'Naval Station / NAS', commander: 'Commanding Officer', personnel: 'PSD', finance: 'Disbursing',         hr: 'NSIPS / MyNavy', orders: 'NAVPERS Orders', leave: 'Special / PCS Leave', evaluation: 'EVAL / FITREP',      record: 'Electronic Service Record (ESR)' },
+  'Marine Corps': { servicemember: 'Marine',        installation: 'Base / Station',installationLong: 'MCB / MCAS',          commander: 'Commanding Officer', personnel: 'IPAC',finance: 'Disbursing',         hr: 'MOL',            orders: 'CMC Orders',     leave: 'NAVMC Leave',         evaluation: 'Fitness Report',     record: 'Service Record Book (SRB)' },
+  'Air Force':    { servicemember: 'Airman',        installation: 'Base',          installationLong: 'Air Force Base',      commander: 'Commander',          personnel: 'MPF', finance: 'Finance / FSO',      hr: 'myPers',         orders: 'AF Orders',      leave: 'AF Form 988 (Leave)', evaluation: 'EPR / OPR',          record: 'AFPC vMPF' },
+  'Space Force':  { servicemember: 'Guardian',      installation: 'Base',          installationLong: 'Space Force Base',    commander: 'Commander',          personnel: 'MPF', finance: 'Finance / FSO',      hr: 'myPers',         orders: 'SF Orders',      leave: 'AF Form 988 (Leave)', evaluation: 'Guardian Eval',      record: 'Guardian Personnel Record' },
+  'Coast Guard':  { servicemember: 'Coast Guardsman', installation: 'Base / Station', installationLong: 'CG Base / Sector / Station', commander: 'Commanding Officer', personnel: 'SPO', finance: 'Servicing Personnel Office', hr: 'Direct Access', orders: 'CG-3103 Orders', leave: 'CG-3307 Leave',       evaluation: 'Employee Review',    record: 'Personnel Data Record (PDR)' },
+};
+function getBranchTerm(branch, key) {
+  return BRANCH_TERMS[branch]?.[key] || BRANCH_TERMS.Army[key] || key;
+}
+
+// Component-specific context per redesign brief. Active Duty is the
+// default; Guard members deal with Title 10 vs Title 32 activations and
+// State benefits; Reserve members PCS less but have drill and AT
+// considerations. The checklist UI shows additional bullets pulled from
+// this map when component != 'Active Duty'.
+const COMPONENT_NOTES = {
+  'Active Duty': null,
+  'Reserve':     { headline: 'Reserve Component Notes',
+                   bullets: [
+                     'Verify the PCS orders cite the correct authority (Title 10 mobilization vs. drill / AT) and your gaining Reserve unit / TPU before reporting.',
+                     'Confirm pay continuity through the IDT/AT to Active orders bridge — pay system gaps are common at this transition.',
+                     'Coordinate with the losing Reserve unit Admin (or Career Counselor) to ensure your IRR transfer code is correct.',
+                     'TRICARE Reserve Select members: confirm whether activation moves you to TRICARE Prime/Select and start the enrollment switch early.',
+                   ] },
+  'National Guard': { headline: 'National Guard Notes — Title 10 / Title 32',
+                      bullets: [
+                        'Confirm orders cite Title 10 (federal active service) or Title 32 (state active duty under federal pay) and that the gaining unit can receive you under that authority.',
+                        'Notify the State Joint Force Headquarters (JFHQ) J1 / SAD office before departure if state benefits (state tuition, license plates) need updating.',
+                        'Verify whether you remain on the State retention roster or detach to federal service for the duration of orders.',
+                        'TRICARE Reserve Select / Prime Remote transitions: enroll within 60 days of activation to avoid coverage gaps for dependents.',
+                        'Coordinate state license, tax residency, and voter registration if Title 10 orders move you across state lines for 6+ months.',
+                      ] },
+  'AGR':            { headline: 'AGR Notes',
+                      bullets: [
+                        'AGR (Active Guard/Reserve) tours follow Title 10 PCS rules — confirm your AGR status and pay band remain active through transition.',
+                        'Coordinate with both the losing AGR unit and the gaining unit on any change in BSO or PEC code.',
+                      ] },
+  'Dependent':      null,
+};
 
 const BRANCH_THEMES = {
   Army:           { primary: "#4A5E2A", secondary: "#2C3A14", accent: "#C8A84B", motto: "HOOAH",          tagline: "This We'll Defend",            insignia: "USA",  abbr: "USA"  },
@@ -4366,6 +4493,17 @@ const APP_TRANSLATIONS = {
     religiousPreferenceNote: '(for chaplain & community resources)',
     religiousPreferenceHelp: 'Optional — helps surface relevant chapel and community resources',
     typeBaseName: 'Type base name...',
+    hasPetsLabel: 'I have pets traveling with me',
+    hasPetsHelp: 'Surfaces APHIS, USDA, and pet-import documents in your checklist',
+    moveType: 'MOVE TYPE',
+    moveTypeHHG: 'HHG (Government)',
+    moveTypeHHGHelp: 'TMO arranges packers and carriers. No weight tickets required.',
+    moveTypePPM: 'PPM / DITY',
+    moveTypePPMHelp: 'You move yourself. Keep weight tickets for incentive payment.',
+    zeroUploadTitle: 'WHY WE DON\'T ASK FOR UPLOADS',
+    zeroUploadBody: "PCS Express never stores your orders, IDs, or other documents. Everything you enter stays on your device, encrypted with AES-256. We never see it — and there's no file to leak. Your data is yours alone.",
+    reportNLTDate: 'REPORT-NLT DATE',
+    reportNLTHelp: 'The "Not Later Than" arrival date on your orders. T-Minus milestones count down from this date.',
     seeDemoFirst: 'See Demo First',
     continue: 'Continue',
     launchDemo: 'Launch Demo',
@@ -4473,6 +4611,17 @@ APP_TRANSLATIONS.es = {
   religiousPreferenceNote: '(para capellán y recursos comunitarios)',
   religiousPreferenceHelp: 'Opcional — ayuda a mostrar capilla y recursos comunitarios relevantes',
   typeBaseName: 'Escriba el nombre de la base...',
+  hasPetsLabel: 'Viajo con mascotas',
+  hasPetsHelp: 'Muestra documentos APHIS, USDA y de importación de mascotas en su lista',
+  moveType: 'TIPO DE MUDANZA',
+  moveTypeHHG: 'HHG (Gobierno)',
+  moveTypeHHGHelp: 'TMO coordina empacadores y transporte. No requiere tickets de peso.',
+  moveTypePPM: 'PPM / DITY',
+  moveTypePPMHelp: 'Usted se muda. Guarde los tickets de peso para el pago de incentivo.',
+  zeroUploadTitle: 'POR QUÉ NO PEDIMOS DOCUMENTOS',
+  zeroUploadBody: 'PCS Express nunca guarda sus órdenes, identificaciones u otros documentos. Todo lo que ingresa permanece en su dispositivo, cifrado con AES-256. Nunca lo vemos, y no hay archivos que puedan filtrarse. Sus datos son solo suyos.',
+  reportNLTDate: 'FECHA DE REPORTE NLT',
+  reportNLTHelp: 'La fecha "no más tarde de" que figura en sus órdenes. Los hitos T-Menos se calculan desde esta fecha.',
   seeDemoFirst: 'Ver demostración primero',
   continue: 'Continuar',
   launchDemo: 'Iniciar demostración',
@@ -4545,6 +4694,17 @@ APP_TRANSLATIONS.de = {
   religiousPreferenceNote: '(für Seelsorge- und Gemeinschaftsangebote)',
   religiousPreferenceHelp: 'Optional — hilft, relevante Kapellen- und Gemeinschaftsangebote anzuzeigen',
   typeBaseName: 'Name des Standorts eingeben...',
+  hasPetsLabel: 'Ich reise mit Haustieren',
+  hasPetsHelp: 'Zeigt APHIS-, USDA- und Tier-Importdokumente in Ihrer Checkliste an',
+  moveType: 'UMZUGSART',
+  moveTypeHHG: 'HHG (Behördlich)',
+  moveTypeHHGHelp: 'TMO organisiert Packer und Spedition. Keine Gewichtsbelege erforderlich.',
+  moveTypePPM: 'PPM / DITY',
+  moveTypePPMHelp: 'Sie ziehen selbst um. Bewahren Sie Gewichtsbelege für die Erstattung auf.',
+  zeroUploadTitle: 'WARUM WIR KEINE UPLOADS VERLANGEN',
+  zeroUploadBody: 'PCS Express speichert niemals Ihre Befehle, Ausweise oder andere Dokumente. Alles, was Sie eingeben, bleibt auf Ihrem Gerät und wird mit AES-256 verschlüsselt. Wir sehen es nie — und es gibt keine Datei, die geleakt werden könnte. Ihre Daten gehören nur Ihnen.',
+  reportNLTDate: 'MELDETERMIN (NLT)',
+  reportNLTHelp: 'Das "spätestens am" Datum auf Ihren Befehlen. T-Minus-Meilensteine zählen ab diesem Datum herunter.',
   seeDemoFirst: 'Demo zuerst ansehen',
   continue: 'Weiter',
   launchDemo: 'Demo starten',
@@ -4593,6 +4753,17 @@ APP_TRANSLATIONS.fr = {
   religiousPreferenceNote: '(pour aumônerie et ressources communautaires)',
   religiousPreferenceHelp: 'Facultatif — aide à afficher chapelle et ressources communautaires pertinentes',
   typeBaseName: 'Saisir le nom de la base...',
+  hasPetsLabel: 'Je voyage avec des animaux',
+  hasPetsHelp: 'Affiche les documents APHIS, USDA et d\'import animal dans votre liste',
+  moveType: 'TYPE DE DÉMÉNAGEMENT',
+  moveTypeHHG: 'HHG (Gouvernement)',
+  moveTypeHHGHelp: 'Le TMO organise emballage et transport. Aucun ticket de pesée requis.',
+  moveTypePPM: 'PPM / DITY',
+  moveTypePPMHelp: 'Vous déménagez vous-même. Conservez les tickets de pesée pour l\'indemnité.',
+  zeroUploadTitle: 'POURQUOI NOUS NE DEMANDONS PAS DE DOCUMENTS',
+  zeroUploadBody: 'PCS Express ne stocke jamais vos ordres, pièces d\'identité ou autres documents. Tout ce que vous saisissez reste sur votre appareil, chiffré avec AES-256. Nous ne le voyons jamais — et aucun fichier ne peut fuiter. Vos données vous appartiennent.',
+  reportNLTDate: 'DATE DE PRÉSENTATION NLT',
+  reportNLTHelp: 'La date "au plus tard" indiquée sur vos ordres. Les jalons T-Moins se calculent à partir de cette date.',
   seeDemoFirst: 'Voir la démo d’abord',
   continue: 'Continuer',
   launchDemo: 'Lancer la démo',
@@ -4641,6 +4812,17 @@ APP_TRANSLATIONS.ko = {
   religiousPreferenceNote: '(군종 및 커뮤니티 자료용)',
   religiousPreferenceHelp: '선택 사항 — 관련 채플 및 커뮤니티 자료 표시에 도움',
   typeBaseName: '기지 이름 입력...',
+  hasPetsLabel: '반려동물 동반 이동',
+  hasPetsHelp: 'APHIS, USDA, 반려동물 수입 서류가 체크리스트에 표시됩니다',
+  moveType: '이사 유형',
+  moveTypeHHG: 'HHG (정부 주관)',
+  moveTypeHHGHelp: 'TMO가 포장과 운송을 주관합니다. 중량표 불필요.',
+  moveTypePPM: 'PPM / DITY (개인 이사)',
+  moveTypePPMHelp: '직접 이사합니다. 인센티브 지급을 위해 중량표를 보관하세요.',
+  zeroUploadTitle: '문서 업로드를 요청하지 않는 이유',
+  zeroUploadBody: 'PCS Express는 사용자의 명령서, 신분증 등 어떤 문서도 저장하지 않습니다. 입력한 모든 데이터는 AES-256으로 암호화되어 사용자 기기에만 저장됩니다. 저희는 데이터를 볼 수 없으며, 유출될 파일이 존재하지 않습니다. 데이터는 오직 사용자에게 속합니다.',
+  reportNLTDate: '보고 기한 (NLT)',
+  reportNLTHelp: '명령서에 명시된 "늦어도" 도착 일자입니다. T-Minus 마일스톤이 이 날짜를 기준으로 계산됩니다.',
   seeDemoFirst: '데모 먼저 보기',
   continue: '계속',
   launchDemo: '데모 시작',
@@ -4689,6 +4871,17 @@ APP_TRANSLATIONS.ja = {
   religiousPreferenceNote: '(チャプレンとコミュニティ情報用)',
   religiousPreferenceHelp: '任意 — 関連するチャペルとコミュニティ情報の表示に役立ちます',
   typeBaseName: '基地名を入力...',
+  hasPetsLabel: 'ペット同行',
+  hasPetsHelp: 'APHIS、USDA、ペット輸入関連の書類がチェックリストに表示されます',
+  moveType: '引越し形態',
+  moveTypeHHG: 'HHG (政府手配)',
+  moveTypeHHGHelp: 'TMOが梱包と輸送を手配。重量伝票は不要です。',
+  moveTypePPM: 'PPM / DITY (自己手配)',
+  moveTypePPMHelp: 'ご自身で引越し。報奨金請求のため重量伝票を保管してください。',
+  zeroUploadTitle: 'なぜアップロードを求めないのか',
+  zeroUploadBody: 'PCS Express は命令書、身分証、その他の書類を一切保存しません。入力した情報はすべて端末上に残り、AES-256 で暗号化されます。当社が中身を見ることはなく、流出するファイルも存在しません。データは利用者だけのものです。',
+  reportNLTDate: '報告期限 (NLT)',
+  reportNLTHelp: '命令書に記載された「遅くともこの日まで」の到着日。T-Minus マイルストーンはこの日を基準にカウントダウンされます。',
   seeDemoFirst: '先にデモを見る',
   continue: '続行',
   launchDemo: 'デモを開始',
@@ -4737,6 +4930,17 @@ APP_TRANSLATIONS.tl = {
   religiousPreferenceNote: '(para sa chaplain at community resources)',
   religiousPreferenceHelp: 'Opsyonal — tumutulong magpakita ng chapel at community resources',
   typeBaseName: 'I-type ang pangalan ng base...',
+  hasPetsLabel: 'May alagang hayop akong kasama',
+  hasPetsHelp: 'Magpapakita ng APHIS, USDA at pet import documents sa checklist',
+  moveType: 'URI NG PAGLILIPAT',
+  moveTypeHHG: 'HHG (Pamahalaan)',
+  moveTypeHHGHelp: 'TMO ang mag-aayos ng packers at transport. Walang kailangang weight tickets.',
+  moveTypePPM: 'PPM / DITY (Sariling Paglipat)',
+  moveTypePPMHelp: 'Kayo mismo ang maglilipat. Itago ang weight tickets para sa incentive.',
+  zeroUploadTitle: 'BAKIT WALA KAMING HINIHINGING UPLOAD',
+  zeroUploadBody: 'Hindi kailanman iniimbak ng PCS Express ang inyong orders, ID, o ibang dokumento. Lahat ng inilagay ninyo ay nananatili sa inyong device, naka-encrypt sa AES-256. Hindi namin nakikita ito — at walang file na pwedeng ma-leak. Inyo lamang ang inyong data.',
+  reportNLTDate: 'PETSA NG REPORT-NLT',
+  reportNLTHelp: 'Ang "hindi lalampas sa" petsa na nasa orders. Ang T-Minus milestones ay binibilang mula rito.',
   seeDemoFirst: 'Tingnan muna ang demo',
   continue: 'Magpatuloy',
   launchDemo: 'Simulan ang demo',
@@ -4785,6 +4989,17 @@ APP_TRANSLATIONS.ar = {
   religiousPreferenceNote: '(لخدمات الكاهن وموارد المجتمع)',
   religiousPreferenceHelp: 'اختياري — يساعد في عرض الكنيسة وموارد المجتمع ذات الصلة',
   typeBaseName: 'اكتب اسم القاعدة...',
+  hasPetsLabel: 'لديّ حيوانات أليفة مسافرة معي',
+  hasPetsHelp: 'يعرض وثائق APHIS وUSDA واستيراد الحيوانات الأليفة في قائمتك',
+  moveType: 'نوع الانتقال',
+  moveTypeHHG: 'HHG (حكومي)',
+  moveTypeHHGHelp: 'TMO ينظّم التعبئة والنقل. لا حاجة لتذاكر الوزن.',
+  moveTypePPM: 'PPM / DITY (ذاتي)',
+  moveTypePPMHelp: 'أنت تنقل بنفسك. احتفظ بتذاكر الوزن للحصول على مبلغ الحافز.',
+  zeroUploadTitle: 'لماذا لا نطلب رفع المستندات',
+  zeroUploadBody: 'PCS Express لا يخزّن أبدًا أوامرك أو هوياتك أو أي مستندات أخرى. كل ما تُدخله يبقى على جهازك مشفّرًا بمعيار AES-256. نحن لا نراه — ولا يوجد ملف يمكن أن يُسرّب. بياناتك ملك لك وحدك.',
+  reportNLTDate: 'تاريخ التقرير (NLT)',
+  reportNLTHelp: 'تاريخ "في موعد أقصاه" المكتوب في أوامرك. تحسب معالم T-Minus من هذا التاريخ.',
   seeDemoFirst: 'شاهد العرض أولاً',
   continue: 'متابعة',
   launchDemo: 'بدء العرض',
@@ -4833,6 +5048,17 @@ APP_TRANSLATIONS.zh = {
   religiousPreferenceNote: '(用于随军牧师和社区资源)',
   religiousPreferenceHelp: '可选 — 帮助显示相关教堂和社区资源',
   typeBaseName: '输入基地名称...',
+  hasPetsLabel: '宠物随我搬迁',
+  hasPetsHelp: '清单中将显示 APHIS、USDA 和宠物进口相关文件',
+  moveType: '搬迁类型',
+  moveTypeHHG: 'HHG (政府安排)',
+  moveTypeHHGHelp: 'TMO 安排打包和运输,无需称重单。',
+  moveTypePPM: 'PPM / DITY (自行搬迁)',
+  moveTypePPMHelp: '您自行搬迁。请保留称重单以申领奖励金。',
+  zeroUploadTitle: '我们为何不要求上传文件',
+  zeroUploadBody: 'PCS Express 永不存储您的命令、身份证或其他文件。您输入的所有内容都保存在您的设备上,并使用 AES-256 加密。我们看不到任何内容,也没有可被泄露的文件。您的数据完全属于您。',
+  reportNLTDate: '报到截止日期 (NLT)',
+  reportNLTHelp: '命令上注明的"不迟于"到达日期。T-Minus 里程碑从这个日期倒数。',
   seeDemoFirst: '先看演示',
   continue: '继续',
   launchDemo: '启动演示',
@@ -4881,6 +5107,17 @@ APP_TRANSLATIONS.it = {
   religiousPreferenceNote: '(per cappellano e risorse comunitarie)',
   religiousPreferenceHelp: 'Facoltativo — aiuta a mostrare cappella e risorse comunitarie',
   typeBaseName: 'Digita il nome della base...',
+  hasPetsLabel: 'Viaggio con animali domestici',
+  hasPetsHelp: 'Mostra documenti APHIS, USDA e di importazione animali nella tua lista',
+  moveType: 'TIPO DI TRASFERIMENTO',
+  moveTypeHHG: 'HHG (Governativo)',
+  moveTypeHHGHelp: 'TMO organizza imballaggio e trasporto. Nessun ticket di pesatura richiesto.',
+  moveTypePPM: 'PPM / DITY (Autonomo)',
+  moveTypePPMHelp: 'Ti trasferisci da solo. Conserva i ticket di peso per l\'incentivo.',
+  zeroUploadTitle: 'PERCHÉ NON CHIEDIAMO UPLOAD',
+  zeroUploadBody: 'PCS Express non memorizza mai i tuoi ordini, documenti d\'identità o altri file. Tutto ciò che inserisci resta sul tuo dispositivo, criptato con AES-256. Non lo vediamo mai — e non c\'è alcun file che possa essere divulgato. I tuoi dati appartengono solo a te.',
+  reportNLTDate: 'DATA DI PRESENTAZIONE NLT',
+  reportNLTHelp: 'La data "non oltre" indicata sui tuoi ordini. I traguardi T-Meno vengono calcolati da questa data.',
   seeDemoFirst: 'Vedi prima la demo',
   continue: 'Continua',
   launchDemo: 'Avvia demo',
@@ -4929,6 +5166,17 @@ APP_TRANSLATIONS.pt = {
   religiousPreferenceNote: '(para capelão e recursos comunitários)',
   religiousPreferenceHelp: 'Opcional — ajuda a exibir capela e recursos comunitários relevantes',
   typeBaseName: 'Digite o nome da base...',
+  hasPetsLabel: 'Tenho animais viajando comigo',
+  hasPetsHelp: 'Exibe documentos APHIS, USDA e de importação de animais na sua lista',
+  moveType: 'TIPO DE MUDANÇA',
+  moveTypeHHG: 'HHG (Governo)',
+  moveTypeHHGHelp: 'TMO organiza embaladores e transporte. Sem necessidade de tickets de peso.',
+  moveTypePPM: 'PPM / DITY (Mudança Própria)',
+  moveTypePPMHelp: 'Você se muda. Guarde os tickets de peso para o pagamento de incentivo.',
+  zeroUploadTitle: 'POR QUE NÃO PEDIMOS UPLOADS',
+  zeroUploadBody: 'O PCS Express nunca armazena suas ordens, identidades ou outros documentos. Tudo o que você insere permanece no seu dispositivo, criptografado com AES-256. Nós nunca vemos — e não há arquivo que possa vazar. Seus dados pertencem apenas a você.',
+  reportNLTDate: 'DATA DE APRESENTAÇÃO NLT',
+  reportNLTHelp: 'A data "no máximo até" indicada nas suas ordens. Os marcos T-Menos são calculados a partir desta data.',
   seeDemoFirst: 'Ver demonstração primeiro',
   continue: 'Continuar',
   launchDemo: 'Iniciar demonstração',
@@ -4977,6 +5225,17 @@ APP_TRANSLATIONS.vi = {
   religiousPreferenceNote: '(dùng cho mục sư và tài nguyên cộng đồng)',
   religiousPreferenceHelp: 'Tùy chọn — giúp hiển thị nhà nguyện và tài nguyên cộng đồng phù hợp',
   typeBaseName: 'Nhập tên căn cứ...',
+  hasPetsLabel: 'Tôi mang thú cưng theo',
+  hasPetsHelp: 'Hiển thị tài liệu APHIS, USDA và nhập khẩu thú cưng trong danh sách',
+  moveType: 'LOẠI CHUYỂN NHÀ',
+  moveTypeHHG: 'HHG (Chính phủ)',
+  moveTypeHHGHelp: 'TMO sắp xếp đóng gói và vận chuyển. Không cần phiếu cân.',
+  moveTypePPM: 'PPM / DITY (Tự chuyển)',
+  moveTypePPMHelp: 'Bạn tự chuyển. Giữ phiếu cân để nhận khoản hỗ trợ.',
+  zeroUploadTitle: 'VÌ SAO CHÚNG TÔI KHÔNG YÊU CẦU TẢI LÊN',
+  zeroUploadBody: 'PCS Express không bao giờ lưu lệnh, giấy tờ hoặc tài liệu nào của bạn. Mọi thứ bạn nhập đều ở lại trên thiết bị, được mã hoá AES-256. Chúng tôi không nhìn thấy — và không có tệp nào có thể bị rò rỉ. Dữ liệu của bạn chỉ thuộc về bạn.',
+  reportNLTDate: 'NGÀY BÁO CÁO NLT',
+  reportNLTHelp: 'Ngày "không trễ hơn" trên lệnh của bạn. Cột mốc T-Minus được tính từ ngày này.',
   seeDemoFirst: 'Xem demo trước',
   continue: 'Tiếp tục',
   launchDemo: 'Mở demo',
@@ -5530,8 +5789,9 @@ function Onboarding({ onComplete }) {
 
               {/* Departing date */}
               <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('departingDate')}</label>
-                <input type="date" value={p.departingDate} onChange={e => upd('departingDate', e.target.value)} style={{ ...inputSt, colorScheme: 'dark' }} />
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('reportNLTDate')}</label>
+                <input type="date" value={p.reportNLTDate || p.departingDate} onChange={e => { upd('reportNLTDate', e.target.value); upd('departingDate', e.target.value); }} style={{ ...inputSt, colorScheme: 'dark' }} />
+                <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{ot('reportNLTHelp')}</div>
               </div>
 
               <div style={{ display: 'flex', gap: 10 }}>
@@ -5571,6 +5831,30 @@ function Onboarding({ onComplete }) {
                 ))}
               </div>
 
+              {/* Pets toggle (per redesign brief) */}
+              <div onClick={() => upd('hasPets', !p.hasPets)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, marginBottom: 10, background: p.hasPets ? `${theme.accent}20` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${p.hasPets ? `${theme.accent}66` : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer' }}>
+                <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${p.hasPets ? theme.accent : 'rgba(255,255,255,0.25)'}`, background: p.hasPets ? theme.accent : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {p.hasPets && <span style={{ color: theme.secondary, fontSize: 13, fontWeight: 900 }}>✓</span>}
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>{ot('hasPetsLabel')}</div>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>{ot('hasPetsHelp')}</div>
+                </div>
+              </div>
+
+              {/* Move type segmented control (HHG vs PPM/DITY) */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('moveType')}</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {['HHG', 'PPM'].map(opt => (
+                    <button key={opt} onClick={() => upd('moveType', opt)} style={{ flex: 1, padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${p.moveType === opt ? theme.accent : 'rgba(255,255,255,0.18)'}`, background: p.moveType === opt ? `${theme.accent}25` : 'rgba(255,255,255,0.04)', color: p.moveType === opt ? '#FFF' : 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: p.moveType === opt ? 800 : 600, cursor: 'pointer', textAlign: 'left' }}>
+                      <div style={{ fontWeight: 900, fontSize: 13 }}>{ot(opt === 'HHG' ? 'moveTypeHHG' : 'moveTypePPM')}</div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 3, lineHeight: 1.4 }}>{ot(opt === 'HHG' ? 'moveTypeHHGHelp' : 'moveTypePPMHelp')}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Religious preference */}
               <div style={{ marginBottom: 16 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
@@ -5580,6 +5864,12 @@ function Onboarding({ onComplete }) {
                   {RELIGIOUS_PREFERENCES.map(r => <option key={r} value={r}>{RELIGIOUS_PREF_LABELS[r]?.[onboardingLanguage] || r}</option>)}
                 </select>
                 <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{ot('religiousPreferenceHelp')}</div>
+              </div>
+
+              {/* Zero-Upload value prop (per redesign brief) */}
+              <div style={{ background: 'rgba(255,255,255,0.05)', border: `1.5px solid ${theme.accent}33`, borderRadius: 12, padding: '12px 14px', marginBottom: 14 }}>
+                <div style={{ fontSize: 10, fontWeight: 950, color: theme.accent, letterSpacing: '.12em', marginBottom: 6 }}>🔒 {ot('zeroUploadTitle')}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.78)', lineHeight: 1.6 }}>{ot('zeroUploadBody')}</div>
               </div>
 
               <div style={{ display: 'flex', gap: 10 }}>
@@ -6293,6 +6583,20 @@ function App() {
               {/* Accent bar */}
               <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: theme.accent, borderRadius: '16px 0 0 16px' }} />
             </div>
+
+            {/* T-Minus dashboard — derived from Report-NLT date per redesign brief */}
+            <TMinusDashboard theme={theme} profile={profile} />
+
+            {/* Component-specific notes (Reserve / National Guard / AGR) */}
+            {COMPONENT_NOTES[profile.component] && (
+              <div style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderLeft: `4px solid ${theme.accent}`, borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
+                <div style={{ fontSize: 11, fontWeight: 950, color: theme.primary, marginBottom: 8, letterSpacing: '.10em' }}>{COMPONENT_NOTES[profile.component].headline}</div>
+                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, lineHeight: 1.6, color: UI_PALETTE.muted }}>
+                  {COMPONENT_NOTES[profile.component].bullets.map((b, i) => (<li key={i} style={{ marginBottom: 4 }}>{b}</li>))}
+                </ul>
+              </div>
+            )}
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {HOME_CATEGORIES.map((item) => (
                 <div key={item.id} onClick={() => goTo(item.id)} style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderTop: `4px solid ${item.color}`, borderRadius: 14, padding: isDesktop ? '18px 12px' : '15px 10px', cursor: 'pointer', textAlign: 'center', boxShadow: '0 12px 28px rgba(38,53,31,0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: isDesktop ? 118 : 104, position: 'relative', overflow: 'hidden' }}>
