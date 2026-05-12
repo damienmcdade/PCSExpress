@@ -175,11 +175,52 @@ const BRANCH_EXTRA = {
 
 // ─── Merge base + branch-specific docs ──────────────────────────────────────
 
-function getDocsForBranch(branch, isOconus) {
+// Per-document applicability predicates. If a document id appears here,
+// it is hidden when the corresponding profile attribute is false. This
+// keeps the Documents tabs tight to the user's actual situation rather
+// than showing the universal-superset of every form across every move
+// type. Keys not listed here always show.
+const DOC_APPLICABILITY = {
+  // Children / dependents
+  school_records:        (p) => p.hasChildren,
+  shot_records_fam:      (p) => p.hasDependents || p.hasChildren,
+  dependent_passports:   (p) => p.hasDependents || p.hasChildren,
+  efmp_docs:             (p) => p.hasDependents || p.hasChildren,
+  da7695_efmp:           (p) => p.hasDependents || p.hasChildren,
+  af1466_efmp:           (p) => p.hasDependents || p.hasChildren,
+  sf_af1466_efmp:        (p) => p.hasDependents || p.hasChildren,
+  family_care_plan:      (p) => p.hasDependents || p.hasChildren,
+  da5305_fcp:            (p) => p.hasDependents || p.hasChildren,
+  usmc_fcp:              (p) => p.hasDependents || p.hasChildren,
+  cg_fcp:                (p) => p.hasDependents || p.hasChildren,
+  marriage_cert:         (p) => p.hasDependents,
+  da5960_bah:            (p) => p.hasDependents,
+  navpers_1070_602:      (p) => p.hasDependents,
+  command_sponsorship:   (p) => p.hasDependents || p.hasChildren,
+  // Pets
+  pet_vet_records:       (p) => p.hasPets,
+  pet_import:            (p) => p.hasPets,
+  // Move-type (PPM-only items)
+  weight_ticket_empty:   (p) => p.moveType === 'PPM',
+  weight_ticket_full:    (p) => p.moveType === 'PPM',
+  pro_gear:              (p) => p.moveType === 'PPM',
+  // HHG-only items
+  hhg_counseling:        (p) => p.moveType === 'HHG',
+  storage_auth:          (p) => p.moveType === 'HHG',
+};
+
+function applies(docId, profileAttrs) {
+  const pred = DOC_APPLICABILITY[docId];
+  if (!pred) return true;
+  try { return !!pred(profileAttrs); } catch { return true; }
+}
+
+function getDocsForBranch(branch, isOconus, profileAttrs = {}) {
   const extra = BRANCH_EXTRA[branch] || {};
   return DOC_CATEGORIES.reduce((acc, cat) => {
     if (cat.id === 'oconus' && !isOconus) { acc[cat.id] = []; return acc; }
-    acc[cat.id] = [...(BASE_DOCS[cat.id] || []), ...(extra[cat.id] || [])];
+    const combined = [...(BASE_DOCS[cat.id] || []), ...(extra[cat.id] || [])];
+    acc[cat.id] = combined.filter(d => applies(d.id, profileAttrs));
     return acc;
   }, {});
 }
@@ -210,7 +251,16 @@ function cleanupLegacyFiles() {
 export default function PCSDocumentsModule({ theme, profile }) {
   const branch    = profile?.branch    || 'Army';
   const isOconus  = profile?.isOverseas || false;
-  const allDocs   = getDocsForBranch(branch, isOconus);
+  // Tailor Documents to the actual onboarding selections so users don't
+  // wade through items that don't apply to them.
+  const profileAttrs = {
+    hasDependents: !!profile?.hasDependents,
+    hasChildren:   !!profile?.hasChildren,
+    hasPets:       !!profile?.hasPets,
+    moveType:      profile?.moveType || 'HHG',
+    component:     profile?.component || 'Active Duty',
+  };
+  const allDocs   = getDocsForBranch(branch, isOconus, profileAttrs);
 
   const [states, setStates] = useState(() => sanitizeStates(loadStates()));
   const [activecat, setActivecat] = useState('family');

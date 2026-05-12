@@ -90,7 +90,17 @@ export default function BAHCalculatorTab({ theme, profile }) {
   const profileGaining = profile?.gainingInstallation || profile?.gaining || '';
 
   const [payGrade, setPayGrade] = useState(profile?.paygrade || 'E-5');
-  const [dependents, setDependents] = useState('1');
+  // Auto-derive initial dependent count from onboarding profile:
+  //   spouse (hasDependents) + each child in childAges.
+  // BAH only distinguishes "with deps" vs "without deps" for the rate
+  // calculation, but the dropdown is shown in the UI so we default it
+  // to the user's actual dependent count for transparency.
+  const _initialDeps = useMemo(() => {
+    const fromProfile = (profile?.hasDependents ? 1 : 0) + (Array.isArray(profile?.childAges) ? profile.childAges.filter(a => a !== '' && !isNaN(Number(a))).length : 0);
+    return String(Math.min(fromProfile, 4));
+  }, [profile?.hasDependents, profile?.childAges]);
+  const [dependents, setDependents] = useState(_initialDeps);
+  const _depsAutoFilled = dependents === _initialDeps && _initialDeps !== '0';
   const [dutyStation, setDutyStation] = useState(profileGaining);
   const [search, setSearch] = useState('');
   const [showPicker, setShowPicker] = useState(false);
@@ -141,6 +151,11 @@ export default function BAHCalculatorTab({ theme, profile }) {
             <option value="3">3 dependents</option>
             <option value="4">4+ dependents</option>
           </select>
+          {_depsAutoFilled && (
+            <div style={{ fontSize: 10, color: '#2E7D32', marginTop: 4, fontWeight: 700 }}>
+              ✓ Auto-filled from profile{(profile?.hasDependents || (profile?.childAges?.length > 0)) ? ` (${profile.hasDependents ? 'spouse' : ''}${profile.hasDependents && profile.childAges?.length > 0 ? ' + ' : ''}${profile.childAges?.length > 0 ? `${profile.childAges.length} child${profile.childAges.length > 1 ? 'ren' : ''}` : ''})` : ''}
+            </div>
+          )}
         </label>
       </div>
 

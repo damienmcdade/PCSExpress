@@ -240,7 +240,14 @@ export default function OHACalculatorTab({ theme, profile }) {
   const autoRegion = detectRegion(profileGaining);
 
   const [payGrade, setPayGrade] = useState(profile?.paygrade || 'E-5');
-  const [withDeps, setWithDeps] = useState(true);
+  // Auto-derive from onboarding: spouse + each child counts as a
+  // dependent for OHA purposes. OHA only distinguishes "with deps" /
+  // "without deps" for the rate, but we keep the precise count for the
+  // info chip so users see we used everything from their profile.
+  const _profileDepCount = useMemo(() => {
+    return (profile?.hasDependents ? 1 : 0) + (Array.isArray(profile?.childAges) ? profile.childAges.filter(a => a !== '' && !isNaN(Number(a))).length : 0);
+  }, [profile?.hasDependents, profile?.childAges]);
+  const [withDeps, setWithDeps] = useState(_profileDepCount > 0);
   const [region, setRegion] = useState(autoRegion || REGION_KEYS[0]);
 
   const regionData = OHA_REGIONS[region];
@@ -302,6 +309,11 @@ export default function OHACalculatorTab({ theme, profile }) {
               <option value="1">With Dependents</option>
               <option value="0">Without Dependents</option>
             </select>
+            {_profileDepCount > 0 && withDeps && (
+              <div style={{ fontSize: 10, color: '#2E7D32', marginTop: 4, fontWeight: 700 }}>
+                ✓ Auto-filled from profile{(profile?.hasDependents || (profile?.childAges?.length > 0)) ? ` (${profile.hasDependents ? 'spouse' : ''}${profile.hasDependents && profile.childAges?.length > 0 ? ' + ' : ''}${profile.childAges?.length > 0 ? `${profile.childAges.length} child${profile.childAges.length > 1 ? 'ren' : ''}` : ''})` : ''}
+              </div>
+            )}
           </label>
         </div>
       </div>
