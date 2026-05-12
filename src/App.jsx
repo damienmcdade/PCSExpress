@@ -6619,7 +6619,7 @@ function App() {
                 </button>
               ))}
             </div>
-            <button onClick={() => { clearSessionDemoProfile(); setProfile(null); }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.1)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,100,100,0.85)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>{t('reset')}</button>
+            <button onClick={() => { setShowResetWarning(true); setNavOpen(false); }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.1)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,100,100,0.85)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>{t('reset')}</button>
           </div>
         )}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -6821,7 +6821,7 @@ function App() {
                 </button>
               ))}
             </div>
-            <button onClick={() => { clearSessionDemoProfile(); setProfile(null); }} style={{ width: '100%', padding: '9px', background: 'rgba(255,0,0,0.08)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,100,100,0.8)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>{t('reset')}</button>
+            <button onClick={() => { setShowResetWarning(true); setMoreOpen(false); }} style={{ width: '100%', padding: '9px', background: 'rgba(255,0,0,0.08)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,100,100,0.8)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>{t('reset')}</button>
           </div>
         )}
 
