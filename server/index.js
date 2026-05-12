@@ -8,6 +8,9 @@ import fs from 'fs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
+// Drop X-Powered-By so the Node/Express stack isn't broadcast to every
+// response (DISA Web Server STIG: WGSU-AS-000080 alignment).
+app.disable('x-powered-by')
 
 // === PORT CONFIGURATION ===
 // CRITICAL: Use PORT environment variable provided by Railway
@@ -114,12 +117,50 @@ app.post('/api/base-reviews/validate', (req, res) => {
   res.status(200).json({ ok: true, message: 'Review metadata passes public-schema validation. Persist with the BaseReviews SQL schema after authenticated verification.' });
 });
 
-app.post('/api/ai', async (req, res) => {
-  try {
-    const { system, user } = req.body
+// In-memory per-IP rate limit for /api/ai. The nginx layer also rate-
+// limits (30/min, burst 10) so this is a defense-in-depth tier. Aligned
+// with NIST SP 800-53 SC-5 (DoS protection) and OWASP ASVS V4 (5.4).
+const _aiHits = new Map(); // ip -> { count, windowStart }
+const AI_RATE_LIMIT = 20;          // 20 requests
+const AI_RATE_WINDOW_MS = 60_000;  // per 60 seconds
 
+function aiRateLimit(req, res, next) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+  const now = Date.now();
+  const entry = _aiHits.get(ip);
+  if (!entry || now - entry.windowStart > AI_RATE_WINDOW_MS) {
+    _aiHits.set(ip, { count: 1, windowStart: now });
+    return next();
+  }
+  if (entry.count >= AI_RATE_LIMIT) {
+    return res.status(429).json({ error: 'Rate limit exceeded. Try again in a minute.' });
+  }
+  entry.count += 1;
+  return next();
+}
+
+// Strict input validation for /api/ai per DISA Application Security &
+// Development STIG (APSC-DV-002400 / 002460: input length, character
+// validation). Rejects: non-strings, oversized payloads, anything that
+// looks like a credential / SSN / email / phone (already detected by
+// the existing containsLikelyPii helper).
+const AI_MAX_LEN = 4_000;
+
+app.post('/api/ai', aiRateLimit, async (req, res) => {
+  try {
+    const { system, user } = req.body || {}
+
+    if (typeof system !== 'string' || typeof user !== 'string') {
+      return res.status(400).json({ error: 'system and user must be strings' })
+    }
     if (!system || !user) {
       return res.status(400).json({ error: 'Missing system or user parameter' })
+    }
+    if (system.length > AI_MAX_LEN || user.length > AI_MAX_LEN) {
+      return res.status(413).json({ error: `Input too long. Each field is capped at ${AI_MAX_LEN} characters.` })
+    }
+    if (containsLikelyPii({ system, user })) {
+      return res.status(400).json({ error: 'Input appears to contain PII (email / phone / SSN-like patterns). PCS Express will not forward this to the translation provider.' })
     }
 
     if (!API_KEY) {

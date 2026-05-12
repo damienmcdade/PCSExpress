@@ -1,0 +1,18 @@
+# PCS Express — Vulnerability Disclosure (RFC 9116)
+# Aligned with DoD VDP guidance (https://dc3.mil/) for independent
+# applications; PCS Express is an independent app and is not on the
+# DoD VDP roster — report directly to the maintainer.
+
+Contact: mailto:security@pcsexpress.example
+Contact: https://github.com/damienmcdade/PCSExpress/security/advisories/new
+Preferred-Languages: en
+Canonical: https://pcs-express.vercel.app/.well-known/security.txt
+Policy: https://github.com/damienmcdade/PCSExpress/blob/main/SECURITY.md
+Expires: 2027-12-31T23:59:59-00:00
+
+# Out-of-scope:
+# * Self-XSS scenarios in features that explicitly accept user-typed
+#   text (e.g., the translation egress noted in the OPSEC banner)
+# * Reports against deployed third-party dependencies (please file
+#   with the upstream maintainer)
+# * Denial of service that requires more than 50 req/s

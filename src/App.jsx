@@ -63,6 +63,107 @@ function prepareInteractiveDemoLaunch() {
   clearSessionDemoProfile();
 }
 
+// Wipe every trace of the user from this device. Used by the Reset /
+// Re-onboard button so a "fresh restart" is actually fresh — profile,
+// checklist progress, document states, saved translations, audit log,
+// last-save timestamp, language fast-path, encryption key, and any
+// demo session preview state.
+async function eraseAllUserData() {
+  // localStorage — all our keys plus anything that begins with pcs_
+  try {
+    const toRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (k.startsWith('pcs_') || k === 'translations_saved')) toRemove.push(k);
+    }
+    toRemove.forEach(k => localStorage.removeItem(k));
+  } catch {}
+  // sessionStorage — demo profile preview
+  try { sessionStorage.clear(); } catch {}
+  // IndexedDB — wipe the cryptoStore so the next session generates a
+  // fresh AES-256 key. Without this, the new profile would be encrypted
+  // with the same key as the old one — usually fine, but for a true
+  // "fresh restart" we rotate.
+  try {
+    if (window.indexedDB) {
+      await new Promise((resolve) => {
+        const req = indexedDB.deleteDatabase('pcs-express-crypto');
+        req.onsuccess = req.onerror = req.onblocked = () => resolve();
+      });
+    }
+  } catch {}
+  window.dispatchEvent(new CustomEvent('pcs-user-data-erased'));
+}
+
+// Save-status floating indicator. Shows a one-line confirmation that
+// the user's progress has been written to encrypted local storage.
+// Listens for the pcs-local-sync event (dispatched by secureLocalStore
+// on every successful set) and updates the relative time string.
+// Click reveals a longer explanation (also lives in the demo tour).
+function SaveStatusIndicator({ theme }) {
+  const [lastSave, setLastSave] = useState(null);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const seed = () => {
+      try {
+        const raw = localStorage.getItem('pcs_last_local_save_at');
+        if (raw) setLastSave(JSON.parse(raw));
+      } catch {}
+    };
+    seed();
+    const onSync = () => seed();
+    window.addEventListener('pcs-local-sync', onSync);
+    return () => window.removeEventListener('pcs-local-sync', onSync);
+  }, []);
+  const rel = (() => {
+    if (!lastSave) return 'No saves yet';
+    const ms = Date.now() - new Date(lastSave).getTime();
+    if (ms < 5_000) return 'Just saved';
+    if (ms < 60_000) return `Saved ${Math.floor(ms / 1_000)}s ago`;
+    if (ms < 3_600_000) return `Saved ${Math.floor(ms / 60_000)}m ago`;
+    if (ms < 86_400_000) return `Saved ${Math.floor(ms / 3_600_000)}h ago`;
+    return `Saved ${Math.floor(ms / 86_400_000)}d ago`;
+  })();
+  // Force re-render every 30s so the relative time stays accurate
+  useEffect(() => {
+    const id = setInterval(() => setLastSave(v => v ? v + '' : v), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div data-no-language-runtime style={{ position: 'fixed', bottom: 16, right: 16, zIndex: 150, pointerEvents: 'auto' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        aria-label="Save status"
+        title="Save status — your data is auto-saved with AES-256 encryption"
+        style={{
+          background: theme.primary,
+          color: '#FFFFFF',
+          border: `1.5px solid ${theme.accent}80`,
+          borderRadius: 999,
+          padding: '8px 14px',
+          fontSize: 11,
+          fontWeight: 800,
+          letterSpacing: '.04em',
+          boxShadow: '0 6px 22px rgba(0,0,0,0.18)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+        }}
+      >
+        <span style={{ fontSize: 12 }}>🔒</span>
+        <span>{rel}</span>
+      </button>
+      {open && (
+        <div role="dialog" style={{ position: 'absolute', bottom: 'calc(100% + 8px)', right: 0, width: 260, background: '#FFFFFF', border: `1px solid ${theme.accent}55`, borderRadius: 12, padding: 12, color: '#111827', fontSize: 11, lineHeight: 1.55, boxShadow: '0 12px 30px rgba(0,0,0,0.22)' }}>
+          <div style={{ fontWeight: 950, color: theme.primary, fontSize: 11, letterSpacing: '.08em', marginBottom: 6 }}>AUTOSAVED & ENCRYPTED</div>
+          Your profile, checklist, and document state are written to <strong>local storage on this device</strong> after every change, sealed in AES-256-GCM. The encryption key never leaves the browser. There is no PCS Express backend that sees your data. The badge in the corner updates each time a save completes.
+        </div>
+      )}
+    </div>
+  );
+}
+
 const PROFILE_DEFAULTS = {
   firstName: '',
   lastName: '',
@@ -4591,8 +4692,8 @@ const APP_TRANSLATIONS = {
       veterans: 'Find veteran-owned business resources, public directories, and local search paths near the gaining location.',
     },
     demo: {
-      securityTitle: 'Zero-Upload + AES-256 Encryption',
-      securityBody: 'PCS Express never asks you to upload your orders, IDs, or other documents. Everything you type is encrypted with AES-256-GCM using the Web Crypto API and stored only on your device — the key is generated as a non-extractable CryptoKey in IndexedDB, so the raw key bytes never reach JavaScript. There is no PCS Express backend that sees your data, and no file that can leak. Verify in DevTools → Application → Local Storage: every value is ciphertext, not plaintext.',
+      securityTitle: 'Autosave, Reset, and AES-256 Encryption',
+      securityBody: 'PCS Express writes your profile, checklist, and document state to local storage after every change — sealed in an AES-256-GCM envelope using a non-extractable Web Crypto key persisted in IndexedDB. A "Saved Xs ago" badge in the bottom-right corner of every screen confirms the autosave is running; click it for a one-line explanation. There is no upload, no backend, and no file that can leak. When you want a fresh start, the "Reset / Re-onboard" button at the bottom of the More drawer wipes everything from this device — profile, checklist progress, saved documents, audit log, the AES key itself — and returns you to onboarding. Verify any time in DevTools → Application → Local Storage: every value is ciphertext, never plaintext.',
       tminusTitle: 'T-Minus Dashboard',
       tminusBody: 'The Home tab opens on a countdown derived from your Report-NLT date. A 13-milestone schedule maps from T-120 (begin TMO research) through T+30 (full in-processing complete). The banner color shifts as urgency increases: accent (>30d) → amber (≤30d) → red (≤7d) → green (post-report).',
       componentTitle: 'Component-Aware Guidance',
@@ -6403,6 +6504,7 @@ function App() {
     return (
       <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
         <PrivacyShield />
+      <SaveStatusIndicator theme={theme} />
         {isDesktop && (
           <div style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', minHeight: '100dvh', borderRight: `2px solid ${theme.accent}30`, flexShrink: 0 }}>
             <div style={{ padding: '20px 16px 12px', borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
@@ -6502,6 +6604,7 @@ function App() {
   return (
     <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: 'column' }}>
       <PrivacyShield />
+      <SaveStatusIndicator theme={theme} />
       {/* HEADER — paddingTop uses env(safe-area-inset-top) for notch/Dynamic Island.
           Requires viewport-fit=cover in the HTML meta and contentInsetAdjustmentBehavior=never
           in capacitor.config.json to receive non-zero values from the OS. */}
@@ -6564,7 +6667,7 @@ function App() {
               </button>
             ))}
           </div>
-          <button onClick={() => { clearSessionDemoProfile(); setProfile(null); }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.15)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,100,100,0.9)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
+          <button onClick={async () => { if (window.confirm('Reset will delete ALL profile, checklist, and document data from this device. This cannot be undone. Continue?')) { await eraseAllUserData(); setProfile(null); setChecklistItems({}); } }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.15)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,100,100,0.9)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
             Reset / Re-onboard
           </button>
         </div>
@@ -6774,7 +6877,7 @@ function App() {
               ))}
             </div>
             <div style={{ padding: '10px 12px 4px' }}>
-              <button onClick={() => { clearSessionDemoProfile(); setProfile(null); setMoreOpen(false); }} style={{ width: '100%', padding: '12px', background: 'rgba(255,60,60,0.12)', border: '1px solid rgba(255,60,60,0.2)', borderRadius: 12, color: 'rgba(255,100,100,0.9)', fontSize: 13, cursor: 'pointer', fontWeight: 700 }}>
+              <button onClick={async () => { if (window.confirm('Reset will delete ALL profile, checklist, and document data from this device. This cannot be undone. Continue?')) { await eraseAllUserData(); setProfile(null); setChecklistItems({}); setMoreOpen(false); } }} style={{ width: '100%', padding: '12px', background: 'rgba(255,60,60,0.12)', border: '1px solid rgba(255,60,60,0.2)', borderRadius: 12, color: 'rgba(255,100,100,0.9)', fontSize: 13, cursor: 'pointer', fontWeight: 700 }}>
                 Reset / Re-onboard
               </button>
             </div>
