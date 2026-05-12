@@ -1,6 +1,0 @@
-PCS Express App-Wide Link Security Audit
-Approved web destinations: .gov, .mil, .edu, Veterans Crisis Line, and 988 Lifeline.
-Same-origin, blank, relative, Google-search, commercial-job-board, placeholder, and unsafe links are blocked or hidden.
-Source files audited: 23
-Anchor tags scanned: 56
-Approved URL literals after cleanup: 500

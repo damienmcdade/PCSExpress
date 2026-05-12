@@ -24,3 +24,4 @@ Thumbs.db
 .vercel
 .vercel-session/
 .env*.local
+test-results/

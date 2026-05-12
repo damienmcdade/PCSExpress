@@ -1450,27 +1450,26 @@ const VET_BIZ_CITY = {
   'USAG Miami':'Doral FL','Coast Guard Air Station Clearwater':'Clearwater FL',
   'Coast Guard Air Station Miami':'Opa-locka FL',
   'Fort Eisenhower':'Augusta GA','Robins AFB':'Warner Robins GA',
-  'MCB Hawaii':'Kaneohe HI','Schofield Barracks':'Wahiawa HI','Fort Shafter':'Honolulu HI',
+  'MCB Hawaii':'Kaneohe HI',
   'Coast Guard Air Station Barbers Point':'Kapolei HI',
-  'Mountain Home AFB':'Mountain Home ID','Fort Knox':'Radcliff KY','Fort Johnson':'Leesville LA',
+  'Mountain Home AFB':'Mountain Home ID','Fort Johnson':'Leesville LA',
   'Aberdeen Proving Ground':'Aberdeen MD','Fort Detrick':'Frederick MD',
-  'Fort Meade':'Odenton MD','NAS Patuxent River':'Lexington Park MD',
+  'NAS Patuxent River':'Lexington Park MD',
   'Detroit Arsenal':'Warren MI','Columbus AFB':'Columbus MS','NAS Fallon':'Fallon NV',
   'Cannon AFB':'Clovis NM','Holloman AFB':'Alamogordo NM','Kirtland AFB':'Albuquerque NM',
   'White Sands Missile Range':'Las Cruces NM','Fort Hamilton':'Brooklyn NY',
   'West Point':'West Point NY','Grand Forks AFB':'Grand Forks ND',
-  'Cavalier Space Station':'Cavalier ND','MCAS New River':'Jacksonville NC',
+  'Cavalier Space Station':'Cavalier ND',
   'Pope Army Airfield':'Fayetteville NC','Coast Guard Base Elizabeth City':'Elizabeth City NC',
-  'Altus AFB':'Altus OK','Fort Sill':'Lawton OK','Tinker AFB':'Midwest City OK',
+  'Altus AFB':'Altus OK','Tinker AFB':'Midwest City OK',
   'Vance AFB':'Enid OK','Fort Buchanan':'San Juan PR','Naval Station Newport':'Newport RI',
-  'MCAS Beaufort':'Beaufort SC','MCRD Parris Island':'Beaufort SC',
   'Goodfellow AFB':'San Angelo TX','Laughlin AFB':'Del Rio TX',
   'NAS Corpus Christi':'Corpus Christi TX','NAS Kingsville':'Kingsville TX',
   'Sheppard AFB':'Wichita Falls TX','Fort Belvoir':'Fort Belvoir VA','Fort Myer':'Arlington VA',
   'Joint Base Myer-Henderson Hall':'Arlington VA','NAS Oceana':'Virginia Beach VA',
   'Coast Guard Base Portsmouth':'Portsmouth VA','NSA Washington':'Washington DC',
   'NAS Whidbey Island':'Oak Harbor WA','Coast Guard Base Seattle':'Seattle WA',
-  'Fort Greely':'Delta Junction AK','Fort Wainwright':'Fairbanks AK',
+  'Fort Greely':'Delta Junction AK',
   'Coast Guard Base Kodiak':'Kodiak AK','Coast Guard Training Center Cape May':'Cape May NJ',
   'Coast Guard Sector New York':'Staten Island NY',
   'USAG Stuttgart':'Stuttgart Germany','USAG Wiesbaden':'Wiesbaden Germany',
@@ -2543,15 +2542,6 @@ const DAYCARE_DATA = {
   'MCAS Beaufort': [
     { name: 'MCAS Beaufort CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.2, desc: 'Marine Corps CDC at MCAS Beaufort. Smaller base community, shorter waitlists than larger MCAS sites.', phone: '(843) 228-7220', waitlist: '2–4 weeks' },
   ],
-  'Hill AFB': [
-    { name: 'Hill AFB CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.4, desc: 'AF CDC at Hill AFB. Strong priority for dual-military families.', phone: '(801) 777-3009', waitlist: '4–8 weeks' },
-  ],
-  'Nellis AFB': [
-    { name: 'Nellis AFB CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.2, desc: 'AF CDC at Nellis. Priority for active duty.', phone: '(702) 652-2061', waitlist: '6–10 weeks' },
-  ],
-  'Travis AFB': [
-    { name: 'Travis AFB CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'AF CDC at Travis. Priority for active duty.', phone: '(707) 424-2486', waitlist: '4–8 weeks' },
-  ],
   'Buckley SFB': [
     { name: 'Buckley SFB CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.4, desc: 'Space Force CDC at Buckley SFB. Strong PCS transition support.', phone: '(720) 847-9355', waitlist: '4–6 weeks' },
   ],
@@ -2560,22 +2550,6 @@ const DAYCARE_DATA = {
   ],
   'Patrick SFB': [
     { name: 'Patrick SFB CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'Space Force CDC at Patrick SFB. Space Coast community feel.', phone: '(321) 494-4747', waitlist: '4–6 weeks' },
-  ],
-  'Fort Belvoir': [
-    { name: 'Fort Belvoir CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.4, desc: 'Army CDC at Belvoir. NoVA demand is extremely high — apply day 1 of orders.', phone: '(703) 805-3168', waitlist: '8–12 weeks' },
-    { name: 'Belvoir SAS', type: 'School-Age / After-School', ages: '5–12 yrs', rating: 4.3, desc: 'Belvoir CYSS School Age Services. Summer day camps fill early.', phone: '(703) 805-3940', waitlist: '2–4 weeks' },
-  ],
-  'Fort Meade': [
-    { name: 'Fort Meade CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.2, desc: 'Army CDC at Fort Meade. High demand from NSA/Cyber Command families.', phone: '(301) 677-7023', waitlist: '6–10 weeks' },
-  ],
-  'Fort Drum': [
-    { name: 'Fort Drum CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'Army CDC at Fort Drum. Strong PCS support for 10th Mountain families.', phone: '(315) 772-6422', waitlist: '4–6 weeks' },
-  ],
-  'Schofield Barracks': [
-    { name: 'Schofield CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.3, desc: 'Army CDC at Schofield. Hawaii demand is high — apply early on orders.', phone: '(808) 655-4227', waitlist: '6–10 weeks' },
-  ],
-  'MCB Quantico': [
-    { name: 'MCB Quantico CDC', type: 'On-Post CDC', ages: '6 wks – 5 yrs', rating: 4.2, desc: 'Marine Corps CDC at Quantico. NoVA demand is high.', phone: '(703) 784-2536', waitlist: '6–10 weeks' },
   ],
 };
 
