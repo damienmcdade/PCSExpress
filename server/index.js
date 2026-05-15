@@ -1090,29 +1090,63 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
 // User-Agent, server-side caching, request batching, and graceful
 // fallback when they return 429/504 or time out.
 const FAMILY_CATEGORIES = [
-  { id: 'parks', label: 'Parks & Nature', emoji: '🌲', description: 'Local, state, and national parks plus playgrounds.' },
-  { id: 'amusement', label: 'Amusement & Theme Parks', emoji: '🎢', description: 'Theme parks, water parks, family entertainment centers.' },
+  { id: 'parks', label: 'Parks & Nature', emoji: '🌲', description: 'Local, state, and national parks plus playgrounds, gardens, and trails.' },
+  { id: 'amusement', label: 'Amusement & Theme Parks', emoji: '🎢', description: 'Theme parks, water parks, and family entertainment centers.' },
   { id: 'movies', label: 'Movie Theaters', emoji: '🎦', description: 'Cinemas and independent theaters.' },
-  { id: 'museums', label: 'Museums', emoji: '🏛️', description: 'History, science, art, and military museums.' },
-  { id: 'family', label: 'Family Activities', emoji: '🏖️', description: 'Zoos, aquariums, bowling, and other family venues.' },
+  { id: 'museums', label: 'Museums & Galleries', emoji: '🏛️', description: 'History, science, art, military museums, and galleries.' },
+  { id: 'sports', label: 'Sports & Fitness', emoji: '🏟️', description: 'Pools, gyms, rinks, climbing, mini-golf, bowling, stadiums, sports complexes.' },
+  { id: 'culture', label: 'Arts & Culture', emoji: '🎨', description: 'Arts centers, libraries, public art, community centers, theaters.' },
+  { id: 'family', label: 'Family Venues', emoji: '🏖️', description: 'Zoos, aquariums, attractions, ice cream shops, dog parks.' },
+  { id: 'shopping', label: 'Shopping & Markets', emoji: '🛍️', description: 'Malls, farmers markets, and shopping districts.' },
 ]
 
 // Maps OSM tag pairs to our internal category + a short type label.
 const OSM_TAG_MAP = {
+  // Parks & Nature
   'leisure=park': { categoryId: 'parks', type: 'Park' },
   'leisure=nature_reserve': { categoryId: 'parks', type: 'Nature reserve' },
   'leisure=playground': { categoryId: 'parks', type: 'Playground' },
+  'leisure=garden': { categoryId: 'parks', type: 'Garden' },
+  'leisure=dog_park': { categoryId: 'parks', type: 'Dog park' },
+  'tourism=picnic_site': { categoryId: 'parks', type: 'Picnic site' },
+  'tourism=viewpoint': { categoryId: 'parks', type: 'Viewpoint' },
   'boundary=national_park': { categoryId: 'parks', type: 'National park' },
+  // Amusement & Theme Parks
   'tourism=theme_park': { categoryId: 'amusement', type: 'Theme park' },
   'leisure=water_park': { categoryId: 'amusement', type: 'Water park' },
+  'tourism=amusement_arcade': { categoryId: 'amusement', type: 'Arcade' },
+  // Movies
   'amenity=cinema': { categoryId: 'movies', type: 'Cinema' },
+  'amenity=theatre': { categoryId: 'movies', type: 'Theater' },
+  // Museums & Galleries
   'tourism=museum': { categoryId: 'museums', type: 'Museum' },
+  'tourism=gallery': { categoryId: 'museums', type: 'Gallery' },
+  'historic=monument': { categoryId: 'museums', type: 'Monument' },
+  'historic=memorial': { categoryId: 'museums', type: 'Memorial' },
+  // Sports & Fitness
+  'leisure=sports_centre': { categoryId: 'sports', type: 'Sports center' },
+  'leisure=swimming_pool': { categoryId: 'sports', type: 'Swimming pool' },
+  'leisure=fitness_centre': { categoryId: 'sports', type: 'Fitness center' },
+  'leisure=ice_rink': { categoryId: 'sports', type: 'Ice rink' },
+  'amenity=ice_rink': { categoryId: 'sports', type: 'Ice rink' },
+  'leisure=bowling_alley': { categoryId: 'sports', type: 'Bowling alley' },
+  'leisure=miniature_golf': { categoryId: 'sports', type: 'Mini-golf' },
+  'sport=climbing': { categoryId: 'sports', type: 'Climbing gym' },
+  'leisure=stadium': { categoryId: 'sports', type: 'Stadium' },
+  'leisure=track': { categoryId: 'sports', type: 'Athletic track' },
+  // Arts & Culture
+  'amenity=arts_centre': { categoryId: 'culture', type: 'Arts center' },
+  'amenity=library': { categoryId: 'culture', type: 'Library' },
+  'amenity=community_centre': { categoryId: 'culture', type: 'Community center' },
+  'tourism=artwork': { categoryId: 'culture', type: 'Public art' },
+  // Family Venues
   'tourism=zoo': { categoryId: 'family', type: 'Zoo' },
   'tourism=aquarium': { categoryId: 'family', type: 'Aquarium' },
-  'leisure=bowling_alley': { categoryId: 'family', type: 'Bowling alley' },
-  'leisure=miniature_golf': { categoryId: 'family', type: 'Mini-golf' },
-  'amenity=ice_rink': { categoryId: 'family', type: 'Ice rink' },
   'tourism=attraction': { categoryId: 'family', type: 'Attraction' },
+  'amenity=ice_cream': { categoryId: 'family', type: 'Ice cream shop' },
+  // Shopping & Markets
+  'shop=mall': { categoryId: 'shopping', type: 'Shopping mall' },
+  'amenity=marketplace': { categoryId: 'shopping', type: 'Marketplace' },
 }
 
 const FAMILY_CACHE = new Map()

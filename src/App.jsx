@@ -6482,7 +6482,7 @@ function FamilyFunTab({ theme, profile }) {
           {appliedAddress ? `Activities within 50 mi of ${appliedAddress}` : market.matched ? `Activities within 50 mi of ${market.installation}` : 'Set a gaining installation or address to see family activities'}
         </div>
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.78)', lineHeight: 1.6 }}>
-          Parks, theme parks, movie theaters, museums, zoos, aquariums, and family venues from OpenStreetMap. Distances are line-of-sight estimates - confirm hours, prices, and accessibility on the destination page.
+          Parks, theme parks, movies, museums, sports, arts, shopping, zoos, and more — pulled live from OpenStreetMap. Tap any card to open turn-by-turn Google Maps directions. Distances are straight-line estimates; confirm hours, prices, and accessibility on the destination page.
         </div>
       </div>
 
@@ -6559,7 +6559,19 @@ function FamilyFunTab({ theme, profile }) {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
             {filtered.map(act => (
-              <div key={act.id} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${colors.accent}`, borderRadius: 12, padding: 12 }}>
+              // Whole card is the click target - opens Google Maps
+              // turn-by-turn directions in a new tab. Inner action
+              // buttons (Website, OSM map) use stopPropagation so they
+              // open their own destinations without triggering the
+              // card-level handler.
+              <a
+                key={act.id}
+                href={act.directionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Get directions to ${act.name} (${act.distanceMiles} miles away)`}
+                style={{ display: 'block', textDecoration: 'none', color: 'inherit', background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${colors.accent}`, borderRadius: 12, padding: 12, cursor: 'pointer' }}
+              >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
                   <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', flex: 1 }}>{act.name}</div>
                   <span style={{ background: '#FFF8E1', color: '#6D4C00', fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap' }}>
@@ -6573,20 +6585,32 @@ function FamilyFunTab({ theme, profile }) {
                 <div style={{ fontSize: 11, color: colors.muted, lineHeight: 1.5, marginBottom: 8 }}>
                   {act.description}
                 </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  <a href={act.directionsUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>
-                    Directions
-                  </a>
-                  <a href={act.mapUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: '#FFFFFF', color: colors.primary, border: `1px solid ${colors.primary}`, fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>
-                    OSM map
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span style={{ background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>
+                    Tap card → Google directions
+                  </span>
+                  <a
+                    href={act.mapUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
+                    style={{ textDecoration: 'none', background: '#FFFFFF', color: colors.primary, border: `1px solid ${colors.primary}`, fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}
+                  >
+                    Map view
                   </a>
                   {act.website && (
-                    <a href={act.website} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: '#FFFFFF', color: colors.primary, border: `1px solid ${colors.primary}`, fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>
+                    <a
+                      href={act.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      style={{ textDecoration: 'none', background: '#FFFFFF', color: colors.primary, border: `1px solid ${colors.primary}`, fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}
+                    >
                       Website
                     </a>
                   )}
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         </>
