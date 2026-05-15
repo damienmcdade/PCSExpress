@@ -332,7 +332,12 @@ app.get('/api/vet-businesses', vetBizRateLimit, async (req, res) => {
     const veteranOnly = entities.filter(isVeteranBusinessEntity).map(shapeBusiness)
     // Cap returned results so the UI stays responsive on slow devices.
     const businesses = veteranOnly.slice(0, 25)
-    VET_BIZ_CACHE.set(cacheKey, { businesses, fetchedAt: Date.now() })
+    // Only cache non-empty results - empty responses are usually
+    // transient upstream failures and we want the next request to
+    // retry, not be served the empty cache for 24h.
+    if (businesses.length > 0) {
+      VET_BIZ_CACHE.set(cacheKey, { businesses, fetchedAt: Date.now() })
+    }
     return res.status(200).json({ businesses, fallback: businesses.length === 0, source: 'sam.gov', fetchedAt: Date.now() })
   } catch (err) {
     console.error(`[vet-businesses] ${err.message}`)
@@ -561,7 +566,11 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
   // RapidAPI listings (priced units) come first; OSM complexes (real
   // addresses, deep-linked Apartments.com search) follow.
   const combined = [...rapidApiResults, ...osmResults].slice(0, 30)
-  HOUSING_CACHE.set(cacheKey, { listings: combined, fetchedAt: Date.now() })
+  // Skip caching empty results so transient upstream failures do not
+  // poison the cache for 24 hours.
+  if (combined.length > 0) {
+    HOUSING_CACHE.set(cacheKey, { listings: combined, fetchedAt: Date.now() })
+  }
 
   res.status(200).json({
     listings: combined,
@@ -819,7 +828,11 @@ app.get('/api/job-listings', jobsRateLimit, async (req, res) => {
   })
 
   const listings = deduped.slice(0, 40)
-  JOBS_CACHE.set(cacheKey, { listings, sources, fetchedAt: Date.now() })
+  // Skip caching empty results so transient upstream failures (e.g.,
+  // RemoteOK 403 from datacenter IPs) do not poison the cache.
+  if (listings.length > 0) {
+    JOBS_CACHE.set(cacheKey, { listings, sources, fetchedAt: Date.now() })
+  }
 
   res.status(200).json({
     listings,
@@ -967,7 +980,11 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
   services.sort((a, b) => a.distanceMiles - b.distanceMiles)
   const limited = services.slice(0, 60)
 
-  RELIGIOUS_CACHE.set(cacheKey, { services: limited, origin, fetchedAt: Date.now() })
+  // Skip caching empty results so transient Overpass failures do not
+  // serve users an empty Spiritual Readiness tab for 24h.
+  if (limited.length > 0) {
+    RELIGIOUS_CACHE.set(cacheKey, { services: limited, origin, fetchedAt: Date.now() })
+  }
 
   res.status(200).json({
     services: limited,
@@ -1182,7 +1199,11 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
   })
   const limited = schools.slice(0, 80)
 
-  SCHOOL_CACHE.set(cacheKey, { schools: limited, origin, fetchedAt: Date.now() })
+  // Skip caching empty results so transient Overpass failures do not
+  // hide schools for 24 hours.
+  if (limited.length > 0) {
+    SCHOOL_CACHE.set(cacheKey, { schools: limited, origin, fetchedAt: Date.now() })
+  }
 
   res.status(200).json({
     categories: SCHOOL_CATEGORIES,
@@ -1467,7 +1488,11 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
   activities.sort((a, b) => a.distanceMiles - b.distanceMiles)
   const limited = activities.slice(0, 60)
 
-  FAMILY_CACHE.set(cacheKey, { activities: limited, origin, fetchedAt: Date.now() })
+  // Skip caching empty results so transient Overpass failures do not
+  // serve users empty Family Fun for 24h.
+  if (limited.length > 0) {
+    FAMILY_CACHE.set(cacheKey, { activities: limited, origin, fetchedAt: Date.now() })
+  }
 
   res.status(200).json({
     categories: FAMILY_CATEGORIES,
