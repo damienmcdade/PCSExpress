@@ -8,7 +8,7 @@
  * Third-party dependencies: React.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { resolveMarket } from '../data/installationMarkets';
 import { publicMapEmbedUrl, publicMapSearchUrl } from '../lib/mapEmbedUrl';
 
@@ -115,6 +115,40 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
     muted: '#56697C',
   };
 
+  // Live rental listings from the /api/housing-listings RapidAPI proxy.
+  // Empty + fallback=true means "no key configured or no upstream
+  // results" - in that case we render the existing official housing
+  // link cards below as the verified fallback path.
+  const [listings, setListings] = useState({ status: 'idle', items: [], fallback: false, reason: '' });
+  useEffect(() => {
+    if (!market.matched || (!market.city && !market.zip)) {
+      setListings({ status: 'no-market', items: [], fallback: true, reason: 'unknown-installation' });
+      return;
+    }
+    let cancelled = false;
+    setListings(s => ({ ...s, status: 'loading' }));
+    const params = new URLSearchParams();
+    if (market.city) params.set('city', market.city);
+    if (market.state) params.set('state', market.state);
+    if (market.zip) params.set('zip', market.zip);
+    fetch(`/api/housing-listings?${params.toString()}`, { headers: { Accept: 'application/json' } })
+      .then(r => r.ok ? r.json() : { listings: [], fallback: true, reason: `http-${r.status}` })
+      .then(data => {
+        if (cancelled) return;
+        setListings({
+          status: 'ready',
+          items: Array.isArray(data?.listings) ? data.listings : [],
+          fallback: !!data?.fallback,
+          reason: data?.reason || '',
+        });
+      })
+      .catch(err => {
+        if (cancelled) return;
+        setListings({ status: 'ready', items: [], fallback: true, reason: `network-${err?.message || 'error'}` });
+      });
+    return () => { cancelled = true; };
+  }, [market.city, market.state, market.zip, market.matched]);
+
   return (
     <div style={{ padding: 16 }}>
       <div style={{ background: colors.secondary, borderRadius: 12, padding: 14, marginBottom: 14, borderLeft: `3px solid ${colors.accent}` }}>
@@ -162,6 +196,72 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
           Leave this blank to use the gaining installation from onboarding.
         </div>
       </div>
+
+      {listings.status === 'loading' && (
+        <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 12, color: colors.muted }}>
+          Looking up active rental listings near {market.installation || 'your gaining installation'}...
+        </div>
+      )}
+      {listings.status === 'ready' && listings.items.length > 0 && (
+        <section style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 900, color: colors.text, marginBottom: 8 }}>
+            Active rental listings near {market.installation} <span style={{ fontWeight: 600, color: colors.muted, marginLeft: 6 }}>({listings.items.length})</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+            {listings.items.map(item => (
+              <a
+                key={item.id}
+                href={item.listingUrl || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${colors.accent}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: colors.text, display: 'block' }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 800, color: colors.text, marginBottom: 4, lineHeight: 1.3 }}>
+                  {item.address || `${item.propertyType || 'Listing'} near ${item.city || ''}`}
+                </div>
+                <div style={{ fontSize: 11, color: colors.muted, marginBottom: 6 }}>
+                  {[item.city, item.state, item.zip].filter(Boolean).join(' ')}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                  {item.propertyType && (
+                    <span style={{ background: '#EAF4FF', color: '#0D3B66', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4 }}>{item.propertyType}</span>
+                  )}
+                  {item.beds != null && (
+                    <span style={{ background: '#F3F4F6', color: '#243447', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4 }}>{item.beds} bd</span>
+                  )}
+                  {item.baths != null && (
+                    <span style={{ background: '#F3F4F6', color: '#243447', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4 }}>{item.baths} ba</span>
+                  )}
+                  {item.sqft != null && (
+                    <span style={{ background: '#F3F4F6', color: '#243447', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4 }}>{item.sqft.toLocaleString()} sqft</span>
+                  )}
+                  {item.price && (
+                    <span style={{ background: '#FFF8E1', color: '#6D4C00', fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 4 }}>${item.price.toLocaleString()}/mo</span>
+                  )}
+                </div>
+                {item.description && (
+                  <div style={{ fontSize: 11, color: colors.muted, lineHeight: 1.5, marginBottom: 8 }}>
+                    {item.description.length > 180 ? item.description.slice(0, 180) + '...' : item.description}
+                  </div>
+                )}
+                <div style={{ display: 'inline-flex', padding: '7px 10px', borderRadius: 7, background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 800 }}>View listing</div>
+              </a>
+            ))}
+          </div>
+          <div style={{ fontSize: 10, color: colors.muted, lineHeight: 1.5, marginTop: 8 }}>
+            Listings are aggregated from a third-party rentals API and cached up to 6 hours. PCS Express does not store private housing inventory. Verify availability, lease terms, pet rules, and move-in dates directly with the listing source.
+          </div>
+        </section>
+      )}
+      {listings.status === 'ready' && listings.items.length === 0 && listings.fallback && (
+        <div style={{ background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 11, color: '#0D3B66', lineHeight: 1.5 }}>
+          {listings.reason === 'no-api-key'
+            ? 'Live rental listings not yet configured for this deployment. Use the official housing sources below to search HOMES.mil, MilitaryINSTALLATIONS, branch housing, and approved off-base resources.'
+            : listings.reason === 'unknown-installation'
+              ? 'Add your gaining installation in onboarding (or type one above) to see active rental listings. The official housing sources below work in the meantime.'
+              : `No active rental listings cached for ${market.installation || 'this installation'} yet. Use the official housing sources below to search current availability.`}
+        </div>
+      )}
 
       <section style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
         <div style={{ fontSize: 12, fontWeight: 900, color: colors.text, marginBottom: 8 }}>Official housing links</div>

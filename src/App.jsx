@@ -3046,6 +3046,9 @@ function VeteranBusinessesTab({ theme, profile }) {
   // means "show the existing static source-link cards below."
   const liveMarket = resolveMarket(profile);
   const [liveBiz, setLiveBiz] = useState({ status: 'idle', businesses: [], fallback: false, reason: '' });
+  // 'all' | 'business' | 'service' - splits SAM.gov entities by primary
+  // NAICS classification returned from the backend.
+  const [industryFilter, setIndustryFilter] = useState('all');
   useEffect(() => {
     if (!liveMarket.matched || (!liveMarket.city && !liveMarket.zip)) {
       setLiveBiz({ status: 'no-market', businesses: [], fallback: true, reason: 'unknown-installation' });
@@ -3114,8 +3117,34 @@ function VeteranBusinessesTab({ theme, profile }) {
           <div style={{ fontSize: 11, fontWeight: 800, color: theme.primary, marginBottom: 8, letterSpacing: '.06em' }}>
             VETERAN-OWNED BUSINESSES NEAR {searchLocation?.toUpperCase() || 'YOUR INSTALLATION'} ({liveBiz.businesses.length})
           </div>
+          {/* Industry filter: All / Business (goods) / Service. The
+              backend tags each entity from its primary NAICS code. */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+            {[
+              { id: 'all', label: `All (${liveBiz.businesses.length})` },
+              { id: 'business', label: `Business · Goods (${liveBiz.businesses.filter(b => b.industry === 'business').length})` },
+              { id: 'service', label: `Service (${liveBiz.businesses.filter(b => b.industry === 'service').length})` },
+            ].map(opt => (
+              <button
+                key={opt.id}
+                onClick={() => setIndustryFilter(opt.id)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 18,
+                  border: `1.5px solid ${industryFilter === opt.id ? theme.primary : '#D6E0EA'}`,
+                  background: industryFilter === opt.id ? theme.primary : '#FFFFFF',
+                  color: industryFilter === opt.id ? '#FFFFFF' : '#243447',
+                  fontSize: 11,
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
-            {liveBiz.businesses.map(biz => (
+            {liveBiz.businesses.filter(b => industryFilter === 'all' || b.industry === industryFilter).map(biz => (
               <a
                 key={biz.id}
                 href={biz.samUrl}
@@ -3124,12 +3153,16 @@ function VeteranBusinessesTab({ theme, profile }) {
                 style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: '#0D1821', display: 'block' }}
               >
                 <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 4 }}>{biz.name}</div>
-                {biz.businessTypes?.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
-                    {biz.businessTypes.slice(0, 3).map((bt, i) => (
-                      <span key={i} style={{ background: '#FFF8E1', color: '#6D4C00', fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{bt}</span>
-                    ))}
-                  </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+                  <span style={{ background: biz.industry === 'service' ? '#E0F2FE' : '#ECFDF5', color: biz.industry === 'service' ? '#075985' : '#065F46', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                    {biz.industry === 'service' ? 'Service' : 'Business'}
+                  </span>
+                  {biz.businessTypes?.slice(0, 2).map((bt, i) => (
+                    <span key={i} style={{ background: '#FFF8E1', color: '#6D4C00', fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{bt}</span>
+                  ))}
+                </div>
+                {biz.naicsDesc && (
+                  <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.4, marginBottom: 4 }}>{biz.naicsDesc}</div>
                 )}
                 {(biz.address || biz.city) && (
                   <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.45, marginBottom: 4 }}>
@@ -6245,6 +6278,7 @@ function FamilyCategoryTab({ theme, profile }) {
     { id: 'deployment', label: 'Deployment' },
     { id: 'efmp', label: 'EFMP' },
     { id: 'employment', label: 'Employment' },
+    { id: 'family-fun', label: 'Family Fun' },
     { id: 'permanent-resident', label: 'Permanent Resident' },
     { id: 'pets', label: 'Pets' },
     { id: 'schools', label: 'Schools' },
@@ -6255,10 +6289,197 @@ function FamilyCategoryTab({ theme, profile }) {
       {tab === 'deployment' && <SpouseDeploymentGuide theme={theme} profile={profile} />}
       {tab === 'efmp' && <EFMPTab theme={theme} profile={profile} />}
       {tab === 'employment' && <EmploymentModule theme={theme} profile={profile} />}
+      {tab === 'family-fun' && <FamilyFunTab theme={theme} profile={profile} />}
       {tab === 'permanent-resident' && <ImmigrationModule theme={theme} profile={profile} />}
       {tab === 'pets' && <PetRelocationChecklistTab theme={theme} profile={profile} />}
       {tab === 'schools' && <SchoolsTab theme={theme} profile={profile} />}
     </CategoryTabShell>
+  );
+}
+
+function FamilyFunTab({ theme, profile }) {
+  const market = resolveMarket(profile);
+  const [customAddress, setCustomAddress] = useState('');
+  const [appliedAddress, setAppliedAddress] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [state, setState] = useState({ status: 'idle', categories: [], activities: [], origin: null, fallback: false, reason: '' });
+
+  useEffect(() => {
+    // We need at least an installation OR a user-supplied address to
+    // resolve a center point.
+    const hasInstallation = market.matched && (market.city || market.zip);
+    if (!hasInstallation && !appliedAddress) {
+      setState({ status: 'no-input', categories: [], activities: [], origin: null, fallback: true, reason: 'no-location' });
+      return;
+    }
+    let cancelled = false;
+    setState(s => ({ ...s, status: 'loading' }));
+    const params = new URLSearchParams();
+    if (appliedAddress) {
+      params.set('address', appliedAddress);
+    } else {
+      if (market.city) params.set('city', market.city);
+      if (market.state) params.set('state', market.state);
+      if (market.zip) params.set('zip', market.zip);
+    }
+    params.set('radiusMiles', '50');
+    fetch(`/api/family-activities?${params.toString()}`, { headers: { Accept: 'application/json' } })
+      .then(r => r.ok ? r.json() : { categories: [], activities: [], fallback: true, reason: `http-${r.status}` })
+      .then(data => {
+        if (cancelled) return;
+        setState({
+          status: 'ready',
+          categories: Array.isArray(data?.categories) ? data.categories : [],
+          activities: Array.isArray(data?.activities) ? data.activities : [],
+          origin: data?.origin || null,
+          fallback: !!data?.fallback,
+          reason: data?.reason || '',
+        });
+      })
+      .catch(err => {
+        if (cancelled) return;
+        setState({ status: 'ready', categories: [], activities: [], origin: null, fallback: true, reason: `network-${err?.message || 'error'}` });
+      });
+    return () => { cancelled = true; };
+  }, [market.city, market.state, market.zip, market.matched, appliedAddress]);
+
+  const filtered = filter === 'all' ? state.activities : state.activities.filter(a => a.categoryId === filter);
+  const colors = {
+    primary: theme.primary || '#244247',
+    accent: theme.accent || '#C99A3D',
+    muted: '#56697C',
+  };
+
+  return (
+    <div style={{ padding: 16 }}>
+      <div style={{ background: theme.secondary || '#152F36', borderRadius: 12, padding: 14, marginBottom: 14, borderLeft: `3px solid ${colors.accent}` }}>
+        <div style={{ fontSize: 10, fontWeight: 900, color: colors.accent, letterSpacing: '.08em', marginBottom: 4 }}>FAMILY FUN</div>
+        <div style={{ fontSize: 14, fontWeight: 900, color: '#FFF', marginBottom: 5 }}>
+          {appliedAddress ? `Activities within 50 mi of ${appliedAddress}` : market.matched ? `Activities within 50 mi of ${market.installation}` : 'Set a gaining installation or address to see family activities'}
+        </div>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.78)', lineHeight: 1.6 }}>
+          Parks, theme parks, movie theaters, museums, zoos, aquariums, and family venues from OpenStreetMap. Distances are line-of-sight estimates - confirm hours, prices, and accessibility on the destination page.
+        </div>
+      </div>
+
+      <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12, marginBottom: 14 }}>
+        <label style={{ fontSize: 10, fontWeight: 900, color: colors.muted, letterSpacing: '.08em', textTransform: 'uppercase' }}>Override search center (optional)</label>
+        <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+          <input
+            value={customAddress}
+            onChange={e => setCustomAddress(e.target.value)}
+            placeholder="Street, city, state, or ZIP"
+            style={{ flex: 1, minWidth: 180, padding: '10px 12px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13 }}
+          />
+          <button
+            onClick={() => setAppliedAddress(customAddress.trim())}
+            style={{ background: colors.primary, color: '#FFF', border: 'none', padding: '0 16px', borderRadius: 8, fontSize: 12, fontWeight: 800, cursor: 'pointer' }}
+          >
+            Apply
+          </button>
+          {appliedAddress && (
+            <button
+              onClick={() => { setCustomAddress(''); setAppliedAddress(''); }}
+              style={{ background: '#FFFFFF', color: colors.primary, border: `1px solid ${colors.primary}`, padding: '0 12px', borderRadius: 8, fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
+            >
+              Reset
+            </button>
+          )}
+        </div>
+        <div style={{ fontSize: 10, color: colors.muted, lineHeight: 1.5, marginTop: 6 }}>
+          Leave blank to use the gaining installation from your profile. Distances are recalculated from the entered address.
+        </div>
+      </div>
+
+      {state.status === 'loading' && (
+        <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 12, color: colors.muted }}>
+          Searching OpenStreetMap for nearby family activities...
+        </div>
+      )}
+
+      {state.status === 'ready' && state.activities.length > 0 && (
+        <>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setFilter('all')}
+              style={{
+                padding: '6px 12px', borderRadius: 18,
+                border: `1.5px solid ${filter === 'all' ? colors.primary : '#D6E0EA'}`,
+                background: filter === 'all' ? colors.primary : '#FFFFFF',
+                color: filter === 'all' ? '#FFFFFF' : '#243447',
+                fontSize: 11, fontWeight: 800, cursor: 'pointer',
+              }}
+            >
+              All ({state.activities.length})
+            </button>
+            {state.categories.map(cat => {
+              const count = state.activities.filter(a => a.categoryId === cat.id).length;
+              if (!count) return null;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setFilter(cat.id)}
+                  style={{
+                    padding: '6px 12px', borderRadius: 18,
+                    border: `1.5px solid ${filter === cat.id ? colors.primary : '#D6E0EA'}`,
+                    background: filter === cat.id ? colors.primary : '#FFFFFF',
+                    color: filter === cat.id ? '#FFFFFF' : '#243447',
+                    fontSize: 11, fontWeight: 800, cursor: 'pointer',
+                  }}
+                >
+                  {cat.emoji} {cat.label} ({count})
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+            {filtered.map(act => (
+              <div key={act.id} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${colors.accent}`, borderRadius: 12, padding: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', flex: 1 }}>{act.name}</div>
+                  <span style={{ background: '#FFF8E1', color: '#6D4C00', fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap' }}>
+                    {act.distanceMiles} mi
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+                  <span style={{ background: '#EAF4FF', color: '#0D3B66', fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{act.type}</span>
+                </div>
+                {act.address && <div style={{ fontSize: 11, color: colors.muted, marginBottom: 6 }}>{act.address}</div>}
+                <div style={{ fontSize: 11, color: colors.muted, lineHeight: 1.5, marginBottom: 8 }}>
+                  {act.description}
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <a href={act.directionsUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>
+                    Directions
+                  </a>
+                  <a href={act.mapUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: '#FFFFFF', color: colors.primary, border: `1px solid ${colors.primary}`, fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>
+                    OSM map
+                  </a>
+                  {act.website && (
+                    <a href={act.website} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: '#FFFFFF', color: colors.primary, border: `1px solid ${colors.primary}`, fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>
+                      Website
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {state.status === 'ready' && state.activities.length === 0 && state.fallback && (
+        <div style={{ background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 12, fontSize: 11, color: '#0D3B66', lineHeight: 1.5 }}>
+          {state.reason === 'no-location'
+            ? 'Set your gaining installation in onboarding or enter an address above to find family activities.'
+            : state.reason === 'address-not-found'
+              ? 'Could not locate that address on the map. Try a different format like "City, ST" or a ZIP code.'
+              : state.reason === 'overpass-failed' || state.reason === 'geocode-failed'
+                ? 'OpenStreetMap is temporarily unavailable. Try again in a minute.'
+                : 'No nearby family activities found within 50 miles. Try a larger address or check back later as the OSM dataset is community-edited.'}
+        </div>
+      )}
+    </div>
   );
 }
 

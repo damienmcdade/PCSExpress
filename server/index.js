@@ -244,6 +244,21 @@ function isVeteranBusinessEntity(entity) {
   return list.some(bt => VETERAN_BUSINESS_CODES.has(String(bt?.businessTypeCode || '').toUpperCase()))
 }
 
+// Classify an entity as goods-producing ("business") vs service-providing
+// ("service") using the primary NAICS code prefix. Per the U.S. Census
+// NAICS structure:
+//   Goods / business: 11, 21, 22, 23, 31-33 (mfg), 42 (wholesale), 44-45 (retail)
+//   Service:          48-49, 51-56, 61, 62, 71, 72, 81, 92
+// Anything we cannot classify falls through to "business" by default.
+const GOODS_NAICS_PREFIXES = new Set(['11', '21', '22', '23', '31', '32', '33', '42', '44', '45'])
+const SERVICE_NAICS_PREFIXES = new Set(['48', '49', '51', '52', '53', '54', '55', '56', '61', '62', '71', '72', '81', '92'])
+function classifyByNaics(naicsCode) {
+  const prefix = String(naicsCode || '').slice(0, 2)
+  if (SERVICE_NAICS_PREFIXES.has(prefix)) return 'service'
+  if (GOODS_NAICS_PREFIXES.has(prefix)) return 'business'
+  return 'business'
+}
+
 function shapeBusiness(entity) {
   const reg = entity?.entityRegistration || {}
   const addr = entity?.coreData?.physicalAddress || {}
@@ -251,6 +266,10 @@ function shapeBusiness(entity) {
   const businessTypes = (entity?.coreData?.businessTypes?.businessTypeList || [])
     .filter(bt => VETERAN_BUSINESS_CODES.has(String(bt?.businessTypeCode || '').toUpperCase()))
     .map(bt => bt.businessTypeDesc || bt.businessTypeCode)
+  const naicsList = entity?.coreData?.naicsList || entity?.assertions?.goodsAndServices?.naicsList || []
+  const primaryNaics = (naicsList.find(n => n?.primary || n?.naicsPrimary === 'Y') || naicsList[0] || {})
+  const naicsCode = primaryNaics.naicsCode || ''
+  const naicsDesc = primaryNaics.naicsDescription || primaryNaics.naicsDesc || ''
   return {
     id: reg.ueiSAM || reg.cageCode || reg.legalBusinessName,
     name: reg.legalBusinessName || 'Veteran-owned business',
@@ -259,6 +278,9 @@ function shapeBusiness(entity) {
     state: addr.stateOrProvinceCode || '',
     zip: addr.zipCode || '',
     businessTypes,
+    naicsCode,
+    naicsDesc,
+    industry: classifyByNaics(naicsCode),
     url: reg.entityUrl || '',
     phone: poc.usPhone || '',
     contact: poc.fullName || '',
@@ -316,6 +338,350 @@ app.get('/api/vet-businesses', vetBizRateLimit, async (req, res) => {
     console.error(`[vet-businesses] ${err.message}`)
     return res.status(200).json({ businesses: [], fallback: true, reason: 'network-error' })
   }
+})
+
+// === HOUSING RENTAL LISTINGS (RAPIDAPI PROXY) ===
+// Live proxy to a third-party rentals aggregator on RapidAPI. Degrades
+// to {listings:[], fallback:true} when RAPIDAPI_KEY is unset so the
+// frontend keeps its existing static HOMES.mil / MilitaryINSTALLATIONS
+// / branch-housing source-link cards in place. HOMES.mil itself has no
+// public API; this endpoint exists to surface civilian rental
+// listings near the gaining installation when a paid API key is
+// available.
+const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || ''
+const RAPIDAPI_HOST = process.env.RAPIDAPI_HOST || 'realty-mole-property-api.p.rapidapi.com'
+const RAPIDAPI_PATH = process.env.RAPIDAPI_PATH || '/rentalListings'
+const HOUSING_CACHE = new Map()
+const HOUSING_TTL_MS = 6 * 60 * 60 * 1000   // 6h
+const HOUSING_RATE_LIMIT = 30
+const HOUSING_RATE_WINDOW_MS = 60_000
+const _housingHits = new Map()
+
+function housingRateLimit(req, res, next) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const now = Date.now()
+  const entry = _housingHits.get(ip)
+  if (!entry || now - entry.windowStart > HOUSING_RATE_WINDOW_MS) {
+    _housingHits.set(ip, { count: 1, windowStart: now })
+    return next()
+  }
+  if (entry.count >= HOUSING_RATE_LIMIT) {
+    return res.status(429).json({ error: 'Rate limit exceeded. Try again in a minute.', listings: [], fallback: true })
+  }
+  entry.count += 1
+  return next()
+}
+
+function shapeListing(raw) {
+  // RealtyMole-style shape (with defensive lookups for the common
+  // alternative aggregators on RapidAPI - the field names differ).
+  const address = raw.formattedAddress || raw.addressLine1 || raw.address || ''
+  const city = raw.city || raw.addressCity || ''
+  const state = raw.state || raw.addressState || raw.stateCode || ''
+  const zip = raw.zipCode || raw.postalCode || raw.zip || ''
+  const beds = Number(raw.bedrooms ?? raw.beds ?? raw.bedroomCount) || null
+  const baths = Number(raw.bathrooms ?? raw.baths ?? raw.bathroomCount) || null
+  const sqft = Number(raw.squareFootage ?? raw.sqft ?? raw.livingArea) || null
+  const propertyType = raw.propertyType || raw.homeType || raw.type || ''
+  const price = Number(raw.price ?? raw.rentPrice ?? raw.rent) || null
+  // Description is rarely returned by aggregators; assemble a short
+  // human-readable summary from the structured fields when missing.
+  const description = raw.description || raw.summary || [
+    propertyType,
+    beds ? `${beds} bd` : null,
+    baths ? `${baths} ba` : null,
+    sqft ? `${sqft.toLocaleString()} sqft` : null,
+    price ? `$${price.toLocaleString()}/mo` : null,
+  ].filter(Boolean).join(' · ')
+  return {
+    id: raw.id || `${address}|${zip}`,
+    address,
+    city,
+    state,
+    zip,
+    beds,
+    baths,
+    sqft,
+    propertyType,
+    description,
+    price,
+    listingUrl: raw.listingUrl || raw.url || (address
+      ? `https://www.google.com/search?q=${encodeURIComponent(address + ' ' + city + ' ' + state + ' rent')}`
+      : ''),
+    source: RAPIDAPI_HOST,
+  }
+}
+
+app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
+  const city = String(req.query.city || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 60)
+  const state = String(req.query.state || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 16)
+  const zip = String(req.query.zip || '').trim().replace(/[^A-Za-z0-9\-]/g, '').slice(0, 10)
+  if (!city && !zip) {
+    return res.status(400).json({ error: 'city or zip is required', listings: [], fallback: true })
+  }
+
+  if (!RAPIDAPI_KEY) {
+    return res.status(200).json({ listings: [], fallback: true, reason: 'no-api-key' })
+  }
+
+  const cacheKey = `${city}|${state}|${zip}`
+  const cached = HOUSING_CACHE.get(cacheKey)
+  if (cached && Date.now() - cached.fetchedAt < HOUSING_TTL_MS) {
+    return res.status(200).json({ listings: cached.listings, fallback: cached.listings.length === 0, source: 'cache', fetchedAt: cached.fetchedAt })
+  }
+
+  try {
+    const params = new URLSearchParams()
+    if (city) params.set('city', city)
+    if (state) params.set('state', state)
+    if (zip) params.set('zipCode', zip.split('-')[0])
+    params.set('limit', '20')
+    params.set('status', 'Active')
+    const url = `https://${RAPIDAPI_HOST}${RAPIDAPI_PATH}?${params.toString()}`
+    const signal = AbortSignal.timeout(15000)
+    const response = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        'X-RapidAPI-Key': RAPIDAPI_KEY,
+        'X-RapidAPI-Host': RAPIDAPI_HOST,
+      },
+      signal,
+    })
+    if (!response.ok) {
+      console.error(`[housing-listings] ${RAPIDAPI_HOST} ${response.status}`)
+      return res.status(200).json({ listings: [], fallback: true, reason: `upstream-${response.status}` })
+    }
+    const data = await response.json()
+    const rawList = Array.isArray(data) ? data : (Array.isArray(data?.listings) ? data.listings : (Array.isArray(data?.results) ? data.results : []))
+    const listings = rawList.map(shapeListing).filter(l => l.address || l.beds || l.sqft).slice(0, 20)
+    HOUSING_CACHE.set(cacheKey, { listings, fetchedAt: Date.now() })
+    return res.status(200).json({ listings, fallback: listings.length === 0, source: RAPIDAPI_HOST, fetchedAt: Date.now() })
+  } catch (err) {
+    console.error(`[housing-listings] ${err.message}`)
+    return res.status(200).json({ listings: [], fallback: true, reason: 'network-error' })
+  }
+})
+
+// === FAMILY FUN ACTIVITIES (OPENSTREETMAP - NO API KEY REQUIRED) ===
+// Uses two free, no-key OSM services:
+//   1. Nominatim - geocode the installation city/state (or a manual
+//      user-supplied address) to a lat/lng. Already allowed by the app
+//      CSP for the existing route planner.
+//   2. Overpass API - query for amenities tagged as park / theme park /
+//      cinema / museum / zoo / aquarium / playground / bowling alley
+//      within a 50-mile (~80km) radius.
+//
+// Both services are public-good infrastructure operated by the
+// OpenStreetMap Foundation. We follow their usage policies: explicit
+// User-Agent, server-side caching, request batching, and graceful
+// fallback when they return 429/504 or time out.
+const FAMILY_CATEGORIES = [
+  { id: 'parks', label: 'Parks & Nature', emoji: '🌲', description: 'Local, state, and national parks plus playgrounds.' },
+  { id: 'amusement', label: 'Amusement & Theme Parks', emoji: '🎢', description: 'Theme parks, water parks, family entertainment centers.' },
+  { id: 'movies', label: 'Movie Theaters', emoji: '🎦', description: 'Cinemas and independent theaters.' },
+  { id: 'museums', label: 'Museums', emoji: '🏛️', description: 'History, science, art, and military museums.' },
+  { id: 'family', label: 'Family Activities', emoji: '🏖️', description: 'Zoos, aquariums, bowling, and other family venues.' },
+]
+
+// Maps OSM tag pairs to our internal category + a short type label.
+const OSM_TAG_MAP = {
+  'leisure=park': { categoryId: 'parks', type: 'Park' },
+  'leisure=nature_reserve': { categoryId: 'parks', type: 'Nature reserve' },
+  'leisure=playground': { categoryId: 'parks', type: 'Playground' },
+  'boundary=national_park': { categoryId: 'parks', type: 'National park' },
+  'tourism=theme_park': { categoryId: 'amusement', type: 'Theme park' },
+  'leisure=water_park': { categoryId: 'amusement', type: 'Water park' },
+  'amenity=cinema': { categoryId: 'movies', type: 'Cinema' },
+  'tourism=museum': { categoryId: 'museums', type: 'Museum' },
+  'tourism=zoo': { categoryId: 'family', type: 'Zoo' },
+  'tourism=aquarium': { categoryId: 'family', type: 'Aquarium' },
+  'leisure=bowling_alley': { categoryId: 'family', type: 'Bowling alley' },
+  'leisure=miniature_golf': { categoryId: 'family', type: 'Mini-golf' },
+  'amenity=ice_rink': { categoryId: 'family', type: 'Ice rink' },
+  'tourism=attraction': { categoryId: 'family', type: 'Attraction' },
+}
+
+const FAMILY_CACHE = new Map()
+const FAMILY_TTL_MS = 24 * 60 * 60 * 1000
+const FAMILY_RATE_LIMIT = 20
+const FAMILY_RATE_WINDOW_MS = 60_000
+const _familyHits = new Map()
+const OSM_USER_AGENT = process.env.OSM_USER_AGENT || 'PCSExpress/1.0 (https://github.com/damienmcdade/PCSExpress)'
+
+function familyRateLimit(req, res, next) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const now = Date.now()
+  const entry = _familyHits.get(ip)
+  if (!entry || now - entry.windowStart > FAMILY_RATE_WINDOW_MS) {
+    _familyHits.set(ip, { count: 1, windowStart: now })
+    return next()
+  }
+  if (entry.count >= FAMILY_RATE_LIMIT) {
+    return res.status(429).json({ error: 'Rate limit exceeded. Try again in a minute.', activities: [], categories: FAMILY_CATEGORIES, fallback: true })
+  }
+  entry.count += 1
+  return next()
+}
+
+function haversineMiles(lat1, lon1, lat2, lon2) {
+  const toRad = d => (d * Math.PI) / 180
+  const R = 3958.8 // earth radius in miles
+  const dLat = toRad(lat2 - lat1)
+  const dLon = toRad(lon2 - lon1)
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2
+  return Math.round(R * 2 * Math.asin(Math.sqrt(a)) * 10) / 10
+}
+
+async function geocodeNominatim(query) {
+  if (!query) return null
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`
+  const signal = AbortSignal.timeout(8000)
+  const r = await fetch(url, { headers: { 'User-Agent': OSM_USER_AGENT, Accept: 'application/json' }, signal })
+  if (!r.ok) throw new Error(`nominatim ${r.status}`)
+  const data = await r.json()
+  const hit = Array.isArray(data) && data[0]
+  if (!hit) return null
+  return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon), displayName: hit.display_name }
+}
+
+async function overpassFetch(lat, lng, radiusMeters) {
+  // Build one combined Overpass query covering every tag in OSM_TAG_MAP.
+  // Use node+way (Overpass returns both - some amenities are tagged on
+  // areas, not single points), and emit center coordinates for ways.
+  const filters = Object.keys(OSM_TAG_MAP).map(tag => {
+    const [k, v] = tag.split('=')
+    return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
+  }).join('')
+  const query = `[out:json][timeout:20];(${filters});out center tags;`
+  const url = 'https://overpass-api.de/api/interpreter'
+  const signal = AbortSignal.timeout(20000)
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'User-Agent': OSM_USER_AGENT,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Accept: 'application/json',
+    },
+    body: `data=${encodeURIComponent(query)}`,
+    signal,
+  })
+  if (!r.ok) throw new Error(`overpass ${r.status}`)
+  return r.json()
+}
+
+function shapeOsmElement(el, originLat, originLng) {
+  const tags = el.tags || {}
+  let matchTag = null
+  for (const tag of Object.keys(OSM_TAG_MAP)) {
+    const [k, v] = tag.split('=')
+    if (tags[k] === v) { matchTag = tag; break }
+  }
+  if (!matchTag) return null
+  const meta = OSM_TAG_MAP[matchTag]
+  const name = tags.name || tags['name:en'] || meta.type
+  const elLat = el.lat ?? el.center?.lat
+  const elLng = el.lon ?? el.center?.lon
+  if (typeof elLat !== 'number' || typeof elLng !== 'number') return null
+  const distance = haversineMiles(originLat, originLng, elLat, elLng)
+  const street = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ')
+  const cityPart = [tags['addr:city'], tags['addr:state']].filter(Boolean).join(', ')
+  const address = [street, cityPart].filter(Boolean).join(', ')
+  const descParts = []
+  if (tags.description) descParts.push(tags.description)
+  if (tags.operator) descParts.push(`Operator: ${tags.operator}`)
+  if (tags.opening_hours) descParts.push(`Hours: ${tags.opening_hours}`)
+  if (tags.website) descParts.push('Visit website for details.')
+  const description = descParts.length
+    ? descParts.join(' ')
+    : `${meta.type} approximately ${distance} mi from search center. Verify hours and details on the linked map page.`
+  return {
+    id: `${el.type}/${el.id}`,
+    categoryId: meta.categoryId,
+    type: meta.type,
+    name,
+    address,
+    distanceMiles: distance,
+    description,
+    website: tags.website || tags['contact:website'] || '',
+    phone: tags.phone || tags['contact:phone'] || '',
+    lat: elLat,
+    lng: elLng,
+    mapUrl: `https://www.openstreetmap.org/?mlat=${elLat}&mlon=${elLng}#map=16/${elLat}/${elLng}`,
+    directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${elLat},${elLng}`,
+  }
+}
+
+app.get('/api/family-activities', familyRateLimit, async (req, res) => {
+  const city = String(req.query.city || '').trim().slice(0, 80)
+  const state = String(req.query.state || '').trim().slice(0, 16)
+  const zip = String(req.query.zip || '').trim().slice(0, 10)
+  const address = String(req.query.address || '').trim().slice(0, 160)
+  const radiusMiles = Math.max(5, Math.min(75, parseInt(req.query.radiusMiles, 10) || 50))
+
+  // Build the geocode query - prefer the user-supplied address, fall
+  // back to the installation market.
+  const geocodeQuery = address || [city, state, zip].filter(Boolean).join(', ')
+  if (!geocodeQuery) {
+    return res.status(400).json({ error: 'address, city, or zip is required', categories: FAMILY_CATEGORIES, activities: [], fallback: true })
+  }
+
+  const cacheKey = `${geocodeQuery}|${radiusMiles}`
+  const cached = FAMILY_CACHE.get(cacheKey)
+  if (cached && Date.now() - cached.fetchedAt < FAMILY_TTL_MS) {
+    return res.status(200).json({
+      categories: FAMILY_CATEGORIES,
+      activities: cached.activities,
+      origin: cached.origin,
+      source: 'cache',
+      fetchedAt: cached.fetchedAt,
+    })
+  }
+
+  let origin
+  try {
+    origin = await geocodeNominatim(geocodeQuery)
+  } catch (err) {
+    console.error(`[family-activities] geocode ${err.message}`)
+    return res.status(200).json({ categories: FAMILY_CATEGORIES, activities: [], fallback: true, reason: 'geocode-failed' })
+  }
+  if (!origin) {
+    return res.status(200).json({ categories: FAMILY_CATEGORIES, activities: [], fallback: true, reason: 'address-not-found' })
+  }
+
+  let overpassData
+  try {
+    overpassData = await overpassFetch(origin.lat, origin.lng, Math.round(radiusMiles * 1609.34))
+  } catch (err) {
+    console.error(`[family-activities] overpass ${err.message}`)
+    return res.status(200).json({ categories: FAMILY_CATEGORIES, activities: [], origin, fallback: true, reason: 'overpass-failed' })
+  }
+
+  const elements = Array.isArray(overpassData?.elements) ? overpassData.elements : []
+  const seenIds = new Set()
+  const activities = []
+  for (const el of elements) {
+    const shaped = shapeOsmElement(el, origin.lat, origin.lng)
+    if (!shaped) continue
+    // De-dupe by name within ~0.3 mi - OSM often has overlapping
+    // node/way tags for the same physical place.
+    const key = `${shaped.name}|${Math.round(shaped.lat * 100)}|${Math.round(shaped.lng * 100)}`
+    if (seenIds.has(key)) continue
+    seenIds.add(key)
+    activities.push(shaped)
+  }
+  activities.sort((a, b) => a.distanceMiles - b.distanceMiles)
+  const limited = activities.slice(0, 60)
+
+  FAMILY_CACHE.set(cacheKey, { activities: limited, origin, fetchedAt: Date.now() })
+
+  res.status(200).json({
+    categories: FAMILY_CATEGORIES,
+    activities: limited,
+    origin,
+    radiusMiles,
+    source: 'openstreetmap',
+    fetchedAt: Date.now(),
+  })
 })
 
 // === FRONTEND SERVING (AFTER ALL API ROUTES) ===
