@@ -801,20 +801,7 @@ function shapeOsmReligious(el, originLat, originLng) {
 
 async function overpassReligiousFetch(lat, lng, radiusMeters) {
   const query = `[out:json][timeout:20];(node["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng});way["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng}););out center tags;`
-  const url = 'https://overpass-api.de/api/interpreter'
-  const signal = AbortSignal.timeout(20000)
-  const r = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'User-Agent': OSM_USER_AGENT,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Accept: 'application/json',
-    },
-    body: `data=${encodeURIComponent(query)}`,
-    signal,
-  })
-  if (!r.ok) throw new Error(`overpass ${r.status}`)
-  return r.json()
+  return overpassQuery(query)
 }
 
 app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
@@ -920,6 +907,24 @@ function schoolRateLimit(req, res, next) {
   return next()
 }
 
+// DoDEA + on-installation school detection from OSM tags.
+// DoDEA-operated schools usually carry operator="DoDEA" or operator
+// strings containing "Department of Defense" / "DoD". Some
+// installation-zone schools tag operator:type=military. Names often
+// include "DoDEA", "Elementary School" with a base prefix, etc.
+function inferMilitarySchool(tags, distance) {
+  const operator = String(tags.operator || '').toLowerCase()
+  const operatorType = String(tags['operator:type'] || '').toLowerCase()
+  const name = String(tags.name || '').toLowerCase()
+  if (operator.includes('dodea') || operator.includes('department of defense') || operator.includes('dod ')) return true
+  if (operatorType === 'military' || operatorType === 'department of defense') return true
+  if (name.includes('dodea') || name.includes('department of defense')) return true
+  // Heuristic: a school within ~1.5 mi of the geocoded installation
+  // center is almost certainly on-post.
+  if (typeof distance === 'number' && distance <= 1.5) return true
+  return false
+}
+
 function shapeOsmSchool(el, originLat, originLng) {
   const tags = el.tags || {}
   let matchTag = null
@@ -970,6 +975,7 @@ function shapeOsmSchool(el, originLat, originLng) {
     ? descParts.join(' · ')
     : `${meta.type} approximately ${distance} mi from search center. Verify enrollment, grade levels, and ratings on the official source.`
 
+  const isMilitary = inferMilitarySchool(tags, distance)
   return {
     id: `${el.type}/${el.id}`,
     categoryId: meta.categoryId,
@@ -980,6 +986,8 @@ function shapeOsmSchool(el, originLat, originLng) {
     distanceMiles: distance,
     description,
     operatorType,
+    operator: operator || '',
+    isMilitary,
     website: tags.website || tags['contact:website'] || '',
     phone: tags.phone || tags['contact:phone'] || '',
     lat: elLat,
@@ -988,6 +996,11 @@ function shapeOsmSchool(el, originLat, originLng) {
     directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${elLat},${elLng}`,
     // NCES SchoolSearch deep link as an authoritative cross-reference.
     ncesUrl: `https://nces.ed.gov/ccd/schoolsearch/school_list.asp?Search=1&SchoolName=${encodeURIComponent(name)}`,
+    // Search the web for community ratings of this specific school -
+    // returns Google results that include GreatSchools, Niche, and
+    // parent-review aggregators. We do not embed third-party ratings
+    // directly because they are paywalled / partner-only.
+    ratingsSearchUrl: `https://www.google.com/search?q=${encodeURIComponent(name + ' school reviews ratings ' + (tags['addr:city'] || ''))}`,
   }
 }
 
@@ -997,20 +1010,7 @@ async function overpassSchoolsFetch(lat, lng, radiusMeters) {
     return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
   }).join('')
   const query = `[out:json][timeout:20];(${filters});out center tags;`
-  const url = 'https://overpass-api.de/api/interpreter'
-  const signal = AbortSignal.timeout(20000)
-  const r = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'User-Agent': OSM_USER_AGENT,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Accept: 'application/json',
-    },
-    body: `data=${encodeURIComponent(query)}`,
-    signal,
-  })
-  if (!r.ok) throw new Error(`overpass ${r.status}`)
-  return r.json()
+  return overpassQuery(query)
 }
 
 app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
@@ -1061,7 +1061,13 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
     seenIds.add(key)
     schools.push(shaped)
   }
-  schools.sort((a, b) => a.distanceMiles - b.distanceMiles)
+  // Sort: military / DoDEA / on-installation schools first, then by
+  // ascending distance. Front-end may apply additional child-age
+  // grade-band reordering on top of this.
+  schools.sort((a, b) => {
+    if (a.isMilitary !== b.isMilitary) return a.isMilitary ? -1 : 1
+    return a.distanceMiles - b.distanceMiles
+  })
   const limited = schools.slice(0, 80)
 
   SCHOOL_CACHE.set(cacheKey, { schools: limited, origin, fetchedAt: Date.now() })
@@ -1192,6 +1198,48 @@ async function geocodeNominatim(query) {
   return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon), displayName: hit.display_name }
 }
 
+// Public Overpass API mirrors (in priority order). The primary
+// overpass-api.de occasionally throttles datacenter IPs or returns
+// 504 under load. The mirrors run the same software with independent
+// load; failing over to one usually recovers within a single retry.
+const OVERPASS_MIRRORS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
+]
+
+async function overpassQuery(query) {
+  let lastErr = null
+  for (const url of OVERPASS_MIRRORS) {
+    try {
+      const signal = AbortSignal.timeout(25000)
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'User-Agent': OSM_USER_AGENT,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'application/json',
+        },
+        body: `data=${encodeURIComponent(query)}`,
+        signal,
+      })
+      if (!r.ok) {
+        lastErr = new Error(`overpass ${url} ${r.status}`)
+        // 429/504 -> try next mirror immediately. 4xx other than 429
+        // is likely a query problem; bail.
+        if (r.status === 429 || r.status === 502 || r.status === 503 || r.status === 504) continue
+        throw lastErr
+      }
+      return await r.json()
+    } catch (err) {
+      lastErr = err
+      console.error(`[overpass] ${url} ${err.message}`)
+      continue
+    }
+  }
+  throw lastErr || new Error('overpass all mirrors failed')
+}
+
 async function overpassFetch(lat, lng, radiusMeters) {
   // Build one combined Overpass query covering every tag in OSM_TAG_MAP.
   // Use node+way (Overpass returns both - some amenities are tagged on
@@ -1201,20 +1249,7 @@ async function overpassFetch(lat, lng, radiusMeters) {
     return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
   }).join('')
   const query = `[out:json][timeout:20];(${filters});out center tags;`
-  const url = 'https://overpass-api.de/api/interpreter'
-  const signal = AbortSignal.timeout(20000)
-  const r = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'User-Agent': OSM_USER_AGENT,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Accept: 'application/json',
-    },
-    body: `data=${encodeURIComponent(query)}`,
-    signal,
-  })
-  if (!r.ok) throw new Error(`overpass ${r.status}`)
-  return r.json()
+  return overpassQuery(query)
 }
 
 function shapeOsmElement(el, originLat, originLng) {

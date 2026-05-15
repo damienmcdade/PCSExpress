@@ -2905,8 +2905,43 @@ function SchoolsTab({ theme, profile }) {
       });
     return () => { cancelled = true; };
   }, [market.city, market.state, market.zip, market.matched, instName]);
-  const liveK12 = liveSchools.schools.filter(s => s.categoryId === 'k12');
-  const liveDaycare = liveSchools.schools.filter(s => s.categoryId === 'childcare' || s.categoryId === 'preschool');
+  // Sort + tag live OSM schools so the priority order is:
+  //   1. Military / DoDEA / on-installation
+  //   2. Schools whose grade range matches the child ages from
+  //      onboarding (prioritized, not filtered - parents need to see
+  //      siblings' options too)
+  //   3. Then by ascending distance
+  // Backend already promotes military-first; this layer adds the
+  // grade-match prioritization on top.
+  function gradeMatchesAge(grades, ages) {
+    if (!grades || !ages.length) return false;
+    const wantedBands = new Set();
+    for (const a of ages) {
+      if (a < 5) wantedBands.add('Pre-K');
+      else if (a <= 10) wantedBands.add('K-5');
+      else if (a <= 13) wantedBands.add('6-8');
+      else wantedBands.add('9-12');
+    }
+    return [...wantedBands].some(b => grades.includes(b));
+  }
+  function fuzzyCuratedRating(name) {
+    if (!schools.length) return null;
+    const t = String(name || '').toLowerCase();
+    const hit = schools.find(s => t.includes(String(s.name).toLowerCase().slice(0, 12)) || String(s.name).toLowerCase().includes(t.slice(0, 12)));
+    return hit?.rating ?? null;
+  }
+  const enrichedLive = liveSchools.schools.map(s => ({
+    ...s,
+    gradeMatch: gradeMatchesAge(s.grades, agesFromProfile),
+    curatedRating: fuzzyCuratedRating(s.name),
+  }));
+  enrichedLive.sort((a, b) => {
+    if (a.isMilitary !== b.isMilitary) return a.isMilitary ? -1 : 1;
+    if (a.gradeMatch !== b.gradeMatch) return a.gradeMatch ? -1 : 1;
+    return a.distanceMiles - b.distanceMiles;
+  });
+  const liveK12 = enrichedLive.filter(s => s.categoryId === 'k12');
+  const liveDaycare = enrichedLive.filter(s => s.categoryId === 'childcare' || s.categoryId === 'preschool');
 
   const agesFromProfile = profile?.childAges?.length > 0
     ? profile.childAges.filter(a => !isNaN(Number(a))).map(Number)
@@ -2965,32 +3000,60 @@ function SchoolsTab({ theme, profile }) {
           {liveK12.length > 0 && (
             <section style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 11, fontWeight: 800, color: theme.primary, marginBottom: 8, letterSpacing: '.06em', textTransform: 'uppercase' }}>
-                Nearby K-12 schools · {liveK12.length}
+                Schools near {instName} · {liveK12.length}
               </div>
+              {agesFromProfile.length > 0 && (
+                <div style={{ fontSize: 10, color: '#56697C', marginBottom: 8 }}>
+                  Sorted: military / on-installation schools first, then grade-band matches for your child{agesFromProfile.length > 1 ? 'ren' : ''} (age{agesFromProfile.length > 1 ? 's' : ''} {agesFromProfile.join(', ')}), then by distance.
+                </div>
+              )}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
                 {liveK12.slice(0, 24).map(s => (
-                  <a key={s.id} href={s.ncesUrl} target="_blank" rel="noopener noreferrer" style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.accent}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: '#0D1821', display: 'block' }}>
+                  <a
+                    key={s.id}
+                    href={s.directionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Get directions to ${s.name} (${s.distanceMiles} miles away)`}
+                    style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${s.isMilitary ? '#1565C0' : theme.accent}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: '#0D1821', display: 'block', cursor: 'pointer' }}
+                  >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
                       <div style={{ fontSize: 13, fontWeight: 800, flex: 1 }}>{s.name}</div>
                       <span style={{ background: '#FFF8E1', color: '#6D4C00', fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap' }}>{s.distanceMiles} mi</span>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+                      {s.isMilitary && <span style={{ background: '#1565C0', color: '#FFFFFF', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4 }}>MILITARY / DoDEA</span>}
+                      {s.gradeMatch && <span style={{ background: '#065F46', color: '#FFFFFF', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4 }}>MATCHES YOUR CHILD</span>}
                       <span style={{ background: '#EAF4FF', color: '#0D3B66', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4 }}>{s.type}</span>
                       {s.grades && <span style={{ background: '#ECFDF5', color: '#065F46', fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{s.grades}</span>}
                       {s.operatorType && <span style={{ background: '#F3F4F6', color: '#243447', fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{s.operatorType}</span>}
                     </div>
+                    {/* Community rating: curated when we have it,
+                        otherwise a search link the user can tap to read
+                        GreatSchools / Niche / parent reviews. */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 11, color: '#56697C' }}>
+                      {s.curatedRating ? (
+                        <>
+                          <StarRating rating={s.curatedRating} />
+                          <span style={{ fontSize: 10 }}>{s.curatedRating.toFixed(1)} (community)</span>
+                        </>
+                      ) : (
+                        <span style={{ fontSize: 10, fontStyle: 'italic' }}>Community rating: see reviews below</span>
+                      )}
+                    </div>
                     {s.address && <div style={{ fontSize: 11, color: '#56697C', marginBottom: 4 }}>{s.address}</div>}
                     <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 8 }}>{s.description}</div>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      <a href={s.directionsUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: theme.primary, color: '#FFF', fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>Directions</a>
-                      {s.website && <a href={s.website} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>Website</a>}
-                      <span style={{ textDecoration: 'none', background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>NCES record</span>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={{ background: theme.primary, color: '#FFF', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>Tap card → directions</span>
+                      <a href={s.ratingsSearchUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ textDecoration: 'none', background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>Reviews</a>
+                      {s.website && <a href={s.website} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ textDecoration: 'none', background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>Website</a>}
+                      <a href={s.ncesUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ textDecoration: 'none', background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>NCES</a>
                     </div>
                   </a>
                 ))}
               </div>
               <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5, marginTop: 6 }}>
-                Live results from OpenStreetMap within 25 miles. Verify enrollment, district zoning, and ratings on NCES SchoolSearch or the local school website.
+                Live results from OpenStreetMap within 25 miles. Military / DoDEA / on-installation schools appear first. Confirm enrollment, district zoning, and parent reviews on NCES SchoolSearch or the local school website before deciding.
               </div>
             </section>
           )}
@@ -3051,30 +3114,43 @@ function SchoolsTab({ theme, profile }) {
           {liveDaycare.length > 0 && (
             <section style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 11, fontWeight: 800, color: theme.primary, marginBottom: 8, letterSpacing: '.06em', textTransform: 'uppercase' }}>
-                Nearby childcare & preschool · {liveDaycare.length}
+                Childcare near {instName} · {liveDaycare.length}
+              </div>
+              <div style={{ fontSize: 10, color: '#56697C', marginBottom: 8 }}>
+                On-installation CDCs / Child Development Centers come up first when nearby. For DoD priority waitlist enrollment use MilitaryChildCare.com below.
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
                 {liveDaycare.slice(0, 24).map(s => (
-                  <a key={s.id} href={s.website || s.mapUrl} target="_blank" rel="noopener noreferrer" style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.accent}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: '#0D1821', display: 'block' }}>
+                  <a
+                    key={s.id}
+                    href={s.directionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Get directions to ${s.name} (${s.distanceMiles} miles away)`}
+                    style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${s.isMilitary ? '#1565C0' : theme.accent}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: '#0D1821', display: 'block', cursor: 'pointer' }}
+                  >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
                       <div style={{ fontSize: 13, fontWeight: 800, flex: 1 }}>{s.name}</div>
                       <span style={{ background: '#FFF8E1', color: '#6D4C00', fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap' }}>{s.distanceMiles} mi</span>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+                      {s.isMilitary && <span style={{ background: '#1565C0', color: '#FFFFFF', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4 }}>ON INSTALLATION</span>}
                       <span style={{ background: '#EAF4FF', color: '#0D3B66', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4 }}>{s.type}</span>
                       {s.grades && <span style={{ background: '#ECFDF5', color: '#065F46', fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{s.grades}</span>}
                     </div>
+                    <div style={{ fontSize: 11, color: '#56697C', marginBottom: 6, fontStyle: 'italic' }}>
+                      Community rating: see parent reviews below
+                    </div>
                     {s.address && <div style={{ fontSize: 11, color: '#56697C', marginBottom: 4 }}>{s.address}</div>}
                     <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 8 }}>{s.description}</div>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      <a href={s.directionsUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: theme.primary, color: '#FFF', fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>Directions</a>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={{ background: theme.primary, color: '#FFF', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>Tap card → directions</span>
+                      <a href={s.ratingsSearchUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ textDecoration: 'none', background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>Reviews</a>
+                      {s.website && <a href={s.website} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ textDecoration: 'none', background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>Website</a>}
                       {s.phone && <span style={{ background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>{s.phone}</span>}
                     </div>
                   </a>
                 ))}
-              </div>
-              <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5, marginTop: 6 }}>
-                Live results from OpenStreetMap within 25 miles. For on-post CDC enrollment and military-priority waitlists, use MilitaryChildCare.com below.
               </div>
             </section>
           )}

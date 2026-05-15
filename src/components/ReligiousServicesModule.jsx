@@ -452,7 +452,14 @@ function ReligiousServicesModule({ theme, profile }) {
               )}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
                 {filteredLive.slice(0, 24).map(s => (
-                  <a key={s.id} href={s.website || s.mapUrl} target="_blank" rel="noopener noreferrer" style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 10, padding: 12, textDecoration: 'none', color: '#0D1821', display: 'block' }}>
+                  <a
+                    key={s.id}
+                    href={s.directionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Get directions to ${s.name} (${s.distanceMiles} miles away)`}
+                    style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 10, padding: 12, textDecoration: 'none', color: '#0D1821', display: 'block', cursor: 'pointer' }}
+                  >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
                       <div style={{ fontSize: 13, fontWeight: 800, flex: 1 }}>{s.name}</div>
                       <span style={{ background: '#FFF8E1', color: '#6D4C00', fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap' }}>{s.distanceMiles} mi</span>
@@ -463,8 +470,9 @@ function ReligiousServicesModule({ theme, profile }) {
                     </div>
                     {s.address && <div style={{ fontSize: 11, color: '#56697C', marginBottom: 4 }}>{s.address}</div>}
                     <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 8 }}>{s.description}</div>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      <a href={s.directionsUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: theme.primary, color: '#FFF', fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>Directions</a>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={{ background: theme.primary, color: '#FFF', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>Tap card → directions</span>
+                      {s.website && <a href={s.website} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ textDecoration: 'none', background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>Website</a>}
                       {s.phone && <span style={{ background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>{s.phone}</span>}
                     </div>
                   </a>
