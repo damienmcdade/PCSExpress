@@ -425,7 +425,7 @@ function shapeListing(raw) {
 // required - OSM is the same free dataset that powers Family Fun and
 // the Schools tab.
 async function overpassApartmentsFetch(lat, lng, radiusMeters) {
-  const query = `[out:json][timeout:50];(node["building"="apartments"]["name"](around:${radiusMeters},${lat},${lng});way["building"="apartments"]["name"](around:${radiusMeters},${lat},${lng});node["building"="residential"]["name"]["apartments"="yes"](around:${radiusMeters},${lat},${lng}););out center tags;`
+  const query = `[out:json][timeout:20];(node["building"="apartments"]["name"](around:${radiusMeters},${lat},${lng});way["building"="apartments"]["name"](around:${radiusMeters},${lat},${lng});node["building"="residential"]["name"]["apartments"="yes"](around:${radiusMeters},${lat},${lng}););out center tags;`
   return overpassQuery(query)
 }
 
@@ -925,7 +925,7 @@ function shapeOsmReligious(el, originLat, originLng) {
 }
 
 async function overpassReligiousFetch(lat, lng, radiusMeters) {
-  const query = `[out:json][timeout:50];(node["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng});way["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng}););out center tags;`
+  const query = `[out:json][timeout:20];(node["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng});way["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng}););out center tags;`
   return overpassQuery(query)
 }
 
@@ -1138,7 +1138,7 @@ async function overpassSchoolsFetch(lat, lng, radiusMeters) {
     const [k, v] = tag.split('=')
     return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
   }).join('')
-  const query = `[out:json][timeout:50];(${filters});out center tags;`
+  const query = `[out:json][timeout:20];(${filters});out center tags;`
   return overpassQuery(query)
 }
 
@@ -1331,24 +1331,33 @@ async function geocodeNominatim(query) {
   return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon), displayName: hit.display_name }
 }
 
-// Public Overpass API mirrors (in priority order). kumi.systems often
-// responds faster than the primary overpass-api.de under load and the
-// private.coffee community mirror is the last-resort fallback. Each
-// mirror runs identical Overpass software with independent capacity.
-const OVERPASS_MIRRORS = [
-  'https://overpass.kumi.systems/api/interpreter',
+// Public Overpass API mirrors. Order matters for the sequential
+// fallback path - the first to respond wins. We rotate by minute so
+// no single mirror takes the entire datacenter's traffic at startup,
+// and so kumi (which has been flaky) does not blanket-fail every
+// query if it is the static first choice.
+const OVERPASS_MIRRORS_POOL = [
   'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
 ]
+function overpassMirrors() {
+  const offset = Math.floor(Date.now() / 60_000) % OVERPASS_MIRRORS_POOL.length
+  return [
+    ...OVERPASS_MIRRORS_POOL.slice(offset),
+    ...OVERPASS_MIRRORS_POOL.slice(0, offset),
+  ]
+}
 
-// Per-request abort - generous enough to fit the in-query timeout
-// below plus network. Overpass servers cap queries at 180s; we cap
-// at 60s so a hung request fails over to the next mirror promptly.
-const OVERPASS_FETCH_TIMEOUT_MS = 60_000
+// Per-request abort. Short enough that a hung mirror fails over to
+// the next within ~25s, long enough to let the in-query timeout (now
+// 20s) plus network round-trip complete. Worst-case across all three
+// mirrors: ~75s, but typical case (first mirror healthy) is 1-2s.
+const OVERPASS_FETCH_TIMEOUT_MS = 25_000
 
 async function overpassQuery(query) {
   let lastErr = null
-  for (const url of OVERPASS_MIRRORS) {
+  for (const url of overpassMirrors()) {
     try {
       const signal = AbortSignal.timeout(OVERPASS_FETCH_TIMEOUT_MS)
       const r = await fetch(url, {
@@ -1386,15 +1395,34 @@ async function overpassQuery(query) {
 }
 
 async function overpassFetch(lat, lng, radiusMeters) {
-  // Build one combined Overpass query covering every tag in OSM_TAG_MAP.
-  // Use node+way (Overpass returns both - some amenities are tagged on
-  // areas, not single points), and emit center coordinates for ways.
-  const filters = Object.keys(OSM_TAG_MAP).map(tag => {
-    const [k, v] = tag.split('=')
-    return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
-  }).join('')
-  const query = `[out:json][timeout:50];(${filters});out center tags;`
-  return overpassQuery(query)
+  // 36 tag filters at 50mi radius is too large for a single Overpass
+  // query under our per-mirror 25s abort. Split into batches of ~12
+  // tags each. We run them sequentially against the rotating mirror
+  // list (overpassQuery picks a fresh mirror order each call) and
+  // merge the elements client-side.
+  const allTags = Object.keys(OSM_TAG_MAP)
+  const BATCH_SIZE = 12
+  const batches = []
+  for (let i = 0; i < allTags.length; i += BATCH_SIZE) batches.push(allTags.slice(i, i + BATCH_SIZE))
+
+  const merged = []
+  // Process batches sequentially (not in parallel) so we are polite
+  // to the OSM mirrors per their usage policy. Any single batch
+  // failure is logged but does not abort the others.
+  for (const batch of batches) {
+    try {
+      const filters = batch.map(tag => {
+        const [k, v] = tag.split('=')
+        return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
+      }).join('')
+      const query = `[out:json][timeout:20];(${filters});out center tags;`
+      const data = await overpassQuery(query)
+      if (Array.isArray(data?.elements)) merged.push(...data.elements)
+    } catch (err) {
+      console.error(`[overpass-family] batch failed: ${err.message}`)
+    }
+  }
+  return { elements: merged }
 }
 
 function shapeOsmElement(el, originLat, originLng) {
