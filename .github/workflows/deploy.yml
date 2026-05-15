@@ -44,7 +44,49 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Build and push
+      # Up to 3 attempts on the docker build/push step. docker/build-push-action
+      # itself does not retry on transient registry errors (5xx from ghcr.io,
+      # DNS hiccups during `docker push`), so we use action retries.
+      # Real build failures (Dockerfile errors, test failures) are
+      # deterministic and will fail every attempt the same way — they still
+      # surface to CI normally, just three times.
+      - name: Build and push (attempt 1/3)
+        id: build_push_1
+        continue-on-error: true
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/damienmcdade/pcs-express:latest
+            ghcr.io/damienmcdade/pcs-express:${{ github.sha }}
+          cache-from: type=registry,ref=ghcr.io/damienmcdade/pcs-express:buildcache
+          cache-to: type=registry,ref=ghcr.io/damienmcdade/pcs-express:buildcache,mode=max
+
+      - name: Wait before retry 2
+        if: steps.build_push_1.outcome == 'failure'
+        run: sleep 30
+
+      - name: Build and push (attempt 2/3)
+        if: steps.build_push_1.outcome == 'failure'
+        id: build_push_2
+        continue-on-error: true
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/damienmcdade/pcs-express:latest
+            ghcr.io/damienmcdade/pcs-express:${{ github.sha }}
+          cache-from: type=registry,ref=ghcr.io/damienmcdade/pcs-express:buildcache
+          cache-to: type=registry,ref=ghcr.io/damienmcdade/pcs-express:buildcache,mode=max
+
+      - name: Wait before retry 3
+        if: steps.build_push_1.outcome == 'failure' && steps.build_push_2.outcome == 'failure'
+        run: sleep 60
+
+      - name: Build and push (attempt 3/3)
+        if: steps.build_push_1.outcome == 'failure' && steps.build_push_2.outcome == 'failure'
         uses: docker/build-push-action@v5
         with:
           context: .

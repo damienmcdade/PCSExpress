@@ -17,7 +17,10 @@
     "cap:sync": "npx cap sync ios",
     "android:sync": "npm run build && npx cap sync android",
     "android:open": "npx cap open android",
-    "android:bundle": "npm run build && npx cap sync android && cd android && ./gradlew bundleRelease"
+    "android:bundle": "npm run build && npx cap sync android && cd android && ./gradlew bundleRelease",
+    "deploy:vercel": "bash scripts/deploy-retry.sh vercel deploy --prod --yes",
+    "deploy:railway": "bash scripts/deploy-retry.sh railway up --service PCSExpress --ci",
+    "deploy:all": "npm run deploy:vercel && npm run deploy:railway"
   },
   "dependencies": {
     "cors": "^2.8.5",
