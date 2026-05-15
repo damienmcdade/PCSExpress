@@ -29,6 +29,7 @@ import PrivacyShield from './components/PrivacyShield'
 import SyncStatusIndicator from './components/SyncStatusIndicator'
 import { AuditLogger, secureLocalStore, readLegacyJson } from './security/SecurityExtensions'
 import { ALL_BASES } from './components/BaseMapModule'
+import { resolveMarket } from './data/installationMarkets'
 import { useAppLanguageRuntime } from './i18n/useAppLanguageRuntime'
 
 const store = {
@@ -3039,6 +3040,41 @@ function VeteranBusinessesTab({ theme, profile }) {
   const filtered = filter === 'All' ? displayBiz : displayBiz.filter(b => b.category === filter);
   const visibleCards = filtered.length ? filtered : displayBiz;
 
+  // Live veteran-owned business lookup (SAM.gov via backend proxy).
+  // The endpoint returns { businesses, fallback, reason } and never
+  // throws an error status the user sees - empty businesses + fallback
+  // means "show the existing static source-link cards below."
+  const liveMarket = resolveMarket(profile);
+  const [liveBiz, setLiveBiz] = useState({ status: 'idle', businesses: [], fallback: false, reason: '' });
+  useEffect(() => {
+    if (!liveMarket.matched || (!liveMarket.city && !liveMarket.zip)) {
+      setLiveBiz({ status: 'no-market', businesses: [], fallback: true, reason: 'unknown-installation' });
+      return;
+    }
+    let cancelled = false;
+    setLiveBiz(s => ({ ...s, status: 'loading' }));
+    const params = new URLSearchParams();
+    if (liveMarket.city) params.set('city', liveMarket.city);
+    if (liveMarket.state) params.set('state', liveMarket.state);
+    if (liveMarket.zip) params.set('zip', liveMarket.zip);
+    fetch(`/api/vet-businesses?${params.toString()}`, { headers: { Accept: 'application/json' } })
+      .then(r => r.ok ? r.json() : { businesses: [], fallback: true, reason: `http-${r.status}` })
+      .then(data => {
+        if (cancelled) return;
+        setLiveBiz({
+          status: 'ready',
+          businesses: Array.isArray(data?.businesses) ? data.businesses : [],
+          fallback: !!data?.fallback,
+          reason: data?.reason || '',
+        });
+      })
+      .catch(err => {
+        if (cancelled) return;
+        setLiveBiz({ status: 'ready', businesses: [], fallback: true, reason: `network-${err?.message || 'error'}` });
+      });
+    return () => { cancelled = true; };
+  }, [liveMarket.city, liveMarket.state, liveMarket.zip, liveMarket.matched]);
+
   const NATIONAL_DIRS = [
     { name: 'SBA Veteran-Owned Businesses', icon: 'SBA', desc: 'Official SBA veteran entrepreneurship, training, funding, and contracting guidance.', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses' },
     { name: 'VetCert Small Business Search', icon: 'VOSB', desc: 'Official SBA certification portal and search for verified VOSB and SDVOSB firms.', url: 'https://veterans.certify.sba.gov/' },
@@ -3066,6 +3102,60 @@ function VeteranBusinessesTab({ theme, profile }) {
           ))}
         </div>
       </div>
+
+      {/* Live veteran-owned business listings (SAM.gov proxy) */}
+      {liveBiz.status === 'loading' && (
+        <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 12, color: '#56697C' }}>
+          Looking up verified veteran-owned businesses near {searchLocation || 'your gaining installation'}...
+        </div>
+      )}
+      {liveBiz.status === 'ready' && liveBiz.businesses.length > 0 && (
+        <section style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: theme.primary, marginBottom: 8, letterSpacing: '.06em' }}>
+            VETERAN-OWNED BUSINESSES NEAR {searchLocation?.toUpperCase() || 'YOUR INSTALLATION'} ({liveBiz.businesses.length})
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+            {liveBiz.businesses.map(biz => (
+              <a
+                key={biz.id}
+                href={biz.samUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: '#0D1821', display: 'block' }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 4 }}>{biz.name}</div>
+                {biz.businessTypes?.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+                    {biz.businessTypes.slice(0, 3).map((bt, i) => (
+                      <span key={i} style={{ background: '#FFF8E1', color: '#6D4C00', fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{bt}</span>
+                    ))}
+                  </div>
+                )}
+                {(biz.address || biz.city) && (
+                  <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.45, marginBottom: 4 }}>
+                    {[biz.address, [biz.city, biz.state, biz.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ')}
+                  </div>
+                )}
+                {biz.phone && <div style={{ fontSize: 11, color: '#56697C', marginBottom: 6 }}>{biz.phone}</div>}
+                <div style={{ marginTop: 8, display: 'inline-flex', padding: '6px 10px', borderRadius: 6, background: theme.primary, color: '#FFF', fontSize: 10, fontWeight: 800 }}>View on SAM.gov</div>
+              </a>
+            ))}
+          </div>
+          <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5, marginTop: 8 }}>
+            Live results from SAM.gov Entity Information filtered for veteran-owned (VOSB) and service-disabled veteran-owned (SDVOSB) business types. Cached up to 24 hours. Verify entity status and certifications on SAM.gov before contracting.
+          </div>
+        </section>
+      )}
+      {liveBiz.status === 'ready' && liveBiz.businesses.length === 0 && liveBiz.fallback && (
+        <div style={{ background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 11, color: '#0D3B66', lineHeight: 1.5 }}>
+          {liveBiz.reason === 'no-api-key'
+            ? 'Live SAM.gov lookup not yet configured for this deployment. Use the verified source links below to search by city, ZIP, or NAICS code.'
+            : liveBiz.reason === 'unknown-installation'
+              ? 'Add or update your gaining installation in onboarding to see live veteran-owned business listings. Use the verified source links below in the meantime.'
+              : `No verified veteran-owned business listings cached for ${searchLocation || 'this installation'} yet. Use the verified source links below to search SAM.gov, SBA VetCert, and the VBOC network directly.`
+          }
+        </div>
+      )}
 
       {/* Active category link bubbles */}
       {bubbleLinks.length > 1 && (

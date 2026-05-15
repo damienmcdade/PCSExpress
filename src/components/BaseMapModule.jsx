@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { publicMapEmbedUrl, publicMapSearchUrl } from '../lib/mapEmbedUrl';
 
 const OFFICIAL_INSTALLATION_DIRECTORY = 'https://installations.militaryonesource.mil/';
 const MILITARY_ONESOURCE_OVERVIEW = 'https://www.militaryonesource.mil/resources/network/militaryinstallations/';
@@ -32,14 +33,6 @@ function getSelectedBranch(profile) {
 
 function googleSearchUrl(query) {
   return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-}
-
-function publicMapSearchUrl(label) {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(label || 'military installation')}`;
-}
-
-function publicMapEmbedUrl(label) {
-  return `https://maps.google.com/maps?q=${encodeURIComponent(label || 'military installation')}&output=embed`;
 }
 
 function sourceCards(installation, branch) {

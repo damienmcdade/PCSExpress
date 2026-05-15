@@ -197,6 +197,127 @@ app.post('/api/ai', aiRateLimit, async (req, res) => {
   }
 })
 
+// === VETERAN-OWNED BUSINESS LOOKUP (SAM.gov ENTITY API PROXY) ===
+// Live proxy to SAM.gov's public Entity API v3 filtered for veteran-owned
+// (A5/A6) and service-disabled veteran-owned (QF/27) business types near
+// the gaining installation's city/state. Degrades to an empty payload
+// with `fallback:true` when SAM_API_KEY is unset so the frontend can show
+// its static SBA/SAM source links instead. Falls through gracefully on
+// upstream errors for the same reason - no exception ever surfaces to
+// the user as a hard failure.
+const SAM_API_KEY = process.env.SAM_API_KEY || ''
+const SAM_API_BASE = 'https://api.sam.gov/entity-information/v3/entities'
+// SAM.gov business type codes that indicate veteran ownership. Pulled
+// from the public SBT (Small Business Type) reference list.
+const VETERAN_BUSINESS_CODES = new Set(['A5', 'A6', 'QF', '27', 'XX', 'SDVOSB', 'VOSB'])
+const VET_BIZ_CACHE = new Map()
+const VET_BIZ_TTL_MS = 24 * 60 * 60 * 1000
+const VET_BIZ_RATE_LIMIT = 30
+const VET_BIZ_RATE_WINDOW_MS = 60_000
+const _vetBizHits = new Map()
+
+function vetBizRateLimit(req, res, next) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const now = Date.now()
+  const entry = _vetBizHits.get(ip)
+  if (!entry || now - entry.windowStart > VET_BIZ_RATE_WINDOW_MS) {
+    _vetBizHits.set(ip, { count: 1, windowStart: now })
+    return next()
+  }
+  if (entry.count >= VET_BIZ_RATE_LIMIT) {
+    return res.status(429).json({ error: 'Rate limit exceeded. Try again in a minute.', businesses: [], fallback: true })
+  }
+  entry.count += 1
+  return next()
+}
+
+function sanitizeQueryParam(value, maxLen = 60) {
+  // Strip anything other than letters, digits, spaces, hyphen, period,
+  // apostrophe. Forward-only validation - SAM.gov rejects most exotic
+  // characters anyway, but defense-in-depth prevents accidental URL
+  // injection into the upstream query.
+  return String(value || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, maxLen)
+}
+
+function isVeteranBusinessEntity(entity) {
+  const list = entity?.coreData?.businessTypes?.businessTypeList || []
+  return list.some(bt => VETERAN_BUSINESS_CODES.has(String(bt?.businessTypeCode || '').toUpperCase()))
+}
+
+function shapeBusiness(entity) {
+  const reg = entity?.entityRegistration || {}
+  const addr = entity?.coreData?.physicalAddress || {}
+  const poc = entity?.pointsOfContact?.governmentBusinessPOC || entity?.pointsOfContact?.electronicBusinessPOC || {}
+  const businessTypes = (entity?.coreData?.businessTypes?.businessTypeList || [])
+    .filter(bt => VETERAN_BUSINESS_CODES.has(String(bt?.businessTypeCode || '').toUpperCase()))
+    .map(bt => bt.businessTypeDesc || bt.businessTypeCode)
+  return {
+    id: reg.ueiSAM || reg.cageCode || reg.legalBusinessName,
+    name: reg.legalBusinessName || 'Veteran-owned business',
+    address: [addr.addressLine1, addr.addressLine2].filter(Boolean).join(', '),
+    city: addr.city || '',
+    state: addr.stateOrProvinceCode || '',
+    zip: addr.zipCode || '',
+    businessTypes,
+    url: reg.entityUrl || '',
+    phone: poc.usPhone || '',
+    contact: poc.fullName || '',
+    samUrl: reg.ueiSAM ? `https://sam.gov/entity/${encodeURIComponent(reg.ueiSAM)}/view` : 'https://sam.gov/entity-information',
+  }
+}
+
+app.get('/api/vet-businesses', vetBizRateLimit, async (req, res) => {
+  const city = sanitizeQueryParam(req.query.city)
+  const state = sanitizeQueryParam(req.query.state, 16)
+  const zip = sanitizeQueryParam(req.query.zip, 10)
+  if (!city && !zip) {
+    return res.status(400).json({ error: 'city or zip is required', businesses: [], fallback: true })
+  }
+
+  // No API key configured: tell the client to fall back to static
+  // source-link cards. We intentionally do NOT 500 here - the absence
+  // of an API key is an expected operational mode (e.g., local dev).
+  if (!SAM_API_KEY) {
+    return res.status(200).json({ businesses: [], fallback: true, reason: 'no-api-key' })
+  }
+
+  const cacheKey = `${city}|${state}|${zip}`
+  const cached = VET_BIZ_CACHE.get(cacheKey)
+  if (cached && Date.now() - cached.fetchedAt < VET_BIZ_TTL_MS) {
+    return res.status(200).json({ businesses: cached.businesses, fallback: cached.businesses.length === 0, source: 'cache', fetchedAt: cached.fetchedAt })
+  }
+
+  try {
+    const params = new URLSearchParams()
+    params.set('api_key', SAM_API_KEY)
+    params.set('registrationStatus', 'A')
+    if (city) params.set('physicalAddress.city', city)
+    if (state) params.set('physicalAddress.stateOrProvinceCode', state)
+    if (zip) params.set('physicalAddress.zipCode', zip.split('-')[0])
+    params.set('includeSections', 'entityRegistration,coreData,pointsOfContact')
+    // Conservative page size - keeps payload reasonable for mobile
+    // clients and respects the upstream's per-request limits.
+    params.set('size', '40')
+    const url = `${SAM_API_BASE}?${params.toString()}`
+    const signal = AbortSignal.timeout(15000)
+    const response = await fetch(url, { headers: { Accept: 'application/json' }, signal })
+    if (!response.ok) {
+      console.error(`[vet-businesses] SAM.gov ${response.status}`)
+      return res.status(200).json({ businesses: [], fallback: true, reason: `upstream-${response.status}` })
+    }
+    const data = await response.json()
+    const entities = Array.isArray(data?.entityData) ? data.entityData : []
+    const veteranOnly = entities.filter(isVeteranBusinessEntity).map(shapeBusiness)
+    // Cap returned results so the UI stays responsive on slow devices.
+    const businesses = veteranOnly.slice(0, 25)
+    VET_BIZ_CACHE.set(cacheKey, { businesses, fetchedAt: Date.now() })
+    return res.status(200).json({ businesses, fallback: businesses.length === 0, source: 'sam.gov', fetchedAt: Date.now() })
+  } catch (err) {
+    console.error(`[vet-businesses] ${err.message}`)
+    return res.status(200).json({ businesses: [], fallback: true, reason: 'network-error' })
+  }
+})
+
 // === FRONTEND SERVING (AFTER ALL API ROUTES) ===
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath))
