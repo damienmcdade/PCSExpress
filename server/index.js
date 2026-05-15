@@ -512,15 +512,18 @@ function clip(str, len = 220) {
 
 async function fetchRemoteOk(keyword) {
   const signal = AbortSignal.timeout(10000)
+  // RemoteOK 403s requests from datacenter IPs with non-browser UAs.
+  // A standard browser UA is honest about the request (no spoofed
+  // device profile) and matches their documented expectations.
   const r = await fetch('https://remoteok.com/api', {
-    headers: { Accept: 'application/json', 'User-Agent': USAJOBS_USER_AGENT },
+    headers: {
+      Accept: 'application/json',
+      'User-Agent': 'Mozilla/5.0 (compatible; PCSExpress/1.0; +https://github.com/damienmcdade/PCSExpress)',
+    },
     signal,
   })
   if (!r.ok) throw new Error(`remoteok ${r.status}`)
   const data = await r.json()
-  // RemoteOK returns the metadata header as element 0 (object with
-  // legal/etc fields). Real jobs follow. Filter for keyword match in
-  // position, description, or tags.
   const kw = String(keyword || '').toLowerCase().trim()
   const jobs = Array.isArray(data) ? data.slice(1) : []
   const filtered = kw ? jobs.filter(j => {
@@ -541,6 +544,58 @@ async function fetchRemoteOk(keyword) {
     remote: true,
     postedAt: j.date || j.epoch ? new Date((j.epoch || 0) * 1000).toISOString() : null,
   }))
+}
+
+// The Muse public API - no key required, broader non-tech coverage
+// (marketing, customer service, operations, healthcare, etc.) than
+// RemoteOK. Useful for military spouses whose target roles often are
+// not engineering.
+async function fetchTheMuse(keyword, city, state) {
+  const params = new URLSearchParams()
+  params.set('page', '0')
+  if (city) {
+    const loc = state ? `${city}, ${state}` : city
+    params.set('location', loc)
+  }
+  // The Muse doesn't expose a free-text keyword filter on the public
+  // endpoint; we fetch latest results then filter server-side.
+  const url = `https://www.themuse.com/api/public/jobs?${params.toString()}`
+  const signal = AbortSignal.timeout(10000)
+  const r = await fetch(url, {
+    headers: {
+      Accept: 'application/json',
+      'User-Agent': 'Mozilla/5.0 (compatible; PCSExpress/1.0; +https://github.com/damienmcdade/PCSExpress)',
+    },
+    signal,
+  })
+  if (!r.ok) throw new Error(`themuse ${r.status}`)
+  const data = await r.json()
+  const results = Array.isArray(data?.results) ? data.results : []
+  const kw = String(keyword || '').toLowerCase().trim()
+  const filtered = kw ? results.filter(j => {
+    const hay = `${j.name || ''} ${j.contents || ''} ${(j.categories || []).map(c => c.name).join(' ')} ${(j.levels || []).map(l => l.name).join(' ')}`.toLowerCase()
+    return kw.split(/\s+/).every(w => hay.includes(w))
+  }) : results
+  return filtered.slice(0, 25).map(j => {
+    const locName = (j.locations && j.locations[0]?.name) || 'Multiple locations'
+    const company = j.company?.name || ''
+    const category = (j.categories && j.categories[0]?.name) || ''
+    const level = (j.levels && j.levels[0]?.name) || ''
+    return {
+      id: `themuse-${j.id}`,
+      title: j.name || 'Position',
+      company,
+      location: locName,
+      salaryDisplay: '',
+      salaryMin: null,
+      salaryMax: null,
+      description: clip([category, level, j.contents].filter(Boolean).join(' · ')),
+      url: j.refs?.landing_page || '',
+      source: 'The Muse',
+      remote: /remote/i.test(locName),
+      postedAt: j.publication_date || null,
+    }
+  })
 }
 
 async function fetchUsajobs(keyword, city, state) {
@@ -596,13 +651,22 @@ app.get('/api/job-listings', jobsRateLimit, async (req, res) => {
   }
 
   const results = []
-  const sources = { remoteok: 'skipped', usajobs: USAJOBS_API_KEY ? 'pending' : 'no-api-key' }
+  const sources = { themuse: 'pending', remoteok: 'pending', usajobs: USAJOBS_API_KEY ? 'pending' : 'no-api-key' }
 
-  // Run both in parallel - one failing should not stop the other.
-  const [remoteOkResult, usaJobsResult] = await Promise.allSettled([
+  // Run all three in parallel - one failing should not stop the others.
+  const [theMuseResult, remoteOkResult, usaJobsResult] = await Promise.allSettled([
+    fetchTheMuse(keyword, city, state),
     fetchRemoteOk(keyword),
     USAJOBS_API_KEY ? fetchUsajobs(keyword, city, state) : Promise.resolve([]),
   ])
+
+  if (theMuseResult.status === 'fulfilled') {
+    results.push(...theMuseResult.value)
+    sources.themuse = `ok-${theMuseResult.value.length}`
+  } else {
+    console.error(`[job-listings] themuse ${theMuseResult.reason?.message}`)
+    sources.themuse = `error-${theMuseResult.reason?.message || 'unknown'}`
+  }
 
   if (remoteOkResult.status === 'fulfilled') {
     results.push(...remoteOkResult.value)
@@ -629,9 +693,14 @@ app.get('/api/job-listings', jobsRateLimit, async (req, res) => {
     return true
   })
 
-  // Prefer local USAJOBS first, then RemoteOK (sorted by posted date desc).
+  // Prefer local USAJOBS first, then The Muse (often non-tech, often
+  // matches a spouse's career path better than tech-heavy RemoteOK),
+  // then RemoteOK. Within each source, newest first.
+  const sourceRank = { USAJOBS: 0, 'The Muse': 1, RemoteOK: 2 }
   deduped.sort((a, b) => {
-    if (a.source !== b.source) return a.source === 'USAJOBS' ? -1 : 1
+    const ar = sourceRank[a.source] ?? 9
+    const br = sourceRank[b.source] ?? 9
+    if (ar !== br) return ar - br
     const ad = a.postedAt ? Date.parse(a.postedAt) : 0
     const bd = b.postedAt ? Date.parse(b.postedAt) : 0
     return bd - ad
