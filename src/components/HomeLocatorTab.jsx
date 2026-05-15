@@ -167,23 +167,34 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
       {listings.status === 'ready' && listings.items.length > 0 && (
         <section style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 12, fontWeight: 900, color: colors.text, marginBottom: 8 }}>
-            Active rental listings near {market.installation} <span style={{ fontWeight: 600, color: colors.muted, marginLeft: 6 }}>({listings.items.length})</span>
+            Housing near {market.installation} <span style={{ fontWeight: 600, color: colors.muted, marginLeft: 6 }}>({listings.items.length})</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
             {listings.items.map(item => (
+              // Whole card opens Google Maps directions in a new tab
+              // (matches Family Fun / Schools UX). Apartments.com and
+              // any inner links use stopPropagation.
               <a
                 key={item.id}
-                href={item.listingUrl || '#'}
+                href={item.directionsUrl || item.listingUrl || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${colors.accent}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: colors.text, display: 'block' }}
+                aria-label={`Get directions to ${item.name || item.address || 'this property'}${item.distanceMiles != null ? ` (${item.distanceMiles} miles away)` : ''}`}
+                style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${colors.accent}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: colors.text, display: 'block', cursor: 'pointer' }}
               >
-                <div style={{ fontSize: 13, fontWeight: 800, color: colors.text, marginBottom: 4, lineHeight: 1.3 }}>
-                  {item.address || `${item.propertyType || 'Listing'} near ${item.city || ''}`}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: colors.text, lineHeight: 1.3, flex: 1 }}>
+                    {item.name || item.address || `${item.propertyType || 'Listing'} near ${item.city || ''}`}
+                  </div>
+                  {item.distanceMiles != null && (
+                    <span style={{ background: '#FFF8E1', color: '#6D4C00', fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap' }}>{item.distanceMiles} mi</span>
+                  )}
                 </div>
-                <div style={{ fontSize: 11, color: colors.muted, marginBottom: 6 }}>
-                  {[item.city, item.state, item.zip].filter(Boolean).join(' ')}
-                </div>
+                {(item.address || item.city) && (
+                  <div style={{ fontSize: 11, color: colors.muted, marginBottom: 6 }}>
+                    {[item.address, [item.city, item.state, item.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ')}
+                  </div>
+                )}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                   {item.propertyType && (
                     <span style={{ background: '#EAF4FF', color: '#0D3B66', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4 }}>{item.propertyType}</span>
@@ -206,12 +217,39 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
                     {item.description.length > 180 ? item.description.slice(0, 180) + '...' : item.description}
                   </div>
                 )}
-                <div style={{ display: 'inline-flex', padding: '7px 10px', borderRadius: 7, background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 800 }}>View listing</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span style={{ background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>Tap card → directions</span>
+                  {item.apartmentsSearchUrl && (
+                    <a
+                      href={item.apartmentsSearchUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      style={{ textDecoration: 'none', background: '#FFFFFF', color: colors.primary, border: `1px solid ${colors.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}
+                    >
+                      Live units →
+                    </a>
+                  )}
+                  {item.website && (
+                    <a
+                      href={item.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      style={{ textDecoration: 'none', background: '#FFFFFF', color: colors.primary, border: `1px solid ${colors.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}
+                    >
+                      Website
+                    </a>
+                  )}
+                  {item.phone && (
+                    <span style={{ background: '#FFFFFF', color: colors.primary, border: `1px solid ${colors.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>{item.phone}</span>
+                  )}
+                </div>
               </a>
             ))}
           </div>
           <div style={{ fontSize: 10, color: colors.muted, lineHeight: 1.5, marginTop: 8 }}>
-            Rental listings come from a third-party housing partner and refresh every few hours. Confirm availability, lease terms, pet rules, and move-in dates directly with the listing before signing.
+            Apartment communities are from OpenStreetMap. Tap any card for directions, or tap "Live units" to open Apartments.com for current availability, bed/bath/sqft, and pricing at that address. PCS Express does not store private housing inventory.
           </div>
         </section>
       )}

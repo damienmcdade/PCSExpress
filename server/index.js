@@ -412,54 +412,166 @@ function shapeListing(raw) {
   }
 }
 
+// OSM Overpass: real apartment complexes (building=apartments with a
+// name tag) near the geocoded installation. Each complex is a real
+// place with an address and distance; the user taps the card to open
+// Google Maps directions and the Apartments.com button to see real
+// unit-level availability at that specific address. No API key
+// required - OSM is the same free dataset that powers Family Fun and
+// the Schools tab.
+async function overpassApartmentsFetch(lat, lng, radiusMeters) {
+  const query = `[out:json][timeout:20];(node["building"="apartments"]["name"](around:${radiusMeters},${lat},${lng});way["building"="apartments"]["name"](around:${radiusMeters},${lat},${lng});node["building"="residential"]["name"]["apartments"="yes"](around:${radiusMeters},${lat},${lng}););out center tags;`
+  return overpassQuery(query)
+}
+
+function shapeOsmApartmentComplex(el, originLat, originLng) {
+  const tags = el.tags || {}
+  const name = tags.name || tags['name:en']
+  if (!name) return null
+  const elLat = el.lat ?? el.center?.lat
+  const elLng = el.lon ?? el.center?.lon
+  if (typeof elLat !== 'number' || typeof elLng !== 'number') return null
+  const distance = haversineMiles(originLat, originLng, elLat, elLng)
+  const street = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ')
+  const addrCity = tags['addr:city'] || ''
+  const addrState = tags['addr:state'] || ''
+  const addrZip = tags['addr:postcode'] || ''
+  const levels = tags['building:levels'] ? `${tags['building:levels']}-story` : ''
+  const descParts = []
+  if (levels) descParts.push(levels)
+  if (tags['units'] || tags['building:units']) descParts.push(`${tags['units'] || tags['building:units']} units`)
+  if (tags.year_built) descParts.push(`built ${tags.year_built}`)
+  const baseDesc = descParts.length ? descParts.join(' · ') : 'apartment community'
+  const description = `${baseDesc} approximately ${distance} mi away. Bed, bath, square footage, and rent vary by unit - tap the Apartments.com button to see current availability for this address.`
+
+  // Apartments.com search-by-address pattern. Falls back to city-level
+  // when we have no street address.
+  const apartmentsSearch = street && addrCity
+    ? `https://www.apartments.com/search/?q=${encodeURIComponent(`${street} ${addrCity} ${addrState}`)}`
+    : addrCity
+      ? `https://www.apartments.com/${encodeURIComponent(addrCity.toLowerCase().replace(/\s+/g, '-'))}-${(addrState || '').toLowerCase()}/`
+      : `https://www.apartments.com/search/?q=${encodeURIComponent(name)}`
+
+  return {
+    id: `${el.type}/${el.id}`,
+    name,
+    address: street,
+    city: addrCity,
+    state: addrState,
+    zip: addrZip,
+    beds: null,
+    baths: null,
+    sqft: null,
+    propertyType: 'Apartment community',
+    distanceMiles: distance,
+    description,
+    price: null,
+    apartmentsSearchUrl: apartmentsSearch,
+    listingUrl: apartmentsSearch,
+    directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${elLat},${elLng}`,
+    mapUrl: `https://www.openstreetmap.org/?mlat=${elLat}&mlon=${elLng}#map=17/${elLat}/${elLng}`,
+    website: tags.website || tags['contact:website'] || '',
+    phone: tags.phone || tags['contact:phone'] || '',
+    lat: elLat,
+    lng: elLng,
+    source: 'OpenStreetMap',
+  }
+}
+
 app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
   const city = String(req.query.city || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 60)
   const state = String(req.query.state || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 16)
   const zip = String(req.query.zip || '').trim().replace(/[^A-Za-z0-9\-]/g, '').slice(0, 10)
-  if (!city && !zip) {
-    return res.status(400).json({ error: 'city or zip is required', listings: [], fallback: true })
+  const address = String(req.query.address || '').trim().slice(0, 160)
+  if (!city && !zip && !address) {
+    return res.status(400).json({ error: 'city, zip, or address is required', listings: [], fallback: true })
   }
 
-  if (!RAPIDAPI_KEY) {
-    return res.status(200).json({ listings: [], fallback: true, reason: 'no-api-key' })
-  }
-
-  const cacheKey = `${city}|${state}|${zip}`
+  const cacheKey = `${city}|${state}|${zip}|${address}`
   const cached = HOUSING_CACHE.get(cacheKey)
   if (cached && Date.now() - cached.fetchedAt < HOUSING_TTL_MS) {
     return res.status(200).json({ listings: cached.listings, fallback: cached.listings.length === 0, source: 'cache', fetchedAt: cached.fetchedAt })
   }
 
-  try {
-    const params = new URLSearchParams()
-    if (city) params.set('city', city)
-    if (state) params.set('state', state)
-    if (zip) params.set('zipCode', zip.split('-')[0])
-    params.set('limit', '20')
-    params.set('status', 'Active')
-    const url = `https://${RAPIDAPI_HOST}${RAPIDAPI_PATH}?${params.toString()}`
-    const signal = AbortSignal.timeout(15000)
-    const response = await fetch(url, {
-      headers: {
-        Accept: 'application/json',
-        'X-RapidAPI-Key': RAPIDAPI_KEY,
-        'X-RapidAPI-Host': RAPIDAPI_HOST,
-      },
-      signal,
-    })
-    if (!response.ok) {
-      console.error(`[housing-listings] ${RAPIDAPI_HOST} ${response.status}`)
-      return res.status(200).json({ listings: [], fallback: true, reason: `upstream-${response.status}` })
+  // Run RapidAPI rentals (priced) and OSM apartment complexes in
+  // parallel. RapidAPI is optional - skipped when no key. OSM works
+  // always.
+  const rapidApiPromise = (async () => {
+    if (!RAPIDAPI_KEY) return []
+    try {
+      const params = new URLSearchParams()
+      if (city) params.set('city', city)
+      if (state) params.set('state', state)
+      if (zip) params.set('zipCode', zip.split('-')[0])
+      params.set('limit', '20')
+      params.set('status', 'Active')
+      const url = `https://${RAPIDAPI_HOST}${RAPIDAPI_PATH}?${params.toString()}`
+      const signal = AbortSignal.timeout(15000)
+      const r = await fetch(url, {
+        headers: {
+          Accept: 'application/json',
+          'X-RapidAPI-Key': RAPIDAPI_KEY,
+          'X-RapidAPI-Host': RAPIDAPI_HOST,
+        },
+        signal,
+      })
+      if (!r.ok) { console.error(`[housing-listings] ${RAPIDAPI_HOST} ${r.status}`); return [] }
+      const data = await r.json()
+      const rawList = Array.isArray(data) ? data : (Array.isArray(data?.listings) ? data.listings : (Array.isArray(data?.results) ? data.results : []))
+      return rawList.map(shapeListing).filter(l => l.address || l.beds || l.sqft)
+    } catch (err) {
+      console.error(`[housing-listings] rapidapi ${err.message}`)
+      return []
     }
-    const data = await response.json()
-    const rawList = Array.isArray(data) ? data : (Array.isArray(data?.listings) ? data.listings : (Array.isArray(data?.results) ? data.results : []))
-    const listings = rawList.map(shapeListing).filter(l => l.address || l.beds || l.sqft).slice(0, 20)
-    HOUSING_CACHE.set(cacheKey, { listings, fetchedAt: Date.now() })
-    return res.status(200).json({ listings, fallback: listings.length === 0, source: RAPIDAPI_HOST, fetchedAt: Date.now() })
-  } catch (err) {
-    console.error(`[housing-listings] ${err.message}`)
-    return res.status(200).json({ listings: [], fallback: true, reason: 'network-error' })
-  }
+  })()
+
+  const osmPromise = (async () => {
+    const geocodeQuery = address || [city, state, zip].filter(Boolean).join(', ')
+    if (!geocodeQuery) return []
+    let origin
+    try {
+      origin = await geocodeNominatim(geocodeQuery)
+    } catch (err) {
+      console.error(`[housing-listings] geocode ${err.message}`)
+      return []
+    }
+    if (!origin) return []
+    try {
+      const overpassData = await overpassApartmentsFetch(origin.lat, origin.lng, Math.round(15 * 1609.34))
+      const elements = Array.isArray(overpassData?.elements) ? overpassData.elements : []
+      const seen = new Set()
+      const complexes = []
+      for (const el of elements) {
+        const shaped = shapeOsmApartmentComplex(el, origin.lat, origin.lng)
+        if (!shaped) continue
+        const key = `${shaped.name}|${Math.round(shaped.lat * 100)}|${Math.round(shaped.lng * 100)}`
+        if (seen.has(key)) continue
+        seen.add(key)
+        complexes.push(shaped)
+      }
+      complexes.sort((a, b) => a.distanceMiles - b.distanceMiles)
+      return complexes
+    } catch (err) {
+      console.error(`[housing-listings] overpass ${err.message}`)
+      return []
+    }
+  })()
+
+  const [rapidApiResults, osmResults] = await Promise.all([rapidApiPromise, osmPromise])
+  // RapidAPI listings (priced units) come first; OSM complexes (real
+  // addresses, deep-linked Apartments.com search) follow.
+  const combined = [...rapidApiResults, ...osmResults].slice(0, 30)
+  HOUSING_CACHE.set(cacheKey, { listings: combined, fetchedAt: Date.now() })
+
+  res.status(200).json({
+    listings: combined,
+    fallback: combined.length === 0,
+    sources: {
+      rapidapi: RAPIDAPI_KEY ? `ok-${rapidApiResults.length}` : 'no-api-key',
+      openstreetmap: `ok-${osmResults.length}`,
+    },
+    fetchedAt: Date.now(),
+  })
 })
 
 // === JOB LISTINGS (REMOTEOK + USAJOBS) ===

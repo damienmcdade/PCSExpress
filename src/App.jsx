@@ -2867,6 +2867,21 @@ function SchoolsTab({ theme, profile }) {
   const searchLocation = getInstallationSearchLocation(instName);
   const schoolFinderCards = officialSchoolCards(instName);
 
+  // Child ages resolved from the onboarding profile. Declared here
+  // (before the live-fetch effect and enrichment) so the grade-match
+  // sort below can read it without hitting a temporal dead zone when
+  // the live fetch returns schools synchronously from cache.
+  const agesFromProfile = profile?.childAges?.length > 0
+    ? profile.childAges.filter(a => !isNaN(Number(a))).map(Number)
+    : (profile?.childrenAges || '').split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+
+  const gradeForAge = age => {
+    if (age < 5) return 'Pre-K';
+    if (age <= 10) return 'K-5';
+    if (age <= 13) return '6-8';
+    return '9-12';
+  };
+
   // Live OSM-backed schools and childcare for the gaining installation.
   // Empty + fallback => keep the existing curated cards visible.
   const market = resolveMarket(profile);
@@ -2942,17 +2957,6 @@ function SchoolsTab({ theme, profile }) {
   });
   const liveK12 = enrichedLive.filter(s => s.categoryId === 'k12');
   const liveDaycare = enrichedLive.filter(s => s.categoryId === 'childcare' || s.categoryId === 'preschool');
-
-  const agesFromProfile = profile?.childAges?.length > 0
-    ? profile.childAges.filter(a => !isNaN(Number(a))).map(Number)
-    : (profile?.childrenAges || '').split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
-
-  const gradeForAge = age => {
-    if (age < 5) return 'Pre-K';
-    if (age <= 10) return 'K-5';
-    if (age <= 13) return '6-8';
-    return '9-12';
-  };
 
   const relevantGrades = new Set(agesFromProfile.map(gradeForAge));
   let filteredSchools = (showAll || agesFromProfile.length === 0)
