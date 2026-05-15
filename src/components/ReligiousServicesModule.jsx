@@ -343,28 +343,43 @@ function ReligiousServicesModule({ theme, profile }) {
     return () => { cancelled = true }
   }, [activeTab, profile?.gainingInstallation])
 
-  // Per user direction: live OSM places of worship are hard-filtered
-  // to ONLY the religiousPreference selected during onboarding. No
-  // chip / filter UI shown - the user already made the choice when
-  // they onboarded. Catholic and Protestant fall back to Christian
-  // because OSM tags most U.S. churches as religion=christian
-  // without a denomination. "No Preference" surfaces all faiths.
-  const PREF_TO_RELIGION_CHAIN = {
-    Catholic: ['Catholic', 'Christian'],
-    Protestant: ['Protestant', 'Christian'],
-    Christian: ['Christian'],
-    Jewish: ['Jewish'],
-    Muslim: ['Islamic'],
-    Islamic: ['Islamic'],
-    Buddhist: ['Buddhist'],
-    Hindu: ['Hindu'],
-    Sikh: ['Sikh'],
+  // STRICT preference filter (per user direction): only surface OSM
+  // places of worship that genuinely match the religiousPreference
+  // chosen during onboarding. Cards that don't pertain are removed
+  // entirely, even if that means an empty section.
+  //
+  // OSM tags churches with religion= (broad) and optionally
+  // denomination= (narrow). For Protestant we only match
+  // denomination values that are recognizably Protestant (baptist,
+  // methodist, etc.); generic religion=christian with no
+  // denomination is NOT counted as Protestant. For Catholic we
+  // require denomination=catholic explicitly.
+  //
+  // Lists below are lowercase to match OSM's tag values.
+  const PROTESTANT_DENOMS = new Set([
+    'protestant', 'baptist', 'methodist', 'presbyterian', 'lutheran',
+    'episcopal', 'episcopalian', 'anglican', 'pentecostal', 'evangelical',
+    'non-denominational', 'nondenominational', 'congregational',
+    'reformed', 'mennonite', 'quaker', 'adventist', 'seventh-day-adventist',
+    'church-of-christ', 'disciples-of-christ', 'assemblies-of-god', 'foursquare',
+    'nazarene', 'methodist-episcopal', 'african-methodist-episcopal',
+    'southern-baptist', 'free-methodist', 'wesleyan', 'church-of-the-brethren',
+    'moravian',
+  ])
+  const PREF_TO_MATCHER = {
+    Catholic:  (s) => /catholic/i.test(s.denomination) || /^catholic$/i.test(s.religion),
+    Protestant: (s) => PROTESTANT_DENOMS.has(String(s.denomination || '').toLowerCase()) || /^protestant$/i.test(s.religion),
+    Christian: (s) => /christian|catholic|protestant|baptist|methodist|lutheran|presbyterian|episcopal|pentecostal|evangelical|adventist/i.test(`${s.religion} ${s.denomination}`),
+    Jewish:    (s) => /^jewish$/i.test(s.religion) || /jewish|orthodox-jewish|reform|conservative|hasidic|chabad/i.test(s.denomination),
+    Muslim:    (s) => /^(islamic|muslim)$/i.test(s.religion) || /muslim|sunni|shia/i.test(s.denomination),
+    Islamic:   (s) => /^(islamic|muslim)$/i.test(s.religion) || /muslim|sunni|shia/i.test(s.denomination),
+    Buddhist:  (s) => /^buddhist$/i.test(s.religion),
+    Hindu:     (s) => /^hindu$/i.test(s.religion),
+    Sikh:      (s) => /^sikh$/i.test(s.religion),
   }
   const prefRaw = String(profile?.religiousPreference || '').trim()
-  const prefChain = PREF_TO_RELIGION_CHAIN[prefRaw] || []
-  const filteredLive = prefChain.length === 0
-    ? liveServices.services
-    : liveServices.services.filter(s => prefChain.includes(s.religion))
+  const matcher = PREF_TO_MATCHER[prefRaw]
+  const filteredLive = !matcher ? liveServices.services : liveServices.services.filter(matcher)
 
   const getServices = () => {
     const baseKey = (profile?.gainingInstallation || '').split(',')[0].trim()
