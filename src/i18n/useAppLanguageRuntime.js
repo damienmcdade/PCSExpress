@@ -737,7 +737,12 @@ function translateTextNode(node, lang) {
 function translateAttribute(element, attr, lang) {
   if (element.closest?.('[data-no-language-runtime], .notranslate')) return;
   if (!element.hasAttribute(attr)) return;
-  const storeName = `pcsOriginal${attr}`;
+  // `dataset` only accepts camelCase keys (no hyphens). Attribute
+  // names with hyphens like `aria-label` need to be camelized before
+  // building the storage key, otherwise dataset[key]= throws
+  // "is not a valid property name".
+  const camelAttr = String(attr).replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+  const storeName = `pcsOriginal${camelAttr.charAt(0).toUpperCase()}${camelAttr.slice(1)}`;
   const current = element.getAttribute(attr) || '';
   if (!current) return;
   if (!element.dataset[storeName]) element.dataset[storeName] = current;
