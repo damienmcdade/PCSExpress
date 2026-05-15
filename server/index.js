@@ -510,21 +510,30 @@ function syntheticTypeCards(city, state, zip) {
   const slug = `${city.toLowerCase().replace(/\s+/g, '-')}-${(state || '').toLowerCase()}`
   const ev = encodeURIComponent
   const cityState = `${city}${state ? ', ' + state : ''}`
+  const aggregatorSites = 'site:apartments.com OR site:zillow.com OR site:trulia.com OR site:realtor.com OR site:rent.com OR site:apartmentlist.com OR site:redfin.com OR site:homes.com'
   const TYPES = [
-    { propertyType: 'Single Family', name: `Single-family home rentals near ${city}`, apartmentsPath: `houses` },
-    { propertyType: 'Condo',         name: `Condo rentals near ${city}`,              apartmentsPath: `condos` },
-    { propertyType: 'Townhouse',     name: `Townhouse rentals near ${city}`,          apartmentsPath: `townhomes` },
-    { propertyType: 'Duplex',        name: `Duplex rentals near ${city}`,             apartmentsQuery: 'duplex' },
-    { propertyType: 'Triplex',       name: `Triplex rentals near ${city}`,            apartmentsQuery: 'triplex' },
-    { propertyType: 'Quadplex',      name: `Quadplex / fourplex rentals near ${city}`, apartmentsQuery: 'quadplex fourplex' },
+    { propertyType: 'Single Family',     query: 'single family homes for rent',         apartmentsPath: 'houses' },
+    { propertyType: 'Condo',             query: 'condos for rent',                      apartmentsPath: 'condos' },
+    { propertyType: 'Townhouse',         query: 'townhouses for rent',                  apartmentsPath: 'townhomes' },
+    { propertyType: 'Duplex',            query: 'duplex for rent',                      apartmentsQuery: 'duplex' },
+    { propertyType: 'Triplex',           query: 'triplex for rent',                     apartmentsQuery: 'triplex' },
+    { propertyType: 'Quadplex',          query: 'quadplex fourplex for rent',           apartmentsQuery: 'quadplex fourplex' },
   ]
   return TYPES.map(t => {
+    // Primary deep-link: Google search restricted to major rental
+    // aggregators. This returns actual listings, not a landing page.
+    const googleSearchUrl = `https://www.google.com/search?q=${ev(`${t.query} ${cityState} ${aggregatorSites}`)}`
+    // Secondary deep-link: Google Maps search for the same property
+    // type, returns real homes on a map.
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${ev(`${t.query} ${cityState}`)}`
+    // Apartments.com type-filtered landing page (tertiary - kept for
+    // users who prefer a single-aggregator view).
     const apartmentsUrl = t.apartmentsPath
       ? `https://www.apartments.com/${slug}/${t.apartmentsPath}/`
       : `https://www.apartments.com/search/?q=${ev(t.apartmentsQuery + ' ' + cityState)}`
     return {
       id: `synthetic-${t.propertyType.toLowerCase().replace(/\s+/g, '-')}-${slug}`,
-      name: t.name,
+      name: `${t.propertyType} rentals near ${city}`,
       address: '',
       city,
       state: state || '',
@@ -534,18 +543,20 @@ function syntheticTypeCards(city, state, zip) {
       sqft: null,
       propertyType: t.propertyType,
       distanceMiles: null,
-      description: `Tap to browse ${t.propertyType.toLowerCase()} rentals on Apartments.com filtered to ${cityState}. Confirm availability, bed/bath/sqft, and lease terms directly on the listing.`,
+      description: `Tap the card to see ${t.propertyType.toLowerCase()} listings near ${cityState} on Google. The "Live units" button opens Google Maps so you can see homes plotted on the map; "Apartments.com" opens the aggregator's type-filtered search. Confirm availability, beds, baths, square footage, and lease terms directly with the listing source.`,
       price: null,
-      apartmentsSearchUrl: apartmentsUrl,
-      listingUrl: apartmentsUrl,
-      // Synthetic cards point to an area-wide search, not a specific
-      // address - "directions" deep-links to driving directions to
-      // the city center so the user still gets useful navigation.
-      directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${ev(cityState)}`,
-      mapUrl: `https://www.google.com/maps/search/?api=1&query=${ev(cityState)}`,
+      // Card-click opens Google search across rental aggregators -
+      // these are real listings, not a landing page.
+      directionsUrl: googleSearchUrl,
+      // "Live units" button opens Google Maps with the type query
+      // pre-filled - shows homes plotted on a map view.
+      apartmentsSearchUrl: googleMapsUrl,
+      listingUrl: googleSearchUrl,
+      // Map view button -> Apartments.com landing for that type
+      mapUrl: apartmentsUrl,
       website: '',
       phone: '',
-      source: 'Apartments.com search',
+      source: 'Google + Apartments.com',
       synthetic: true,
     }
   })

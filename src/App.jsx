@@ -3405,16 +3405,40 @@ function VeteranBusinessesTab({ theme, profile }) {
           </div>
         </section>
       )}
-      {liveBiz.status === 'ready' && liveBiz.businesses.length === 0 && liveBiz.fallback && (
-        <div style={{ background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 11, color: '#0D3B66', lineHeight: 1.5 }}>
-          {liveBiz.reason === 'no-api-key'
-            ? 'Live business listings will turn on soon. In the meantime, use the verified search links below to find veteran-owned businesses by city or ZIP.'
-            : liveBiz.reason === 'unknown-installation'
-              ? 'Set your gaining installation in onboarding to see live veteran-owned business listings. The verified search links below still work.'
-              : `We do not have live listings cached for ${searchLocation || 'this installation'} yet. The verified search links below let you search SBA, SAM.gov, and the VBOC network directly.`
-          }
-        </div>
-      )}
+      {liveBiz.status === 'ready' && liveBiz.businesses.length === 0 && liveBiz.fallback && (() => {
+        // No live SAM.gov results. Instead of an empty banner, show a
+        // grid of search-CTA cards that DO populate without an API
+        // key - each card deep-links to a real veteran-owned business
+        // directory pre-filtered by the gaining installation's city.
+        const loc = encodeURIComponent(searchLocation || 'United States');
+        const ctaCards = [
+          { name: `Verified veteran-owned businesses near ${searchLocation || 'your installation'}`, url: `https://veterans.certify.sba.gov/?Keywords=&Location=${loc}`, type: 'SBA VetCert', desc: 'Search the official SBA VetCert registry for verified VOSB and SDVOSB firms in your area.' },
+          { name: `SAM.gov entities near ${searchLocation || 'your installation'}`, url: `https://sam.gov/search/?index=ei&page=1&pageSize=25&sort=-modifiedDate&q=${loc}&sfm[entity-information][isCalculated]=true`, type: 'SAM.gov', desc: 'Search active federal SAM.gov entity records by location. Filter for veteran-owned business types after opening.' },
+          { name: `Veteran-owned businesses on Google`, url: `https://www.google.com/search?q=${encodeURIComponent(`veteran owned businesses near ${searchLocation || 'me'} site:sba.gov OR site:sam.gov OR site:va.gov`)}`, type: 'Google', desc: 'Google search restricted to SBA, SAM, and VA sources for veteran-owned businesses in the area.' },
+          { name: 'Veterans Business Outreach Centers near you', url: `https://www.google.com/search?q=${encodeURIComponent(`VBOC ${searchLocation || ''} site:sba.gov`)}`, type: 'VBOC', desc: 'Find your local VBOC for free veteran entrepreneurship counseling, training, and referrals.' },
+          { name: 'VA OSDBU resources', url: 'https://www.va.gov/osdbu/', type: 'VA', desc: 'Official VA Office of Small and Disadvantaged Business Utilization - veteran-owned business assistance.' },
+        ];
+        return (
+          <section style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: theme.primary, marginBottom: 8, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+              Search verified veteran-owned businesses
+            </div>
+            <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+              {ctaCards.map(c => (
+                <a key={c.url} href={c.url} target="_blank" rel="noopener noreferrer" style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: '#0D1821', display: 'block' }}>
+                  <span style={{ background: '#EAF4FF', color: '#0D3B66', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4 }}>{c.type}</span>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginTop: 6, marginBottom: 4 }}>{c.name}</div>
+                  <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.4 }}>{c.desc}</div>
+                  <div style={{ marginTop: 8, display: 'inline-flex', padding: '6px 10px', borderRadius: 6, background: theme.primary, color: '#FFF', fontSize: 11, fontWeight: 800 }}>Open search</div>
+                </a>
+              ))}
+            </div>
+            <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5, marginTop: 8 }}>
+              These deep-link directly into the official SBA VetCert, SAM.gov, and VA OSDBU search interfaces with your gaining installation pre-filled. Verify each business's certification status before contracting.
+            </div>
+          </section>
+        );
+      })()}
 
       </>)}
 

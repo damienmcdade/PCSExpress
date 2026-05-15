@@ -316,7 +316,6 @@ function ReligiousServicesModule({ theme, profile }) {
   // Live places of worship from OSM Overpass (no API key required).
   // Falls through to the curated/static lists below when empty.
   const [liveServices, setLiveServices] = useState({ status: 'idle', services: [], reason: '' })
-  const [religionFilter, setReligionFilter] = useState('all')
   useEffect(() => {
     if (activeTab !== 'services') return
     const inst = (profile?.gainingInstallation || '').split(',')[0].trim()
@@ -344,13 +343,12 @@ function ReligiousServicesModule({ theme, profile }) {
     return () => { cancelled = true }
   }, [activeTab, profile?.gainingInstallation])
 
-  const religionGroups = Array.from(new Set(liveServices.services.map(s => s.religion))).sort()
-  // Map onboarding religiousPreference values to OSM religion labels.
-  // OSM tagging is sparse: most U.S. churches are tagged only
-  // `religion=christian` rather than a specific denomination. So
-  // Protestant (which is rare in OSM data) falls back to Christian,
-  // which surfaces every Christian congregation including Protestant
-  // ones. Users can still narrow further via the chip filter.
+  // Per user direction: live OSM places of worship are hard-filtered
+  // to ONLY the religiousPreference selected during onboarding. No
+  // chip / filter UI shown - the user already made the choice when
+  // they onboarded. Catholic and Protestant fall back to Christian
+  // because OSM tags most U.S. churches as religion=christian
+  // without a denomination. "No Preference" surfaces all faiths.
   const PREF_TO_RELIGION_CHAIN = {
     Catholic: ['Catholic', 'Christian'],
     Protestant: ['Protestant', 'Christian'],
@@ -362,21 +360,11 @@ function ReligiousServicesModule({ theme, profile }) {
     Hindu: ['Hindu'],
     Sikh: ['Sikh'],
   }
-  const prefChain = PREF_TO_RELIGION_CHAIN[String(profile?.religiousPreference || '').trim()] || []
-  // Pick the first religion in the chain that has at least one OSM
-  // match nearby. Falls through to 'all' if none match.
-  const defaultReligion = prefChain.find(r => religionGroups.includes(r)) || 'all'
-  // Initialize the user-controlled filter to the onboarding default
-  // once liveServices arrive and a matching group exists. Without
-  // this, switching to "all" sticks even after profile changes.
-  useEffect(() => {
-    if (defaultReligion === 'all') return
-    if (!liveServices.services.length) return
-    if (religionGroups.includes(defaultReligion)) setReligionFilter(defaultReligion)
-  }, [defaultReligion, liveServices.services.length])
-  const filteredLive = religionFilter === 'all'
+  const prefRaw = String(profile?.religiousPreference || '').trim()
+  const prefChain = PREF_TO_RELIGION_CHAIN[prefRaw] || []
+  const filteredLive = prefChain.length === 0
     ? liveServices.services
-    : liveServices.services.filter(s => s.religion === religionFilter)
+    : liveServices.services.filter(s => prefChain.includes(s.religion))
 
   const getServices = () => {
     const baseKey = (profile?.gainingInstallation || '').split(',')[0].trim()
@@ -471,19 +459,9 @@ function ReligiousServicesModule({ theme, profile }) {
               <div style={{ fontSize: 11, fontWeight: 800, color: theme.primary, marginBottom: 8, letterSpacing: '.06em', textTransform: 'uppercase' }}>
                 Nearby places of worship · {liveServices.services.length}
               </div>
-              {religionGroups.length > 1 && (
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-                  <button onClick={() => setReligionFilter('all')} style={{ padding: '5px 10px', borderRadius: 14, border: `1.5px solid ${religionFilter === 'all' ? theme.primary : '#E0E6EE'}`, background: religionFilter === 'all' ? theme.primary : '#FFF', color: religionFilter === 'all' ? '#FFF' : '#56697C', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
-                    All ({liveServices.services.length})
-                  </button>
-                  {religionGroups.map(rel => {
-                    const count = liveServices.services.filter(s => s.religion === rel).length
-                    return (
-                      <button key={rel} onClick={() => setReligionFilter(rel)} style={{ padding: '5px 10px', borderRadius: 14, border: `1.5px solid ${religionFilter === rel ? theme.primary : '#E0E6EE'}`, background: religionFilter === rel ? theme.primary : '#FFF', color: religionFilter === rel ? '#FFF' : '#56697C', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
-                        {rel} ({count})
-                      </button>
-                    )
-                  })}
+              {prefChain.length > 0 && (
+                <div style={{ fontSize: 10, color: '#56697C', marginBottom: 10 }}>
+                  Filtered to {prefRaw} based on your onboarding preference. Change your religious preference in onboarding to see other faiths.
                 </div>
               )}
               <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
