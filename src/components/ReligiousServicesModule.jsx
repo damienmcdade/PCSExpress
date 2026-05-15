@@ -345,22 +345,27 @@ function ReligiousServicesModule({ theme, profile }) {
   }, [activeTab, profile?.gainingInstallation])
 
   const religionGroups = Array.from(new Set(liveServices.services.map(s => s.religion))).sort()
-  // Map the onboarding religiousPreference values to OSM religion
-  // labels so the live OSM cards default to the user's chosen faith.
-  // If the user picked "No Preference" or chose a faith we cannot
-  // map, we show all results unfiltered.
-  const PREF_TO_RELIGION = {
-    Catholic: 'Catholic',
-    Protestant: 'Protestant',
-    Christian: 'Christian',
-    Jewish: 'Jewish',
-    Muslim: 'Islamic',
-    Islamic: 'Islamic',
-    Buddhist: 'Buddhist',
-    Hindu: 'Hindu',
-    Sikh: 'Sikh',
+  // Map onboarding religiousPreference values to OSM religion labels.
+  // OSM tagging is sparse: most U.S. churches are tagged only
+  // `religion=christian` rather than a specific denomination. So
+  // Protestant (which is rare in OSM data) falls back to Christian,
+  // which surfaces every Christian congregation including Protestant
+  // ones. Users can still narrow further via the chip filter.
+  const PREF_TO_RELIGION_CHAIN = {
+    Catholic: ['Catholic', 'Christian'],
+    Protestant: ['Protestant', 'Christian'],
+    Christian: ['Christian'],
+    Jewish: ['Jewish'],
+    Muslim: ['Islamic'],
+    Islamic: ['Islamic'],
+    Buddhist: ['Buddhist'],
+    Hindu: ['Hindu'],
+    Sikh: ['Sikh'],
   }
-  const defaultReligion = PREF_TO_RELIGION[String(profile?.religiousPreference || '').trim()] || 'all'
+  const prefChain = PREF_TO_RELIGION_CHAIN[String(profile?.religiousPreference || '').trim()] || []
+  // Pick the first religion in the chain that has at least one OSM
+  // match nearby. Falls through to 'all' if none match.
+  const defaultReligion = prefChain.find(r => religionGroups.includes(r)) || 'all'
   // Initialize the user-controlled filter to the onboarding default
   // once liveServices arrive and a matching group exists. Without
   // this, switching to "all" sticks even after profile changes.

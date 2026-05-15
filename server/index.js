@@ -429,7 +429,7 @@ async function overpassApartmentsFetch(lat, lng, radiusMeters) {
   return overpassQuery(query)
 }
 
-function shapeOsmApartmentComplex(el, originLat, originLng) {
+function shapeOsmApartmentComplex(el, originLat, originLng, originCity, originState) {
   const tags = el.tags || {}
   const name = tags.name || tags['name:en']
   if (!isUsableOsmName(name, 'apartments')) return null
@@ -438,8 +438,12 @@ function shapeOsmApartmentComplex(el, originLat, originLng) {
   if (typeof elLat !== 'number' || typeof elLng !== 'number') return null
   const distance = haversineMiles(originLat, originLng, elLat, elLng)
   const street = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ')
-  const addrCity = tags['addr:city'] || ''
-  const addrState = tags['addr:state'] || ''
+  // Many OSM complexes have a name tagged but no addr:city / addr:state.
+  // Fall back to the user-supplied search market so the city/state are
+  // never empty - lets the Google-search deep link below use the
+  // first branch (name + city/state) for every complex.
+  const addrCity = tags['addr:city'] || originCity || ''
+  const addrState = tags['addr:state'] || originState || ''
   const addrZip = tags['addr:postcode'] || ''
   const levels = tags['building:levels'] ? `${tags['building:levels']}-story` : ''
   const descParts = []
@@ -611,7 +615,7 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
       const seen = new Set()
       const complexes = []
       for (const el of elements) {
-        const shaped = shapeOsmApartmentComplex(el, origin.lat, origin.lng)
+        const shaped = shapeOsmApartmentComplex(el, origin.lat, origin.lng, city, state)
         if (!shaped) continue
         const key = `${shaped.name}|${Math.round(shaped.lat * 100)}|${Math.round(shaped.lng * 100)}`
         if (seen.has(key)) continue
