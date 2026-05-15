@@ -646,7 +646,7 @@ function EmploymentModule({ theme, profile }) {
                 ))}
               </div>
               <div style={{ fontSize: 10, color: '#66788A', lineHeight: 1.5, marginTop: 8 }}>
-                Listings refreshed hourly. Federal listings appear when a USAJOBS API key is configured. Verify role details, eligibility, security clearance, and posted salary on the original posting before applying.
+                Job listings refresh every hour. Confirm role details, eligibility, security clearance, and posted salary on the original posting before applying.
               </div>
             </section>
           )}

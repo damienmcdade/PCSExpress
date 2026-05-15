@@ -2867,6 +2867,47 @@ function SchoolsTab({ theme, profile }) {
   const searchLocation = getInstallationSearchLocation(instName);
   const schoolFinderCards = officialSchoolCards(instName);
 
+  // Live OSM-backed schools and childcare for the gaining installation.
+  // Empty + fallback => keep the existing curated cards visible.
+  const market = resolveMarket(profile);
+  const [liveSchools, setLiveSchools] = useState({ status: 'idle', schools: [], fallback: false, reason: '' });
+  useEffect(() => {
+    const haveMarket = market.matched && (market.city || market.zip);
+    if (!haveMarket && !instName) {
+      setLiveSchools({ status: 'no-input', schools: [], fallback: true, reason: 'no-location' });
+      return;
+    }
+    let cancelled = false;
+    setLiveSchools(s => ({ ...s, status: 'loading' }));
+    const params = new URLSearchParams();
+    if (haveMarket) {
+      if (market.city) params.set('city', market.city);
+      if (market.state) params.set('state', market.state);
+      if (market.zip) params.set('zip', market.zip);
+    } else {
+      params.set('address', instName);
+    }
+    params.set('radiusMiles', '25');
+    fetch(`/api/schools-nearby?${params.toString()}`, { headers: { Accept: 'application/json' } })
+      .then(r => r.ok ? r.json() : { schools: [], fallback: true })
+      .then(data => {
+        if (cancelled) return;
+        setLiveSchools({
+          status: 'ready',
+          schools: Array.isArray(data?.schools) ? data.schools : [],
+          fallback: !!data?.fallback,
+          reason: data?.reason || '',
+        });
+      })
+      .catch(err => {
+        if (cancelled) return;
+        setLiveSchools({ status: 'ready', schools: [], fallback: true, reason: `network-${err?.message || 'error'}` });
+      });
+    return () => { cancelled = true; };
+  }, [market.city, market.state, market.zip, market.matched, instName]);
+  const liveK12 = liveSchools.schools.filter(s => s.categoryId === 'k12');
+  const liveDaycare = liveSchools.schools.filter(s => s.categoryId === 'childcare' || s.categoryId === 'preschool');
+
   const agesFromProfile = profile?.childAges?.length > 0
     ? profile.childAges.filter(a => !isNaN(Number(a))).map(Number)
     : (profile?.childrenAges || '').split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
@@ -2916,9 +2957,46 @@ function SchoolsTab({ theme, profile }) {
       {/* K-12 Schools */}
       {section === 'schools' && (
         <>
+          {liveSchools.status === 'loading' && (
+            <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 11, color: '#56697C' }}>
+              Searching nearby schools from OpenStreetMap...
+            </div>
+          )}
+          {liveK12.length > 0 && (
+            <section style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: theme.primary, marginBottom: 8, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+                Nearby K-12 schools · {liveK12.length}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+                {liveK12.slice(0, 24).map(s => (
+                  <a key={s.id} href={s.ncesUrl} target="_blank" rel="noopener noreferrer" style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.accent}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: '#0D1821', display: 'block' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, flex: 1 }}>{s.name}</div>
+                      <span style={{ background: '#FFF8E1', color: '#6D4C00', fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap' }}>{s.distanceMiles} mi</span>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+                      <span style={{ background: '#EAF4FF', color: '#0D3B66', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4 }}>{s.type}</span>
+                      {s.grades && <span style={{ background: '#ECFDF5', color: '#065F46', fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{s.grades}</span>}
+                      {s.operatorType && <span style={{ background: '#F3F4F6', color: '#243447', fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{s.operatorType}</span>}
+                    </div>
+                    {s.address && <div style={{ fontSize: 11, color: '#56697C', marginBottom: 4 }}>{s.address}</div>}
+                    <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 8 }}>{s.description}</div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <a href={s.directionsUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: theme.primary, color: '#FFF', fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>Directions</a>
+                      {s.website && <a href={s.website} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>Website</a>}
+                      <span style={{ textDecoration: 'none', background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>NCES record</span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+              <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5, marginTop: 6 }}>
+                Live results from OpenStreetMap within 25 miles. Verify enrollment, district zoning, and ratings on NCES SchoolSearch or the local school website.
+              </div>
+            </section>
+          )}
           {filteredSchools.length > 0 && (
             <div style={{ display: 'flex', gap: 6, marginBottom: 12, alignItems: 'center' }}>
-              <span style={{ fontSize: 11, color: '#888' }}>Sort:</span>
+              <span style={{ fontSize: 11, color: '#888' }}>Sort curated:</span>
               {[['rating', 'Highest Rated'], ['name', 'A–Z']].map(([id, label]) => (
                 <button key={id} onClick={() => setSortBy(id)} style={{ padding: '5px 10px', borderRadius: 14, border: `1.5px solid ${sortBy === id ? theme.primary : '#E0E6EE'}`, background: sortBy === id ? theme.primary : '#FFF', color: sortBy === id ? '#FFF' : '#56697C', fontSize: 10, cursor: 'pointer', fontWeight: 700 }}>
                   {label}
@@ -2965,6 +3043,41 @@ function SchoolsTab({ theme, profile }) {
           <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 12, color: '#1D4ED8', lineHeight: 1.5 }}>
             Child Development Centers (CDCs) on-post give priority to active duty families. Contact early — waitlists can be 2–8 weeks.
           </div>
+          {liveSchools.status === 'loading' && (
+            <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 11, color: '#56697C' }}>
+              Searching nearby childcare from OpenStreetMap...
+            </div>
+          )}
+          {liveDaycare.length > 0 && (
+            <section style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: theme.primary, marginBottom: 8, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+                Nearby childcare & preschool · {liveDaycare.length}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+                {liveDaycare.slice(0, 24).map(s => (
+                  <a key={s.id} href={s.website || s.mapUrl} target="_blank" rel="noopener noreferrer" style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.accent}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: '#0D1821', display: 'block' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, flex: 1 }}>{s.name}</div>
+                      <span style={{ background: '#FFF8E1', color: '#6D4C00', fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap' }}>{s.distanceMiles} mi</span>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+                      <span style={{ background: '#EAF4FF', color: '#0D3B66', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4 }}>{s.type}</span>
+                      {s.grades && <span style={{ background: '#ECFDF5', color: '#065F46', fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{s.grades}</span>}
+                    </div>
+                    {s.address && <div style={{ fontSize: 11, color: '#56697C', marginBottom: 4 }}>{s.address}</div>}
+                    <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 8 }}>{s.description}</div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <a href={s.directionsUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: theme.primary, color: '#FFF', fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>Directions</a>
+                      {s.phone && <span style={{ background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>{s.phone}</span>}
+                    </div>
+                  </a>
+                ))}
+              </div>
+              <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5, marginTop: 6 }}>
+                Live results from OpenStreetMap within 25 miles. For on-post CDC enrollment and military-priority waitlists, use MilitaryChildCare.com below.
+              </div>
+            </section>
+          )}
           {daycares.length === 0 && (
             <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12, marginBottom: 14 }}>
               No local CDC card is stored for this installation yet. Use the official childcare and installation-directory links below to verify Child Development Center, school liaison, and family program contacts.
@@ -3175,17 +3288,17 @@ function VeteranBusinessesTab({ theme, profile }) {
             ))}
           </div>
           <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5, marginTop: 8 }}>
-            Live results from SAM.gov Entity Information filtered for veteran-owned (VOSB) and service-disabled veteran-owned (SDVOSB) business types. Cached up to 24 hours. Verify entity status and certifications on SAM.gov before contracting.
+            Listings are pulled from the federal SAM.gov directory and filtered for veteran-owned and service-disabled veteran-owned businesses. Confirm a business is still active on SAM.gov before any contract or purchase.
           </div>
         </section>
       )}
       {liveBiz.status === 'ready' && liveBiz.businesses.length === 0 && liveBiz.fallback && (
         <div style={{ background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 11, color: '#0D3B66', lineHeight: 1.5 }}>
           {liveBiz.reason === 'no-api-key'
-            ? 'Live SAM.gov lookup not yet configured for this deployment. Use the verified source links below to search by city, ZIP, or NAICS code.'
+            ? 'Live business listings will turn on soon. In the meantime, use the verified search links below to find veteran-owned businesses by city or ZIP.'
             : liveBiz.reason === 'unknown-installation'
-              ? 'Add or update your gaining installation in onboarding to see live veteran-owned business listings. Use the verified source links below in the meantime.'
-              : `No verified veteran-owned business listings cached for ${searchLocation || 'this installation'} yet. Use the verified source links below to search SAM.gov, SBA VetCert, and the VBOC network directly.`
+              ? 'Set your gaining installation in onboarding to see live veteran-owned business listings. The verified search links below still work.'
+              : `We do not have live listings cached for ${searchLocation || 'this installation'} yet. The verified search links below let you search SBA, SAM.gov, and the VBOC network directly.`
           }
         </div>
       )}

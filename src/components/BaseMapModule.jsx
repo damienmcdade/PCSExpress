@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { publicMapEmbedUrl, publicMapSearchUrl } from '../lib/mapEmbedUrl';
+import { osmBoundingBoxEmbedUrl, publicMapEmbedUrl, publicMapSearchUrl } from '../lib/mapEmbedUrl';
 
 const OFFICIAL_INSTALLATION_DIRECTORY = 'https://installations.militaryonesource.mil/';
 const MILITARY_ONESOURCE_OVERVIEW = 'https://www.militaryonesource.mil/resources/network/militaryinstallations/';
@@ -92,9 +92,49 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
   const installation = clean(submittedInstallation || installationInput || profileInstallation);
   const displayInstallation = installation || 'Enter a gaining installation';
   const mapQuery = installation ? `${installation} military installation` : 'military installation';
-  const embedUrl = useMemo(() => publicMapEmbedUrl(mapQuery), [mapQuery]);
   const mapSearchUrl = useMemo(() => publicMapSearchUrl(mapQuery), [mapQuery]);
   const cards = useMemo(() => sourceCards(installation, branch), [installation, branch]);
+
+  // Geocode via Nominatim and render an OSM embed centered on the
+  // installation. This replaces the Google classic embed which had
+  // intermittent zoom and consent-wall issues. CSP already allows
+  // https://nominatim.openstreetmap.org for the route planner.
+  const [geo, setGeo] = useState({ status: 'idle', lat: null, lng: null });
+  useEffect(() => {
+    if (!installation) {
+      setGeo({ status: 'idle', lat: null, lng: null });
+      return;
+    }
+    let cancelled = false;
+    setGeo(s => ({ ...s, status: 'loading' }));
+    const q = encodeURIComponent(`${installation} military installation`);
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`, {
+      headers: { Accept: 'application/json' },
+    })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        if (cancelled) return;
+        const hit = Array.isArray(data) && data[0];
+        if (hit) {
+          setGeo({ status: 'ready', lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) });
+        } else {
+          setGeo({ status: 'not-found', lat: null, lng: null });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setGeo({ status: 'error', lat: null, lng: null });
+      });
+    return () => { cancelled = true; };
+  }, [installation]);
+
+  const embedUrl = useMemo(() => {
+    if (geo.status === 'ready') {
+      return osmBoundingBoxEmbedUrl(geo.lat, geo.lng, 0.06);
+    }
+    // Google embed as a fallback while geocoding or if Nominatim
+    // could not resolve the installation name.
+    return publicMapEmbedUrl(mapQuery);
+  }, [geo, mapQuery]);
 
   const colors = {
     primary: theme.primary || '#21424A',

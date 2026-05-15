@@ -1,14 +1,21 @@
 /*
- * Google Maps embed URL helpers shared by BaseMapModule and HomeLocatorTab.
+ * Map embed URL helpers shared by BaseMapModule.
  *
- * The classic `maps.google.com/maps?q=...&output=embed` URL accepts a
- * `z=` (zoom) parameter between 0 (whole-world) and 21 (street level).
- * Without `z`, Google picks a zoom based on the geocoded result type and
- * for installation queries that often resolves much wider than the base
- * itself - users see surrounding state/region instead of the base.
+ * Two providers:
  *
- * Default zoom 13 keeps most CONUS installation footprints visible while
- * still showing nearby town context. Override via the second argument.
+ * 1. publicMapEmbedUrl (Google classic embed) - legacy keyword fallback.
+ *    Accepts a `z=` (zoom) parameter, 0-21. Drawback: Google's geocoder
+ *    can land on the wrong city or show a consent wall in some
+ *    jurisdictions.
+ *
+ * 2. osmBoundingBoxEmbedUrl (OpenStreetMap export iframe) - preferred
+ *    when we have lat/lng from Nominatim. Renders OSM tiles with a
+ *    marker directly on the installation. No API key, no consent wall,
+ *    consistent worldwide.
+ *
+ * BaseMapModule geocodes the installation through Nominatim (already
+ * in the app CSP for the route planner) and uses the OSM iframe so the
+ * base sits exactly in the center of the viewport.
  */
 
 const DEFAULT_ZOOM = 13;
@@ -21,4 +28,16 @@ export function publicMapEmbedUrl(label, zoom = DEFAULT_ZOOM) {
 
 export function publicMapSearchUrl(label) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(label || 'military installation')}`;
+}
+
+/**
+ * Build an OpenStreetMap embed URL centered on (lat, lng) with a marker.
+ * `spanDeg` controls the rough viewport width in degrees - smaller = more
+ * zoomed in. ~0.06 deg fits a typical large CONUS installation.
+ */
+export function osmBoundingBoxEmbedUrl(lat, lng, spanDeg = 0.06) {
+  if (typeof lat !== 'number' || typeof lng !== 'number') return null;
+  const half = spanDeg / 2;
+  const bbox = [lng - half, lat - half, lng + half, lat + half].join(',');
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
 }

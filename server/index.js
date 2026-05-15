@@ -26,7 +26,7 @@ const csp = [
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
   "connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://*.tile.openstreetmap.org",
-  "frame-src 'self' https://maps.google.com https://www.google.com",
+  "frame-src 'self' https://maps.google.com https://www.google.com https://www.openstreetmap.org",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -644,6 +644,365 @@ app.get('/api/job-listings', jobsRateLimit, async (req, res) => {
     listings,
     sources,
     fallback: listings.length === 0,
+    fetchedAt: Date.now(),
+  })
+})
+
+// === RELIGIOUS / SPIRITUAL SERVICES (OPENSTREETMAP - NO API KEY) ===
+// Places of worship from OSM Overpass within radius of the gaining
+// installation. OSM tags include `religion` (christian / muslim /
+// jewish / buddhist / hindu / etc.) and optional `denomination` for
+// finer-grain Christian sub-traditions.
+const RELIGION_LABELS = {
+  christian: 'Christian',
+  catholic: 'Catholic',
+  protestant: 'Protestant',
+  muslim: 'Islamic',
+  jewish: 'Jewish',
+  buddhist: 'Buddhist',
+  hindu: 'Hindu',
+  sikh: 'Sikh',
+  bahai: 'Baha’i',
+  jain: 'Jain',
+  shinto: 'Shinto',
+  taoist: 'Taoist',
+  multifaith: 'Multi-faith',
+  unitarian_universalist: 'Unitarian Universalist',
+  pagan: 'Pagan',
+}
+const RELIGIOUS_CACHE = new Map()
+const RELIGIOUS_TTL_MS = 24 * 60 * 60 * 1000
+const RELIGIOUS_RATE_LIMIT = 20
+const RELIGIOUS_RATE_WINDOW_MS = 60_000
+const _religiousHits = new Map()
+
+function religiousRateLimit(req, res, next) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const now = Date.now()
+  const entry = _religiousHits.get(ip)
+  if (!entry || now - entry.windowStart > RELIGIOUS_RATE_WINDOW_MS) {
+    _religiousHits.set(ip, { count: 1, windowStart: now })
+    return next()
+  }
+  if (entry.count >= RELIGIOUS_RATE_LIMIT) {
+    return res.status(429).json({ error: 'Rate limit exceeded. Try again in a minute.', services: [], fallback: true })
+  }
+  entry.count += 1
+  return next()
+}
+
+function shapeOsmReligious(el, originLat, originLng) {
+  const tags = el.tags || {}
+  if (tags.amenity !== 'place_of_worship') return null
+  const name = tags.name || tags['name:en'] || 'Place of worship'
+  const elLat = el.lat ?? el.center?.lat
+  const elLng = el.lon ?? el.center?.lon
+  if (typeof elLat !== 'number' || typeof elLng !== 'number') return null
+  const distance = haversineMiles(originLat, originLng, elLat, elLng)
+  const religionTag = String(tags.religion || '').toLowerCase()
+  const denomTag = String(tags.denomination || '').toLowerCase()
+  const religionLabel = RELIGION_LABELS[denomTag] || RELIGION_LABELS[religionTag] || (religionTag ? religionTag.charAt(0).toUpperCase() + religionTag.slice(1) : 'Place of worship')
+  const street = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ')
+  const cityPart = [tags['addr:city'], tags['addr:state']].filter(Boolean).join(', ')
+  const address = [street, cityPart].filter(Boolean).join(', ')
+  const descParts = []
+  if (tags.description) descParts.push(tags.description)
+  if (tags['service_times']) descParts.push(`Service times: ${tags['service_times']}`)
+  if (tags.opening_hours) descParts.push(`Hours: ${tags.opening_hours}`)
+  const description = descParts.length
+    ? descParts.join(' · ')
+    : `${religionLabel} place of worship approximately ${distance} mi from search center. Confirm service times and accessibility directly with the congregation.`
+  return {
+    id: `${el.type}/${el.id}`,
+    name,
+    religion: religionLabel,
+    religionTag: religionTag || 'unknown',
+    denomination: denomTag || '',
+    distanceMiles: distance,
+    address,
+    description,
+    website: tags.website || tags['contact:website'] || '',
+    phone: tags.phone || tags['contact:phone'] || '',
+    lat: elLat,
+    lng: elLng,
+    mapUrl: `https://www.openstreetmap.org/?mlat=${elLat}&mlon=${elLng}#map=16/${elLat}/${elLng}`,
+    directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${elLat},${elLng}`,
+  }
+}
+
+async function overpassReligiousFetch(lat, lng, radiusMeters) {
+  const query = `[out:json][timeout:20];(node["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng});way["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng}););out center tags;`
+  const url = 'https://overpass-api.de/api/interpreter'
+  const signal = AbortSignal.timeout(20000)
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'User-Agent': OSM_USER_AGENT,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Accept: 'application/json',
+    },
+    body: `data=${encodeURIComponent(query)}`,
+    signal,
+  })
+  if (!r.ok) throw new Error(`overpass ${r.status}`)
+  return r.json()
+}
+
+app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
+  const city = String(req.query.city || '').trim().slice(0, 80)
+  const state = String(req.query.state || '').trim().slice(0, 16)
+  const zip = String(req.query.zip || '').trim().slice(0, 10)
+  const address = String(req.query.address || '').trim().slice(0, 160)
+  const radiusMiles = Math.max(5, Math.min(50, parseInt(req.query.radiusMiles, 10) || 25))
+
+  const geocodeQuery = address || [city, state, zip].filter(Boolean).join(', ')
+  if (!geocodeQuery) {
+    return res.status(400).json({ error: 'address, city, or zip is required', services: [], fallback: true })
+  }
+
+  const cacheKey = `${geocodeQuery}|${radiusMiles}`
+  const cached = RELIGIOUS_CACHE.get(cacheKey)
+  if (cached && Date.now() - cached.fetchedAt < RELIGIOUS_TTL_MS) {
+    return res.status(200).json({ services: cached.services, origin: cached.origin, source: 'cache', fetchedAt: cached.fetchedAt })
+  }
+
+  let origin
+  try {
+    origin = await geocodeNominatim(geocodeQuery)
+  } catch (err) {
+    console.error(`[religious] geocode ${err.message}`)
+    return res.status(200).json({ services: [], fallback: true, reason: 'geocode-failed' })
+  }
+  if (!origin) {
+    return res.status(200).json({ services: [], fallback: true, reason: 'address-not-found' })
+  }
+
+  let overpassData
+  try {
+    overpassData = await overpassReligiousFetch(origin.lat, origin.lng, Math.round(radiusMiles * 1609.34))
+  } catch (err) {
+    console.error(`[religious] overpass ${err.message}`)
+    return res.status(200).json({ services: [], origin, fallback: true, reason: 'overpass-failed' })
+  }
+
+  const elements = Array.isArray(overpassData?.elements) ? overpassData.elements : []
+  const seenIds = new Set()
+  const services = []
+  for (const el of elements) {
+    const shaped = shapeOsmReligious(el, origin.lat, origin.lng)
+    if (!shaped) continue
+    const key = `${shaped.name}|${Math.round(shaped.lat * 100)}|${Math.round(shaped.lng * 100)}`
+    if (seenIds.has(key)) continue
+    seenIds.add(key)
+    services.push(shaped)
+  }
+  services.sort((a, b) => a.distanceMiles - b.distanceMiles)
+  const limited = services.slice(0, 60)
+
+  RELIGIOUS_CACHE.set(cacheKey, { services: limited, origin, fetchedAt: Date.now() })
+
+  res.status(200).json({
+    services: limited,
+    origin,
+    radiusMiles,
+    source: 'openstreetmap',
+    fetchedAt: Date.now(),
+  })
+})
+
+// === SCHOOLS & CHILDCARE (OPENSTREETMAP - NO API KEY REQUIRED) ===
+// Same OSM Overpass approach as Family Fun: query amenity=school /
+// kindergarten / college / university / childcare within radius of the
+// gaining installation. Returns grade-level hints inferred from the
+// isced:level / min_age / max_age tags when present.
+const SCHOOL_TAG_MAP = {
+  'amenity=school': { categoryId: 'k12', type: 'School' },
+  'amenity=kindergarten': { categoryId: 'preschool', type: 'Kindergarten / Pre-K' },
+  'amenity=childcare': { categoryId: 'childcare', type: 'Childcare' },
+  'amenity=college': { categoryId: 'college', type: 'College' },
+  'amenity=university': { categoryId: 'college', type: 'University' },
+  'amenity=language_school': { categoryId: 'k12', type: 'Language school' },
+  'amenity=music_school': { categoryId: 'k12', type: 'Music school' },
+}
+const SCHOOL_CATEGORIES = [
+  { id: 'k12', label: 'K-12 Schools', emoji: '🏫', description: 'Elementary, middle, high, and combined schools.' },
+  { id: 'preschool', label: 'Preschool / Kindergarten', emoji: '🧒', description: 'Pre-K, kindergarten, and early-learning programs.' },
+  { id: 'childcare', label: 'Childcare', emoji: '🍼', description: 'Daycare and childcare centers.' },
+  { id: 'college', label: 'Colleges & Universities', emoji: '🎓', description: 'Higher-education campuses.' },
+]
+const SCHOOL_CACHE = new Map()
+const SCHOOL_TTL_MS = 24 * 60 * 60 * 1000
+const SCHOOL_RATE_LIMIT = 20
+const SCHOOL_RATE_WINDOW_MS = 60_000
+const _schoolHits = new Map()
+
+function schoolRateLimit(req, res, next) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const now = Date.now()
+  const entry = _schoolHits.get(ip)
+  if (!entry || now - entry.windowStart > SCHOOL_RATE_WINDOW_MS) {
+    _schoolHits.set(ip, { count: 1, windowStart: now })
+    return next()
+  }
+  if (entry.count >= SCHOOL_RATE_LIMIT) {
+    return res.status(429).json({ error: 'Rate limit exceeded. Try again in a minute.', schools: [], categories: SCHOOL_CATEGORIES, fallback: true })
+  }
+  entry.count += 1
+  return next()
+}
+
+function shapeOsmSchool(el, originLat, originLng) {
+  const tags = el.tags || {}
+  let matchTag = null
+  for (const tag of Object.keys(SCHOOL_TAG_MAP)) {
+    const [k, v] = tag.split('=')
+    if (tags[k] === v) { matchTag = tag; break }
+  }
+  if (!matchTag) return null
+  const meta = SCHOOL_TAG_MAP[matchTag]
+  const name = tags.name || tags['name:en'] || meta.type
+  const elLat = el.lat ?? el.center?.lat
+  const elLng = el.lon ?? el.center?.lon
+  if (typeof elLat !== 'number' || typeof elLng !== 'number') return null
+  const distance = haversineMiles(originLat, originLng, elLat, elLng)
+  const street = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ')
+  const cityPart = [tags['addr:city'], tags['addr:state']].filter(Boolean).join(', ')
+  const address = [street, cityPart].filter(Boolean).join(', ')
+
+  // Infer grade range from common OSM tags. ISCED levels map to:
+  //   0 pre-primary, 1 primary, 2 lower secondary, 3 upper secondary
+  let grades = ''
+  if (tags['isced:level']) {
+    const levels = String(tags['isced:level']).split(/[,;]/).map(s => s.trim())
+    const labels = levels.map(l => {
+      if (l === '0') return 'Pre-K'
+      if (l === '1') return 'K-5'
+      if (l === '2') return '6-8'
+      if (l === '3') return '9-12'
+      return l
+    })
+    grades = labels.join(', ')
+  } else if (tags['min_age'] || tags['max_age']) {
+    grades = `Ages ${tags['min_age'] || '?'}-${tags['max_age'] || '?'}`
+  } else if (meta.categoryId === 'preschool') {
+    grades = 'Pre-K'
+  } else if (meta.categoryId === 'childcare') {
+    grades = 'Childcare'
+  }
+
+  const operator = tags.operator || ''
+  const operatorType = tags['operator:type'] || ''
+  const descParts = []
+  if (tags.description) descParts.push(tags.description)
+  if (operatorType) descParts.push(`${operatorType.charAt(0).toUpperCase() + operatorType.slice(1)} school`)
+  else if (operator) descParts.push(`Operated by ${operator}`)
+  if (tags.opening_hours) descParts.push(`Hours: ${tags.opening_hours}`)
+  const description = descParts.length
+    ? descParts.join(' · ')
+    : `${meta.type} approximately ${distance} mi from search center. Verify enrollment, grade levels, and ratings on the official source.`
+
+  return {
+    id: `${el.type}/${el.id}`,
+    categoryId: meta.categoryId,
+    type: meta.type,
+    name,
+    grades,
+    address,
+    distanceMiles: distance,
+    description,
+    operatorType,
+    website: tags.website || tags['contact:website'] || '',
+    phone: tags.phone || tags['contact:phone'] || '',
+    lat: elLat,
+    lng: elLng,
+    mapUrl: `https://www.openstreetmap.org/?mlat=${elLat}&mlon=${elLng}#map=16/${elLat}/${elLng}`,
+    directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${elLat},${elLng}`,
+    // NCES SchoolSearch deep link as an authoritative cross-reference.
+    ncesUrl: `https://nces.ed.gov/ccd/schoolsearch/school_list.asp?Search=1&SchoolName=${encodeURIComponent(name)}`,
+  }
+}
+
+async function overpassSchoolsFetch(lat, lng, radiusMeters) {
+  const filters = Object.keys(SCHOOL_TAG_MAP).map(tag => {
+    const [k, v] = tag.split('=')
+    return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
+  }).join('')
+  const query = `[out:json][timeout:20];(${filters});out center tags;`
+  const url = 'https://overpass-api.de/api/interpreter'
+  const signal = AbortSignal.timeout(20000)
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'User-Agent': OSM_USER_AGENT,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Accept: 'application/json',
+    },
+    body: `data=${encodeURIComponent(query)}`,
+    signal,
+  })
+  if (!r.ok) throw new Error(`overpass ${r.status}`)
+  return r.json()
+}
+
+app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
+  const city = String(req.query.city || '').trim().slice(0, 80)
+  const state = String(req.query.state || '').trim().slice(0, 16)
+  const zip = String(req.query.zip || '').trim().slice(0, 10)
+  const address = String(req.query.address || '').trim().slice(0, 160)
+  const radiusMiles = Math.max(5, Math.min(50, parseInt(req.query.radiusMiles, 10) || 25))
+
+  const geocodeQuery = address || [city, state, zip].filter(Boolean).join(', ')
+  if (!geocodeQuery) {
+    return res.status(400).json({ error: 'address, city, or zip is required', categories: SCHOOL_CATEGORIES, schools: [], fallback: true })
+  }
+
+  const cacheKey = `${geocodeQuery}|${radiusMiles}`
+  const cached = SCHOOL_CACHE.get(cacheKey)
+  if (cached && Date.now() - cached.fetchedAt < SCHOOL_TTL_MS) {
+    return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: cached.schools, origin: cached.origin, source: 'cache', fetchedAt: cached.fetchedAt })
+  }
+
+  let origin
+  try {
+    origin = await geocodeNominatim(geocodeQuery)
+  } catch (err) {
+    console.error(`[schools] geocode ${err.message}`)
+    return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: [], fallback: true, reason: 'geocode-failed' })
+  }
+  if (!origin) {
+    return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: [], fallback: true, reason: 'address-not-found' })
+  }
+
+  let overpassData
+  try {
+    overpassData = await overpassSchoolsFetch(origin.lat, origin.lng, Math.round(radiusMiles * 1609.34))
+  } catch (err) {
+    console.error(`[schools] overpass ${err.message}`)
+    return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: [], origin, fallback: true, reason: 'overpass-failed' })
+  }
+
+  const elements = Array.isArray(overpassData?.elements) ? overpassData.elements : []
+  const seenIds = new Set()
+  const schools = []
+  for (const el of elements) {
+    const shaped = shapeOsmSchool(el, origin.lat, origin.lng)
+    if (!shaped) continue
+    const key = `${shaped.name}|${Math.round(shaped.lat * 100)}|${Math.round(shaped.lng * 100)}`
+    if (seenIds.has(key)) continue
+    seenIds.add(key)
+    schools.push(shaped)
+  }
+  schools.sort((a, b) => a.distanceMiles - b.distanceMiles)
+  const limited = schools.slice(0, 80)
+
+  SCHOOL_CACHE.set(cacheKey, { schools: limited, origin, fetchedAt: Date.now() })
+
+  res.status(200).json({
+    categories: SCHOOL_CATEGORIES,
+    schools: limited,
+    origin,
+    radiusMiles,
+    source: 'openstreetmap',
     fetchedAt: Date.now(),
   })
 })

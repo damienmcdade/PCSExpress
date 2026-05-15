@@ -10,7 +10,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { resolveMarket } from '../data/installationMarkets';
-import { publicMapEmbedUrl, publicMapSearchUrl } from '../lib/mapEmbedUrl';
 
 const BRANCH_HOUSING_SOURCES = {
   Army: {
@@ -89,24 +88,12 @@ function buildOfficialLinks(market, branchSource) {
   ];
 }
 
-// Prefer the most specific geocode-friendly target Google can resolve:
-// installation + city/state/zip when known, else the raw input.
-function mapQueryFor(market) {
-  if (market.matched && market.location) {
-    return `${market.installation}, ${market.location}`;
-  }
-  return market.query || market.installation || 'military installation';
-}
-
 export default function HomeLocatorTab({ theme = {}, profile = {} }) {
   const [manual, setManual] = useState('');
   const market = useMemo(() => resolveMarket(profile, manual), [profile, manual]);
   const branch = clean(profile?.branch) || 'Army';
   const branchSource = BRANCH_HOUSING_SOURCES[branch] || BRANCH_HOUSING_SOURCES.Army;
   const links = useMemo(() => buildOfficialLinks(market, branchSource), [market, branchSource]);
-  const mapQuery = useMemo(() => mapQueryFor(market), [market]);
-  const embedUrl = useMemo(() => publicMapEmbedUrl(mapQuery), [mapQuery]);
-  const mapSearchUrl = useMemo(() => publicMapSearchUrl(mapQuery), [mapQuery]);
   const colors = {
     primary: theme.primary || '#244247',
     secondary: theme.secondary || '#152F36',
@@ -156,31 +143,6 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
         <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 5 }}>{market.label}</div>
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.78)', lineHeight: 1.6 }}>
           Use these official public housing links to verify current housing availability, housing office contacts, temporary lodging, and allowance information for the gaining installation. PCS Express does not store private housing inventory or non-public housing data.
-        </div>
-      </div>
-
-      <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 0, marginBottom: 14, overflow: 'hidden' }}>
-        <iframe
-          key={embedUrl}
-          title={`Public map view for ${market.installation || 'selected installation'}`}
-          src={embedUrl}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          style={{ width: '100%', height: 320, border: 0, display: 'block', background: '#EDF2F4' }}
-          allowFullScreen
-        />
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', padding: 10, borderTop: '1px solid #E0E6EE' }}>
-          <a
-            href={mapSearchUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ textDecoration: 'none', background: colors.primary, color: '#FFFFFF', borderRadius: 8, padding: '8px 12px', fontSize: 12, fontWeight: 800 }}
-          >
-            Open public map
-          </a>
-          <span style={{ fontSize: 10, color: colors.muted, alignSelf: 'center', lineHeight: 1.5 }}>
-            Map centered on the gaining installation. PCS Express does not store restricted, gate, or force-protection map data.
-          </span>
         </div>
       </div>
 
@@ -249,17 +211,17 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
             ))}
           </div>
           <div style={{ fontSize: 10, color: colors.muted, lineHeight: 1.5, marginTop: 8 }}>
-            Listings are aggregated from a third-party rentals API and cached up to 6 hours. PCS Express does not store private housing inventory. Verify availability, lease terms, pet rules, and move-in dates directly with the listing source.
+            Rental listings come from a third-party housing partner and refresh every few hours. Confirm availability, lease terms, pet rules, and move-in dates directly with the listing before signing.
           </div>
         </section>
       )}
       {listings.status === 'ready' && listings.items.length === 0 && listings.fallback && (
         <div style={{ background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 11, color: '#0D3B66', lineHeight: 1.5 }}>
           {listings.reason === 'no-api-key'
-            ? 'Live rental listings not yet configured for this deployment. Use the official housing sources below to search HOMES.mil, MilitaryINSTALLATIONS, branch housing, and approved off-base resources.'
+            ? 'Live rentals will turn on soon. In the meantime, the official housing sources below let you search HOMES.mil, MilitaryINSTALLATIONS, and your branch housing portal.'
             : listings.reason === 'unknown-installation'
-              ? 'Add your gaining installation in onboarding (or type one above) to see active rental listings. The official housing sources below work in the meantime.'
-              : `No active rental listings cached for ${market.installation || 'this installation'} yet. Use the official housing sources below to search current availability.`}
+              ? 'Set a gaining installation in onboarding (or type one above) to see active rentals. The official housing sources below work for any base.'
+              : `We do not have active rentals cached for ${market.installation || 'this installation'} yet. The official housing sources below let you search current availability.`}
         </div>
       )}
 

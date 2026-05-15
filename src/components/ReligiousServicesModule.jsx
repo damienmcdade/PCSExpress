@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const OVERSEAS_KEYWORDS = [
   'Humphreys', 'Kadena', 'Yokota', 'Ramstein', 'Stuttgart',
@@ -313,6 +313,42 @@ const ONLINE_RESOURCES = [
 function ReligiousServicesModule({ theme, profile }) {
   const [activeTab, setActiveTab] = useState('counseling')
 
+  // Live places of worship from OSM Overpass (no API key required).
+  // Falls through to the curated/static lists below when empty.
+  const [liveServices, setLiveServices] = useState({ status: 'idle', services: [], reason: '' })
+  const [religionFilter, setReligionFilter] = useState('all')
+  useEffect(() => {
+    if (activeTab !== 'services') return
+    const inst = (profile?.gainingInstallation || '').split(',')[0].trim()
+    if (!inst) {
+      setLiveServices({ status: 'no-input', services: [], reason: 'no-installation' })
+      return
+    }
+    let cancelled = false
+    setLiveServices(s => ({ ...s, status: 'loading' }))
+    const params = new URLSearchParams({ address: inst, radiusMiles: '25' })
+    fetch(`/api/religious-services?${params.toString()}`, { headers: { Accept: 'application/json' } })
+      .then(r => r.ok ? r.json() : { services: [], fallback: true })
+      .then(data => {
+        if (cancelled) return
+        setLiveServices({
+          status: 'ready',
+          services: Array.isArray(data?.services) ? data.services : [],
+          reason: data?.reason || '',
+        })
+      })
+      .catch(err => {
+        if (cancelled) return
+        setLiveServices({ status: 'ready', services: [], reason: `network-${err?.message || 'error'}` })
+      })
+    return () => { cancelled = true }
+  }, [activeTab, profile?.gainingInstallation])
+
+  const religionGroups = Array.from(new Set(liveServices.services.map(s => s.religion))).sort()
+  const filteredLive = religionFilter === 'all'
+    ? liveServices.services
+    : liveServices.services.filter(s => s.religion === religionFilter)
+
   const getServices = () => {
     const baseKey = (profile?.gainingInstallation || '').split(',')[0].trim()
     return RELIGIOUS_SERVICES[baseKey] || []
@@ -388,6 +424,63 @@ function ReligiousServicesModule({ theme, profile }) {
       {/* ── SERVICES TAB ── */}
       {activeTab === 'services' && (
         <div>
+          {/* Live nearby places of worship */}
+          {liveServices.status === 'loading' && (
+            <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 11, color: '#56697C' }}>
+              Looking up nearby places of worship from OpenStreetMap...
+            </div>
+          )}
+          {liveServices.status === 'ready' && liveServices.services.length > 0 && (
+            <section style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: theme.primary, marginBottom: 8, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+                Nearby places of worship · {liveServices.services.length}
+              </div>
+              {religionGroups.length > 1 && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                  <button onClick={() => setReligionFilter('all')} style={{ padding: '5px 10px', borderRadius: 14, border: `1.5px solid ${religionFilter === 'all' ? theme.primary : '#E0E6EE'}`, background: religionFilter === 'all' ? theme.primary : '#FFF', color: religionFilter === 'all' ? '#FFF' : '#56697C', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                    All ({liveServices.services.length})
+                  </button>
+                  {religionGroups.map(rel => {
+                    const count = liveServices.services.filter(s => s.religion === rel).length
+                    return (
+                      <button key={rel} onClick={() => setReligionFilter(rel)} style={{ padding: '5px 10px', borderRadius: 14, border: `1.5px solid ${religionFilter === rel ? theme.primary : '#E0E6EE'}`, background: religionFilter === rel ? theme.primary : '#FFF', color: religionFilter === rel ? '#FFF' : '#56697C', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                        {rel} ({count})
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+                {filteredLive.slice(0, 24).map(s => (
+                  <a key={s.id} href={s.website || s.mapUrl} target="_blank" rel="noopener noreferrer" style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 10, padding: 12, textDecoration: 'none', color: '#0D1821', display: 'block' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, flex: 1 }}>{s.name}</div>
+                      <span style={{ background: '#FFF8E1', color: '#6D4C00', fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap' }}>{s.distanceMiles} mi</span>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+                      <span style={{ background: '#EAF4FF', color: '#0D3B66', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4 }}>{s.religion}</span>
+                      {s.denomination && <span style={{ background: '#F3F4F6', color: '#243447', fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{s.denomination}</span>}
+                    </div>
+                    {s.address && <div style={{ fontSize: 11, color: '#56697C', marginBottom: 4 }}>{s.address}</div>}
+                    <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 8 }}>{s.description}</div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <a href={s.directionsUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: theme.primary, color: '#FFF', fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>Directions</a>
+                      {s.phone && <span style={{ background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>{s.phone}</span>}
+                    </div>
+                  </a>
+                ))}
+              </div>
+              <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5, marginTop: 6 }}>
+                Live results from OpenStreetMap within 25 miles. Confirm service times, accessibility, and on-base access policies directly with each congregation. The curated chapel listings below show official on-installation chapel programs.
+              </div>
+            </section>
+          )}
+          {liveServices.status === 'ready' && liveServices.services.length === 0 && liveServices.reason && (
+            <div style={{ background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 11, color: '#0D3B66', lineHeight: 1.5 }}>
+              No nearby places of worship returned from OpenStreetMap right now. The curated installation chapel listings below remain available.
+            </div>
+          )}
+
           {/* Denomination filter banner */}
           {filterDenom && (
             <div style={{
