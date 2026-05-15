@@ -345,6 +345,30 @@ function ReligiousServicesModule({ theme, profile }) {
   }, [activeTab, profile?.gainingInstallation])
 
   const religionGroups = Array.from(new Set(liveServices.services.map(s => s.religion))).sort()
+  // Map the onboarding religiousPreference values to OSM religion
+  // labels so the live OSM cards default to the user's chosen faith.
+  // If the user picked "No Preference" or chose a faith we cannot
+  // map, we show all results unfiltered.
+  const PREF_TO_RELIGION = {
+    Catholic: 'Catholic',
+    Protestant: 'Protestant',
+    Christian: 'Christian',
+    Jewish: 'Jewish',
+    Muslim: 'Islamic',
+    Islamic: 'Islamic',
+    Buddhist: 'Buddhist',
+    Hindu: 'Hindu',
+    Sikh: 'Sikh',
+  }
+  const defaultReligion = PREF_TO_RELIGION[String(profile?.religiousPreference || '').trim()] || 'all'
+  // Initialize the user-controlled filter to the onboarding default
+  // once liveServices arrive and a matching group exists. Without
+  // this, switching to "all" sticks even after profile changes.
+  useEffect(() => {
+    if (defaultReligion === 'all') return
+    if (!liveServices.services.length) return
+    if (religionGroups.includes(defaultReligion)) setReligionFilter(defaultReligion)
+  }, [defaultReligion, liveServices.services.length])
   const filteredLive = religionFilter === 'all'
     ? liveServices.services
     : liveServices.services.filter(s => s.religion === religionFilter)
@@ -423,7 +447,14 @@ function ReligiousServicesModule({ theme, profile }) {
 
       {/* ── SERVICES TAB ── */}
       {activeTab === 'services' && (
-        <div>
+        // Flex + order so the live OSM section visually renders
+        // AFTER the curated installation chapel data, without
+        // restructuring the JSX. Curated content (overseas chapel,
+        // INSTALLATION_CHAPELS-by-denomination, online resources)
+        // gets order 1; the live OSM places-of-worship grid gets
+        // order 2.
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ order: 2 }} aria-label="Live places of worship">
           {/* Live nearby places of worship */}
           {liveServices.status === 'loading' && (
             <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 11, color: '#56697C' }}>
@@ -488,6 +519,9 @@ function ReligiousServicesModule({ theme, profile }) {
               No nearby places of worship returned from OpenStreetMap right now. The curated installation chapel listings below remain available.
             </div>
           )}
+          </div>
+
+          <div style={{ order: 1 }} aria-label="Official installation chapel data">
 
           {/* Denomination filter banner */}
           {filterDenom && (
@@ -669,6 +703,7 @@ function ReligiousServicesModule({ theme, profile }) {
               </div>
             </div>
           )}
+          </div>
         </div>
       )}
 

@@ -160,6 +160,22 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
         </div>
       </div>
 
+      {/* Official housing links pinned at the top so the verified
+          DoD/branch sources are the first thing the user sees, even
+          if the dynamic listings are still loading or empty. */}
+      <section style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 900, color: colors.text, marginBottom: 8 }}>Official housing links</div>
+        <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+          {links.map(link => (
+            <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: '#F8FAFC', border: '1px solid #E6EDF3', borderLeft: `4px solid ${colors.primary}`, borderRadius: 10, padding: 12, color: colors.text }}>
+              <div style={{ fontSize: 12, fontWeight: 900, color: colors.text }}>{link.name}</div>
+              <div style={{ fontSize: 11, color: colors.muted, lineHeight: 1.5, marginTop: 4 }}>{link.desc}</div>
+              <div style={{ marginTop: 10, display: 'inline-flex', padding: '7px 10px', borderRadius: 8, background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 900 }}>Open official site</div>
+            </a>
+          ))}
+        </div>
+      </section>
+
       {listings.status === 'loading' && (
         <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 12, color: colors.muted }}>
           Looking up active rental listings near {market.installation || 'your gaining installation'}...
@@ -308,19 +324,6 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
               : `We do not have active rentals cached for ${market.installation || 'this installation'} yet. The official housing sources below let you search current availability.`}
         </div>
       )}
-
-      <section style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
-        <div style={{ fontSize: 12, fontWeight: 900, color: colors.text, marginBottom: 8 }}>Official housing links</div>
-        <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-          {links.map(link => (
-            <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: '#F8FAFC', border: '1px solid #E6EDF3', borderLeft: `4px solid ${colors.primary}`, borderRadius: 10, padding: 12, color: colors.text }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: colors.text }}>{link.name}</div>
-              <div style={{ fontSize: 11, color: colors.muted, lineHeight: 1.5, marginTop: 4 }}>{link.desc}</div>
-              <div style={{ marginTop: 10, display: 'inline-flex', padding: '7px 10px', borderRadius: 8, background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 900 }}>Open official site</div>
-            </a>
-          ))}
-        </div>
-      </section>
 
       <div style={{ fontSize: 11, color: '#0D3B66', background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, lineHeight: 1.5 }}>
         Official housing systems may require users to search by installation name after opening the source. Verify all availability, eligibility, wait lists, pet rules, commute distance, lease terms, and move-in dates through the official source before making housing decisions.

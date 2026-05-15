@@ -2996,6 +2996,21 @@ function SchoolsTab({ theme, profile }) {
       {/* K-12 Schools */}
       {section === 'schools' && (
         <>
+          {/* Official school sources first - NCES, DoDEA, and
+              MilitaryINSTALLATIONS are authoritative; we show them
+              above the dynamic OSM cards so the verified path is
+              always visible. */}
+          {instName && schoolFinderCards.length > 0 && (
+            <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: theme.primary, marginBottom: 8, letterSpacing: '.06em', textTransform: 'uppercase' }}>Official school sources</div>
+              {schoolFinderCards.map(card => (
+                <a key={card.name} href={card.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 10, borderRadius: 10, border: '1px solid #E0E6EE', marginTop: 8, textDecoration: 'none', background: '#F8FAFC' }}>
+                  <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821' }}>{card.name}</div>
+                  <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.45, marginTop: 3 }}>{card.desc}</div>
+                </a>
+              ))}
+            </div>
+          )}
           {liveSchools.status === 'loading' && (
             <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 11, color: '#56697C' }}>
               Searching nearby schools from OpenStreetMap...
@@ -3072,18 +3087,6 @@ function SchoolsTab({ theme, profile }) {
             </div>
           )}
           {!instName && <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12 }}>Complete onboarding to see schools near your installation.</div>}
-          {instName && filteredSchools.length === 0 && (
-            <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 12 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 6 }}>Official school sources for {searchLocation}</div>
-              <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 10 }}>PCS Express has not stored a local school card for this installation yet, so it provides official public school and DoDEA source paths instead of showing a dead-end message.</div>
-              {schoolFinderCards.map(card => (
-                <a key={card.name} href={card.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 10, borderRadius: 10, border: '1px solid #E0E6EE', marginTop: 8, textDecoration: 'none', background: '#F8FAFC' }}>
-                  <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821' }}>{card.name}</div>
-                  <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.45, marginTop: 3 }}>{card.desc}</div>
-                </a>
-              ))}
-            </div>
-          )}
           {filteredSchools.map((school, idx) => (
             <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
@@ -3242,6 +3245,10 @@ function VeteranBusinessesTab({ theme, profile }) {
   // 'all' | 'business' | 'service' - splits SAM.gov entities by primary
   // NAICS classification returned from the backend.
   const [industryFilter, setIndustryFilter] = useState('all');
+  // Sub-tab inside the Veterans category: live SAM.gov listings vs
+  // the SBA/VA static resource cards. User explicitly asked to keep
+  // these split.
+  const [vetTab, setVetTab] = useState('listings');
   useEffect(() => {
     if (!liveMarket.matched || (!liveMarket.city && !liveMarket.zip)) {
       setLiveBiz({ status: 'no-market', businesses: [], fallback: true, reason: 'unknown-installation' });
@@ -3282,10 +3289,33 @@ function VeteranBusinessesTab({ theme, profile }) {
   return (
     <div style={{ padding: 16 }}>
       <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Veteran Owned & Veteran Operated Businesses</div>
-      <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>
+      <div style={{ fontSize: 12, color: '#56697C', marginBottom: 12 }}>
         {instName ? <>Veteran-owned business discovery near <strong>{searchLocation}</strong></> : 'Complete onboarding to tailor veteran-owned business discovery to your installation.'}
       </div>
 
+      {/* Active Listings / SBA Resources sub-tabs */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {[
+          { id: 'listings', label: 'Active Listings' },
+          { id: 'resources', label: 'SBA Resources' },
+        ].map(t => (
+          <button
+            key={t.id}
+            onClick={() => setVetTab(t.id)}
+            style={{
+              padding: '8px 16px', borderRadius: 20,
+              border: `1.5px solid ${vetTab === t.id ? theme.primary : '#D6E0EA'}`,
+              background: vetTab === t.id ? theme.primary : '#FFFFFF',
+              color: vetTab === t.id ? '#FFFFFF' : '#243447',
+              fontSize: 12, fontWeight: 800, cursor: 'pointer',
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {vetTab === 'resources' && (<>
       {/* National directory quick links */}
       <div style={{ background: theme.secondary, borderRadius: 14, padding: 14, marginBottom: 16 }}>
         <div style={{ fontSize: 11, fontWeight: 800, color: theme.accent, marginBottom: 10, letterSpacing: '.08em' }}>NATIONAL DIRECTORIES & RESOURCES</div>
@@ -3299,6 +3329,9 @@ function VeteranBusinessesTab({ theme, profile }) {
         </div>
       </div>
 
+      </>)}
+
+      {vetTab === 'listings' && (<>
       {/* Live veteran-owned business listings (SAM.gov proxy) */}
       {liveBiz.status === 'loading' && (
         <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 12, color: '#56697C' }}>
@@ -3383,6 +3416,9 @@ function VeteranBusinessesTab({ theme, profile }) {
         </div>
       )}
 
+      </>)}
+
+      {vetTab === 'resources' && (<>
       {/* Active category link bubbles */}
       {bubbleLinks.length > 1 && (
         <div style={{ marginBottom: 14 }}>
@@ -3440,6 +3476,7 @@ function VeteranBusinessesTab({ theme, profile }) {
           </a>
         </div>
       ))}
+      </>)}
     </div>
   );
 }
