@@ -6562,7 +6562,7 @@ function FamilyFunTab({ theme, profile }) {
           {appliedAddress ? `Activities within 50 mi of ${appliedAddress}` : market.matched ? `Activities within 50 mi of ${market.installation}` : 'Set a gaining installation or address to see family activities'}
         </div>
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.78)', lineHeight: 1.6 }}>
-          Parks, theme parks, movies, museums, sports, arts, shopping, zoos, and more — pulled live from OpenStreetMap. Tap any card to open turn-by-turn Google Maps directions. Distances are straight-line estimates; confirm hours, prices, and accessibility on the destination page.
+          Parks, theme parks, movies, museums, sports, arts, shopping, zoos, and more — pulled live from OpenStreetMap and filtered to only show named, real-world places. Use the category chips to narrow by type. Tap any card to open turn-by-turn Google Maps directions. Distances are straight-line estimates; confirm hours, prices, and accessibility on the destination page.
         </div>
       </div>
 

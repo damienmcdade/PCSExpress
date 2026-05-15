@@ -432,7 +432,7 @@ async function overpassApartmentsFetch(lat, lng, radiusMeters) {
 function shapeOsmApartmentComplex(el, originLat, originLng) {
   const tags = el.tags || {}
   const name = tags.name || tags['name:en']
-  if (!name) return null
+  if (!isUsableOsmName(name, 'apartments')) return null
   const elLat = el.lat ?? el.center?.lat
   const elLng = el.lon ?? el.center?.lon
   if (typeof elLat !== 'number' || typeof elLng !== 'number') return null
@@ -449,13 +449,23 @@ function shapeOsmApartmentComplex(el, originLat, originLng) {
   const baseDesc = descParts.length ? descParts.join(' · ') : 'apartment community'
   const description = `${baseDesc} approximately ${distance} mi away. Bed, bath, square footage, and rent vary by unit - tap the Apartments.com button to see current availability for this address.`
 
-  // Apartments.com search-by-address pattern. Falls back to city-level
-  // when we have no street address.
-  const apartmentsSearch = street && addrCity
-    ? `https://www.apartments.com/search/?q=${encodeURIComponent(`${street} ${addrCity} ${addrState}`)}`
-    : addrCity
-      ? `https://www.apartments.com/${encodeURIComponent(addrCity.toLowerCase().replace(/\s+/g, '-'))}-${(addrState || '').toLowerCase()}/`
-      : `https://www.apartments.com/search/?q=${encodeURIComponent(name)}`
+  // Deep-link to listing data. Apartments.com's free-text search
+  // often lands on a generic page when the query does not match its
+  // listing taxonomy exactly. A Google search pinned to four major
+  // rental aggregators surfaces the actual property's listing on
+  // whichever site has it indexed - usually the first organic
+  // result. The user gets one click to a real listing instead of an
+  // Apartments.com homepage.
+  const ev = encodeURIComponent
+  const cityState = [addrCity, addrState].filter(Boolean).join(' ')
+  const aggregatorSites = 'site:apartments.com OR site:zillow.com OR site:trulia.com OR site:realtor.com OR site:rent.com OR site:apartmentlist.com'
+  const apartmentsSearch = name && cityState
+    ? `https://www.google.com/search?q=${ev(`"${name}" ${cityState} ${aggregatorSites}`)}`
+    : street && cityState
+      ? `https://www.google.com/search?q=${ev(`"${street}" ${cityState} apartments for rent ${aggregatorSites}`)}`
+      : cityState
+        ? `https://www.apartments.com/${ev(addrCity.toLowerCase().replace(/\s+/g, '-'))}-${(addrState || '').toLowerCase()}/`
+        : `https://www.apartments.com/search/?q=${ev(name || '')}`
 
   return {
     id: `${el.type}/${el.id}`,
@@ -481,6 +491,60 @@ function shapeOsmApartmentComplex(el, originLat, originLng) {
     lng: elLng,
     source: 'OpenStreetMap',
   }
+}
+
+// Synthetic property-type search-CTA cards. OSM only has names on
+// apartment complexes; single family homes, condos, townhouses, and
+// duplex/triplex/quadplex addresses are rarely named in OSM and even
+// when present have no rent / unit / bedroom data. For those types we
+// emit one card per category that deep-links to an Apartments.com or
+// Realtor.com filtered search prefilled with the installation's
+// city/state. Users get a real button to shop by property type even
+// without a RapidAPI rentals key configured.
+function syntheticTypeCards(city, state, zip) {
+  if (!city) return []
+  const slug = `${city.toLowerCase().replace(/\s+/g, '-')}-${(state || '').toLowerCase()}`
+  const ev = encodeURIComponent
+  const cityState = `${city}${state ? ', ' + state : ''}`
+  const TYPES = [
+    { propertyType: 'Single Family', name: `Single-family home rentals near ${city}`, apartmentsPath: `houses` },
+    { propertyType: 'Condo',         name: `Condo rentals near ${city}`,              apartmentsPath: `condos` },
+    { propertyType: 'Townhouse',     name: `Townhouse rentals near ${city}`,          apartmentsPath: `townhomes` },
+    { propertyType: 'Duplex',        name: `Duplex rentals near ${city}`,             apartmentsQuery: 'duplex' },
+    { propertyType: 'Triplex',       name: `Triplex rentals near ${city}`,            apartmentsQuery: 'triplex' },
+    { propertyType: 'Quadplex',      name: `Quadplex / fourplex rentals near ${city}`, apartmentsQuery: 'quadplex fourplex' },
+  ]
+  return TYPES.map(t => {
+    const apartmentsUrl = t.apartmentsPath
+      ? `https://www.apartments.com/${slug}/${t.apartmentsPath}/`
+      : `https://www.apartments.com/search/?q=${ev(t.apartmentsQuery + ' ' + cityState)}`
+    return {
+      id: `synthetic-${t.propertyType.toLowerCase().replace(/\s+/g, '-')}-${slug}`,
+      name: t.name,
+      address: '',
+      city,
+      state: state || '',
+      zip: zip || '',
+      beds: null,
+      baths: null,
+      sqft: null,
+      propertyType: t.propertyType,
+      distanceMiles: null,
+      description: `Tap to browse ${t.propertyType.toLowerCase()} rentals on Apartments.com filtered to ${cityState}. Confirm availability, bed/bath/sqft, and lease terms directly on the listing.`,
+      price: null,
+      apartmentsSearchUrl: apartmentsUrl,
+      listingUrl: apartmentsUrl,
+      // Synthetic cards point to an area-wide search, not a specific
+      // address - "directions" deep-links to driving directions to
+      // the city center so the user still gets useful navigation.
+      directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${ev(cityState)}`,
+      mapUrl: `https://www.google.com/maps/search/?api=1&query=${ev(cityState)}`,
+      website: '',
+      phone: '',
+      source: 'Apartments.com search',
+      synthetic: true,
+    }
+  })
 }
 
 app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
@@ -565,7 +629,19 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
   const [rapidApiResults, osmResults] = await Promise.all([rapidApiPromise, osmPromise])
   // RapidAPI listings (priced units) come first; OSM complexes (real
   // addresses, deep-linked Apartments.com search) follow.
-  const combined = [...rapidApiResults, ...osmResults].slice(0, 30)
+  // Three-source merge:
+  //   1. RapidAPI priced rentals (only when key configured) - real
+  //      addresses with bed/bath/sqft.
+  //   2. OSM apartment complexes - real complex names, click opens a
+  //      Google search across Apartments.com + Zillow + Trulia +
+  //      Realtor.com to surface the actual listing.
+  //   3. Synthetic search-CTA cards for non-apartment property types
+  //      (Single Family / Condo / Townhouse / Duplex / Triplex /
+  //      Quadplex) - linked to type-filtered Apartments.com landing
+  //      pages so the user can shop by housing type without a paid
+  //      data feed.
+  const syntheticResults = syntheticTypeCards(city, state, zip)
+  const combined = [...rapidApiResults, ...osmResults, ...syntheticResults].slice(0, 40)
   // Skip caching empty results so transient upstream failures do not
   // poison the cache for 24 hours.
   if (combined.length > 0) {
@@ -888,7 +964,9 @@ function religiousRateLimit(req, res, next) {
 function shapeOsmReligious(el, originLat, originLng) {
   const tags = el.tags || {}
   if (tags.amenity !== 'place_of_worship') return null
-  const name = tags.name || tags['name:en'] || 'Place of worship'
+  const rawName = tags.name || tags['name:en'] || ''
+  if (!isUsableOsmName(rawName, 'place of worship')) return null
+  const name = rawName
   const elLat = el.lat ?? el.center?.lat
   const elLng = el.lon ?? el.center?.lon
   if (typeof elLat !== 'number' || typeof elLng !== 'number') return null
@@ -1063,7 +1141,9 @@ function shapeOsmSchool(el, originLat, originLng) {
   }
   if (!matchTag) return null
   const meta = SCHOOL_TAG_MAP[matchTag]
-  const name = tags.name || tags['name:en'] || meta.type
+  const rawName = tags.name || tags['name:en'] || ''
+  if (!isUsableOsmName(rawName, meta.type)) return null
+  const name = rawName
   const elLat = el.lat ?? el.center?.lat
   const elLng = el.lon ?? el.center?.lon
   if (typeof elLat !== 'number' || typeof elLng !== 'number') return null
@@ -1228,20 +1308,26 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
 // OpenStreetMap Foundation. We follow their usage policies: explicit
 // User-Agent, server-side caching, request batching, and graceful
 // fallback when they return 429/504 or time out.
+// Family Fun category list. Each tag in OSM_TAG_MAP below must map
+// to a categoryId here. Tags that are not genuinely family-friendly
+// (pro stadiums, adult gyms, generic galleries, generic
+// "attraction", marketplaces, malls, ice-cream shops, etc.) are
+// excluded entirely - we only surface venues a family would
+// reasonably plan a visit to.
 const FAMILY_CATEGORIES = [
-  { id: 'parks', label: 'Parks & Nature', emoji: '🌲', description: 'Local, state, and national parks plus playgrounds, gardens, and trails.' },
-  { id: 'amusement', label: 'Amusement & Theme Parks', emoji: '🎢', description: 'Theme parks, water parks, and family entertainment centers.' },
-  { id: 'movies', label: 'Movie Theaters', emoji: '🎦', description: 'Cinemas and independent theaters.' },
-  { id: 'museums', label: 'Museums & Galleries', emoji: '🏛️', description: 'History, science, art, military museums, and galleries.' },
-  { id: 'sports', label: 'Sports & Fitness', emoji: '🏟️', description: 'Pools, gyms, rinks, climbing, mini-golf, bowling, stadiums, sports complexes.' },
-  { id: 'culture', label: 'Arts & Culture', emoji: '🎨', description: 'Arts centers, libraries, public art, community centers, theaters.' },
-  { id: 'family', label: 'Family Venues', emoji: '🏖️', description: 'Zoos, aquariums, attractions, ice cream shops, dog parks.' },
-  { id: 'shopping', label: 'Shopping & Markets', emoji: '🛍️', description: 'Malls, farmers markets, and shopping districts.' },
+  { id: 'parks', label: 'Parks & Outdoors', emoji: '🌲', description: 'Parks, playgrounds, gardens, trails, nature reserves, and national parks.' },
+  { id: 'amusement', label: 'Amusement & Theme Parks', emoji: '🎢', description: 'Theme parks, water parks, and family arcades.' },
+  { id: 'movies', label: 'Movie Theaters', emoji: '🎦', description: 'Family-friendly cinemas.' },
+  { id: 'museums', label: 'Museums', emoji: '🏛️', description: 'Children’s, science, history, and military museums plus public memorials.' },
+  { id: 'sports', label: 'Active Play', emoji: '🏟️', description: 'Pools, ice rinks, bowling, mini-golf, climbing - hands-on activities for all ages.' },
+  { id: 'culture', label: 'Arts & Libraries', emoji: '🎨', description: 'Arts centers, libraries, and public art kids can explore.' },
+  { id: 'family', label: 'Zoos & Aquariums', emoji: '🦓', description: 'Live animal venues - zoos, aquariums, animal sanctuaries.' },
 ]
 
 // Maps OSM tag pairs to our internal category + a short type label.
+// Curated to only include genuinely family-pertinent POI types.
 const OSM_TAG_MAP = {
-  // Parks & Nature
+  // Parks & Outdoors
   'leisure=park': { categoryId: 'parks', type: 'Park' },
   'leisure=nature_reserve': { categoryId: 'parks', type: 'Nature reserve' },
   'leisure=playground': { categoryId: 'parks', type: 'Playground' },
@@ -1253,39 +1339,31 @@ const OSM_TAG_MAP = {
   // Amusement & Theme Parks
   'tourism=theme_park': { categoryId: 'amusement', type: 'Theme park' },
   'leisure=water_park': { categoryId: 'amusement', type: 'Water park' },
-  'tourism=amusement_arcade': { categoryId: 'amusement', type: 'Arcade' },
-  // Movies
+  'tourism=amusement_arcade': { categoryId: 'amusement', type: 'Family arcade' },
+  // Movie Theaters
   'amenity=cinema': { categoryId: 'movies', type: 'Cinema' },
-  'amenity=theatre': { categoryId: 'movies', type: 'Theater' },
-  // Museums & Galleries
+  // Museums (galleries removed - too often adult-oriented)
   'tourism=museum': { categoryId: 'museums', type: 'Museum' },
-  'tourism=gallery': { categoryId: 'museums', type: 'Gallery' },
   'historic=monument': { categoryId: 'museums', type: 'Monument' },
   'historic=memorial': { categoryId: 'museums', type: 'Memorial' },
-  // Sports & Fitness
-  'leisure=sports_centre': { categoryId: 'sports', type: 'Sports center' },
+  // Active Play (pro stadiums, adult fitness gyms, and athletic
+  // tracks intentionally excluded - they are not destinations a
+  // family typically visits together for fun)
   'leisure=swimming_pool': { categoryId: 'sports', type: 'Swimming pool' },
-  'leisure=fitness_centre': { categoryId: 'sports', type: 'Fitness center' },
   'leisure=ice_rink': { categoryId: 'sports', type: 'Ice rink' },
   'amenity=ice_rink': { categoryId: 'sports', type: 'Ice rink' },
   'leisure=bowling_alley': { categoryId: 'sports', type: 'Bowling alley' },
   'leisure=miniature_golf': { categoryId: 'sports', type: 'Mini-golf' },
   'sport=climbing': { categoryId: 'sports', type: 'Climbing gym' },
-  'leisure=stadium': { categoryId: 'sports', type: 'Stadium' },
-  'leisure=track': { categoryId: 'sports', type: 'Athletic track' },
-  // Arts & Culture
+  // Arts & Libraries (community_centre dropped - too often AA
+  // meeting halls or senior centers)
   'amenity=arts_centre': { categoryId: 'culture', type: 'Arts center' },
   'amenity=library': { categoryId: 'culture', type: 'Library' },
-  'amenity=community_centre': { categoryId: 'culture', type: 'Community center' },
   'tourism=artwork': { categoryId: 'culture', type: 'Public art' },
-  // Family Venues
+  // Zoos & Aquariums (generic "attraction" + ice cream shops
+  // dropped - too unfocused)
   'tourism=zoo': { categoryId: 'family', type: 'Zoo' },
   'tourism=aquarium': { categoryId: 'family', type: 'Aquarium' },
-  'tourism=attraction': { categoryId: 'family', type: 'Attraction' },
-  'amenity=ice_cream': { categoryId: 'family', type: 'Ice cream shop' },
-  // Shopping & Markets
-  'shop=mall': { categoryId: 'shopping', type: 'Shopping mall' },
-  'amenity=marketplace': { categoryId: 'shopping', type: 'Marketplace' },
 }
 
 const FAMILY_CACHE = new Map()
@@ -1308,6 +1386,22 @@ function familyRateLimit(req, res, next) {
   }
   entry.count += 1
   return next()
+}
+
+// OSM is community-edited. A small fraction of POIs are tagged with
+// placeholder names like "c", "B", "1", or just the type word
+// (e.g., name="Park" on a leisure=park node). These produce visually
+// junk cards. Reject anything that does not look like a real name.
+function isUsableOsmName(name, type) {
+  if (!name) return false
+  const trimmed = String(name).trim()
+  if (trimmed.length < 3) return false
+  // All digits or symbols, no letters.
+  if (!/[a-z]/i.test(trimmed)) return false
+  // Just the generic type word (e.g., "Park" / "School" / "Museum").
+  const t = String(type || '').toLowerCase().trim()
+  if (t && trimmed.toLowerCase() === t) return false
+  return true
 }
 
 function haversineMiles(lat1, lon1, lat2, lon2) {
@@ -1434,7 +1528,9 @@ function shapeOsmElement(el, originLat, originLng) {
   }
   if (!matchTag) return null
   const meta = OSM_TAG_MAP[matchTag]
-  const name = tags.name || tags['name:en'] || meta.type
+  const rawName = tags.name || tags['name:en'] || ''
+  if (!isUsableOsmName(rawName, meta.type)) return null
+  const name = rawName
   const elLat = el.lat ?? el.center?.lat
   const elLng = el.lon ?? el.center?.lon
   if (typeof elLat !== 'number' || typeof elLng !== 'number') return null

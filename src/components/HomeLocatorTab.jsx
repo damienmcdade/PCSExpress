@@ -107,6 +107,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
   // results" - in that case we render the existing official housing
   // link cards below as the verified fallback path.
   const [listings, setListings] = useState({ status: 'idle', items: [], fallback: false, reason: '' });
+  const [typeFilter, setTypeFilter] = useState('All');
   useEffect(() => {
     if (!market.matched || (!market.city && !market.zip)) {
       setListings({ status: 'no-market', items: [], fallback: true, reason: 'unknown-installation' });
@@ -142,7 +143,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
         <div style={{ fontSize: 10, fontWeight: 900, color: colors.accent, letterSpacing: '.08em', marginBottom: 4 }}>HOME LOCATOR</div>
         <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 5 }}>{market.label}</div>
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.78)', lineHeight: 1.6 }}>
-          Use these official public housing links to verify current housing availability, housing office contacts, temporary lodging, and allowance information for the gaining installation. PCS Express does not store private housing inventory or non-public housing data.
+          Browse housing near the gaining installation by type — apartment community, single-family home, condo, townhouse, duplex, triplex, or quadplex. Tap any card for directions; the "Live units" button surfaces the matching listings on Apartments.com, Zillow, Trulia, and Realtor.com so you see real availability and pricing. The official housing sources below are the verified backup for HOMES.mil, MilitaryINSTALLATIONS, branch housing, and BAH lookup.
         </div>
       </div>
 
@@ -164,13 +165,57 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
           Looking up active rental listings near {market.installation || 'your gaining installation'}...
         </div>
       )}
-      {listings.status === 'ready' && listings.items.length > 0 && (
+      {listings.status === 'ready' && listings.items.length > 0 && (() => {
+        // Build the type-filter chip list from whatever property types
+        // come back. OSM apartment complexes are tagged "Apartment
+        // community"; a configured RapidAPI key adds "Single Family",
+        // "Condo", "Townhouse", etc. when those listings come through.
+        // Anything without a propertyType collapses into "Other".
+        const counts = listings.items.reduce((m, it) => {
+          const t = it.propertyType || 'Other';
+          m[t] = (m[t] || 0) + 1;
+          return m;
+        }, {});
+        const orderedTypes = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+        const filtered = typeFilter === 'All' ? listings.items : listings.items.filter(it => (it.propertyType || 'Other') === typeFilter);
+        return (
         <section style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 12, fontWeight: 900, color: colors.text, marginBottom: 8 }}>
             Housing near {market.installation} <span style={{ fontWeight: 600, color: colors.muted, marginLeft: 6 }}>({listings.items.length})</span>
           </div>
+          {orderedTypes.length > 1 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+              <button
+                onClick={() => setTypeFilter('All')}
+                style={{
+                  padding: '6px 12px', borderRadius: 16,
+                  border: `1.5px solid ${typeFilter === 'All' ? colors.primary : '#D6E0EA'}`,
+                  background: typeFilter === 'All' ? colors.primary : '#FFFFFF',
+                  color: typeFilter === 'All' ? '#FFFFFF' : '#243447',
+                  fontSize: 11, fontWeight: 800, cursor: 'pointer',
+                }}
+              >
+                All ({listings.items.length})
+              </button>
+              {orderedTypes.map(t => (
+                <button
+                  key={t}
+                  onClick={() => setTypeFilter(t)}
+                  style={{
+                    padding: '6px 12px', borderRadius: 16,
+                    border: `1.5px solid ${typeFilter === t ? colors.primary : '#D6E0EA'}`,
+                    background: typeFilter === t ? colors.primary : '#FFFFFF',
+                    color: typeFilter === t ? '#FFFFFF' : '#243447',
+                    fontSize: 11, fontWeight: 800, cursor: 'pointer',
+                  }}
+                >
+                  {t} ({counts[t]})
+                </button>
+              ))}
+            </div>
+          )}
           <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
-            {listings.items.map(item => (
+            {filtered.map(item => (
               // Whole card opens Google Maps directions in a new tab
               // (matches Family Fun / Schools UX). Apartments.com and
               // any inner links use stopPropagation.
@@ -252,7 +297,8 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
             Apartment communities are from OpenStreetMap. Tap any card for directions, or tap "Live units" to open Apartments.com for current availability, bed/bath/sqft, and pricing at that address. PCS Express does not store private housing inventory.
           </div>
         </section>
-      )}
+        );
+      })()}
       {listings.status === 'ready' && listings.items.length === 0 && listings.fallback && (
         <div style={{ background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 11, color: '#0D3B66', lineHeight: 1.5 }}>
           {listings.reason === 'no-api-key'
