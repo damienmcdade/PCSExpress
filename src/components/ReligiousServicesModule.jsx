@@ -474,7 +474,7 @@ function ReligiousServicesModule({ theme, profile }) {
               <div style={{ fontSize: 11, fontWeight: 800, color: theme.primary, marginBottom: 8, letterSpacing: '.06em', textTransform: 'uppercase' }}>
                 Nearby places of worship · {liveServices.services.length}
               </div>
-              {prefChain.length > 0 && (
+              {matcher && (
                 <div style={{ fontSize: 10, color: '#56697C', marginBottom: 10 }}>
                   Filtered to {prefRaw} based on your onboarding preference. Change your religious preference in onboarding to see other faiths.
                 </div>
