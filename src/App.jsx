@@ -3011,7 +3011,7 @@ function SchoolsTab({ theme, profile }) {
                   Sorted: military / on-installation schools first, then grade-band matches for your child{agesFromProfile.length > 1 ? 'ren' : ''} (age{agesFromProfile.length > 1 ? 's' : ''} {agesFromProfile.join(', ')}), then by distance.
                 </div>
               )}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+              <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
                 {liveK12.slice(0, 24).map(s => (
                   <a
                     key={s.id}
@@ -3123,7 +3123,7 @@ function SchoolsTab({ theme, profile }) {
               <div style={{ fontSize: 10, color: '#56697C', marginBottom: 8 }}>
                 On-installation CDCs / Child Development Centers come up first when nearby. For DoD priority waitlist enrollment use MilitaryChildCare.com below.
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+              <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
                 {liveDaycare.slice(0, 24).map(s => (
                   <a
                     key={s.id}
@@ -3336,7 +3336,7 @@ function VeteranBusinessesTab({ theme, profile }) {
               </button>
             ))}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+          <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
             {liveBiz.businesses.filter(b => industryFilter === 'all' || b.industry === industryFilter).map(biz => (
               <a
                 key={biz.id}
@@ -6637,7 +6637,7 @@ function FamilyFunTab({ theme, profile }) {
             })}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+          <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
             {filtered.map(act => (
               // Whole card is the click target - opens Google Maps
               // turn-by-turn directions in a new tab. Inner action
@@ -6848,10 +6848,40 @@ function App() {
         return false;
       }
     };
+    // Dynamic-card anchors (Family Fun, Schools, Home Locator, Vet
+    // Businesses, Religious Services, Job Search) link to user-
+    // discovery destinations whose hosts are NOT on the static
+    // allowlist - Google Maps directions, OSM-tagged business
+    // websites, Apartments.com, The Muse, RemoteOK, etc. Marking an
+    // anchor (or any ancestor) with data-dynamic-card="true" opts it
+    // out of the strict allowlist while keeping target+rel hardening
+    // and the click-time same-origin block. The audit still blocks
+    // missing/relative/same-origin hrefs even on these opted-out
+    // anchors.
+    const isDynamicCardAnchor = (anchor) => {
+      try { return !!anchor.closest?.('[data-dynamic-card="true"]'); } catch { return false; }
+    };
     const disableUnsafeAnchor = (anchor) => {
       const rawHref = anchor.getAttribute('href') || '';
       const absoluteHref = anchor.href || rawHref;
-      if (!isApprovedExternalLink(absoluteHref)) {
+      // Always block missing / same-origin / javascript: hrefs - those
+      // are the genuine reverse-tabnabbing / loop-back vectors.
+      let parsed = null;
+      try { parsed = new URL(absoluteHref, window.location.origin); } catch {}
+      const sameOrigin = parsed && parsed.origin === window.location.origin;
+      const isBadProtocol = parsed && !/^https?:$/.test(parsed.protocol);
+      if (!parsed || sameOrigin || isBadProtocol) {
+        anchor.setAttribute('data-link-audit-blocked', rawHref || 'blank-or-relative');
+        anchor.setAttribute('aria-hidden', 'true');
+        anchor.setAttribute('tabindex', '-1');
+        anchor.removeAttribute('href');
+        anchor.style.display = 'none';
+        return true;
+      }
+      // Dynamic-card anchors skip the static allowlist - they point
+      // to data-source destinations (Google Maps, OSM, Apartments.com,
+      // etc.). They still get target+rel hardening below.
+      if (!isDynamicCardAnchor(anchor) && !isApprovedExternalLink(absoluteHref)) {
         anchor.setAttribute('data-link-audit-blocked', rawHref || 'blank-or-relative');
         anchor.setAttribute('aria-hidden', 'true');
         anchor.setAttribute('tabindex', '-1');
@@ -6871,6 +6901,17 @@ function App() {
       if (!anchor) return;
       const rawHref = anchor.getAttribute('href') || '';
       const absoluteHref = anchor.href || rawHref;
+      let parsed = null;
+      try { parsed = new URL(absoluteHref, window.location.origin); } catch {}
+      const sameOrigin = parsed && parsed.origin === window.location.origin;
+      const isBadProtocol = parsed && !/^https?:$/.test(parsed.protocol);
+      if (!parsed || sameOrigin || isBadProtocol) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        disableUnsafeAnchor(anchor);
+        return;
+      }
+      if (isDynamicCardAnchor(anchor)) return;
       if (!isApprovedExternalLink(absoluteHref)) {
         event.preventDefault();
         event.stopImmediatePropagation();

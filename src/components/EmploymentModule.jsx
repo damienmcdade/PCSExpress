@@ -611,7 +611,7 @@ function EmploymentModule({ theme, profile }) {
               <div style={{ fontSize: 10, fontWeight: 900, color: theme.primary, letterSpacing: '.1em', marginBottom: 10, textTransform: 'uppercase' }}>
                 Live job listings · {liveJobs.listings.length}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
+              <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
                 {liveJobs.listings.map(job => (
                   <a
                     key={job.id}

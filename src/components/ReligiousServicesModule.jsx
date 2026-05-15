@@ -450,7 +450,7 @@ function ReligiousServicesModule({ theme, profile }) {
                   })}
                 </div>
               )}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+              <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
                 {filteredLive.slice(0, 24).map(s => (
                   <a
                     key={s.id}

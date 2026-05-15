@@ -169,7 +169,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
           <div style={{ fontSize: 12, fontWeight: 900, color: colors.text, marginBottom: 8 }}>
             Housing near {market.installation} <span style={{ fontWeight: 600, color: colors.muted, marginLeft: 6 }}>({listings.items.length})</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+          <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
             {listings.items.map(item => (
               // Whole card opens Google Maps directions in a new tab
               // (matches Family Fun / Schools UX). Apartments.com and
@@ -265,7 +265,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
 
       <section style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
         <div style={{ fontSize: 12, fontWeight: 900, color: colors.text, marginBottom: 8 }}>Official housing links</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+        <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
           {links.map(link => (
             <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: '#F8FAFC', border: '1px solid #E6EDF3', borderLeft: `4px solid ${colors.primary}`, borderRadius: 10, padding: 12, color: colors.text }}>
               <div style={{ fontSize: 12, fontWeight: 900, color: colors.text }}>{link.name}</div>
