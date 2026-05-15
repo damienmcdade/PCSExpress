@@ -462,6 +462,192 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
   }
 })
 
+// === JOB LISTINGS (REMOTEOK + USAJOBS) ===
+// Two sources combined into a single shape so the frontend can render
+// one dynamic-card grid regardless of provenance:
+//   1. RemoteOK public JSON feed - no API key required, broad remote
+//      roles across engineering, marketing, design, ops, support.
+//   2. USAJOBS - federal civilian jobs near the gaining installation.
+//      Requires USAJOBS_API_KEY env var (free at developer.usajobs.gov).
+//      When unset we skip USAJOBS silently and still serve RemoteOK.
+// If both fail or both return empty, the response has {listings:[],
+// fallback:true} so the frontend can keep the existing static search-
+// portal links visible.
+const USAJOBS_API_KEY = process.env.USAJOBS_API_KEY || ''
+const USAJOBS_USER_AGENT = process.env.USAJOBS_USER_AGENT || 'damienmcdade17@gmail.com'
+const JOBS_CACHE = new Map()
+const JOBS_TTL_MS = 60 * 60 * 1000   // 1h - listings move fast
+const JOBS_RATE_LIMIT = 30
+const JOBS_RATE_WINDOW_MS = 60_000
+const _jobsHits = new Map()
+
+function jobsRateLimit(req, res, next) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const now = Date.now()
+  const entry = _jobsHits.get(ip)
+  if (!entry || now - entry.windowStart > JOBS_RATE_WINDOW_MS) {
+    _jobsHits.set(ip, { count: 1, windowStart: now })
+    return next()
+  }
+  if (entry.count >= JOBS_RATE_LIMIT) {
+    return res.status(429).json({ error: 'Rate limit exceeded. Try again in a minute.', listings: [], fallback: true })
+  }
+  entry.count += 1
+  return next()
+}
+
+function fmtSalary(min, max, period) {
+  if (!min && !max) return ''
+  const fmt = n => '$' + Math.round(n).toLocaleString()
+  const range = min && max && min !== max ? `${fmt(min)} - ${fmt(max)}` : fmt(min || max)
+  if (period === 'year' || (min && min >= 20000)) return `${range}/yr`
+  if (period === 'hour') return `${range}/hr`
+  return range
+}
+
+function clip(str, len = 220) {
+  const s = String(str || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+  return s.length > len ? s.slice(0, len) + '...' : s
+}
+
+async function fetchRemoteOk(keyword) {
+  const signal = AbortSignal.timeout(10000)
+  const r = await fetch('https://remoteok.com/api', {
+    headers: { Accept: 'application/json', 'User-Agent': USAJOBS_USER_AGENT },
+    signal,
+  })
+  if (!r.ok) throw new Error(`remoteok ${r.status}`)
+  const data = await r.json()
+  // RemoteOK returns the metadata header as element 0 (object with
+  // legal/etc fields). Real jobs follow. Filter for keyword match in
+  // position, description, or tags.
+  const kw = String(keyword || '').toLowerCase().trim()
+  const jobs = Array.isArray(data) ? data.slice(1) : []
+  const filtered = kw ? jobs.filter(j => {
+    const hay = `${j.position || ''} ${j.description || ''} ${(j.tags || []).join(' ')} ${j.company || ''}`.toLowerCase()
+    return kw.split(/\s+/).every(w => hay.includes(w))
+  }) : jobs
+  return filtered.slice(0, 30).map(j => ({
+    id: `remoteok-${j.id || j.slug || j.position}`,
+    title: j.position || 'Remote role',
+    company: j.company || '',
+    location: j.location || 'Remote',
+    salaryDisplay: fmtSalary(j.salary_min, j.salary_max, 'year'),
+    salaryMin: j.salary_min || null,
+    salaryMax: j.salary_max || null,
+    description: clip(j.description),
+    url: j.url || j.apply_url || '',
+    source: 'RemoteOK',
+    remote: true,
+    postedAt: j.date || j.epoch ? new Date((j.epoch || 0) * 1000).toISOString() : null,
+  }))
+}
+
+async function fetchUsajobs(keyword, city, state) {
+  if (!USAJOBS_API_KEY) return []
+  const params = new URLSearchParams()
+  if (keyword) params.set('Keyword', keyword)
+  const locName = [city, state].filter(Boolean).join(', ')
+  if (locName) params.set('LocationName', locName)
+  params.set('ResultsPerPage', '25')
+  const url = `https://data.usajobs.gov/api/search?${params.toString()}`
+  const signal = AbortSignal.timeout(12000)
+  const r = await fetch(url, {
+    headers: {
+      Host: 'data.usajobs.gov',
+      'User-Agent': USAJOBS_USER_AGENT,
+      'Authorization-Key': USAJOBS_API_KEY,
+      Accept: 'application/json',
+    },
+    signal,
+  })
+  if (!r.ok) throw new Error(`usajobs ${r.status}`)
+  const data = await r.json()
+  const items = data?.SearchResult?.SearchResultItems || []
+  return items.map((item, i) => {
+    const m = item?.MatchedObjectDescriptor || {}
+    const rem = (m.PositionRemuneration && m.PositionRemuneration[0]) || {}
+    return {
+      id: `usajobs-${m.PositionID || i}`,
+      title: m.PositionTitle || 'Federal position',
+      company: m.OrganizationName || m.DepartmentName || '',
+      location: m.PositionLocationDisplay || '',
+      salaryDisplay: fmtSalary(parseFloat(rem.MinimumRange), parseFloat(rem.MaximumRange), rem.RateIntervalCode === 'Per Year' ? 'year' : (rem.RateIntervalCode === 'Per Hour' ? 'hour' : '')),
+      salaryMin: parseFloat(rem.MinimumRange) || null,
+      salaryMax: parseFloat(rem.MaximumRange) || null,
+      description: clip(m.UserArea?.Details?.JobSummary || m.QualificationSummary),
+      url: m.PositionURI || '',
+      source: 'USAJOBS',
+      remote: /remote|telework/i.test(m.PositionLocationDisplay || ''),
+      postedAt: m.PublicationStartDate || null,
+    }
+  })
+}
+
+app.get('/api/job-listings', jobsRateLimit, async (req, res) => {
+  const keyword = String(req.query.keyword || '').trim().slice(0, 80)
+  const city = String(req.query.city || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 60)
+  const state = String(req.query.state || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 16)
+
+  const cacheKey = `${keyword}|${city}|${state}`
+  const cached = JOBS_CACHE.get(cacheKey)
+  if (cached && Date.now() - cached.fetchedAt < JOBS_TTL_MS) {
+    return res.status(200).json({ listings: cached.listings, fallback: cached.listings.length === 0, sources: cached.sources, source: 'cache', fetchedAt: cached.fetchedAt })
+  }
+
+  const results = []
+  const sources = { remoteok: 'skipped', usajobs: USAJOBS_API_KEY ? 'pending' : 'no-api-key' }
+
+  // Run both in parallel - one failing should not stop the other.
+  const [remoteOkResult, usaJobsResult] = await Promise.allSettled([
+    fetchRemoteOk(keyword),
+    USAJOBS_API_KEY ? fetchUsajobs(keyword, city, state) : Promise.resolve([]),
+  ])
+
+  if (remoteOkResult.status === 'fulfilled') {
+    results.push(...remoteOkResult.value)
+    sources.remoteok = `ok-${remoteOkResult.value.length}`
+  } else {
+    console.error(`[job-listings] remoteok ${remoteOkResult.reason?.message}`)
+    sources.remoteok = `error-${remoteOkResult.reason?.message || 'unknown'}`
+  }
+
+  if (usaJobsResult.status === 'fulfilled') {
+    results.push(...usaJobsResult.value)
+    if (USAJOBS_API_KEY) sources.usajobs = `ok-${usaJobsResult.value.length}`
+  } else {
+    console.error(`[job-listings] usajobs ${usaJobsResult.reason?.message}`)
+    sources.usajobs = `error-${usaJobsResult.reason?.message || 'unknown'}`
+  }
+
+  // De-dupe by url + title
+  const seen = new Set()
+  const deduped = results.filter(j => {
+    const key = `${j.url}|${j.title}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+
+  // Prefer local USAJOBS first, then RemoteOK (sorted by posted date desc).
+  deduped.sort((a, b) => {
+    if (a.source !== b.source) return a.source === 'USAJOBS' ? -1 : 1
+    const ad = a.postedAt ? Date.parse(a.postedAt) : 0
+    const bd = b.postedAt ? Date.parse(b.postedAt) : 0
+    return bd - ad
+  })
+
+  const listings = deduped.slice(0, 40)
+  JOBS_CACHE.set(cacheKey, { listings, sources, fetchedAt: Date.now() })
+
+  res.status(200).json({
+    listings,
+    sources,
+    fallback: listings.length === 0,
+    fetchedAt: Date.now(),
+  })
+})
+
 // === FAMILY FUN ACTIVITIES (OPENSTREETMAP - NO API KEY REQUIRED) ===
 // Uses two free, no-key OSM services:
 //   1. Nominatim - geocode the installation city/state (or a manual

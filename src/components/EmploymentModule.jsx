@@ -3,7 +3,7 @@
  * Third-party dependencies: React only.
  */
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 const BASE_CITY = {
   'Fort Liberty': 'Fayetteville, NC',
@@ -492,6 +492,41 @@ function EmploymentModule({ theme, profile }) {
   const installation = installLabel(profile)
   const searchCity = cityFor(profile)
 
+  // Live job listings from /api/job-listings (RemoteOK + USAJOBS).
+  // Empty + fallback=true => keep the existing static portal search
+  // cards visible underneath as the verified backup.
+  const [liveJobs, setLiveJobs] = useState({ status: 'idle', listings: [], fallback: false, sources: null })
+  useEffect(() => {
+    if (activeTab !== 'jobSearch') return
+    let cancelled = false
+    setLiveJobs(s => ({ ...s, status: 'loading' }))
+    const params = new URLSearchParams()
+    if (keyword.trim()) params.set('keyword', keyword.trim())
+    // searchCity is "City, ST" - split for the backend.
+    const [cityPart, statePart] = String(searchCity || '').split(',').map(s => s && s.trim())
+    if (cityPart) params.set('city', cityPart)
+    if (statePart) params.set('state', statePart)
+    // Debounce keyword changes so we do not fire on every keystroke.
+    const t = setTimeout(() => {
+      fetch(`/api/job-listings?${params.toString()}`, { headers: { Accept: 'application/json' } })
+        .then(r => r.ok ? r.json() : { listings: [], fallback: true })
+        .then(data => {
+          if (cancelled) return
+          setLiveJobs({
+            status: 'ready',
+            listings: Array.isArray(data?.listings) ? data.listings : [],
+            fallback: !!data?.fallback,
+            sources: data?.sources || null,
+          })
+        })
+        .catch(() => {
+          if (cancelled) return
+          setLiveJobs({ status: 'ready', listings: [], fallback: true, sources: null })
+        })
+    }, 350)
+    return () => { cancelled = true; clearTimeout(t) }
+  }, [activeTab, keyword, searchCity])
+
   const liveSearches = useMemo(() => {
     const kw = keyword.trim() || 'military spouse'
     const localKw = encoded(kw)
@@ -564,6 +599,64 @@ function EmploymentModule({ theme, profile }) {
             />
             <div style={{ marginTop: 6, fontSize: 10, color: '#66788A' }}>{copy.text('keywordHelp')}</div>
           </SectionIntro>
+
+          {liveJobs.status === 'loading' && (
+            <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 12, color: '#46586B' }}>
+              Searching live job listings...
+            </div>
+          )}
+
+          {liveJobs.status === 'ready' && liveJobs.listings.length > 0 && (
+            <section style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 10, fontWeight: 900, color: theme.primary, letterSpacing: '.1em', marginBottom: 10, textTransform: 'uppercase' }}>
+                Live job listings · {liveJobs.listings.length}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
+                {liveJobs.listings.map(job => (
+                  <a
+                    key={job.id}
+                    href={job.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ background: '#FFFFFF', border: '1px solid #D7E0EA', borderLeft: `4px solid ${theme.accent || '#C99A3D'}`, borderRadius: 10, padding: 12, textDecoration: 'none', color: '#0D1821', display: 'block' }}
+                  >
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 4, lineHeight: 1.3 }}>{job.title}</div>
+                    {job.company && (
+                      <div style={{ fontSize: 11, color: '#46586B', marginBottom: 4, fontWeight: 600 }}>{job.company}</div>
+                    )}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+                      <span style={{ background: job.source === 'USAJOBS' ? '#EAF4FF' : '#F0F4F8', color: job.source === 'USAJOBS' ? '#0D3B66' : '#243447', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4 }}>
+                        {job.source}
+                      </span>
+                      {job.remote && (
+                        <span style={{ background: '#ECFDF5', color: '#065F46', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4 }}>Remote</span>
+                      )}
+                      {job.location && (
+                        <span style={{ background: '#F3F4F6', color: '#46586B', fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{job.location.length > 40 ? job.location.slice(0, 40) + '...' : job.location}</span>
+                      )}
+                      {job.salaryDisplay && (
+                        <span style={{ background: '#FFF8E1', color: '#6D4C00', fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4 }}>{job.salaryDisplay}</span>
+                      )}
+                    </div>
+                    {job.description && (
+                      <div style={{ fontSize: 11, color: '#46586B', lineHeight: 1.5, marginBottom: 8 }}>{job.description}</div>
+                    )}
+                    <div style={{ display: 'inline-flex', padding: '6px 10px', borderRadius: 6, background: theme.primary, color: '#FFF', fontSize: 11, fontWeight: 800 }}>View posting</div>
+                  </a>
+                ))}
+              </div>
+              <div style={{ fontSize: 10, color: '#66788A', lineHeight: 1.5, marginTop: 8 }}>
+                Listings refreshed hourly. Federal listings appear when a USAJOBS API key is configured. Verify role details, eligibility, security clearance, and posted salary on the original posting before applying.
+              </div>
+            </section>
+          )}
+
+          {liveJobs.status === 'ready' && liveJobs.listings.length === 0 && (
+            <div style={{ background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 11, color: '#0D3B66', lineHeight: 1.5 }}>
+              No live listings matched right now. Try a broader keyword or open one of the verified job-search portals below.
+            </div>
+          )}
+
           <div style={{ fontSize: 10, fontWeight: 900, color: '#66788A', letterSpacing: '.1em', marginBottom: 10 }}>{copy.text('currentListings')}</div>
           {renderCards(liveSearches)}
         </div>

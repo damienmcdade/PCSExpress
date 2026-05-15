@@ -6305,10 +6305,16 @@ function FamilyFunTab({ theme, profile }) {
   const [state, setState] = useState({ status: 'idle', categories: [], activities: [], origin: null, fallback: false, reason: '' });
 
   useEffect(() => {
-    // We need at least an installation OR a user-supplied address to
-    // resolve a center point.
-    const hasInstallation = market.matched && (market.city || market.zip);
-    if (!hasInstallation && !appliedAddress) {
+    // Center-of-search resolution priority:
+    //   1. User-applied manual address (always wins).
+    //   2. Curated market entry (city/state/zip) for the gaining
+    //      installation - tight, precise geocode.
+    //   3. Raw installation name from the profile - Nominatim handles
+    //      most U.S. installations even when we have no curated entry.
+    //   4. Nothing -> show no-location message + fallback static cards.
+    const rawInstallation = String(profile?.gainingInstallation || '').split(',')[0].trim();
+    const haveMarket = market.matched && (market.city || market.zip);
+    if (!haveMarket && !appliedAddress && !rawInstallation) {
       setState({ status: 'no-input', categories: [], activities: [], origin: null, fallback: true, reason: 'no-location' });
       return;
     }
@@ -6317,10 +6323,15 @@ function FamilyFunTab({ theme, profile }) {
     const params = new URLSearchParams();
     if (appliedAddress) {
       params.set('address', appliedAddress);
-    } else {
+    } else if (haveMarket) {
       if (market.city) params.set('city', market.city);
       if (market.state) params.set('state', market.state);
       if (market.zip) params.set('zip', market.zip);
+    } else {
+      // Fall through: ask Nominatim to geocode the installation name
+      // directly. Works for most U.S. installations even if we have no
+      // curated city/state/zip mapping.
+      params.set('address', rawInstallation);
     }
     params.set('radiusMiles', '50');
     fetch(`/api/family-activities?${params.toString()}`, { headers: { Accept: 'application/json' } })
@@ -6341,7 +6352,7 @@ function FamilyFunTab({ theme, profile }) {
         setState({ status: 'ready', categories: [], activities: [], origin: null, fallback: true, reason: `network-${err?.message || 'error'}` });
       });
     return () => { cancelled = true; };
-  }, [market.city, market.state, market.zip, market.matched, appliedAddress]);
+  }, [market.city, market.state, market.zip, market.matched, appliedAddress, profile?.gainingInstallation]);
 
   const filtered = filter === 'all' ? state.activities : state.activities.filter(a => a.categoryId === filter);
   const colors = {
