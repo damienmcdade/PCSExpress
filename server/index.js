@@ -425,7 +425,7 @@ function shapeListing(raw) {
 // required - OSM is the same free dataset that powers Family Fun and
 // the Schools tab.
 async function overpassApartmentsFetch(lat, lng, radiusMeters) {
-  const query = `[out:json][timeout:20];(node["building"="apartments"]["name"](around:${radiusMeters},${lat},${lng});way["building"="apartments"]["name"](around:${radiusMeters},${lat},${lng});node["building"="residential"]["name"]["apartments"="yes"](around:${radiusMeters},${lat},${lng}););out center tags;`
+  const query = `[out:json][timeout:50];(node["building"="apartments"]["name"](around:${radiusMeters},${lat},${lng});way["building"="apartments"]["name"](around:${radiusMeters},${lat},${lng});node["building"="residential"]["name"]["apartments"="yes"](around:${radiusMeters},${lat},${lng}););out center tags;`
   return overpassQuery(query)
 }
 
@@ -925,7 +925,7 @@ function shapeOsmReligious(el, originLat, originLng) {
 }
 
 async function overpassReligiousFetch(lat, lng, radiusMeters) {
-  const query = `[out:json][timeout:20];(node["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng});way["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng}););out center tags;`
+  const query = `[out:json][timeout:50];(node["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng});way["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng}););out center tags;`
   return overpassQuery(query)
 }
 
@@ -1138,7 +1138,7 @@ async function overpassSchoolsFetch(lat, lng, radiusMeters) {
     const [k, v] = tag.split('=')
     return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
   }).join('')
-  const query = `[out:json][timeout:20];(${filters});out center tags;`
+  const query = `[out:json][timeout:50];(${filters});out center tags;`
   return overpassQuery(query)
 }
 
@@ -1331,21 +1331,26 @@ async function geocodeNominatim(query) {
   return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon), displayName: hit.display_name }
 }
 
-// Public Overpass API mirrors (in priority order). The primary
-// overpass-api.de occasionally throttles datacenter IPs or returns
-// 504 under load. The mirrors run the same software with independent
-// load; failing over to one usually recovers within a single retry.
+// Public Overpass API mirrors (in priority order). kumi.systems often
+// responds faster than the primary overpass-api.de under load and the
+// private.coffee community mirror is the last-resort fallback. Each
+// mirror runs identical Overpass software with independent capacity.
 const OVERPASS_MIRRORS = [
-  'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass-api.de/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
 ]
+
+// Per-request abort - generous enough to fit the in-query timeout
+// below plus network. Overpass servers cap queries at 180s; we cap
+// at 60s so a hung request fails over to the next mirror promptly.
+const OVERPASS_FETCH_TIMEOUT_MS = 60_000
 
 async function overpassQuery(query) {
   let lastErr = null
   for (const url of OVERPASS_MIRRORS) {
     try {
-      const signal = AbortSignal.timeout(25000)
+      const signal = AbortSignal.timeout(OVERPASS_FETCH_TIMEOUT_MS)
       const r = await fetch(url, {
         method: 'POST',
         headers: {
@@ -1358,12 +1363,19 @@ async function overpassQuery(query) {
       })
       if (!r.ok) {
         lastErr = new Error(`overpass ${url} ${r.status}`)
-        // 429/504 -> try next mirror immediately. 4xx other than 429
-        // is likely a query problem; bail.
         if (r.status === 429 || r.status === 502 || r.status === 503 || r.status === 504) continue
         throw lastErr
       }
-      return await r.json()
+      const data = await r.json()
+      // Overpass returns 200 with `remark: "runtime error: Query timed out"`
+      // on partial results. Treat as a failure so we try the next
+      // mirror instead of caching the partial / empty payload.
+      if (data && typeof data.remark === 'string' && /timed out|time limit|cost|memory/i.test(data.remark)) {
+        lastErr = new Error(`overpass ${url} remark: ${data.remark}`)
+        console.error(`[overpass] ${url} ${data.remark}`)
+        continue
+      }
+      return data
     } catch (err) {
       lastErr = err
       console.error(`[overpass] ${url} ${err.message}`)
@@ -1381,7 +1393,7 @@ async function overpassFetch(lat, lng, radiusMeters) {
     const [k, v] = tag.split('=')
     return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
   }).join('')
-  const query = `[out:json][timeout:20];(${filters});out center tags;`
+  const query = `[out:json][timeout:50];(${filters});out center tags;`
   return overpassQuery(query)
 }
 
