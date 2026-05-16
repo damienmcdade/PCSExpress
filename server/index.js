@@ -2093,12 +2093,11 @@ async function overpassQuery(query) {
     } catch (err) {
       lastErr = err
       console.error(`[overpass] ${url} ${err.message}`)
-      // Aborts (TimeoutError / AbortError) mean the mirror is too slow
-      // right now; block it briefly so we don't pay the full per-mirror
-      // budget twice in a row.
-      if (err.name === 'TimeoutError' || err.name === 'AbortError') {
-        blockMirror(url, 'timeout', 30_000)
-      }
+      // Timeouts are NOT blocklisted — a slow mirror right now may be
+      // fast on the next request, and blocking it would mean every
+      // subsequent parallel batch in the same endpoint call returns
+      // empty without attempting any mirror. Only durable 4xx errors
+      // (handled above) get the blocklist treatment.
       continue
     }
   }
