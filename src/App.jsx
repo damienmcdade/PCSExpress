@@ -3627,14 +3627,14 @@ function VeteranBusinessesTab({ theme, profile }) {
 const INSTALLATION_COLLEGES = {
   'Fort Liberty': [
     { name: 'Methodist University', type: 'Private', degree: '4-Year University', rating: 3.8, desc: 'Strong nursing, business, and justice studies. Active veteran services office and military scholarships. 5 miles from post.', applyUrl: 'https://www.methodist.edu/admissions/apply/', siteUrl: 'https://www.methodist.edu' },
-    { name: 'Fayetteville State University', type: 'Public', degree: '4-Year University', rating: 3.6, desc: 'HBCU with affordable in-state tuition. Robust veteran services. Strong nursing, social work, and criminal justice programs.', applyUrl: 'https://www.uncfsu.edu/admissions/apply-now', siteUrl: 'https://www.uncfsu.edu' },
-    { name: 'Fayetteville Technical Community College', type: 'Public', degree: '2-Year College', rating: 4.0, desc: "NC's largest community college with on-post class sections. IT, healthcare, and skilled trades. Tuition Assistance accepted.", applyUrl: 'https://www.faytechcc.edu/apply/', siteUrl: 'https://www.faytechcc.edu' },
+    { name: 'Fayetteville State University', type: 'Public', degree: '4-Year University', rating: 3.6, desc: 'HBCU with affordable in-state tuition. Robust veteran services. Strong nursing, social work, and criminal justice programs.', applyUrl: 'https://www.uncfsu.edu/', siteUrl: 'https://www.uncfsu.edu' },
+    { name: 'Fayetteville Technical Community College', type: 'Public', degree: '2-Year College', rating: 4.0, desc: "NC's largest community college with on-post class sections. IT, healthcare, and skilled trades. Tuition Assistance accepted.", applyUrl: 'https://www.faytechcc.edu/', siteUrl: 'https://www.faytechcc.edu' },
     { name: 'Campbell University', type: 'Private', degree: '4-Year University', rating: 4.0, desc: 'Top-ranked liberal arts and professional school near Fort Liberty. Pharmacy, law, and business schools. Military tuition rates.', applyUrl: 'https://www.campbell.edu/admissions/apply/', siteUrl: 'https://www.campbell.edu' },
     { name: 'UNC Pembroke', type: 'Public', degree: '4-Year University', rating: 3.5, desc: 'Affordable UNC system university 30 miles from post. Business, education, and public administration programs.', applyUrl: 'https://www.uncp.edu/admissions/apply', siteUrl: 'https://www.uncp.edu' },
   ],
   'Fort Bragg': [
     { name: 'Methodist University', type: 'Private', degree: '4-Year University', rating: 3.8, desc: 'Strong nursing, business, and justice studies. Active veteran services office and military scholarships. 5 miles from post.', applyUrl: 'https://www.methodist.edu/admissions/apply/', siteUrl: 'https://www.methodist.edu' },
-    { name: 'Fayetteville Technical Community College', type: 'Public', degree: '2-Year College', rating: 4.0, desc: "NC's largest community college with on-post class sections. IT, healthcare, and skilled trades. TA accepted.", applyUrl: 'https://www.faytechcc.edu/apply/', siteUrl: 'https://www.faytechcc.edu' },
+    { name: 'Fayetteville Technical Community College', type: 'Public', degree: '2-Year College', rating: 4.0, desc: "NC's largest community college with on-post class sections. IT, healthcare, and skilled trades. TA accepted.", applyUrl: 'https://www.faytechcc.edu/', siteUrl: 'https://www.faytechcc.edu' },
     { name: 'Campbell University', type: 'Private', degree: '4-Year University', rating: 4.0, desc: 'Pharmacy, law, and business schools. Military tuition rates available.', applyUrl: 'https://www.campbell.edu/admissions/apply/', siteUrl: 'https://www.campbell.edu' },
   ],
   'Fort Campbell': [
@@ -4406,7 +4406,7 @@ const COLLEGE_ENROLLMENT_LINKS = {
   'Enterprise State Community College': { applyUrl: 'https://www.escc.edu/admissions/', siteUrl: 'https://www.escc.edu' },
   'Everett Community College': { applyUrl: 'https://www.everettcc.edu/admissions/', siteUrl: 'https://www.everettcc.edu' },
   'FSU Panama City': { applyUrl: 'https://pc.fsu.edu/admissions/', siteUrl: 'https://pc.fsu.edu' },
-  'Fayetteville State University': { applyUrl: 'https://www.uncfsu.edu/admissions', siteUrl: 'https://www.uncfsu.edu' },
+  'Fayetteville State University': { applyUrl: 'https://www.uncfsu.edu/', siteUrl: 'https://www.uncfsu.edu' },
   'Fayetteville Technical Community College': { applyUrl: 'https://www.faytechcc.edu/admissions/apply', siteUrl: 'https://www.faytechcc.edu' },
   'Florida Institute of Technology': { applyUrl: 'https://www.fit.edu/admissions/undergraduate/', siteUrl: 'https://www.fit.edu' },
   'Florida International University': { applyUrl: 'https://admissions.fiu.edu/', siteUrl: 'https://www.fiu.edu' },
