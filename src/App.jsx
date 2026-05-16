@@ -358,18 +358,37 @@ function getHomeBranchInsignia(branch) {
   return BRANCH_HOME_INSIGNIA[branch] || theme.insignia || theme.abbr || 'PCS';
 }
 
+// === TACTICAL OPERATIONS CENTER (TOC) UI PALETTE ===
+// Dark slate field with subtle grid background, branch-color glow
+// accents at the rail level, light cards as elevated surfaces over
+// the dark base. High contrast white-on-charcoal for the chrome
+// (headers, sidebar, footers); cards retain light surfaces for
+// content readability without rewriting every inline style.
 const UI_PALETTE = {
-  page: '#F7F4EA',
-  pageAlt: '#EFE8D6',
+  // Dark slate base for the app frame (headers, sidebar, body bg).
+  page: '#0F1B26',
+  pageAlt: '#172332',
+  // Card-content surfaces remain light so dense text stays readable.
   surface: '#FFFFFF',
-  surfaceSoft: '#FBFAF5',
+  surfaceSoft: '#F8FAFC',
+  // Body text on light card surfaces.
   text: '#111827',
   muted: '#56616F',
   line: '#DDD5C2',
+  // Dark-frame text colors (used by header / sidebar / footer).
+  frameText: '#E8EFF5',
+  frameMuted: '#8B96A3',
+  frameLine: '#2E3D52',
+  // Heritage colors retained for legacy callers.
   tactical: '#4F5D35',
   tacticalDark: '#26351F',
   gold: '#B8943A',
   danger: '#7F1D1D',
+  // Subtle SVG grid pattern data-URI - 32x32 squares with 1px
+  // line at 8% opacity. Renders as a tactical operations grid
+  // beneath the dark slate base. CSS background-image consumer
+  // composites this over UI_PALETTE.page.
+  pagePattern: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><path d='M32 0H0V32' fill='none' stroke='%231F2E40' stroke-width='1' opacity='0.6'/></svg>")`,
 };
 
 
@@ -7226,7 +7245,7 @@ function App() {
 
   if (activeTab === 'translation') {
     return (
-      <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
+      <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: `${UI_PALETTE.pagePattern}, radial-gradient(circle at top left, ${theme.accent}22, transparent 50%), radial-gradient(circle at bottom right, ${theme.primary}22, transparent 50%), ${UI_PALETTE.page}`, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
         <PrivacyShield />
       <SaveStatusIndicator theme={theme} />
       {showResetWarning && (
@@ -7329,7 +7348,7 @@ function App() {
   }
 
   return (
-    <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: UI_PALETTE.page, fontFamily: 'system-ui', display: 'flex', flexDirection: 'column' }}>
+    <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: `${UI_PALETTE.pagePattern}, radial-gradient(circle at top left, ${theme.accent}22, transparent 50%), radial-gradient(circle at bottom right, ${theme.primary}22, transparent 50%), ${UI_PALETTE.page}`, fontFamily: 'system-ui', display: 'flex', flexDirection: 'column' }}>
       <PrivacyShield />
       <SaveStatusIndicator theme={theme} />
       {showResetWarning && (
