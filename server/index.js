@@ -1499,6 +1499,11 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
     return res.status(200).json({ services: [], fallback: true, reason: 'address-not-found' })
   }
 
+  // Curated Google Maps cards by denomination — always available, used
+  // as fallback when Overpass returns empty / fails and as supplement
+  // when it returns sparse data.
+  const syntheticCards = syntheticReligiousCards(city, state)
+
   let overpassData
   try {
     overpassData = await Promise.race([
@@ -1507,7 +1512,7 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
     ])
   } catch (err) {
     console.error(`[religious] overpass ${err.message}`)
-    return res.status(200).json({ services: [], origin, fallback: true, reason: 'overpass-failed' })
+    return res.status(200).json({ services: syntheticCards, origin, fallback: syntheticCards.length === 0, reason: 'overpass-failed', source: 'synthetic-fallback' })
   }
 
   const elements = Array.isArray(overpassData?.elements) ? overpassData.elements : []
@@ -1522,7 +1527,10 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
     services.push(shaped)
   }
   services.sort((a, b) => a.distanceMiles - b.distanceMiles)
-  const limited = services.slice(0, 60)
+  const osmLimited = services.slice(0, 60)
+  // Merge OSM real-named places first, synthetic search-portal cards
+  // last so users always have actionable content for any denomination.
+  const limited = [...osmLimited, ...syntheticCards]
 
   // Skip caching empty results so transient Overpass failures do not
   // serve users an empty Spiritual Readiness tab for 24h.
@@ -1718,6 +1726,10 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
     return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: [], fallback: true, reason: 'address-not-found' })
   }
 
+  // Curated Google Maps cards by school category — always available
+  // so users at sparse / cold-cache markets see actionable content.
+  const syntheticCards = syntheticSchoolCards(city, state)
+
   let overpassData
   try {
     overpassData = await Promise.race([
@@ -1726,7 +1738,7 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
     ])
   } catch (err) {
     console.error(`[schools] overpass ${err.message}`)
-    return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: [], origin, fallback: true, reason: 'overpass-failed' })
+    return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: syntheticCards, origin, fallback: syntheticCards.length === 0, reason: 'overpass-failed', source: 'synthetic-fallback' })
   }
 
   const elements = Array.isArray(overpassData?.elements) ? overpassData.elements : []
@@ -1747,7 +1759,10 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
     if (a.isMilitary !== b.isMilitary) return a.isMilitary ? -1 : 1
     return a.distanceMiles - b.distanceMiles
   })
-  const limited = schools.slice(0, 80)
+  const osmLimited = schools.slice(0, 80)
+  // Real OSM schools first, then curated Google-Maps search portals so
+  // every market shows at least the seven school categories.
+  const limited = [...osmLimited, ...syntheticCards]
 
   // Skip caching empty results so transient Overpass failures do not
   // hide schools for 24 hours.
@@ -1800,6 +1815,79 @@ const FAMILY_CATEGORIES = [
 // linking to a Google Maps search restricted to the user's market
 // region. Maps works worldwide and the searches return real local
 // businesses, so users always have an actionable starting point.
+// Synthetic Google Maps search-portal cards for Schools. Always
+// available; surfaced when OSM returns empty or times out.
+function syntheticSchoolCards(city, state) {
+  if (!city && !state) return []
+  const ev = encodeURIComponent
+  const where = [city, state].filter(Boolean).join(', ')
+  const CARDS = [
+    { categoryId: 'public_elementary',  type: 'Public elementary schools',  query: `public elementary schools near ${where}` },
+    { categoryId: 'public_middle',      type: 'Public middle schools',      query: `public middle schools near ${where}` },
+    { categoryId: 'public_high',        type: 'Public high schools',        query: `public high schools near ${where}` },
+    { categoryId: 'private',            type: 'Private schools',            query: `private schools near ${where}` },
+    { categoryId: 'charter',            type: 'Charter schools',            query: `charter schools near ${where}` },
+    { categoryId: 'dodea',              type: 'DoDEA schools (overseas)',   query: `DoDEA schools near ${where}` },
+    { categoryId: 'preschool',          type: 'Preschools & daycare',       query: `preschools and daycare near ${where}` },
+  ]
+  return CARDS.map((c, idx) => ({
+    id: `school-search-${c.categoryId}-${idx}-${ev(where).slice(0,30)}`,
+    categoryId: c.categoryId,
+    type: c.type,
+    name: `${c.type} near ${city || state}`,
+    address: '',
+    city: city || '',
+    state: state || '',
+    distanceMiles: null,
+    description: `Curated Google Maps search for ${c.type.toLowerCase()} in the ${where} area. Opens with the locality pre-filtered so you see real schools with ratings, contact info, and zoning details — verify enrollment requirements directly with the district.`,
+    mapUrl: `https://www.google.com/maps/search/?api=1&query=${ev(c.query)}`,
+    directionsUrl: `https://www.google.com/maps/search/?api=1&query=${ev(c.query)}`,
+    website: '',
+    phone: '',
+    source: 'Curated Google Maps search',
+    synthetic: true,
+  }))
+}
+
+// Synthetic Google Maps search-portal cards for Religious Services.
+// Covers the major faiths/denominations users have asked about.
+function syntheticReligiousCards(city, state) {
+  if (!city && !state) return []
+  const ev = encodeURIComponent
+  const where = [city, state].filter(Boolean).join(', ')
+  const CARDS = [
+    { categoryId: 'catholic',      type: 'Catholic churches',       query: `Catholic churches near ${where}` },
+    { categoryId: 'protestant',    type: 'Protestant churches',     query: `Protestant churches near ${where}` },
+    { categoryId: 'baptist',       type: 'Baptist churches',        query: `Baptist churches near ${where}` },
+    { categoryId: 'methodist',     type: 'Methodist churches',      query: `Methodist churches near ${where}` },
+    { categoryId: 'lds',           type: 'LDS / Latter-day Saints', query: `LDS Latter-day Saints church near ${where}` },
+    { categoryId: 'orthodox',      type: 'Orthodox churches',       query: `Orthodox Christian churches near ${where}` },
+    { categoryId: 'jewish',        type: 'Synagogues',              query: `Synagogues near ${where}` },
+    { categoryId: 'muslim',        type: 'Mosques',                 query: `Mosques near ${where}` },
+    { categoryId: 'hindu',         type: 'Hindu temples',           query: `Hindu temples near ${where}` },
+    { categoryId: 'buddhist',      type: 'Buddhist temples',        query: `Buddhist temples near ${where}` },
+    { categoryId: 'chapel',        type: 'Installation chapels',    query: `military chapel near ${where}` },
+  ]
+  return CARDS.map((c, idx) => ({
+    id: `religious-search-${c.categoryId}-${idx}-${ev(where).slice(0,30)}`,
+    categoryId: c.categoryId,
+    type: c.type,
+    name: `${c.type} near ${city || state}`,
+    address: '',
+    city: city || '',
+    state: state || '',
+    denomination: c.categoryId,
+    distanceMiles: null,
+    description: `Curated Google Maps search for ${c.type.toLowerCase()} in the ${where} area. Opens with the locality pre-filtered so you see service times, denomination, contact info, and directions in one tap.`,
+    mapUrl: `https://www.google.com/maps/search/?api=1&query=${ev(c.query)}`,
+    directionsUrl: `https://www.google.com/maps/search/?api=1&query=${ev(c.query)}`,
+    website: '',
+    phone: '',
+    source: 'Curated Google Maps search',
+    synthetic: true,
+  }))
+}
+
 function syntheticFamilyCards(city, state) {
   if (!city && !state) return []
   const ev = encodeURIComponent

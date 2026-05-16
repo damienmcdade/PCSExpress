@@ -215,7 +215,78 @@ function applies(docId, profileAttrs) {
   try { return !!pred(profileAttrs); } catch { return true; }
 }
 
+// DoD Civilian PCS documents. Replaces military forms (DD 31, DA 5960,
+// orders endorsements) with the Federal Travel Regulation (FTR)
+// civilian equivalents and DCPAS / OPM forms. Public form numbers and
+// regulatory citations only — no internal HR routing data.
+const CIVILIAN_DOCS = {
+  orders: [
+    { id: 'civ_travel_auth',     name: 'Travel Authorization (PCS)',        form: 'DD Form 1614 / agency-specific', required: true,  desc: 'Official civilian PCS travel order issued by your servicing HR Service Center. Required for all relocation reimbursement.' },
+    { id: 'civ_service_agree',   name: 'Continuing Service Agreement',      form: 'Service Agreement',              required: true,  desc: 'Signed before relocation benefits release. CONUS = 12 months, OCONUS = 24 months minimum service commitment.' },
+    { id: 'civ_sf50',            name: 'Notification of Personnel Action',  form: 'SF-50',                          required: true,  desc: 'Records the personnel action (transfer-in, promotion, etc.) for your federal record. Issued by gaining HR.' },
+  ],
+  travel: [
+    { id: 'civ_travel_voucher',  name: 'Civilian Travel Voucher',           form: 'DD Form 1351-2',                 required: true,  desc: 'Civilian PCS reimbursement claim. Submit within 5 working days of arrival per FTR §302-2.18.', formUrl: 'https://www.esd.whs.mil/Portals/54/Documents/DD/forms/dd/dd1351-2.pdf' },
+    { id: 'civ_tqse_request',    name: 'Temporary Quarters Subsistence Expense (TQSE) Request', form: 'TQSE Request', required: false, desc: 'Up to 60 days CONUS / 90 days OCONUS lodging and meals per FTR §302-6. Submit before incurring expenses.' },
+    { id: 'civ_house_hunt',      name: 'House Hunting Trip Authorization',  form: 'HHT Authorization',              required: false, desc: 'Round-trip travel for self and spouse to search for housing at the new locality (CONUS only, FTR §302-5).' },
+    { id: 'civ_lodging_rcpts',   name: 'Lodging Receipts',                  form: 'Receipts',                       required: true,  desc: 'Hotel receipts for every night of PCS travel — required for voucher reimbursement.' },
+    { id: 'civ_mileage_log',     name: 'Mileage / Per Diem Log',            form: 'Log / Receipts',                 required: true,  desc: 'POV mileage documentation per FTR §302-4 mileage rates, fuel and rental car receipts during PCS travel.' },
+    { id: 'civ_misc_expense',    name: 'Miscellaneous Expense Allowance',   form: 'Miscellaneous Expense Claim',    required: false, desc: 'Flat-rate up to $1,300 OR itemized actuals per FTR §302-16. Covers driver licenses, vehicle re-registration, utility connection fees.' },
+    { id: 'civ_real_estate',     name: 'Real Estate Expense Allowance',     form: 'Real Estate Claim',              required: false, desc: 'Reimbursement for selling and buying primary residence at the new locality per FTR §302-11.' },
+    { id: 'civ_advance_pay',     name: 'Advance Pay Request',               form: 'Advance Pay Request',            required: false, desc: 'Up to 30 days base salary advance through your servicing payroll office.' },
+  ],
+  hhg: [
+    { id: 'civ_hhg_app',         name: 'HHG Shipment Application',          form: 'DD Form 1299',                   required: true,  desc: 'Schedule household goods shipment via DPS — same system as military PCS, civilian weight allowance is 18,000 lbs.', formUrl: 'https://dps.move.mil/cust/standard/user/home.xhtml' },
+    { id: 'civ_hhg_couns',       name: 'HHG Transportation Counseling',     form: 'DD Form 1797',                   required: true,  desc: 'Counseling checklist — must be signed before TSP pickup date.' },
+    { id: 'civ_weight_empty',    name: 'Empty Weight Ticket',               form: 'Weight Ticket',                  required: true,  desc: 'Empty weight before loading — required for PPM reimbursement.' },
+    { id: 'civ_weight_full',     name: 'Full (Loaded) Weight Ticket',       form: 'Weight Ticket',                  required: true,  desc: 'Loaded weight of all household goods.' },
+    { id: 'civ_hhg_inventory',   name: 'HHG Inventory & Condition Report',  form: 'DD Form 1840 / 1840R',           required: true,  desc: 'Note all pre-existing damage at PICKUP and again at DELIVERY. Critical for claims.' },
+    { id: 'civ_pov_ship',        name: 'POV Shipment Authorization',        form: 'DD Form 788',                    required: false, desc: 'Required for OCONUS civilian PCS, check eligibility for CONUS.' },
+    { id: 'civ_nts_auth',        name: 'Non-Temporary Storage Authorization', form: 'NTS Authorization',            required: false, desc: 'Long-term storage if household goods cannot be moved immediately.' },
+    { id: 'civ_hhg_claim',       name: 'HHG Damage Claim (if needed)',      form: 'DD Form 1840R',                  required: false, desc: 'File within 70 days of delivery for damaged or missing items.' },
+  ],
+  housing: [
+    { id: 'civ_locality_pay',    name: 'Locality Pay Confirmation',         form: 'OPM Locality Tables',            required: true,  desc: 'Confirm gaining locality pay rate via OPM tables. Civilians do NOT receive BAH/OHA.', formUrl: 'https://www.opm.gov/policy-data-oversight/pay-leave/salaries-wages/' },
+    { id: 'civ_lqa_app',         name: 'LQA Application (OCONUS only)',     form: 'SF-1190',                        required: false, desc: 'Living Quarters Allowance application per DSSR §131. Submit at gaining HR Service Center on arrival.' },
+    { id: 'civ_post_allow',      name: 'Post Allowance Application (OCONUS)', form: 'SF-1190',                      required: false, desc: 'Cost-of-living differential for OCONUS civilians per DSSR §220.' },
+    { id: 'civ_lease',           name: 'Lease Agreement / Mortgage Docs',   form: 'Civilian housing docs',          required: false, desc: 'Lease or mortgage documents at gaining locality. Real estate expense allowance applies for primary residence.' },
+  ],
+  medical: [
+    { id: 'civ_fehb_card',       name: 'FEHB Health Plan Card',             form: 'FEHB Card',                      required: true,  desc: 'Federal Employees Health Benefits card — civilians use FEHB, not TRICARE. PCS is a Qualifying Life Event for plan changes.' },
+    { id: 'civ_fehb_change',     name: 'FEHB Plan Change (Qualifying Life Event)', form: 'SF-2809',                  required: false, desc: 'Submit within 60 days of PCS to change FEHB plans without waiting for Open Season.' },
+    { id: 'civ_med_records',     name: 'Medical Records',                   form: 'Health Records',                 required: true,  desc: 'Sealed medical, dental, and vision records for all family members.' },
+    { id: 'civ_dependent_rec',   name: 'Dependent Medical Records',         form: 'Health Records',                 required: false, desc: 'Sealed records for each dependent.' },
+    { id: 'civ_pet_vet',         name: 'Pet Veterinary Records',            form: 'Health Certificate',             required: false, desc: 'Health certificate required 10 days before travel. OCONUS PCS requires additional country-specific paperwork.' },
+  ],
+  oconus: [
+    { id: 'civ_no_fee_pass',     name: 'No-Fee Official Passport',          form: 'DS-11 + DD Form 1056',           required: true,  desc: 'Official no-fee passport for civilian and dependents. SEPARATE from tourist passport.' },
+    { id: 'civ_visa',            name: 'Country-Specific Visa',             form: 'Visa Application',               required: true,  desc: 'Country-specific work visa or status. Coordinate with gaining DoD HR for SOFA / DPRK status.' },
+    { id: 'civ_oconus_screen',   name: 'DoD Civilian OCONUS Screening',     form: 'DCPAS Screening',                required: true,  desc: 'Medical, family, and eligibility screening before OCONUS assignment.' },
+    { id: 'civ_family_screen',   name: 'Family Member Travel Screening',    form: 'Family Screening',               required: false, desc: 'Travel and medical screening for accompanying dependents.' },
+    { id: 'civ_education_allow', name: 'Education Allowance Application',   form: 'SF-1190 / DoDEA',                required: false, desc: 'Per DSSR §270 — applies to OCONUS civilians with school-age dependents.' },
+    { id: 'civ_sofa_brief',      name: 'SOFA / Country Brief Acknowledgement', form: 'Country Brief',                required: true,  desc: 'Status of Forces Agreement and country brief acknowledgement before arrival.' },
+  ],
+  family: [
+    { id: 'civ_marriage_cert',   name: 'Marriage Certificate',              form: 'Vital Record',                   required: false, desc: 'Required for dependent travel and FEHB enrollment.' },
+    { id: 'civ_birth_certs',     name: 'Birth Certificates',                form: 'Vital Record',                   required: false, desc: 'For each child claimed as a dependent.' },
+    { id: 'civ_school_rec',      name: 'School Records (Sealed)',           form: 'School Records',                 required: false, desc: 'Sealed records for transfer to new school district or DoDEA.' },
+    { id: 'civ_will_poa',        name: 'Will / Power of Attorney',          form: 'Will / POA',                     required: false, desc: 'Civilian PCS does NOT include free military legal assistance. Update through private legal counsel before move.' },
+    { id: 'civ_spouse_employ',   name: 'DoD Spouse Employment Program Doc', form: 'Spouse Employment',              required: false, desc: 'If spouse is also federally employed, coordinate spouse PCS through DCPAS spouse employment program.' },
+  ],
+}
+
 function getDocsForBranch(branch, isOconus, profileAttrs = {}) {
+  // DoD Civilians get the civilian document set instead of branch-
+  // specific military forms. The civilian set is the same shape (per
+  // DOC_CATEGORIES) so the UI renders identically.
+  if (profileAttrs.component === 'DoD Civilian') {
+    return DOC_CATEGORIES.reduce((acc, cat) => {
+      if (cat.id === 'oconus' && !isOconus) { acc[cat.id] = []; return acc; }
+      const docs = CIVILIAN_DOCS[cat.id] || [];
+      acc[cat.id] = docs.filter(d => applies(d.id, profileAttrs));
+      return acc;
+    }, {});
+  }
   const extra = BRANCH_EXTRA[branch] || {};
   return DOC_CATEGORIES.reduce((acc, cat) => {
     if (cat.id === 'oconus' && !isOconus) { acc[cat.id] = []; return acc; }

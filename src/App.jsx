@@ -666,6 +666,11 @@ const BRANCH_RANKS = {
 };
 
 const getRankDisplay = (branch, paygrade) => {
+  if (!paygrade || paygrade === 'N/A') return '';
+  // DoD Civilian grades and SES/WG variants are displayed as-is.
+  if (/^GS-/.test(paygrade) || paygrade === 'SES' || paygrade === 'WG' || paygrade === 'WS' || paygrade === 'WL') {
+    return paygrade;
+  }
   const ranks = BRANCH_RANKS[branch] || BRANCH_RANKS['Army'];
   const rank = ranks.find(r => r.grade === paygrade);
   return rank ? rank.abbr : paygrade;
@@ -2591,7 +2596,103 @@ const BRANCH_PCS_CHECKLISTS = {
   },
 };
 
-function getBranchChecklist(branch) {
+// DoD Civilian PCS checklist. Civilian PCS is governed by the Federal
+// Travel Regulation (FTR), Chapter 302, and the DCPAS civilian
+// relocation guide — NOT the Joint Travel Regulations military rules.
+// All tasks below reference public regulatory citations and official
+// DoD civilian HR offices (CPAC / DCPAS / HR Service Center) rather
+// than military S1 / Personnel offices.
+const DOD_CIVILIAN_CHECKLIST = {
+  "Orders Received": [
+    "Review your TCS (Travel Compensation Service) or PCS Travel Authorization (signed AD-202 or equivalent) for accuracy — effective date, gaining DoD activity, allowances authorized",
+    "Make certified copies of your Travel Authorization (keep 10+ — HR, payroll, and gaining HR Service Center require them)",
+    "Sign your Continuing Service Agreement (CSA) — required before relocation benefits release; understand the service obligation period (typically 12 months CONUS, 24 months OCONUS)",
+    "Notify your gaining DoD HR Service Center / Civilian Personnel Advisory Center (CPAC) and request a relocation point-of-contact",
+    "Notify current landlord or housing office of departure date",
+    "Open Move Budget Tracker — civilian PCS has a different reimbursement structure than military",
+    "Request advance pay (up to 30 days base salary) from your servicing payroll office if needed",
+    "Confirm your locality pay rate will adjust for the gaining locality — see OPM locality pay tables",
+    "If OCONUS: begin Living Quarters Allowance (LQA) eligibility verification with gaining DoD HR",
+    "Save Travel Authorization PDF and supporting documents to a secure cloud folder",
+  ],
+  "90 Days Out": [
+    "Schedule TMO (Transportation Management Office) appointment via gaining installation — civilian PCS uses the same DPS system as military",
+    "Create detailed household goods inventory with photos and video",
+    "Research gaining locality housing options (no on-post housing entitlement for most civilian grades — verify with gaining HR if you qualify)",
+    "Update vehicle registrations and insurance for new state — civilians do not retain home-of-record protection like military",
+    "Begin passport process for family if going OCONUS — civilians use no-fee official passports (separate from tourist passports)",
+    "Enroll family in FEHB (Federal Employees Health Benefits) — PCS is a Qualifying Life Event allowing plan changes within 60 days",
+    "Notify Thrift Savings Plan (TSP) of address change and confirm no contribution interruption during the move",
+    "Update Federal Employee Group Life Insurance (FEGLI) beneficiary designations if needed",
+    "Research schools for dependent children near the gaining locality and contact district enrollment offices",
+    "Identify childcare options — civilians may use installation CDCs if space available (CDC priority is dual-military first)",
+    "Submit DPS (Defense Personal Property System) self-counseling session and keep printable receipts",
+    "Decide HHG vs PPM — civilian PPM is reimbursed at 95% of constructed government cost (different from military rates)",
+    "Calculate Temporary Quarters Subsistence Expense (TQSE) entitlement under FTR §302-6 — up to 60 days CONUS, 90 days OCONUS",
+    "Request a House Hunting Trip authorization (CONUS only, FTR §302-5) — round-trip travel for self and spouse",
+  ],
+  "60 Days Out": [
+    "Schedule all medical and dental appointments under FEHB — get records before departure",
+    "Obtain sealed medical, dental, and vision records for all family members",
+    "Obtain school records for dependent children (sealed for transfer)",
+    "Notify financial institutions of upcoming address change",
+    "Begin decluttering — sell, donate, or dispose of excess household goods (civilian weight allowance is 18,000 lbs, separate from military formula)",
+    "Research employment opportunities at gaining locality if spouse is also federally employed — see Spouse Employment Program",
+    "Update USAJOBS profile if planning lateral moves or career progression after PCS",
+    "Update driver's licenses for the gaining state per state-specific timing rules",
+    "Arrange pet transport — obtain health certificates from vet (required 10 days before travel)",
+    "Review Real Estate Expense Allowance under FTR §302-11 — selling primary residence and buying at new locality may be reimbursable",
+    "Schedule final pre-departure HR briefing with current CPAC office — typically covers final TSP, leave balance, SF-50 paperwork",
+    "Update Wills, POAs, and Advance Medical Directives — civilians do not have free military legal assistance",
+    "If OCONUS: complete DoD Civilian OCONUS Screening (DCPAS form) and family member travel screening",
+    "If OCONUS: begin DSSR Section 130 eligibility verification (LQA, Post Allowance, Education Allowance)",
+  ],
+  "30 Days Out": [
+    "Confirm pack-out dates and weight estimates with moving company via DPS",
+    "Arrange temporary lodging at new locality — TQSE reimbursable per FTR §302-6 once you are at the new duty station",
+    "Update USPS mail forwarding at usps.com",
+    "Cancel or transfer local subscriptions, utilities, gym memberships",
+    "Settle outstanding local debts and accounts",
+    "Service vehicles for long-distance travel (oil, tires, fluids)",
+    "Pack a personal travel bag for first 2 weeks — do not ship these items",
+    "Confirm Miscellaneous Expense Allowance (FTR §302-16) — flat rate up to $1,300 or itemized actuals",
+    "Update DEERS if dependents are TRICARE-eligible (former military / retiree dependents who are now in civilian status)",
+    "Verify final-paycheck address routing and direct deposit for the gaining payroll office",
+    "Begin transfer-of-station leave (annual leave) accounting — civilians do not use military DA-31 / NAVMC leave forms",
+    "Schedule virtual or in-person check-in with the gaining HR Service Center",
+  ],
+  "Move Week": [
+    "Conduct walkthrough with movers at pack-out — note all pre-existing damage on the inventory (DD Form 1840 / 1840R)",
+    "Sign inventory carefully — pay attention to box counts and condition notes",
+    "Keep critical documents (Travel Authorization, FEHB cards, passports, birth certs, vehicle titles) in carry-on luggage",
+    "Take final meter readings and last-day photos of empty home",
+    "Return any government property issued at your current activity (laptops, ID cards, parking permits)",
+    "Schedule SF-1190 (Foreign Allowances) initial application appointment if going OCONUS — paperwork starts during in-processing",
+    "Save all moving company receipts, weight tickets, and lodging receipts — required for travel voucher",
+  ],
+  "In-Processing": [
+    "Report to the gaining DoD activity HR Service Center on the date specified by your Travel Authorization",
+    "Complete SF-50 personnel action paperwork for transfer-in",
+    "Submit DD Form 1351-2 (Travel Voucher) within 5 working days of arrival per FTR §302-2.18",
+    "Provide all lodging receipts, mileage logs, weight tickets, and pre/post move records to the voucher office",
+    "If OCONUS: complete SF-1190 (LQA, Post Allowance, Education Allowance application) at the servicing HR office",
+    "Enroll family in FEHB at gaining duty station if Qualifying Life Event window applies",
+    "Confirm locality pay rate has updated on your first new-locality paystub",
+    "Register dependents in dependent locator system / family directory at gaining HR",
+    "Schedule mandatory installation Welcome Briefing / Newcomers' Brief — many bases require it within 30 days of in-processing",
+    "Enroll dependents in DEERS if eligible (former military / retiree connections)",
+    "Schedule TSP account briefing with gaining HR if you wish to adjust contributions post-move",
+    "Update emergency contacts in your DoD Civilian HR system of record",
+    "Connect with the gaining installation's Civilian Employee Resource Group (ERG) if available for newcomer support",
+    "Spouse: enroll in DoD Spouse Employment Program at gaining installation if eligible",
+    "Re-enroll children in childcare and school district",
+    "Complete OCONUS-specific orientation (SOFA briefing, country brief) within 30 days of arrival if applicable",
+    "Confirm Real Estate Expense Allowance claim is filed if selling and buying primary residence",
+  ],
+}
+
+function getBranchChecklist(branch, component) {
+  if (component === 'DoD Civilian') return DOD_CIVILIAN_CHECKLIST;
   return BRANCH_PCS_CHECKLISTS[branch] || BRANCH_PCS_CHECKLISTS['Army'];
 }
 
@@ -2630,7 +2731,7 @@ function applyChecklistFilters(items, profileAttrs) {
 }
 
 function getTailoredChecklist(branch, profileAttrs = {}) {
-  const raw = getBranchChecklist(branch);
+  const raw = getBranchChecklist(branch, profileAttrs.component);
   const out = {};
   for (const phase of Object.keys(raw)) {
     out[phase] = applyChecklistFilters(raw[phase], profileAttrs);
@@ -2892,6 +2993,7 @@ function StarRating({ rating }) {
 
 function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
   const branchChecklist = getTailoredChecklist(profile?.branch || 'Army', {
+    component:     profile?.component || 'Active Duty',
     hasDependents: !!profile?.hasDependents,
     hasChildren:   !!profile?.hasChildren,
     hasPets:       !!profile?.hasPets,
@@ -2923,7 +3025,9 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821' }}>PCS Checklist</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ fontSize: 10, fontWeight: 900, background: theme.primary, color: '#FFF', borderRadius: 6, padding: '3px 8px', letterSpacing: '.06em' }}>{profile?.branch || 'Army'}</div>
+          <div style={{ fontSize: 10, fontWeight: 900, background: theme.primary, color: '#FFF', borderRadius: 6, padding: '3px 8px', letterSpacing: '.06em' }}>
+            {profile?.component === 'DoD Civilian' ? `DoD Civilian · ${profile?.branch || 'Army'}` : (profile?.branch || 'Army')}
+          </div>
           <div style={{ fontSize: 10, color: '#56697C', fontWeight: 600 }}>{allTasks.length} tasks</div>
         </div>
       </div>
@@ -6716,7 +6820,7 @@ function Onboarding({ onComplete }) {
                 <button
                   onClick={() => onComplete({
                     ...p,
-                    firstName: (p.firstName || '').trim() || 'Service Member',
+                    firstName: (p.firstName || '').trim() || (p.component === 'DoD Civilian' ? 'Federal Civilian' : p.component === 'Dependent' ? 'Family Member' : 'Service Member'),
                     lastName: (p.lastName || '').trim(),
                     hasChildren: p.childAges.some(a => a !== '' && !isNaN(Number(a))),
                     childAges: p.childAges.filter(a => a !== '' && !isNaN(Number(a))).map(Number),
@@ -7398,6 +7502,7 @@ function App() {
         .filter(([phase, win]) => {
           if (daysUntilDeparture === null || daysUntilDeparture > win.activeAt) return false;
           const tailoredAlerts = getTailoredChecklist(profile?.branch || 'Army', {
+            component:     profile?.component || 'Active Duty',
             hasDependents: !!profile?.hasDependents,
             hasChildren:   !!profile?.hasChildren,
             hasPets:       !!profile?.hasPets,
@@ -7412,6 +7517,7 @@ function App() {
           overdue: daysUntilDeparture < win.overdueAt,
           daysUntil: daysUntilDeparture,
           count: ((getTailoredChecklist(profile?.branch || 'Army', {
+            component:     profile?.component || 'Active Duty',
             hasDependents: !!profile?.hasDependents,
             hasChildren:   !!profile?.hasChildren,
             hasPets:       !!profile?.hasPets,
