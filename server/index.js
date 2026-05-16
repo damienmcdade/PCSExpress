@@ -1493,7 +1493,10 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
 
   let overpassData
   try {
-    overpassData = await overpassReligiousFetch(origin.lat, origin.lng, Math.round(radiusMiles * 1609.34))
+    overpassData = await Promise.race([
+      overpassReligiousFetch(origin.lat, origin.lng, Math.round(radiusMiles * 1609.34)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('overpass-budget-exceeded')), 22_000)),
+    ])
   } catch (err) {
     console.error(`[religious] overpass ${err.message}`)
     return res.status(200).json({ services: [], origin, fallback: true, reason: 'overpass-failed' })
@@ -1709,7 +1712,10 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
 
   let overpassData
   try {
-    overpassData = await overpassSchoolsFetch(origin.lat, origin.lng, Math.round(radiusMiles * 1609.34))
+    overpassData = await Promise.race([
+      overpassSchoolsFetch(origin.lat, origin.lng, Math.round(radiusMiles * 1609.34)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('overpass-budget-exceeded')), 22_000)),
+    ])
   } catch (err) {
     console.error(`[schools] overpass ${err.message}`)
     return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: [], origin, fallback: true, reason: 'overpass-failed' })
@@ -2165,9 +2171,18 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
     return res.status(200).json({ categories: FAMILY_CATEGORIES, activities: [], fallback: true, reason: 'address-not-found' })
   }
 
+  // Hard time budget for Overpass — 22s total. Cold-cache markets can
+  // otherwise hang for 60-75s waiting for mirror failover and we'd
+  // rather return an empty activity list with the overpass-slow reason
+  // (frontend shows a "try again in a minute" hint) than burn the
+  // entire client-side timeout.
+  const OVERPASS_BUDGET_MS = 22_000
   let overpassData
   try {
-    overpassData = await overpassFetch(origin.lat, origin.lng, Math.round(radiusMiles * 1609.34))
+    overpassData = await Promise.race([
+      overpassFetch(origin.lat, origin.lng, Math.round(radiusMiles * 1609.34)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('overpass-budget-exceeded')), OVERPASS_BUDGET_MS)),
+    ])
   } catch (err) {
     console.error(`[family-activities] overpass ${err.message}`)
     return res.status(200).json({ categories: FAMILY_CATEGORIES, activities: [], origin, fallback: true, reason: 'overpass-failed' })
