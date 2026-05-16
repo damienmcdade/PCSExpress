@@ -25,6 +25,7 @@ import PPMFinancialEstimator from './components/PPMFinancialEstimator'
 import BAHCalculatorTab from './components/BAHCalculatorTab'
 import OHACalculatorTab from './components/OHACalculatorTab'
 import LQACalculatorTab from './components/LQACalculatorTab'
+import MedicalReadinessTab from './components/MedicalReadinessTab'
 import MoveBudgetTracker from './components/MoveBudgetTracker'
 import DutyStationDirectory from './components/DutyStationDirectory'
 import PrivacyShield from './components/PrivacyShield'
@@ -5530,7 +5531,7 @@ const APP_TRANSLATIONS = {
       education: 'Education',
       family: 'Family Readiness',
       'home-relocation': 'Home Relocation',
-      'mental-readiness': 'Mental Readiness',
+      'medical-readiness': 'Medical Readiness',
       nav: 'Navigation',
       resources: 'Resources',
       religion: 'Spiritual Readiness',
@@ -5544,7 +5545,7 @@ const APP_TRANSLATIONS = {
       education: 'Review colleges, GI Bill chapters, MyCAA, and branch-specific Tuition Assistance guidance.',
       family: 'Plan family-impact PCS needs across Deployment, EFMP, Employment, Permanent Resident, Pets, and Schools in one organized category.',
       'home-relocation': 'Find official housing resources, move aid, PPM financial estimates, VA loan guidance, inventory tracking, claims deadlines, and replacement value planning.',
-      'mental-readiness': 'Connect service members and dependents to free counseling, crisis support, family support, and self-care resources.',
+      'medical-readiness': 'Find emergency rooms, hospitals, urgent care, behavioral & mental health, dental, vision, pharmacy, and PHA / readiness resources — tailored to your branch, component, and TRICARE region (or FEHB for DoD Civilians).',
       nav: 'Plan routes, save directions, and view public installation map information without restricted or non-public base details.',
       resources: 'Use one organized hub for official public military, government, family, financial, healthcare, PCS, education, and career resources.',
       religion: 'Locate chaplain, counseling, worship, and community support resources tied to the user’s optional spiritual preference.',
@@ -5649,7 +5650,7 @@ APP_TRANSLATIONS.es = {
     education: 'Educación',
     family: 'Preparación familiar',
     'home-relocation': 'Reubicación del hogar',
-    'mental-readiness': 'Preparación mental',
+    'medical-readiness': 'Preparación médica',
     nav: 'Navegación',
     resources: 'Recursos',
     religion: 'Preparación espiritual',
@@ -5714,7 +5715,7 @@ APP_TRANSLATIONS.de = {
   gaining: 'Ziel',
   depart: 'Abreise',
   faith: 'Glaube',
-  nav: { home: 'Start', checklist: 'Checkliste', documents: 'Dokumente', education: 'Bildung', family: 'Familienbereitschaft', 'home-relocation': 'Wohnungssuche', 'mental-readiness': 'Mentale Bereitschaft', nav: 'Navigation', resources: 'Ressourcen', religion: 'Spirituelle Bereitschaft', translation: 'Übersetzung', veterans: 'Veteranen' },
+  nav: { home: 'Start', checklist: 'Checkliste', documents: 'Dokumente', education: 'Bildung', family: 'Familienbereitschaft', 'home-relocation': 'Wohnungssuche', 'medical-readiness': 'Medizinische Bereitschaft', nav: 'Navigation', resources: 'Ressourcen', religion: 'Spirituelle Bereitschaft', translation: 'Übersetzung', veterans: 'Veteranen' },
 };
 
 APP_TRANSLATIONS.fr = {
@@ -5773,7 +5774,7 @@ APP_TRANSLATIONS.fr = {
   gaining: 'Arrivée',
   depart: 'Départ',
   faith: 'Foi',
-  nav: { home: 'Accueil', checklist: 'Liste PCS', documents: 'Documents', education: 'Éducation', family: 'Préparation familiale', 'home-relocation': 'Relogement', 'mental-readiness': 'Préparation mentale', nav: 'Navigation', resources: 'Ressources', religion: 'Préparation spirituelle', translation: 'Traduction', veterans: 'Vétérans' },
+  nav: { home: 'Accueil', checklist: 'Liste PCS', documents: 'Documents', education: 'Éducation', family: 'Préparation familiale', 'home-relocation': 'Relogement', 'medical-readiness': 'Préparation médicale', nav: 'Navigation', resources: 'Ressources', religion: 'Préparation spirituelle', translation: 'Traduction', veterans: 'Vétérans' },
 };
 
 APP_TRANSLATIONS.ko = {
@@ -5832,7 +5833,7 @@ APP_TRANSLATIONS.ko = {
   gaining: '도착',
   depart: '출발',
   faith: '종교',
-  nav: { home: '홈', checklist: '체크리스트', documents: '문서', education: '교육', family: '가족 준비', 'home-relocation': '주거 이전', 'mental-readiness': '정신 준비', nav: '내비게이션', resources: '자료', religion: '영적 준비', translation: '번역', veterans: '재향군인' },
+  nav: { home: '홈', checklist: '체크리스트', documents: '문서', education: '교육', family: '가족 준비', 'home-relocation': '주거 이전', 'medical-readiness': '의료 준비', nav: '내비게이션', resources: '자료', religion: '영적 준비', translation: '번역', veterans: '재향군인' },
 };
 
 APP_TRANSLATIONS.ja = {
@@ -5891,7 +5892,7 @@ APP_TRANSLATIONS.ja = {
   gaining: '赴任先',
   depart: '出発',
   faith: '信仰',
-  nav: { home: 'ホーム', checklist: 'チェックリスト', documents: '書類', education: '教育', family: '家族準備', 'home-relocation': '住居移転', 'mental-readiness': 'メンタル準備', nav: 'ナビゲーション', resources: 'リソース', religion: 'スピリチュアル準備', translation: '翻訳', veterans: '退役軍人' },
+  nav: { home: 'ホーム', checklist: 'チェックリスト', documents: '書類', education: '教育', family: '家族準備', 'home-relocation': '住居移転', 'medical-readiness': '医療準備', nav: 'ナビゲーション', resources: 'リソース', religion: 'スピリチュアル準備', translation: '翻訳', veterans: '退役軍人' },
 };
 
 APP_TRANSLATIONS.tl = {
@@ -5950,7 +5951,7 @@ APP_TRANSLATIONS.tl = {
   gaining: 'Gaining',
   depart: 'Alis',
   faith: 'Pananampalataya',
-  nav: { home: 'Simula', checklist: 'Listahan', documents: 'Dokumento', education: 'Edukasyon', family: 'Kahandaan ng Pamilya', 'home-relocation': 'Paglipat ng Tahanan', 'mental-readiness': 'Kahandaang Pangkaisipan', nav: 'Pag-navigate', resources: 'Mga Resource', religion: 'Kahandaang Espirituwal', translation: 'Pagsasalin', veterans: 'Mga Beterano' },
+  nav: { home: 'Simula', checklist: 'Listahan', documents: 'Dokumento', education: 'Edukasyon', family: 'Kahandaan ng Pamilya', 'home-relocation': 'Paglipat ng Tahanan', 'medical-readiness': 'Kahandaang Medikal', nav: 'Pag-navigate', resources: 'Mga Resource', religion: 'Kahandaang Espirituwal', translation: 'Pagsasalin', veterans: 'Mga Beterano' },
 };
 
 APP_TRANSLATIONS.ar = {
@@ -6009,7 +6010,7 @@ APP_TRANSLATIONS.ar = {
   gaining: 'الوجهة',
   depart: 'المغادرة',
   faith: 'الدين',
-  nav: { home: 'الرئيسية', checklist: 'قائمة PCS', documents: 'المستندات', education: 'التعليم', family: 'جاهزية العائلة', 'home-relocation': 'السكن والانتقال', 'mental-readiness': 'الجاهزية النفسية', nav: 'الملاحة', resources: 'الموارد', religion: 'الجاهزية الروحية', translation: 'الترجمة', veterans: 'المحاربون القدامى' },
+  nav: { home: 'الرئيسية', checklist: 'قائمة PCS', documents: 'المستندات', education: 'التعليم', family: 'جاهزية العائلة', 'home-relocation': 'السكن والانتقال', 'medical-readiness': 'الجاهزية الطبية', nav: 'الملاحة', resources: 'الموارد', religion: 'الجاهزية الروحية', translation: 'الترجمة', veterans: 'المحاربون القدامى' },
 };
 
 APP_TRANSLATIONS.zh = {
@@ -6068,7 +6069,7 @@ APP_TRANSLATIONS.zh = {
   gaining: '新基地',
   depart: '出发',
   faith: '信仰',
-  nav: { home: '首页', checklist: '清单', documents: '文件', education: '教育', family: '家庭准备', 'home-relocation': '住房搬迁', 'mental-readiness': '心理准备', nav: '导航', resources: '资源', religion: '精神准备', translation: '翻译', veterans: '退伍军人' },
+  nav: { home: '首页', checklist: '清单', documents: '文件', education: '教育', family: '家庭准备', 'home-relocation': '住房搬迁', 'medical-readiness': '医疗准备', nav: '导航', resources: '资源', religion: '精神准备', translation: '翻译', veterans: '退伍军人' },
 };
 
 APP_TRANSLATIONS.it = {
@@ -6127,7 +6128,7 @@ APP_TRANSLATIONS.it = {
   gaining: 'Destinazione',
   depart: 'Partenza',
   faith: 'Fede',
-  nav: { home: 'Pagina iniziale', checklist: 'Lista PCS', documents: 'Documenti', education: 'Istruzione', family: 'Prontezza familiare', 'home-relocation': 'Trasferimento casa', 'mental-readiness': 'Prontezza mentale', nav: 'Navigazione', resources: 'Risorse', religion: 'Prontezza spirituale', translation: 'Traduzione', veterans: 'Veterani' },
+  nav: { home: 'Pagina iniziale', checklist: 'Lista PCS', documents: 'Documenti', education: 'Istruzione', family: 'Prontezza familiare', 'home-relocation': 'Trasferimento casa', 'medical-readiness': 'Prontezza medica', nav: 'Navigazione', resources: 'Risorse', religion: 'Prontezza spirituale', translation: 'Traduzione', veterans: 'Veterani' },
 };
 
 APP_TRANSLATIONS.pt = {
@@ -6186,7 +6187,7 @@ APP_TRANSLATIONS.pt = {
   gaining: 'Destino',
   depart: 'Partida',
   faith: 'Fé',
-  nav: { home: 'Início', checklist: 'Lista PCS', documents: 'Documentos', education: 'Educação', family: 'Prontidão familiar', 'home-relocation': 'Mudança residencial', 'mental-readiness': 'Prontidão mental', nav: 'Navegação', resources: 'Recursos', religion: 'Prontidão espiritual', translation: 'Tradução', veterans: 'Veteranos' },
+  nav: { home: 'Início', checklist: 'Lista PCS', documents: 'Documentos', education: 'Educação', family: 'Prontidão familiar', 'home-relocation': 'Mudança residencial', 'medical-readiness': 'Prontidão médica', nav: 'Navegação', resources: 'Recursos', religion: 'Prontidão espiritual', translation: 'Tradução', veterans: 'Veteranos' },
 };
 
 APP_TRANSLATIONS.vi = {
@@ -6245,7 +6246,7 @@ APP_TRANSLATIONS.vi = {
   gaining: 'Căn cứ đến',
   depart: 'Khởi hành',
   faith: 'Tín ngưỡng',
-  nav: { home: 'Trang chủ', checklist: 'Danh sách PCS', documents: 'Tài liệu', education: 'Giáo dục', family: 'Sẵn sàng gia đình', 'home-relocation': 'Nhà ở & chuyển nhà', 'mental-readiness': 'Sẵn sàng tinh thần', nav: 'Điều hướng', resources: 'Tài nguyên', religion: 'Sẵn sàng tâm linh', translation: 'Dịch thuật', veterans: 'Cựu chiến binh' },
+  nav: { home: 'Trang chủ', checklist: 'Danh sách PCS', documents: 'Tài liệu', education: 'Giáo dục', family: 'Sẵn sàng gia đình', 'home-relocation': 'Nhà ở & chuyển nhà', 'medical-readiness': 'Sẵn sàng y tế', nav: 'Điều hướng', resources: 'Tài nguyên', religion: 'Sẵn sàng tâm linh', translation: 'Dịch thuật', veterans: 'Cựu chiến binh' },
 };
 
 function getAppLanguage(language) {
@@ -6293,7 +6294,7 @@ const KEYED_LANGUAGE_TOPICS = {
   education: { es: 'Educación', de: 'Bildung', fr: 'Éducation', ko: '교육', ja: '教育', tl: 'Edukasyon', ar: 'التعليم', zh: '教育', it: 'Istruzione', pt: 'Educação', vi: 'Giáo dục' },
   family: { es: 'Preparación familiar', de: 'Familienbereitschaft', fr: 'Préparation familiale', ko: '가족 준비', ja: '家族準備', tl: 'Kahandaan ng Pamilya', ar: 'جاهزية العائلة', zh: '家庭准备', it: 'Prontezza familiare', pt: 'Prontidão familiar', vi: 'Sẵn sàng gia đình' },
   'home-relocation': { es: 'Reubicación del hogar', de: 'Wohnungssuche', fr: 'Relogement', ko: '주거 이전', ja: '住居移転', tl: 'Paglipat ng Tahanan', ar: 'السكن والانتقال', zh: '住房搬迁', it: 'Trasferimento casa', pt: 'Mudança residencial', vi: 'Nhà ở & chuyển nhà' },
-  'mental-readiness': { es: 'Preparación mental', de: 'Mentale Bereitschaft', fr: 'Préparation mentale', ko: '정신 준비', ja: 'メンタル準備', tl: 'Kahandaang Pangkaisipan', ar: 'الجاهزية النفسية', zh: '心理准备', it: 'Prontezza mentale', pt: 'Prontidão mental', vi: 'Sẵn sàng tinh thần' },
+  'medical-readiness': { es: 'Preparación médica', de: 'Medizinische Bereitschaft', fr: 'Préparation médicale', ko: '의료 준비', ja: '医療準備', tl: 'Kahandaang Medikal', ar: 'الجاهزية الطبية', zh: '医疗准备', it: 'Prontezza medica', pt: 'Prontidão médica', vi: 'Sẵn sàng y tế' },
   nav: { es: 'Navegación', de: 'Navigation', fr: 'Navigation', ko: '내비게이션', ja: 'ナビゲーション', tl: 'Pag-navigate', ar: 'الملاحة', zh: '导航', it: 'Navigazione', pt: 'Navegação', vi: 'Điều hướng' },
   resources: { es: 'Recursos', de: 'Ressourcen', fr: 'Ressources', ko: '자료', ja: 'リソース', tl: 'Mga Resource', ar: 'الموارد', zh: '资源', it: 'Risorse', pt: 'Recursos', vi: 'Tài nguyên' },
   religion: { es: 'Preparación espiritual', de: 'Spirituelle Bereitschaft', fr: 'Préparation spirituelle', ko: '영적 준비', ja: 'スピリチュアル準備', tl: 'Kahandaang Espirituwal', ar: 'الجاهزية الروحية', zh: '精神准备', it: 'Prontezza spirituale', pt: 'Prontidão espiritual', vi: 'Sẵn sàng tâm linh' },
@@ -6328,7 +6329,7 @@ const CATEGORY_DESC_TRANSLATIONS = {
     education: 'Revise universidades cercanas, beneficios GI Bill, MyCAA y pasos de Tuition Assistance según la rama seleccionada.',
     family: 'Coordine necesidades familiares de PCS como despliegue, EFMP, empleo, residencia, mascotas y escuelas.',
     'home-relocation': 'Encuentre apoyo oficial de vivienda, ayuda de mudanza, inventario, reclamos y planificación de valor de reemplazo.',
-    'mental-readiness': 'Acceda a recursos gratuitos de consejería, crisis, apoyo familiar y autocuidado para miembros del servicio y dependientes.',
+    'medical-readiness': 'Acceda a recursos gratuitos de consejería, crisis, apoyo familiar y autocuidado para miembros del servicio y dependientes.',
     nav: 'Planifique rutas, indicaciones y mapas públicos de instalación sin mostrar información restringida o no pública.',
     resources: 'Abra recursos oficiales de gobierno, militares, familiares, financieros, médicos, educativos y de carrera en un solo lugar.',
     religion: 'Localice apoyo de capellán, consejería, servicios religiosos y comunidad según la preferencia espiritual opcional.',
@@ -6341,7 +6342,7 @@ const CATEGORY_DESC_TRANSLATIONS = {
     education: 'Prüfen Sie Hochschulen in der Nähe, GI-Bill-Leistungen, MyCAA und Tuition-Assistance-Schritte nach ausgewählter Teilstreitkraft.',
     family: 'Koordinieren Sie PCS-Familienthemen wie Einsatz, EFMP, Beschäftigung, Aufenthalt, Haustiere und Schulen.',
     'home-relocation': 'Finden Sie offizielle Wohnungsquellen, Umzugshilfe, Inventar, Schadensansprüche und Ersatzwertplanung.',
-    'mental-readiness': 'Nutzen Sie kostenlose Beratungs-, Krisen-, Familien- und Selbsthilferessourcen für Servicemitglieder und Angehörige.',
+    'medical-readiness': 'Nutzen Sie kostenlose Beratungs-, Krisen-, Familien- und Selbsthilferessourcen für Servicemitglieder und Angehörige.',
     nav: 'Planen Sie Routen, Wegbeschreibungen und öffentliche Standortkarten ohne eingeschränkte oder nicht öffentliche Informationen.',
     resources: 'Öffnen Sie offizielle Regierungs-, Militär-, Familien-, Finanz-, Gesundheits-, Bildungs- und Karrierequellen an einem Ort.',
     religion: 'Finden Sie Seelsorge, Beratung, Gottesdienste und Gemeinschaftshilfe anhand der optionalen spirituellen Präferenz.',
@@ -6354,7 +6355,7 @@ const CATEGORY_DESC_TRANSLATIONS = {
     education: 'Consultez les établissements proches, le GI Bill, MyCAA et les étapes Tuition Assistance selon la branche sélectionnée.',
     family: 'Coordonnez les besoins familiaux PCS comme déploiement, EFMP, emploi, résidence permanente, animaux et écoles.',
     'home-relocation': 'Trouvez des ressources officielles de logement, aide au déménagement, inventaire, réclamations et valeur de remplacement.',
-    'mental-readiness': 'Accédez à des ressources gratuites de conseil, crise, soutien familial et autosoins pour militaires et dépendants.',
+    'medical-readiness': 'Accédez à des ressources gratuites de conseil, crise, soutien familial et autosoins pour militaires et dépendants.',
     nav: 'Planifiez trajets, itinéraires et cartes publiques d’installation sans données restreintes ou non publiques.',
     resources: 'Ouvrez les ressources officielles gouvernementales, militaires, familiales, financières, santé, éducation et carrière.',
     religion: 'Trouvez aumônerie, conseil, services religieux et soutien communautaire selon la préférence spirituelle facultative.',
@@ -6367,7 +6368,7 @@ const CATEGORY_DESC_TRANSLATIONS = {
     education: '선택한 군별에 맞춰 인근 대학, GI Bill, MyCAA, 학비 지원 절차를 확인합니다.',
     family: '배치, EFMP, 취업, 영주권, 반려동물, 학교 등 가족 관련 PCS 필요 사항을 정리합니다.',
     'home-relocation': '공식 주거 자료, 이사 지원, 재고, 청구 기한, 대체 가치 계획을 확인합니다.',
-    'mental-readiness': '복무자와 가족을 위한 무료 상담, 위기 지원, 가족 지원, 자기관리 자료를 연결합니다.',
+    'medical-readiness': '복무자와 가족을 위한 무료 상담, 위기 지원, 가족 지원, 자기관리 자료를 연결합니다.',
     nav: '제한 정보 없이 공개 설치 지도, 경로, 길 안내를 계획합니다.',
     resources: '정부, 군, 가족, 재정, 의료, 교육, 경력 관련 공식 자료를 한곳에서 엽니다.',
     religion: '선택한 영적 선호에 맞춰 군종, 상담, 예배, 지역사회 지원을 찾습니다.',
@@ -6380,7 +6381,7 @@ const CATEGORY_DESC_TRANSLATIONS = {
     education: '選択した軍種に合わせ、近隣校、GI Bill、MyCAA、授業料支援手順を確認します。',
     family: '展開、EFMP、雇用、永住、ペット、学校など家族に関わるPCS事項を整理します。',
     'home-relocation': '公式住宅情報、引越し支援、家財記録、請求期限、交換価値計画を確認します。',
-    'mental-readiness': '軍人と扶養家族向けの無料カウンセリング、危機支援、家族支援、セルフケアを探します。',
+    'medical-readiness': '軍人と扶養家族向けの無料カウンセリング、危機支援、家族支援、セルフケアを探します。',
     nav: '制限情報を含めず、公開基地地図、経路、道順を計画します。',
     resources: '政府、軍、家族、財務、医療、教育、キャリアの公式リソースを一か所で開きます。',
     religion: '任意の精神的希望に合わせて、従軍牧師、相談、礼拝、地域支援を探します。',
@@ -6393,7 +6394,7 @@ const CATEGORY_DESC_TRANSLATIONS = {
     education: 'Suriin ang malapit na schools, GI Bill, MyCAA, at Tuition Assistance steps ayon sa napiling branch.',
     family: 'Iayos ang family PCS needs tulad ng deployment, EFMP, trabaho, residency, pets, at schools.',
     'home-relocation': 'Hanapin ang opisyal na housing resources, move aid, inventory, claims deadlines, at replacement value planning.',
-    'mental-readiness': 'Kumonekta sa libreng counseling, crisis support, family support, at self-care resources para sa service members at dependents.',
+    'medical-readiness': 'Kumonekta sa libreng counseling, crisis support, family support, at self-care resources para sa service members at dependents.',
     nav: 'Magplano ng routes, directions, at pampublikong installation maps nang walang restricted o non-public details.',
     resources: 'Buksan sa isang lugar ang official government, military, family, financial, healthcare, education, at career resources.',
     religion: 'Hanapin ang chaplain, counseling, worship, at community support batay sa optional spiritual preference.',
@@ -6406,7 +6407,7 @@ const CATEGORY_DESC_TRANSLATIONS = {
     education: 'راجع المدارس القريبة ومزايا GI Bill وMyCAA وخطوات المساعدة الدراسية حسب الفرع المختار.',
     family: 'نسّق احتياجات الأسرة خلال PCS مثل الانتشار وEFMP والعمل والإقامة والحيوانات الأليفة والمدارس.',
     'home-relocation': 'ابحث عن موارد السكن الرسمية ومساعدة الانتقال والجرد والمطالبات وتخطيط قيمة الاستبدال.',
-    'mental-readiness': 'احصل على موارد مجانية للاستشارة ودعم الأزمات ودعم الأسرة والرعاية الذاتية لأفراد الخدمة والمعالين.',
+    'medical-readiness': 'احصل على موارد مجانية للاستشارة ودعم الأزمات ودعم الأسرة والرعاية الذاتية لأفراد الخدمة والمعالين.',
     nav: 'خطط للمسارات والاتجاهات وخرائط المنشآت العامة دون عرض معلومات مقيدة أو غير عامة.',
     resources: 'افتح موارد رسمية حكومية وعسكرية وأسرية ومالية وصحية وتعليمية ومهنية في مكان واحد.',
     religion: 'اعثر على دعم القسيس والاستشارة والعبادة والمجتمع حسب التفضيل الروحي الاختياري.',
@@ -6419,7 +6420,7 @@ const CATEGORY_DESC_TRANSLATIONS = {
     education: '按所选军种查看附近学校、GI Bill、MyCAA 和学费援助步骤。',
     family: '协调部署、EFMP、就业、永久居民、宠物和学校等家庭 PCS 事项。',
     'home-relocation': '查找官方住房资源、搬家援助、物品清单、索赔期限和重置价值规划。',
-    'mental-readiness': '连接服役人员和家属可用的免费咨询、危机支持、家庭支持和自我照护资源。',
+    'medical-readiness': '连接服役人员和家属可用的免费咨询、危机支持、家庭支持和自我照护资源。',
     nav: '规划路线、方向和公开基地地图，不显示受限或非公开信息。',
     resources: '在一个位置打开政府、军方、家庭、财务、医疗、教育和职业官方资源。',
     religion: '根据可选精神偏好查找随军牧师、咨询、礼拜和社区支持。',
@@ -6432,7 +6433,7 @@ const CATEGORY_DESC_TRANSLATIONS = {
     education: 'Consulta scuole vicine, capitoli GI Bill, MyCAA e passaggi di Tuition Assistance in base alla forza armata scelta.',
     family: 'Coordina bisogni familiari PCS come schieramento, EFMP, lavoro, residenza permanente, animali domestici e scuole.',
     'home-relocation': 'Trova risorse ufficiali per alloggio, aiuti al trasloco, inventario, reclami e pianificazione del valore di sostituzione.',
-    'mental-readiness': 'Accedi a counseling gratuito, supporto crisi, supporto familiare e strumenti di cura personale per militari e familiari.',
+    'medical-readiness': 'Accedi a counseling gratuito, supporto crisi, supporto familiare e strumenti di cura personale per militari e familiari.',
     nav: 'Pianifica percorsi, indicazioni e mappe pubbliche delle installazioni senza dati riservati o non pubblici.',
     resources: 'Apri risorse ufficiali governative, militari, familiari, finanziarie, sanitarie, educative e di carriera in un unico punto.',
     religion: 'Trova cappellani, counseling, funzioni religiose e supporto comunitario collegati alla preferenza spirituale facoltativa.',
@@ -6445,7 +6446,7 @@ const CATEGORY_DESC_TRANSLATIONS = {
     education: 'Revise escolas próximas, GI Bill, MyCAA e etapas de Tuition Assistance conforme o ramo escolhido.',
     family: 'Coordene necessidades familiares de PCS como desdobramento, EFMP, emprego, residência, pets e escolas.',
     'home-relocation': 'Encontre recursos oficiais de moradia, ajuda de mudança, inventário, reclamações e valor de reposição.',
-    'mental-readiness': 'Acesse recursos gratuitos de aconselhamento, crise, apoio familiar e autocuidado para militares e dependentes.',
+    'medical-readiness': 'Acesse recursos gratuitos de aconselhamento, crise, apoio familiar e autocuidado para militares e dependentes.',
     nav: 'Planeje rotas, direções e mapas públicos de instalações sem informações restritas ou não públicas.',
     resources: 'Abra recursos oficiais de governo, militares, família, finanças, saúde, educação e carreira em um só lugar.',
     religion: 'Encontre capelão, aconselhamento, culto e apoio comunitário conforme a preferência espiritual opcional.',
@@ -6458,7 +6459,7 @@ const CATEGORY_DESC_TRANSLATIONS = {
     education: 'Xem trường gần căn cứ, GI Bill, MyCAA và các bước Tuition Assistance theo quân chủng đã chọn.',
     family: 'Điều phối nhu cầu gia đình khi PCS như triển khai, EFMP, việc làm, thường trú, thú cưng và trường học.',
     'home-relocation': 'Tìm nguồn nhà ở chính thức, hỗ trợ chuyển nhà, kiểm kê, hạn khiếu nại và kế hoạch giá trị thay thế.',
-    'mental-readiness': 'Truy cập tư vấn miễn phí, hỗ trợ khủng hoảng, hỗ trợ gia đình và tự chăm sóc cho quân nhân và thân nhân.',
+    'medical-readiness': 'Truy cập tư vấn miễn phí, hỗ trợ khủng hoảng, hỗ trợ gia đình và tự chăm sóc cho quân nhân và thân nhân.',
     nav: 'Lập tuyến đường, chỉ dẫn và bản đồ căn cứ công khai không có thông tin hạn chế hoặc không công khai.',
     resources: 'Mở tài nguyên chính thức về chính phủ, quân đội, gia đình, tài chính, y tế, giáo dục và nghề nghiệp tại một nơi.',
     religion: 'Tìm tuyên úy, tư vấn, sinh hoạt tôn giáo và hỗ trợ cộng đồng theo tùy chọn tâm linh.',
@@ -7720,7 +7721,7 @@ function App() {
     { tab: 'education', title: t('nav.education'), body: t('desc.education') },
     { tab: 'family', title: t('nav.family'), body: t('desc.family') },
     { tab: 'home-relocation', title: t('nav.home-relocation'), body: t('desc.home-relocation') },
-    { tab: 'mental-readiness', title: t('nav.mental-readiness'), body: t('desc.mental-readiness') },
+    { tab: 'medical-readiness', title: t('nav.medical-readiness'), body: t('desc.medical-readiness') },
     { tab: 'nav', title: t('nav.nav'), body: t('desc.nav') },
     { tab: 'resources', title: t('nav.resources'), body: t('desc.resources') },
     { tab: 'religion', title: t('nav.religion'), body: t('desc.religion') },
@@ -7737,7 +7738,7 @@ function App() {
     { id: 'education',   label: 'Education',            icon: 'EDU', iosIcon: '📚', color: '#1565C0' },
     { id: 'family',      label: 'Family Readiness',     icon: 'FAM', iosIcon: '👪', color: '#5B2A86' },
     { id: 'home-relocation', label: 'Home Relocation',  icon: 'HME', iosIcon: '🏠', color: '#455A64' },
-    { id: 'mental-readiness', label: 'Mental Readiness', icon: 'MNT', iosIcon: '🧠', color: '#00695C' },
+    { id: 'medical-readiness', label: 'Medical Readiness', icon: 'MED', iosIcon: '🏥', color: '#7F1D1D' },
     { id: 'nav',         label: 'Navigation',           icon: 'NAV', iosIcon: '🗺️', color: '#00695C' },
     { id: 'resources',   label: 'Resources',            icon: 'RES', iosIcon: '🔗', color: '#C62828' },
     { id: 'religion',    label: 'Spiritual Readiness',  icon: 'SPR', iosIcon: '✦', color: '#37474F' },
@@ -7764,7 +7765,7 @@ function App() {
     education: t('desc.education'),
     family: t('desc.family'),
     'home-relocation': t('desc.home-relocation'),
-    'mental-readiness': t('desc.mental-readiness'),
+    'medical-readiness': t('desc.medical-readiness'),
     nav: t('desc.nav'),
     resources: t('desc.resources'),
     religion: t('desc.religion'),
@@ -8097,7 +8098,7 @@ function App() {
         {activeTab === 'education' && renderCategoryFrame('education', <EducationBenefitsTab theme={theme} profile={profile} />)}
         {activeTab === 'family' && renderCategoryFrame('family', <FamilyCategoryTab theme={theme} profile={profile} />)}
         {activeTab === 'home-relocation' && renderCategoryFrame('home-relocation', <HomeRelocationUnifiedTab theme={theme} profile={profile} />)}
-        {activeTab === 'mental-readiness' && renderCategoryFrame('mental-readiness', <MentalReadinessTab theme={theme} profile={profile} />)}
+        {activeTab === 'medical-readiness' && renderCategoryFrame('medical-readiness', <MedicalReadinessTab theme={theme} profile={profile} />)}
         {activeTab === 'nav' && renderCategoryFrame('nav', <NavigationModule theme={theme} profile={profile} />)}
         {activeTab === 'religion' && renderCategoryFrame('religion', <ReligiousServicesModuleWrapped theme={theme} profile={profile} />)}
         {activeTab === 'resources' && renderCategoryFrame('resources', <ResourcesTab theme={theme} profile={profile} />)}
