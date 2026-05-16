@@ -92,8 +92,10 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
   const [manual, setManual] = useState('');
   const market = useMemo(() => resolveMarket(profile, manual), [profile, manual]);
   const branch = clean(profile?.branch) || 'Army';
-  const branchSource = BRANCH_HOUSING_SOURCES[branch] || BRANCH_HOUSING_SOURCES.Army;
-  const links = useMemo(() => buildOfficialLinks(market, branchSource), [market, branchSource]);
+  // BRANCH_HOUSING_SOURCES + buildOfficialLinks() are retained for
+  // future use (e.g., a reference banner in the disclaimer) but the
+  // static official-housing cards section was removed per user
+  // direction - this tab is now fully dynamic.
   const colors = {
     primary: theme.primary || '#244247',
     secondary: theme.secondary || '#152F36',
@@ -160,22 +162,6 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
         </div>
       </div>
 
-      {/* Official housing links pinned at the top so the verified
-          DoD/branch sources are the first thing the user sees, even
-          if the dynamic listings are still loading or empty. */}
-      <section style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
-        <div style={{ fontSize: 12, fontWeight: 900, color: colors.text, marginBottom: 8 }}>Official housing links</div>
-        <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-          {links.map(link => (
-            <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: '#F8FAFC', border: '1px solid #E6EDF3', borderLeft: `4px solid ${colors.primary}`, borderRadius: 10, padding: 12, color: colors.text }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: colors.text }}>{link.name}</div>
-              <div style={{ fontSize: 11, color: colors.muted, lineHeight: 1.5, marginTop: 4 }}>{link.desc}</div>
-              <div style={{ marginTop: 10, display: 'inline-flex', padding: '7px 10px', borderRadius: 8, background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 900 }}>Open official site</div>
-            </a>
-          ))}
-        </div>
-      </section>
-
       {listings.status === 'loading' && (
         <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 12, color: colors.muted }}>
           Looking up active rental listings near {market.installation || 'your gaining installation'}...
@@ -237,10 +223,10 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
               // any inner links use stopPropagation.
               <a
                 key={item.id}
-                href={item.directionsUrl || item.listingUrl || '#'}
+                href={item.listingUrl || item.website || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={`Get directions to ${item.name || item.address || 'this property'}${item.distanceMiles != null ? ` (${item.distanceMiles} miles away)` : ''}`}
+                aria-label={`Open verified housing listings for ${item.name || item.address || 'this property'}${item.distanceMiles != null ? ` (${item.distanceMiles} miles away)` : ''}`}
                 style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${colors.accent}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: colors.text, display: 'block', cursor: 'pointer' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
@@ -279,18 +265,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <span style={{ background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>Tap card → directions</span>
-                  {item.apartmentsSearchUrl && (
-                    <a
-                      href={item.apartmentsSearchUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={e => e.stopPropagation()}
-                      style={{ textDecoration: 'none', background: '#FFFFFF', color: colors.primary, border: `1px solid ${colors.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}
-                    >
-                      Live units →
-                    </a>
-                  )}
+                  <span style={{ background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>Open verified listings →</span>
                   {item.website && (
                     <a
                       href={item.website}
@@ -299,7 +274,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
                       onClick={e => e.stopPropagation()}
                       style={{ textDecoration: 'none', background: '#FFFFFF', color: colors.primary, border: `1px solid ${colors.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}
                     >
-                      Website
+                      Property website
                     </a>
                   )}
                   {item.phone && (
@@ -326,7 +301,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
       )}
 
       <div style={{ fontSize: 11, color: '#0D3B66', background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, lineHeight: 1.5 }}>
-        Official housing systems may require users to search by installation name after opening the source. Verify all availability, eligibility, wait lists, pet rules, commute distance, lease terms, and move-in dates through the official source before making housing decisions.
+        Verify availability, eligibility, wait lists, pet rules, commute distance, lease terms, and move-in dates through the listing source before making housing decisions. PCS Express does not store private housing inventory. For DoD-managed and on-installation housing options, search the gaining installation at <a href="https://www.homes.mil/" target="_blank" rel="noopener noreferrer" style={{ color: '#0D3B66', fontWeight: 700 }}>HOMES.mil</a> or <a href="https://installations.militaryonesource.mil/" target="_blank" rel="noopener noreferrer" style={{ color: '#0D3B66', fontWeight: 700 }}>MilitaryINSTALLATIONS</a>.
       </div>
     </div>
   );

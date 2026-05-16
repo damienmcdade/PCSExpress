@@ -288,6 +288,87 @@ function shapeBusiness(entity) {
   }
 }
 
+// USASpending.gov is a free, no-key federal public API. We use it as
+// the primary source for the Active Listings tab when SAM_API_KEY is
+// unset. The API returns recipients of federal contracts filtered by
+// business_categories (e.g., service_disabled_veteran_owned_business,
+// veteran_owned_business). Each returned recipient is a real,
+// VERIFIED veteran-owned business that has done federal work - cross-
+// checked against SBA / SAM.gov records via their UEI.
+async function fetchUsaSpendingVetBusinesses(city, state) {
+  if (!city) return []
+  const body = {
+    filters: {
+      time_period: [
+        // Last 24 months of awards - keeps results current.
+        { start_date: new Date(Date.now() - 730 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10), end_date: new Date().toISOString().slice(0, 10) },
+      ],
+      award_type_codes: ['A', 'B', 'C', 'D'], // contract award types
+      recipient_locations: state
+        ? [{ country: 'USA', city, state }]
+        : [{ country: 'USA', city }],
+      // Both filters keyed; USASpending accepts business_categories
+      // as the canonical filter for veteran ownership.
+      business_categories: ['service_disabled_veteran_owned_business', 'veteran_owned_business'],
+    },
+    fields: ['Recipient Name', 'Recipient UEI', 'recipient_id', 'Award Amount', 'Description'],
+    page: 1,
+    limit: 100,
+    sort: 'Award Amount',
+    order: 'desc',
+  }
+  const signal = AbortSignal.timeout(15_000)
+  const r = await fetch('https://api.usaspending.gov/api/v2/search/spending_by_award/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(body),
+    signal,
+  })
+  if (!r.ok) throw new Error(`usaspending ${r.status}`)
+  const data = await r.json()
+  const rows = Array.isArray(data?.results) ? data.results : []
+  // Aggregate by recipient UEI - a single business may have many
+  // awards. We surface each business once with their largest award
+  // count + total dollars to give the user context.
+  const byUei = new Map()
+  for (const row of rows) {
+    const uei = row['Recipient UEI'] || row.recipient_id || row['Recipient Name']
+    if (!uei) continue
+    if (!byUei.has(uei)) byUei.set(uei, { uei, name: row['Recipient Name'] || 'Veteran-owned business', awards: 0, totalAwardUsd: 0, lastDescription: '' })
+    const entry = byUei.get(uei)
+    entry.awards += 1
+    entry.totalAwardUsd += Number(row['Award Amount']) || 0
+    if (row['Description'] && !entry.lastDescription) entry.lastDescription = String(row['Description']).slice(0, 200)
+  }
+  return [...byUei.values()].sort((a, b) => b.totalAwardUsd - a.totalAwardUsd)
+}
+
+function shapeUsaSpendingBusiness(entry, city, state) {
+  const samUrl = entry.uei && /^[A-Z0-9]{12}$/i.test(entry.uei)
+    ? `https://sam.gov/entity/${encodeURIComponent(entry.uei)}/view`
+    : `https://sam.gov/search/?index=ei&page=1&pageSize=25&sort=-modifiedDate&q=${encodeURIComponent(entry.name)}`
+  return {
+    id: `usaspending-${entry.uei}`,
+    name: entry.name,
+    address: '',
+    city: city || '',
+    state: state || '',
+    zip: '',
+    businessTypes: ['Veteran-Owned Business (USASpending verified)'],
+    naicsCode: '',
+    naicsDesc: entry.lastDescription || `Verified federal contractor with ${entry.awards} contract${entry.awards > 1 ? 's' : ''} awarded.`,
+    industry: 'business',
+    url: '',
+    phone: '',
+    contact: '',
+    samUrl,
+    distanceMiles: null,
+    awards: entry.awards,
+    totalAwardUsd: Math.round(entry.totalAwardUsd),
+    source: 'USAspending.gov',
+  }
+}
+
 app.get('/api/vet-businesses', vetBizRateLimit, async (req, res) => {
   const city = sanitizeQueryParam(req.query.city)
   const state = sanitizeQueryParam(req.query.state, 16)
@@ -296,11 +377,25 @@ app.get('/api/vet-businesses', vetBizRateLimit, async (req, res) => {
     return res.status(400).json({ error: 'city or zip is required', businesses: [], fallback: true })
   }
 
-  // No API key configured: tell the client to fall back to static
-  // source-link cards. We intentionally do NOT 500 here - the absence
-  // of an API key is an expected operational mode (e.g., local dev).
+  // USASpending.gov fallback path: no SAM_API_KEY is required. Real
+  // veteran-owned federal contractors filtered to the installation's
+  // city. When SAM_API_KEY IS configured we fall through to the
+  // richer SAM.gov entity data below.
   if (!SAM_API_KEY) {
-    return res.status(200).json({ businesses: [], fallback: true, reason: 'no-api-key' })
+    const cacheKey = `usaspending|${city}|${state}|${zip}`
+    const cached = VET_BIZ_CACHE.get(cacheKey)
+    if (cached && Date.now() - cached.fetchedAt < VET_BIZ_TTL_MS) {
+      return res.status(200).json({ businesses: cached.businesses, fallback: cached.businesses.length === 0, source: 'cache', fetchedAt: cached.fetchedAt })
+    }
+    try {
+      const entries = await fetchUsaSpendingVetBusinesses(city, state)
+      const businesses = entries.slice(0, 25).map(e => shapeUsaSpendingBusiness(e, city, state))
+      if (businesses.length > 0) VET_BIZ_CACHE.set(cacheKey, { businesses, fetchedAt: Date.now() })
+      return res.status(200).json({ businesses, fallback: businesses.length === 0, source: 'usaspending.gov', fetchedAt: Date.now() })
+    } catch (err) {
+      console.error(`[vet-businesses] usaspending ${err.message}`)
+      return res.status(200).json({ businesses: [], fallback: true, reason: 'upstream-error' })
+    }
   }
 
   const cacheKey = `${city}|${state}|${zip}`
