@@ -3375,7 +3375,7 @@ function SchoolsTab({ theme, profile }) {
                   Sorted: military / on-installation schools first, then grade-band matches for your child{agesFromProfile.length > 1 ? 'ren' : ''} (age{agesFromProfile.length > 1 ? 's' : ''} {agesFromProfile.join(', ')}), then by distance.
                 </div>
               )}
-              <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+              <div data-dynamic-card="google" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
                 {liveK12.slice(0, 24).map(s => (
                   <a
                     key={s.id}
@@ -3474,7 +3474,7 @@ function SchoolsTab({ theme, profile }) {
               <div style={{ fontSize: 10, color: '#56697C', marginBottom: 8 }}>
                 On-installation CDCs / Child Development Centers come up first when nearby. For DoD priority waitlist enrollment use MilitaryChildCare.com below.
               </div>
-              <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+              <div data-dynamic-card="google" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
                 {liveDaycare.slice(0, 24).map(s => (
                   <a
                     key={s.id}
@@ -7169,7 +7169,7 @@ function FamilyFunTab({ theme, profile }) {
             })}
           </div>
 
-          <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+          <div data-dynamic-card="google" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
             {filtered.map(act => (
               // Whole card is the click target — opens the Google Maps
               // search portal for the activity. We surface only the
@@ -7196,8 +7196,8 @@ function FamilyFunTab({ theme, profile }) {
                 <div style={{ fontSize: 11, color: colors.muted, lineHeight: 1.5, marginBottom: 8 }}>
                   {act.description}
                 </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <span style={{ background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginTop: 4 }}>
+                  <span className="card-cta" style={{ '--cta-color': colors.primary }}>
                     Open map view
                   </span>
                 </div>
@@ -7463,7 +7463,7 @@ function App() {
     // missing/relative/same-origin hrefs even on these opted-out
     // anchors.
     const isDynamicCardAnchor = (anchor) => {
-      try { return !!anchor.closest?.('[data-dynamic-card="true"]'); } catch { return false; }
+      try { return !!anchor.closest?.('[data-dynamic-card]'); } catch { return false; }
     };
     const disableUnsafeAnchor = (anchor) => {
       const rawHref = anchor.getAttribute('href') || '';

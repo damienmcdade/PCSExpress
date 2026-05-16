@@ -346,7 +346,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
               ))}
             </div>
           )}
-          <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+          <div data-dynamic-card="google" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
             {filtered.map(item => (
               // Whole card opens Google Maps directions in a new tab
               // (matches Family Fun / Schools UX). Apartments.com and

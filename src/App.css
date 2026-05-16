@@ -1539,16 +1539,24 @@ input, select, textarea {
   color: var(--pcs-text);
 }
 
-/* Dynamic information cards (Family Fun, Schools, Childcare, Religious
-   Services, Home Locator, Vet Businesses, etc.) — backed by Google Maps
-   deep links. The shared visual treatment makes the click-affordance
-   obvious, adds polish on hover and tap, and surfaces a small "Google
-   Maps" provenance pill on the bottom-right corner. */
-[data-dynamic-card="true"] {
+/* Dynamic information cards — universal hover polish for any card-like
+   anchor or button inside a tagged grid. Two flavors:
+     [data-dynamic-card]         → applies the hover lift / shadow ramp
+                                   to every direct anchor child.
+     [data-dynamic-card="google"] → adds the "↗ Google Maps" provenance
+                                    pill for Family Fun, Schools,
+                                    Religious Services, Home Locator,
+                                    Childcare, etc.
+   The shared base is used everywhere; only Google-Maps-backed surfaces
+   carry the pill so users know the data origin. */
+[data-dynamic-card] {
   perspective: 800px;
 }
 
-[data-dynamic-card="true"] > a {
+[data-dynamic-card] > a,
+[data-dynamic-card] > button,
+.category-screen__body a[href^="http"][target="_blank"]:has(*),
+.category-screen__body article:has(> a[href^="http"]) {
   position: relative;
   overflow: hidden;
   transform: translateZ(0);
@@ -1558,10 +1566,40 @@ input, select, textarea {
     border-color 180ms ease;
   box-shadow: 0 1px 2px rgba(13, 24, 33, 0.04);
   will-change: transform, box-shadow;
+}
+
+@media (hover: hover) {
+  [data-dynamic-card] > a:hover,
+  [data-dynamic-card] > button:hover,
+  .category-screen__body a[href^="http"][target="_blank"]:has(*):hover,
+  .category-screen__body article:has(> a[href^="http"]):hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px -8px rgba(13, 24, 33, 0.20);
+    border-color: rgba(66, 133, 244, 0.45);
+  }
+}
+
+[data-dynamic-card] > a:active,
+[data-dynamic-card] > button:active,
+.category-screen__body a[href^="http"][target="_blank"]:has(*):active {
+  transform: translateY(-1px) scale(0.995);
+  box-shadow: 0 4px 10px -4px rgba(13, 24, 33, 0.18);
+}
+
+[data-dynamic-card] > a:focus-visible,
+[data-dynamic-card] > button:focus-visible,
+.category-screen__body a[href^="http"][target="_blank"]:has(*):focus-visible {
+  outline: 2px solid #4285F4;
+  outline-offset: 2px;
+}
+
+/* Google-Maps-backed cards get the provenance pill + extra bottom
+   padding to keep the pill from overlapping inner actions. */
+[data-dynamic-card="google"] > a {
   padding-bottom: 36px !important;
 }
 
-[data-dynamic-card="true"] > a::after {
+[data-dynamic-card="google"] > a::after {
   content: '↗ Google Maps';
   position: absolute;
   bottom: 8px;
@@ -1581,34 +1619,145 @@ input, select, textarea {
 }
 
 @media (hover: hover) {
-  [data-dynamic-card="true"] > a:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 24px -8px rgba(13, 24, 33, 0.20);
-    border-color: rgba(66, 133, 244, 0.45);
-  }
-
-  [data-dynamic-card="true"] > a:hover::after {
+  [data-dynamic-card="google"] > a:hover::after {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-[data-dynamic-card="true"] > a:active {
-  transform: translateY(-1px) scale(0.995);
-  box-shadow: 0 4px 10px -4px rgba(13, 24, 33, 0.18);
-}
-
-[data-dynamic-card="true"] > a:focus-visible {
-  outline: 2px solid #4285F4;
-  outline-offset: 2px;
 }
 
 /* Touch devices: surface the Google Maps pill at rest so users on iOS
    / Android see the affordance without needing to long-press. */
 @media (hover: none) {
-  [data-dynamic-card="true"] > a::after {
+  [data-dynamic-card="google"] > a::after {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ── Card action pills ───────────────────────────────────────────────
+   Every information card now exposes a primary action pill — "Open
+   map view", "Open website", "Open resource", etc. The .card-cta class
+   pins the pill to the bottom-left, adds a sweeping shimmer on hover,
+   and lifts it slightly so the click affordance is unmistakable. The
+   shimmer is a single light bar that traverses the pill diagonally —
+   contained to the pill, so the rest of the card stays readable.
+
+   Apply by adding className="card-cta" to the action <span>, <button>,
+   or <a>. The container card must already be marked with
+   [data-dynamic-card] so the hover state propagates from the card. */
+.card-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;          /* bottom-left alignment in flex/grid parents */
+  margin-top: auto;                /* drops it to the bottom of a column flex card */
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--cta-color, #244247) 65%, transparent);
+  background: var(--cta-color, #244247);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  overflow: hidden;
+  cursor: pointer;
+  isolation: isolate;
+  transition:
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background 200ms ease;
+  box-shadow: 0 2px 6px rgba(13, 24, 33, 0.10);
+}
+
+.card-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 65%,
+    transparent 100%
+  );
+  transform: translateX(-110%);
+  transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.card-cta > * {
+  position: relative;
+  z-index: 1;
+}
+
+.card-cta::after {
+  content: '→';
+  font-size: 13px;
+  font-weight: 900;
+  margin-left: 2px;
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: relative;
+  z-index: 1;
+}
+
+@media (hover: hover) {
+  /* Light sweep on card hover (so users see it react when they hover
+     anywhere on the card, not just the pill itself). */
+  [data-dynamic-card] > a:hover .card-cta::before,
+  [data-dynamic-card] > button:hover .card-cta::before,
+  .card-cta:hover::before {
+    transform: translateX(110%);
+  }
+
+  .card-cta:hover,
+  [data-dynamic-card] > a:hover .card-cta,
+  [data-dynamic-card] > button:hover .card-cta {
+    transform: translateY(-1px);
+    box-shadow:
+      0 6px 14px -4px rgba(13, 24, 33, 0.25),
+      0 0 0 4px color-mix(in srgb, var(--cta-color, #244247) 18%, transparent);
+  }
+
+  .card-cta:hover::after,
+  [data-dynamic-card] > a:hover .card-cta::after,
+  [data-dynamic-card] > button:hover .card-cta::after {
+    transform: translateX(3px);
+  }
+}
+
+.card-cta:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 2px 4px rgba(13, 24, 33, 0.18);
+}
+
+.card-cta:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--cta-color, #4285F4) 70%, white);
+  outline-offset: 2px;
+}
+
+/* Touch: idle pulse so the shimmer is occasionally visible without
+   hover input. */
+@media (hover: none) {
+  .card-cta::before {
+    animation: card-cta-idle-shine 5200ms ease-in-out infinite;
+  }
+}
+
+@keyframes card-cta-idle-shine {
+  0%, 75%, 100% { transform: translateX(-110%); }
+  88%           { transform: translateX(110%);  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-cta,
+  .card-cta::before,
+  .card-cta::after {
+    animation: none !important;
+    transition-duration: 0ms !important;
   }
 }
 

@@ -481,7 +481,7 @@ function ReligiousServicesModule({ theme, profile }) {
                   Filtered to {prefRaw} based on your onboarding preference. Change your religious preference in onboarding to see other faiths.
                 </div>
               )}
-              <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+              <div data-dynamic-card="google" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
                 {filteredLive.slice(0, 24).map(s => (
                   <a
                     key={s.id}
