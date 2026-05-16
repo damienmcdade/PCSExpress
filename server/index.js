@@ -569,7 +569,7 @@ async function overpassApartmentsFetch(lat, lng, radiusMeters) {
   const merged = []
   for (const filters of [buildingFilters, placeFilters]) {
     try {
-      const data = await overpassQuery(`[out:json][timeout:20];(${filters});out center tags;`)
+      const data = await overpassQuery(`[out:json][timeout:8];(${filters});out center tags;`)
       if (Array.isArray(data?.elements)) merged.push(...data.elements)
     } catch (err) {
       console.error(`[overpass-housing] batch failed: ${err.message}`)
@@ -1457,7 +1457,7 @@ function shapeOsmReligious(el, originLat, originLng, userLang) {
 }
 
 async function overpassReligiousFetch(lat, lng, radiusMeters) {
-  const query = `[out:json][timeout:20];(node["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng});way["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng}););out center tags;`
+  const query = `[out:json][timeout:8];(node["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng});way["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng}););out center tags;`
   return overpassQuery(query)
 }
 
@@ -1676,7 +1676,7 @@ async function overpassSchoolsFetch(lat, lng, radiusMeters) {
     const [k, v] = tag.split('=')
     return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
   }).join('')
-  const query = `[out:json][timeout:20];(${filters});out center tags;`
+  const query = `[out:json][timeout:8];(${filters});out center tags;`
   return overpassQuery(query)
 }
 
@@ -2000,28 +2000,53 @@ async function geocodeNominatim(input) {
 // no single mirror takes the entire datacenter's traffic at startup,
 // and so kumi (which has been flaky) does not blanket-fail every
 // query if it is the static first choice.
+// Overpass mirrors. Ordered by recent observed reliability (live
+// diagnostic on 2026-05-15: private.coffee 200/8s, overpass-api.de
+// returns 406 for most requests, kumi.systems regularly hangs).
+// private.coffee leads; kumi remains last because it hangs without
+// responding which costs us the full per-mirror budget.
 const OVERPASS_MIRRORS_POOL = [
+  'https://overpass.private.coffee/api/interpreter',
   'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
-  'https://overpass.private.coffee/api/interpreter',
 ]
 function overpassMirrors() {
-  const offset = Math.floor(Date.now() / 60_000) % OVERPASS_MIRRORS_POOL.length
-  return [
-    ...OVERPASS_MIRRORS_POOL.slice(offset),
-    ...OVERPASS_MIRRORS_POOL.slice(0, offset),
-  ]
+  // Rotate the FIRST two by minute so private.coffee and overpass-api.de
+  // share leader duty; kumi stays last because it eats budget when down.
+  const offset = Math.floor(Date.now() / 60_000) % 2
+  const leaders = offset === 0
+    ? [OVERPASS_MIRRORS_POOL[0], OVERPASS_MIRRORS_POOL[1]]
+    : [OVERPASS_MIRRORS_POOL[1], OVERPASS_MIRRORS_POOL[0]]
+  return [...leaders, OVERPASS_MIRRORS_POOL[2]]
 }
 
-// Per-request abort. Short enough that a hung mirror fails over to
-// the next within ~25s, long enough to let the in-query timeout (now
-// 20s) plus network round-trip complete. Worst-case across all three
-// mirrors: ~75s, but typical case (first mirror healthy) is 1-2s.
-const OVERPASS_FETCH_TIMEOUT_MS = 25_000
+// Per-mirror abort: 9s. With 3 mirrors that gives ~27s worst case,
+// which fits inside the 22s family-activities budget for at least 2
+// mirror attempts. The in-query Overpass `timeout:` setting also caps
+// at 8s for the family/schools/religious endpoints.
+const OVERPASS_FETCH_TIMEOUT_MS = 9_000
+
+// Mirrors with persistent 4xx in the last 60s are temporarily skipped.
+// Keeps overpass-api.de's "406 Not Acceptable" responses from costing
+// us a fetch round-trip every request.
+const _mirrorBlocklist = new Map() // url -> { reason, until: epochMs }
+function shouldSkipMirror(url) {
+  const entry = _mirrorBlocklist.get(url)
+  if (!entry) return false
+  if (Date.now() >= entry.until) { _mirrorBlocklist.delete(url); return false }
+  return true
+}
+function blockMirror(url, reason, durationMs = 60_000) {
+  _mirrorBlocklist.set(url, { reason, until: Date.now() + durationMs })
+}
 
 async function overpassQuery(query) {
   let lastErr = null
   for (const url of overpassMirrors()) {
+    if (shouldSkipMirror(url)) {
+      console.error(`[overpass] skipping blocked mirror ${url}`)
+      continue
+    }
     try {
       const signal = AbortSignal.timeout(OVERPASS_FETCH_TIMEOUT_MS)
       const r = await fetch(url, {
@@ -2036,6 +2061,14 @@ async function overpassQuery(query) {
       })
       if (!r.ok) {
         lastErr = new Error(`overpass ${url} ${r.status}`)
+        // Block 4xx mirrors for 60s — they will keep returning the
+        // same error and waste budget. Retry on transient 5xx / 429
+        // by trying the next mirror.
+        if (r.status >= 400 && r.status < 500) {
+          blockMirror(url, `${r.status}`, 60_000)
+          console.error(`[overpass] ${url} ${r.status} — blocking for 60s`)
+          continue
+        }
         if (r.status === 429 || r.status === 502 || r.status === 503 || r.status === 504) continue
         throw lastErr
       }
@@ -2052,6 +2085,12 @@ async function overpassQuery(query) {
     } catch (err) {
       lastErr = err
       console.error(`[overpass] ${url} ${err.message}`)
+      // Aborts (TimeoutError / AbortError) mean the mirror is too slow
+      // right now; block it briefly so we don't pay the full per-mirror
+      // budget twice in a row.
+      if (err.name === 'TimeoutError' || err.name === 'AbortError') {
+        blockMirror(url, 'timeout', 30_000)
+      }
       continue
     }
   }
@@ -2079,7 +2118,7 @@ async function overpassFetch(lat, lng, radiusMeters) {
         const [k, v] = tag.split('=')
         return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
       }).join('')
-      const query = `[out:json][timeout:20];(${filters});out center tags;`
+      const query = `[out:json][timeout:8];(${filters});out center tags;`
       const data = await overpassQuery(query)
       if (Array.isArray(data?.elements)) merged.push(...data.elements)
     } catch (err) {
