@@ -855,7 +855,7 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
     if (!geocodeQuery) return []
     let origin
     try {
-      origin = await geocodeNominatim(geocodeQuery)
+      origin = await geocodeNominatim({ address, city, state, zip })
     } catch (err) {
       console.error(`[housing-listings] geocode ${err.message}`)
       return []
@@ -1464,7 +1464,7 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
 
   let origin
   try {
-    origin = await geocodeNominatim(geocodeQuery)
+    origin = await geocodeNominatim({ address, city, state, zip })
   } catch (err) {
     console.error(`[religious] geocode ${err.message}`)
     return res.status(200).json({ services: [], fallback: true, reason: 'geocode-failed' })
@@ -1680,7 +1680,7 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
 
   let origin
   try {
-    origin = await geocodeNominatim(geocodeQuery)
+    origin = await geocodeNominatim({ address, city, state, zip })
   } catch (err) {
     console.error(`[schools] geocode ${err.message}`)
     return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: [], fallback: true, reason: 'geocode-failed' })
@@ -1899,7 +1899,7 @@ function haversineMiles(lat1, lon1, lat2, lon2) {
   return Math.round(R * 2 * Math.asin(Math.sqrt(a)) * 10) / 10
 }
 
-async function geocodeNominatim(query) {
+async function geocodeNominatimOnce(query) {
   if (!query) return null
   const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`
   const signal = AbortSignal.timeout(8000)
@@ -1909,6 +1909,53 @@ async function geocodeNominatim(query) {
   const hit = Array.isArray(data) && data[0]
   if (!hit) return null
   return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon), displayName: hit.display_name }
+}
+
+// Geocode-cascade. Nominatim is finicky about non-U.S. address formats:
+// "Pyeongtaek, South Korea, 17977" returns [], "Pyeongtaek, South Korea"
+// returns a valid hit. So we try the most-specific query first, then
+// progressively strip components until something matches or we run
+// out of variants. The function accepts either a single string query
+// (existing callers) or a structured { address, city, state, zip }
+// payload (preferred — produces the best OCONUS coverage).
+async function geocodeNominatim(input) {
+  // Backwards-compatible single-string path.
+  if (typeof input === 'string') {
+    if (!input) return null
+    const single = await geocodeNominatimOnce(input)
+    if (single) return single
+    // Also try without trailing comma+token if the caller jammed a zip
+    // onto the end (matches the legacy "city, state, zip" pattern).
+    const parts = input.split(',').map(s => s.trim()).filter(Boolean)
+    if (parts.length >= 3) {
+      return geocodeNominatimOnce(parts.slice(0, -1).join(', '))
+    }
+    return null
+  }
+  // Structured path — try variants in order of specificity.
+  const { address, city, state, zip } = input || {}
+  const variants = []
+  if (address) variants.push(address)
+  if (city && state && zip) variants.push(`${city}, ${state}, ${zip}`)
+  if (city && state) variants.push(`${city}, ${state}`)
+  if (zip && state) variants.push(`${zip}, ${state}`)
+  if (zip) variants.push(zip)
+  if (city) variants.push(city)
+  // Dedupe while preserving order.
+  const seen = new Set()
+  for (const v of variants) {
+    if (!v || seen.has(v)) continue
+    seen.add(v)
+    try {
+      const hit = await geocodeNominatimOnce(v)
+      if (hit) return hit
+    } catch (err) {
+      // One variant fails — keep trying the next. Only surface the
+      // error if every variant fails (caller will throw separately).
+      console.error(`[geocode] variant "${v}" failed: ${err.message}`)
+    }
+  }
+  return null
 }
 
 // Public Overpass API mirrors. Order matters for the sequential
@@ -2078,7 +2125,7 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
 
   let origin
   try {
-    origin = await geocodeNominatim(geocodeQuery)
+    origin = await geocodeNominatim({ address, city, state, zip })
   } catch (err) {
     console.error(`[family-activities] geocode ${err.message}`)
     return res.status(200).json({ categories: FAMILY_CATEGORIES, activities: [], fallback: true, reason: 'geocode-failed' })
