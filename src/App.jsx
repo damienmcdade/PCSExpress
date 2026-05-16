@@ -2704,18 +2704,27 @@ function getBranchChecklist(branch, component) {
 // only show on OCONUS PCS, and HHG/PPM-specific weight-ticket or
 // pack-out language is hidden when the chosen moveType is the other
 // option. Universal tasks (orders, finance, etc.) always show.
+// Predicate-based task filtering. A task is shown only when EVERY
+// applicable predicate returns true. Note that the `\bschool\b` token
+// is intentionally singular: we don't want to filter universal tasks
+// such as "Make certified copies of orders for finance, housing,
+// schools" which simply mention schools as a copy-recipient.
 const CHECKLIST_FILTERS = [
-  { pattern: /\bpet|aphis|usda|veterinar|rabies|microchip/i,
+  { pattern: /\bpet\b|aphis|usda|veterinar|rabies|microchip|kennel/i,
     keep: (p) => p.hasPets },
-  { pattern: /\bschool\b|education\s+records|district|iep|504 plan|enroll children|cysS\b/i,
+  { pattern: /\bschool\b|education\s+records|district|iep|504 plan|enroll children|\bcyss\b|pediatrician|children'?s\b|childcare\b|child care\b|\bcdc\b|child development/i,
     keep: (p) => p.hasChildren },
   { pattern: /\bspouse|seco|mycaa|dependent\b|dependents\b|deers-linked mtf and book pediatric|family member travel screening|family member overseas screening|family care plan|family readiness/i,
     keep: (p) => p.hasDependents || p.hasChildren },
   { pattern: /\befmp\b/i,
     keep: (p) => p.hasDependents || p.hasChildren },
-  { pattern: /\bweight ticket|weight-ticket|ppm\b|dity/i,
+  // PPM-only tasks. Weight tickets, empty/full weight, DITY are PPM-
+  // specific reimbursement requirements. HHG-only tasks (DPS counseling,
+  // pickup window) stay visible for both move types since the gov-
+  // organized portion of even a PPM still flows through DPS.
+  { pattern: /\bweight ticket|weight-ticket|\bppm\b|\bdity\b/i,
     keep: (p) => p.moveType === 'PPM' },
-  { pattern: /\boconus\b|no-fee passport|overseas screening|sofa\b|country clearance|host nation|host-nation|visa\b/i,
+  { pattern: /\boconus\b|no-fee passport|overseas screening|\bsofa\b|country clearance|host nation|host-nation|\bvisa\b/i,
     keep: (p) => p.isOverseas },
 ];
 
