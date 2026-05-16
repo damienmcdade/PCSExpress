@@ -1793,6 +1793,50 @@ const FAMILY_CATEGORIES = [
   { id: 'shopping', label: 'Shopping & Markets', emoji: '🛍️', description: 'Shopping malls, family marketplaces, kid-friendly retail districts.' },
 ]
 
+// Synthetic Google-search category cards. When OSM returns 0
+// activities (sparse OCONUS region, Overpass timeout, or genuinely
+// empty 50-mile radius) the frontend would otherwise show an empty-
+// state banner. We instead emit one search-portal card per category
+// linking to a Google Maps search restricted to the user's market
+// region. Maps works worldwide and the searches return real local
+// businesses, so users always have an actionable starting point.
+function syntheticFamilyCards(city, state) {
+  if (!city && !state) return []
+  const ev = encodeURIComponent
+  const where = [city, state].filter(Boolean).join(', ')
+  // Each entry maps a Family Fun category to a Google Maps search
+  // query that surfaces real, current listings in the user's market.
+  // The text intentionally avoids fabricated specifics (hours, rating)
+  // and instead frames the card as a curated search portal.
+  const CARDS = [
+    { categoryId: 'parks',     type: 'Parks & playgrounds search', query: `parks and playgrounds near ${where}` },
+    { categoryId: 'amusement', type: 'Theme & water parks search', query: `amusement and water parks near ${where}` },
+    { categoryId: 'movies',    type: 'Movie theaters search',      query: `movie theaters near ${where}` },
+    { categoryId: 'museums',   type: 'Museums search',             query: `museums and historic sites near ${where}` },
+    { categoryId: 'sports',    type: 'Sports & recreation search', query: `bowling, climbing, ice rinks, and pools near ${where}` },
+    { categoryId: 'culture',   type: 'Arts & libraries search',    query: `libraries, art galleries, and community centers near ${where}` },
+    { categoryId: 'family',    type: 'Zoos & aquariums search',    query: `zoos and aquariums near ${where}` },
+    { categoryId: 'shopping',  type: 'Shopping & markets search',  query: `family-friendly shopping districts near ${where}` },
+  ]
+  return CARDS.map((c, idx) => ({
+    id: `family-search-${c.categoryId}-${idx}-${ev(where).slice(0,30)}`,
+    categoryId: c.categoryId,
+    type: c.type,
+    name: `${c.type} near ${city || state}`,
+    address: '',
+    city: city || '',
+    state: state || '',
+    distanceMiles: null,
+    description: `Curated Google Maps search for ${c.categoryId === 'parks' ? 'family-friendly parks and playgrounds' : c.categoryId === 'amusement' ? 'theme parks and family entertainment venues' : c.categoryId === 'movies' ? 'cinemas, including chains and independent theaters' : c.categoryId === 'museums' ? 'museums, memorials, and historic sites' : c.categoryId === 'sports' ? 'active-play and indoor sports venues' : c.categoryId === 'culture' ? 'arts, library, and community spaces' : c.categoryId === 'family' ? 'zoos, aquariums, and animal experiences' : 'shopping districts and family markets'} near ${where}. Opens Google Maps with the area pre-filtered so you see real local venues, hours, ratings, and directions in one tap.`,
+    mapUrl: `https://www.google.com/maps/search/?api=1&query=${ev(c.query)}`,
+    directionsUrl: `https://www.google.com/maps/search/?api=1&query=${ev(c.query)}`,
+    website: '',
+    phone: '',
+    source: 'Curated Google Maps search',
+    synthetic: true,
+  }))
+}
+
 // OSM tag mappings. Expanded with the categories the user requested.
 const OSM_TAG_MAP = {
   // Parks & Outdoors
@@ -2221,11 +2265,15 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
     return res.status(200).json({ categories: FAMILY_CATEGORIES, activities: [], fallback: true, reason: 'address-not-found' })
   }
 
+  // Curated Google Maps search-portal cards are ALWAYS available
+  // regardless of Overpass status. They serve as both fallback when
+  // OSM is unavailable AND a baseline for sparse OCONUS regions.
+  const syntheticCards = syntheticFamilyCards(city, state)
+
   // Hard time budget for Overpass — 22s total. Cold-cache markets can
-  // otherwise hang for 60-75s waiting for mirror failover and we'd
-  // rather return an empty activity list with the overpass-slow reason
-  // (frontend shows a "try again in a minute" hint) than burn the
-  // entire client-side timeout.
+  // otherwise hang for 60-75s waiting for mirror failover. If the
+  // budget trips we return the synthetic cards alone so users never
+  // see an empty Family Fun screen.
   const OVERPASS_BUDGET_MS = 22_000
   let overpassData
   try {
@@ -2235,7 +2283,14 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
     ])
   } catch (err) {
     console.error(`[family-activities] overpass ${err.message}`)
-    return res.status(200).json({ categories: FAMILY_CATEGORIES, activities: [], origin, fallback: true, reason: 'overpass-failed' })
+    return res.status(200).json({
+      categories: FAMILY_CATEGORIES,
+      activities: syntheticCards,
+      origin,
+      fallback: syntheticCards.length === 0,
+      reason: 'overpass-failed',
+      source: 'synthetic-fallback',
+    })
   }
 
   const elements = Array.isArray(overpassData?.elements) ? overpassData.elements : []
@@ -2252,20 +2307,28 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
     activities.push(shaped)
   }
   activities.sort((a, b) => a.distanceMiles - b.distanceMiles)
-  const limited = activities.slice(0, 60)
+  const osmLimited = activities.slice(0, 60)
 
-  // Skip caching empty results so transient Overpass failures do not
-  // serve users empty Family Fun for 24h.
-  if (limited.length > 0) {
-    FAMILY_CACHE.set(cacheKey, { activities: limited, origin, fetchedAt: Date.now() })
+  // Merge order: OSM real-named POIs first (real venues with addresses),
+  // then synthetic search-portal cards (one per category). User always
+  // sees at least the eight synthetic category cards.
+  const merged = [...osmLimited, ...syntheticCards]
+
+  // Skip caching when there is nothing useful (no OSM AND no synthetic
+  // — should never happen unless city/state were empty, which is
+  // already rejected earlier).
+  if (merged.length > 0) {
+    FAMILY_CACHE.set(cacheKey, { activities: merged, origin, fetchedAt: Date.now() })
   }
 
   res.status(200).json({
     categories: FAMILY_CATEGORIES,
-    activities: limited,
+    activities: merged,
     origin,
     radiusMiles,
-    source: 'openstreetmap',
+    source: osmLimited.length > 0 ? 'openstreetmap+synthetic' : 'synthetic-only',
+    osmCount: osmLimited.length,
+    syntheticCount: syntheticCards.length,
     fetchedAt: Date.now(),
   })
 })
