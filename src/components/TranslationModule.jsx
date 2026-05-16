@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
+import { apiUrl } from '../config/apiConfig'
 
 const store = {
   get: (k) => readLegacyJson(k, null),
@@ -112,7 +113,7 @@ const PHRASE_CATEGORIES = [
 
 async function callAI(system, user) {
   try {
-    const res = await fetch('/api/ai', {
+    const res = await fetch(apiUrl('/api/ai'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ system, user }),

@@ -58,10 +58,24 @@ app.use((req, res, next) => {
   if ((process.env.NODE_ENV || '').toLowerCase() === 'production') res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
   next()
 })
+// Origins always allowed in addition to the CORS_ORIGINS env var:
+//   - capacitor://localhost  (iOS Capacitor WebView default scheme)
+//   - https://localhost      (Android Capacitor WebView with androidScheme:"https")
+//   - http://localhost:5173  (Vite dev server)
+//   - http://localhost:3001  (local Express)
+// These are necessary so the iOS/Android shells can call /api/* on
+// the Railway origin even though their WebView origin is "localhost".
+const ALWAYS_ALLOWED_ORIGINS = new Set([
+  'capacitor://localhost',
+  'https://localhost',
+  'http://localhost:5173',
+  'http://localhost:3001',
+])
 const allowedOrigins = (process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)
 app.use(cors({
   origin(origin, cb) {
     if (!origin) return cb(null, true)
+    if (ALWAYS_ALLOWED_ORIGINS.has(origin)) return cb(null, true)
     if (allowedOrigins.includes(origin)) return cb(null, true)
     return cb(null, false)
   },

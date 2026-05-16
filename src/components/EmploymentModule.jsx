@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react'
+import { apiUrl } from '../config/apiConfig'
 
 const BASE_CITY = {
   'Fort Liberty': 'Fayetteville, NC',
@@ -508,7 +509,7 @@ function EmploymentModule({ theme, profile }) {
     if (statePart) params.set('state', statePart)
     // Debounce keyword changes so we do not fire on every keystroke.
     const t = setTimeout(() => {
-      fetch(`/api/job-listings?${params.toString()}`, { headers: { Accept: 'application/json' } })
+      fetch(apiUrl(`/api/job-listings?${params.toString()}`), { headers: { Accept: 'application/json' } })
         .then(r => r.ok ? r.json() : { listings: [], fallback: true })
         .then(data => {
           if (cancelled) return

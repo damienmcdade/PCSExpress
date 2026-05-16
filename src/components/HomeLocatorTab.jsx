@@ -10,6 +10,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { resolveMarket } from '../data/installationMarkets';
+import { apiUrl } from '../config/apiConfig';
 
 const BRANCH_HOUSING_SOURCES = {
   Army: {
@@ -129,7 +130,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
     if (market.state) params.set('state', market.state);
     if (market.zip) params.set('zip', market.zip);
     if (profile?.language) params.set('lang', profile.language);
-    fetch(`/api/housing-listings?${params.toString()}`, { headers: { Accept: 'application/json' } })
+    fetch(apiUrl(`/api/housing-listings?${params.toString()}`), { headers: { Accept: 'application/json' } })
       .then(r => r.ok ? r.json() : { listings: [], fallback: true, reason: `http-${r.status}` })
       .then(data => {
         if (cancelled) return;
@@ -144,7 +145,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
         if (cancelled) return;
         setListings({ status: 'ready', items: [], fallback: true, reason: `network-${err?.message || 'error'}` });
       });
-    fetch(`/api/market-stats?${params.toString()}`, { headers: { Accept: 'application/json' } })
+    fetch(apiUrl(`/api/market-stats?${params.toString()}`), { headers: { Accept: 'application/json' } })
       .then(r => r.ok ? r.json() : { stats: null, fallback: true })
       .then(data => {
         if (cancelled) return;

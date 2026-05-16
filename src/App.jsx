@@ -5,6 +5,7 @@
 
 import { Component, useState, useEffect } from 'react'
 import './App.css'
+import { apiUrl } from './config/apiConfig'
 import EmploymentModule from './components/EmploymentModule'
 import NavigationModule from './components/NavigationModule'
 import EducationModule from './components/EducationModule'
@@ -3048,7 +3049,7 @@ function SchoolsTab({ theme, profile }) {
     }
     params.set('radiusMiles', '25');
     if (profile?.language) params.set('lang', profile.language);
-    fetch(`/api/schools-nearby?${params.toString()}`, { headers: { Accept: 'application/json' } })
+    fetch(apiUrl(`/api/schools-nearby?${params.toString()}`), { headers: { Accept: 'application/json' } })
       .then(r => r.ok ? r.json() : { schools: [], fallback: true })
       .then(data => {
         if (cancelled) return;
@@ -3403,7 +3404,7 @@ function VeteranBusinessesTab({ theme, profile }) {
     if (liveMarket.city) params.set('city', liveMarket.city);
     if (liveMarket.state) params.set('state', liveMarket.state);
     if (liveMarket.zip) params.set('zip', liveMarket.zip);
-    fetch(`/api/vet-businesses?${params.toString()}`, { headers: { Accept: 'application/json' } })
+    fetch(apiUrl(`/api/vet-businesses?${params.toString()}`), { headers: { Accept: 'application/json' } })
       .then(r => r.ok ? r.json() : { businesses: [], fallback: true, reason: `http-${r.status}` })
       .then(data => {
         if (cancelled) return;
@@ -6746,7 +6747,7 @@ function FamilyFunTab({ theme, profile }) {
     }
     params.set('radiusMiles', '50');
     if (profile?.language) params.set('lang', profile.language);
-    fetch(`/api/family-activities?${params.toString()}`, { headers: { Accept: 'application/json' } })
+    fetch(apiUrl(`/api/family-activities?${params.toString()}`), { headers: { Accept: 'application/json' } })
       .then(r => r.ok ? r.json() : { categories: [], activities: [], fallback: true, reason: `http-${r.status}` })
       .then(data => {
         if (cancelled) return;
