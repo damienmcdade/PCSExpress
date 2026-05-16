@@ -163,7 +163,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
         <div style={{ fontSize: 10, fontWeight: 900, color: colors.accent, letterSpacing: '.08em', marginBottom: 4 }}>HOME LOCATOR</div>
         <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 5 }}>{market.label}</div>
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.78)', lineHeight: 1.6 }}>
-          Browse housing near the gaining installation by type — apartment community, single-family home, condo, townhouse, duplex, triplex, or quadplex. Tap any card for directions; the "Live units" button surfaces the matching listings on Apartments.com, Zillow, Trulia, and Realtor.com so you see real availability and pricing. The official housing sources below are the verified backup for HOMES.mil, MilitaryINSTALLATIONS, branch housing, and BAH lookup.
+          Active rental listings within fifteen miles of your gaining installation, organized by property type. Each card opens a verified listing source so you can confirm availability, lease terms, and current pricing directly with the provider. PCS Express does not store housing inventory or broker rentals.
         </div>
       </div>
 
@@ -189,11 +189,16 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
         const hasFmr = !!fmr;
         if (!hasFred && !hasFmr) return null;
         const usd = (n) => n == null ? '' : '$' + Math.round(n).toLocaleString();
+        const lang = profile?.language || 'en';
         const fmtDate = (iso) => {
           if (!iso) return '';
           const d = new Date(iso);
           if (Number.isNaN(d.getTime())) return iso;
-          return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+          try {
+            return d.toLocaleDateString(lang, { month: 'short', year: 'numeric' });
+          } catch {
+            return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+          }
         };
         return (
           <section style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
@@ -325,7 +330,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
                 href={item.listingUrl || item.website || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={`Open verified housing listings for ${item.name || item.address || 'this property'}${item.distanceMiles != null ? ` (${item.distanceMiles} miles away)` : ''}`}
+                aria-label={`Open verified listings for ${item.name || item.address || 'this property'}${item.distanceMiles != null ? `, approximately ${item.distanceMiles} miles from the gaining installation` : ''}`}
                 style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${colors.accent}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: colors.text, display: 'block', cursor: 'pointer' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
@@ -364,7 +369,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <span style={{ background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>Open verified listings →</span>
+                  <span style={{ background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>{item.synthetic ? 'Search active listings →' : 'Open verified listings →'}</span>
                   {item.website && (
                     <a
                       href={item.website}
@@ -384,23 +389,21 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
             ))}
           </div>
           <div style={{ fontSize: 10, color: colors.muted, lineHeight: 1.5, marginTop: 8 }}>
-            Apartment communities are from OpenStreetMap. Tap any card for directions, or tap "Live units" to open Apartments.com for current availability, bed/bath/sqft, and pricing at that address. PCS Express does not store private housing inventory.
+            Apartment community names and addresses are sourced from OpenStreetMap. Each card opens a verified listing search at the source aggregator for current availability, floorplans, and pricing.
           </div>
         </section>
         );
       })()}
       {listings.status === 'ready' && listings.items.length === 0 && listings.fallback && (
         <div style={{ background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 11, color: '#0D3B66', lineHeight: 1.5 }}>
-          {listings.reason === 'no-api-key'
-            ? 'Live rentals will turn on soon. In the meantime, the official housing sources below let you search HOMES.mil, MilitaryINSTALLATIONS, and your branch housing portal.'
-            : listings.reason === 'unknown-installation'
-              ? 'Set a gaining installation in onboarding (or type one above) to see active rentals. The official housing sources below work for any base.'
-              : `We do not have active rentals cached for ${market.installation || 'this installation'} yet. The official housing sources below let you search current availability.`}
+          {listings.reason === 'unknown-installation'
+            ? 'Select a gaining installation during onboarding, or enter one in the search field above, to load active rental listings. The official housing directory below works for every installation worldwide.'
+            : `Active rental data is not currently cached for ${market.installation || 'this installation'}. Use the official housing directory below to search current availability through DoD-sanctioned sources.`}
         </div>
       )}
 
       <div style={{ fontSize: 11, color: '#0D3B66', background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, lineHeight: 1.5 }}>
-        Verify availability, eligibility, wait lists, pet rules, commute distance, lease terms, and move-in dates through the listing source before making housing decisions. PCS Express does not store private housing inventory. For DoD-managed and on-installation housing options, search the gaining installation at <a href="https://www.homes.mil/" target="_blank" rel="noopener noreferrer" style={{ color: '#0D3B66', fontWeight: 700 }}>HOMES.mil</a> or <a href="https://installations.militaryonesource.mil/" target="_blank" rel="noopener noreferrer" style={{ color: '#0D3B66', fontWeight: 700 }}>MilitaryINSTALLATIONS</a>.
+        Always verify availability, eligibility, wait-list status, pet policy, commute distance, lease terms, and move-in dates with the listing source before committing. PCS Express does not store private rental inventory. For Department of Defense on-installation and privatized housing, search the gaining installation at <a href="https://www.homes.mil/" target="_blank" rel="noopener noreferrer" style={{ color: '#0D3B66', fontWeight: 700 }}>HOMES.mil</a> or <a href="https://installations.militaryonesource.mil/" target="_blank" rel="noopener noreferrer" style={{ color: '#0D3B66', fontWeight: 700 }}>MilitaryINSTALLATIONS</a>.
       </div>
     </div>
   );

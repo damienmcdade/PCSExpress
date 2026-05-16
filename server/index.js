@@ -566,12 +566,19 @@ async function overpassApartmentsFetch(lat, lng, radiusMeters) {
 
 function shapeOsmApartmentComplex(el, originLat, originLng, originCity, originState, userLang) {
   const tags = el.tags || {}
+  // Proper-noun resolution: prefer the user's onboarding language,
+  // then English/international names, finally the local-language
+  // `name` tag. OSM proper nouns for buildings and neighborhoods are
+  // typically the names locals and signage actually use, so falling
+  // back to them is correct UX even when the rest of the app is in
+  // another language. UI strings (descriptions, button labels) are
+  // separately translated by AppLanguageRuntime.
   const name = pickOsmName(tags, userLang)
   if (!isUsableOsmName(name, 'apartments')) return null
 
   // Resolve property type from whichever recognized housing/place tag
-  // the element carries. Defaults to "Apartment community" so existing
-  // behavior is preserved when a complex has no explicit building tag.
+  // the element carries. Defaults to "Apartment community" when no
+  // explicit building tag matches.
   let typeMeta = { type: 'Apartment community', propertyType: 'Apartment community' }
   for (const [tag, meta] of Object.entries({ ...HOUSING_BUILDING_TAGS, ...PLACE_TAGS })) {
     const [k, v] = tag.split('=')
@@ -586,35 +593,35 @@ function shapeOsmApartmentComplex(el, originLat, originLng, originCity, originSt
   const addrCity = tags['addr:city'] || originCity || ''
   const addrState = tags['addr:state'] || originState || ''
   const addrZip = tags['addr:postcode'] || ''
-  const levels = tags['building:levels'] ? `${tags['building:levels']}-story` : ''
-  const descParts = []
-  if (levels) descParts.push(levels)
-  if (tags['units'] || tags['building:units']) descParts.push(`${tags['units'] || tags['building:units']} units`)
-  if (tags.year_built) descParts.push(`built ${tags.year_built}`)
-  const baseDesc = descParts.length ? descParts.join(' · ') : typeMeta.type.toLowerCase()
-  const description = `${baseDesc} approximately ${distance} mi away. Bed, bath, square footage, and rent vary by unit - tap the listings button to see current availability for this address.`
 
-  // Deep-link to verified listing data. Aggregator set switches based
-  // on whether the market is CONUS (US rental sites: apartments.com,
-  // zillow, trulia, realtor, rent, apartmentlist) or OCONUS (AHRN,
-  // MilitaryByOwner, HOMES.mil, rentbyowner). OCONUS aggregators are
-  // DoD-sanctioned worldwide military housing networks; US sites do
-  // not cover overseas military communities.
+  const oconus = isOconusMarket(addrState)
+  const featureBits = []
+  if (tags['building:levels']) featureBits.push(`${tags['building:levels']}-story`)
+  if (tags['units'] || tags['building:units']) featureBits.push(`${tags['units'] || tags['building:units']} units`)
+  if (tags.year_built) featureBits.push(`built ${tags.year_built}`)
+  const featureSentence = featureBits.length ? ` ${featureBits.join(' · ')}.` : ''
+  const description = `${typeMeta.type} located approximately ${distance} mi from your gaining installation.${featureSentence} Floorplans, square footage, and current rent vary by unit — verify availability with the listing source before scheduling a tour.`
+
+  // Listing-source URL. CONUS uses Google search restricted to U.S.
+  // rental aggregators (apartments.com, zillow, trulia, etc.). OCONUS
+  // uses Google search restricted to DoD-sanctioned worldwide military
+  // housing networks (AHRN, MilitaryByOwner, MilitaryHousing.us). We
+  // do NOT generate apartments.com/ahrn.com deep-link URLs because
+  // both sites are single-page applications whose routes do not
+  // accept open query parameters and either 404 or land on a homepage.
   const ev = encodeURIComponent
   const cityState = [addrCity, addrState].filter(Boolean).join(' ')
-  const oconus = isOconusMarket(addrState)
   const aggregatorSites = oconus
-    ? 'site:ahrn.com OR site:militarybyowner.com OR site:homes.mil OR site:rentbyowner.com'
+    ? 'site:ahrn.com OR site:militarybyowner.com OR site:homes.mil'
     : 'site:apartments.com OR site:zillow.com OR site:trulia.com OR site:realtor.com OR site:rent.com OR site:apartmentlist.com'
-  const apartmentsSearch = name && cityState
-    ? `https://www.google.com/search?q=${ev(`"${name}" ${cityState} ${aggregatorSites}`)}`
+  const searchQuery = name && cityState
+    ? `"${name}" ${cityState} ${aggregatorSites}`
     : street && cityState
-      ? `https://www.google.com/search?q=${ev(`"${street}" ${cityState} apartments for rent ${aggregatorSites}`)}`
+      ? `"${street}" ${cityState} apartments for rent ${aggregatorSites}`
       : cityState
-        ? (oconus
-          ? `https://www.ahrn.com/search?q=${ev(cityState)}`
-          : `https://www.apartments.com/${ev(addrCity.toLowerCase().replace(/\s+/g, '-'))}-${(addrState || '').toLowerCase()}/`)
-        : `https://www.google.com/search?q=${ev((name || '') + ' apartments for rent ' + aggregatorSites)}`
+        ? `apartments for rent ${cityState} ${aggregatorSites}`
+        : `${name} ${aggregatorSites}`
+  const apartmentsSearch = `https://www.google.com/search?q=${ev(searchQuery)}`
 
   return {
     id: `${el.type}/${el.id}`,
@@ -657,56 +664,104 @@ function isOconusMarket(state) {
   return true
 }
 
-// Synthetic property-type search-CTA cards. OSM only has names on
-// apartment complexes; single family homes, condos, townhouses, and
-// duplex/triplex/quadplex addresses are rarely named in OSM and even
-// when present have no rent / unit / bedroom data. For those types we
-// emit one card per category that deep-links to a working aggregator
-// for the appropriate region:
-//   - CONUS: Apartments.com + Google search across US aggregators
-//   - OCONUS: AHRN (DoD's Automated Housing Referral Network) +
-//     MilitaryByOwner + Google search across regional sources. Both
-//     sites cover U.S. military installations worldwide.
+// Synthetic search-portal cards. OSM only carries reliable name +
+// address data for apartment complexes; single-family homes, condos,
+// townhouses, and small multifamily units rarely have OSM coverage.
+// For those we emit "card-shaped" search portals that route to the
+// correct working aggregator for the market region.
+//
+// CONUS (50 states + DC, PR, GU, VI, MP, AS): six property-type cards
+// linking to Google-restricted searches across U.S. rental aggregators
+// (apartments.com, zillow, trulia, realtor.com, rent.com,
+// apartmentlist.com).
+//
+// OCONUS (everywhere else, including USAREUR, USFK, USFJ, etc.): four
+// honest directory cards linking to DoD-sanctioned worldwide military
+// housing networks. We do NOT fabricate property-type deep-links here
+// because none of the OCONUS aggregators support open URL parameters
+// for type-filtering; both AHRN.com and MilitaryByOwner are single-
+// page applications whose search has to be performed from inside the
+// site. Synthesizing "looks-real" URLs that land on homepages or 404s
+// is the exact bug we are fixing.
 function syntheticTypeCards(city, state, zip) {
-  if (!city) return []
-  const slug = `${city.toLowerCase().replace(/\s+/g, '-')}-${(state || '').toLowerCase()}`
+  if (!city && !state) return []
   const ev = encodeURIComponent
   const cityState = `${city}${state ? ', ' + state : ''}`
   const oconus = isOconusMarket(state)
-  // CONUS aggregators: 8 US-only rental sites.
-  // OCONUS aggregators: AHRN.com (DoD-sanctioned worldwide housing
-  // search), MilitaryByOwner (covers OCONUS), HOMES.mil (official
-  // DoD privatized housing search). Removing US-only sites prevents
-  // 404s like apartments.com/vicenza-italy/houses/.
-  const aggregatorSites = oconus
-    ? 'site:ahrn.com OR site:militarybyowner.com OR site:homes.mil OR site:rentbyowner.com'
-    : 'site:apartments.com OR site:zillow.com OR site:trulia.com OR site:realtor.com OR site:rent.com OR site:apartmentlist.com OR site:redfin.com OR site:homes.com'
+
+  if (oconus) {
+    // Each entry maps to a real, working entry point. URLs verified
+    // live; AHRN.com /find-a-home is the discovery page where users
+    // can type the installation; HOMES.mil session entry pre-accepts
+    // the Government Information System banner so users go straight
+    // to the search; MilitaryByOwner's /find-rentals/ landing page
+    // lets the user filter by country.
+    const directory = [
+      {
+        propertyType: 'DoD official',
+        name: 'HOMES.mil — DoD privatized housing',
+        description: 'Official Department of Defense privatized housing portal. Search on-installation and partner housing worldwide, including OCONUS communities. Government-managed; no advertising; no broker fees.',
+        url: 'https://www.homes.mil/homes/DispatchServlet/HomesEntry?agreed=true',
+      },
+      {
+        propertyType: 'AHRN.com',
+        name: `AHRN — search rentals near ${city || 'your installation'}`,
+        description: 'Automated Housing Referral Network. DoD-sanctioned global housing marketplace for military families, with strong OCONUS coverage in Germany, Italy, Japan, Korea, and the United Kingdom. Type the installation name in the search bar to view active listings.',
+        url: 'https://www.ahrn.com/find-a-home',
+      },
+      {
+        propertyType: 'MilitaryByOwner',
+        name: `MilitaryByOwner — homes for rent near ${city || 'your installation'}`,
+        description: 'For-rent and for-sale homes posted directly by military landlords. Covers stateside and overseas installations. Use the installation search on the landing page to filter by base.',
+        url: 'https://www.militarybyowner.com/find-rentals/',
+      },
+      {
+        propertyType: 'MilitaryINSTALLATIONS',
+        name: `MilitaryINSTALLATIONS — ${city || 'installation'} resources`,
+        description: 'Department of Defense installation directory with housing, school liaison, and family-readiness contacts for every base worldwide. Authoritative source for on-installation housing waitlists and points of contact.',
+        url: `https://installations.militaryonesource.mil/search?keyword=${ev(city || state)}`,
+      },
+    ]
+    return directory.map((entry, idx) => ({
+      id: `oconus-directory-${idx}-${ev(city || state)}`,
+      name: entry.name,
+      address: '',
+      city: city || '',
+      state: state || '',
+      zip: zip || '',
+      beds: null,
+      baths: null,
+      sqft: null,
+      propertyType: entry.propertyType,
+      distanceMiles: null,
+      description: entry.description,
+      price: null,
+      directionsUrl: entry.url,
+      apartmentsSearchUrl: entry.url,
+      listingUrl: entry.url,
+      mapUrl: entry.url,
+      website: '',
+      phone: '',
+      source: 'DoD verified directory',
+      synthetic: true,
+    }))
+  }
+
+  // CONUS branch: six property-type search portals.
+  const aggregatorSites = 'site:apartments.com OR site:zillow.com OR site:trulia.com OR site:realtor.com OR site:rent.com OR site:apartmentlist.com'
   const TYPES = [
-    { propertyType: 'Single Family',     query: 'single family homes for rent',         apartmentsPath: 'houses' },
-    { propertyType: 'Condo',             query: 'condos for rent',                      apartmentsPath: 'condos' },
-    { propertyType: 'Townhouse',         query: 'townhouses for rent',                  apartmentsPath: 'townhomes' },
-    { propertyType: 'Duplex',            query: 'duplex for rent',                      apartmentsQuery: 'duplex' },
-    { propertyType: 'Triplex',           query: 'triplex for rent',                     apartmentsQuery: 'triplex' },
-    { propertyType: 'Quadplex',          query: 'quadplex fourplex for rent',           apartmentsQuery: 'quadplex fourplex' },
+    { propertyType: 'Single Family', query: 'single-family homes for rent',  blurb: 'single-family homes' },
+    { propertyType: 'Condo',         query: 'condominiums for rent',         blurb: 'condominium units' },
+    { propertyType: 'Townhouse',     query: 'townhomes for rent',            blurb: 'townhome rentals' },
+    { propertyType: 'Duplex',        query: 'duplex units for rent',         blurb: 'duplex rentals' },
+    { propertyType: 'Triplex',       query: 'triplex units for rent',        blurb: 'triplex rentals' },
+    { propertyType: 'Quadplex',      query: 'quadplex or fourplex for rent', blurb: 'quadplex and fourplex rentals' },
   ]
   return TYPES.map(t => {
-    // Primary deep-link: Google search restricted to working aggregators
-    // for the market region (CONUS vs OCONUS). Returns actual listings.
     const googleSearchUrl = `https://www.google.com/search?q=${ev(`${t.query} ${cityState} ${aggregatorSites}`)}`
-    // Secondary deep-link: Google Maps search for the same property
-    // type. Maps works everywhere, including OCONUS.
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${ev(`${t.query} ${cityState}`)}`
-    // Tertiary deep-link:
-    //   - CONUS: Apartments.com type-filtered landing page
-    //   - OCONUS: AHRN.com search prefilled with city + property type
-    //     (AHRN covers every U.S. military installation worldwide)
-    const apartmentsUrl = oconus
-      ? `https://www.ahrn.com/search?q=${ev(`${t.query} ${cityState}`)}`
-      : t.apartmentsPath
-        ? `https://www.apartments.com/${slug}/${t.apartmentsPath}/`
-        : `https://www.apartments.com/search/?q=${ev(t.apartmentsQuery + ' ' + cityState)}`
     return {
-      id: `synthetic-${t.propertyType.toLowerCase().replace(/\s+/g, '-')}-${slug}`,
+      id: `synthetic-${t.propertyType.toLowerCase().replace(/\s+/g, '-')}-${ev(cityState)}`,
       name: `${t.propertyType} rentals near ${city}`,
       address: '',
       city,
@@ -717,20 +772,15 @@ function syntheticTypeCards(city, state, zip) {
       sqft: null,
       propertyType: t.propertyType,
       distanceMiles: null,
-      description: `Tap the card to see ${t.propertyType.toLowerCase()} listings near ${cityState} on Google. The "Live units" button opens Google Maps so you can see homes plotted on the map; "Apartments.com" opens the aggregator's type-filtered search. Confirm availability, beds, baths, square footage, and lease terms directly with the listing source.`,
+      description: `Curated search for ${t.blurb} near ${cityState}. The card opens a Google search restricted to Apartments.com, Zillow, Trulia, Realtor.com, Rent.com, and ApartmentList so you see only active listings. Confirm availability, lease terms, pet policy, and move-in dates with the listing source.`,
       price: null,
-      // Card-click opens Google search across rental aggregators -
-      // these are real listings, not a landing page.
       directionsUrl: googleSearchUrl,
-      // "Live units" button opens Google Maps with the type query
-      // pre-filled - shows homes plotted on a map view.
       apartmentsSearchUrl: googleMapsUrl,
       listingUrl: googleSearchUrl,
-      // Map view button -> Apartments.com landing for that type
-      mapUrl: apartmentsUrl,
+      mapUrl: googleMapsUrl,
       website: '',
       phone: '',
-      source: 'Google + Apartments.com',
+      source: 'Aggregated rental search',
       synthetic: true,
     }
   })
