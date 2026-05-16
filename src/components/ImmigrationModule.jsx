@@ -322,10 +322,17 @@ const LEGAL_RESOURCES = [
   },
 ];
 
-export default function ImmigrationModule({ theme }) {
+export default function ImmigrationModule({ theme, profile }) {
   const [subTab, setSubTab] = useState('greencard');
   const [checked, setChecked] = useState(() => store.get('immi_checklist') || {});
   const [expandedCat, setExpandedCat] = useState(CATEGORIES[0]);
+  // DoD Civilians do NOT qualify for several military-only immigration
+  // benefits even though they hold federal employee status: Parole in
+  // Place (PIP), the 3-year shortened naturalization waiting period
+  // (INA §319(b) requires uniformed service member status), and free
+  // JAG legal assistance. The civilian banner makes these limitations
+  // explicit so users do not file petitions assuming the benefits apply.
+  const isCivilian = profile?.component === 'DoD Civilian';
   useEffect(() => {
     secureLocalStore.get('immi_checklist', null).then(saved => {
       if (saved) setChecked(saved);
@@ -352,9 +359,21 @@ export default function ImmigrationModule({ theme }) {
       {/* Header */}
       <div style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
         <div style={{ fontSize: 13, fontWeight: 900, color: '#FFF', marginBottom: 4 }}>Permanent Resident & Naturalization Guide</div>
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>Official USCIS information for military spouses and families. Free legal assistance is available through your installation JAG office.</div>
-        <a href="https://www.uscis.gov/military" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 10, padding: '6px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.15)', color: '#FFF', fontSize: 11, fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(255,255,255,0.3)' }}>USCIS Military Page →</a>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
+          {isCivilian
+            ? 'Official USCIS information on family-based immigration. The military-specific provisions on this page (PIP, 3-year naturalization, JAG legal assistance) require uniformed service member status and do NOT apply to DoD Civilians.'
+            : 'Official USCIS information for military spouses and families. Free legal assistance is available through your installation JAG office.'}
+        </div>
+        <a href={isCivilian ? 'https://www.uscis.gov/family' : 'https://www.uscis.gov/military'} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 10, padding: '6px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.15)', color: '#FFF', fontSize: 11, fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(255,255,255,0.3)' }}>
+          {isCivilian ? 'USCIS Family-Based Immigration →' : 'USCIS Military Page →'}
+        </a>
       </div>
+
+      {isCivilian && (
+        <div style={{ background: '#FFF3E0', border: '1.5px solid #FFB74D', borderRadius: 12, padding: '12px 14px', marginBottom: 14, fontSize: 12, color: '#6D4C00', lineHeight: 1.55 }}>
+          <strong>DoD Civilian — military immigration benefits do not apply.</strong> Family-based immigration for a U.S. citizen DoD civilian follows standard USCIS rules: Form I-130 then I-485 (if in the U.S.) or consular processing (if abroad). Parole in Place is military-only. Naturalization for your spouse requires the standard 3-year (married to USC) or 5-year wait, not the wartime military shortcut. Use private immigration counsel or a USCIS-recognized accredited representative; DoD Civilians do not receive JAG legal assistance.
+        </div>
+      )}
 
       {/* Sub-tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>

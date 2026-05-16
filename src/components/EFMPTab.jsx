@@ -45,6 +45,16 @@ const BRANCH_EFMP = {
     note: 'Coast Guard families should verify current Special Needs Program procedures through official Coast Guard channels and Military OneSource.',
     url: 'https://www.mycg.uscg.mil/',
   },
+  // DoD Civilian families do not enroll in military EFMP. They use
+  // the Family Member Pre-Employment Travel Screening Program (FMPTSP)
+  // for OCONUS and FEHB plus state-level early intervention / IEP for
+  // CONUS. Schools follow the gaining locality district or DoDEA.
+  'DoD Civilian': {
+    office: 'DCPAS Family Member Pre-Employment Travel Screening Program (FMPTSP) coordinator and your gaining HR Service Center; for OCONUS, the DSSR §270 Education Allowance applies.',
+    forms: ['FMPTSP family member screening packet (OCONUS only)', 'IEP / IFSP / 504 plan documentation for school transfer', 'FEHB special-needs plan comparison if changing plans'],
+    note: 'DoD Civilians do NOT enroll in EFMP. OCONUS PCS uses FMPTSP screening; CONUS PCS coordinates IEP/504/early-intervention with the gaining locality school district. Family medical coverage is FEHB, not TRICARE.',
+    url: 'https://www.dcpas.osd.mil/policy/relocation',
+  },
 };
 
 const CORE_STEPS = [
@@ -99,7 +109,13 @@ const OFFICIAL_RESOURCES = [
 
 export default function EFMPTab({ theme, profile }) {
   const branch = profile?.branch || 'Army';
-  const branchInfo = BRANCH_EFMP[branch] || BRANCH_EFMP.Army;
+  const isCivilian = profile?.component === 'DoD Civilian';
+  // DoD Civilians get the civilian-specific section (FMPTSP / FEHB /
+  // local district) rather than the branch military EFMP path.
+  const branchInfo = isCivilian
+    ? BRANCH_EFMP['DoD Civilian']
+    : (BRANCH_EFMP[branch] || BRANCH_EFMP.Army);
+  const headerLabel = isCivilian ? 'DoD Civilian Family Special Needs' : `${branch} EFMP Start Point`;
   const [activePhase, setActivePhase] = useState(CORE_STEPS[0].phase);
   const [checks, setChecks] = useState({});
 
@@ -128,25 +144,35 @@ export default function EFMPTab({ theme, profile }) {
     <div className="efmp-page">
       <div className="efmp-header">
         <div>
-          <div className="assistance-kicker">EFMP</div>
-          <h2>Exceptional Family Member PCS Checklist</h2>
-          <p>Official public guidance for medical, education, assignment, and family support requirements tailored to {branch} families.</p>
+          <div className="assistance-kicker">{isCivilian ? 'DOD CIVILIAN FAMILY SUPPORT' : 'EFMP'}</div>
+          <h2>{isCivilian ? 'Family Special Needs — DoD Civilian PCS' : 'Exceptional Family Member PCS Checklist'}</h2>
+          <p>
+            {isCivilian
+              ? 'DoD Civilians do not enroll in military EFMP. This guide routes you to the DCPAS Family Member Pre-Employment Travel Screening Program (FMPTSP) for OCONUS assignments and to FEHB plus your gaining-locality school district / state early-intervention services for CONUS.'
+              : `Official public guidance for medical, education, assignment, and family support requirements tailored to ${branch} families.`}
+          </p>
         </div>
       </div>
 
       <section className="efmp-source-note">
         <strong>Official basis</strong>
-        <span>EFMP includes identification and enrollment, assignment coordination, and family support. Enrollment or updates may be mandatory when a family member has qualifying medical or educational needs.</span>
+        <span>
+          {isCivilian
+            ? 'Civilian PCS family medical/education support is governed by the Federal Travel Regulation (FTR), DCPAS civilian relocation guidance, and the Department of State Standardized Regulations (DSSR §270 Education Allowance) for OCONUS.'
+            : 'EFMP includes identification and enrollment, assignment coordination, and family support. Enrollment or updates may be mandatory when a family member has qualifying medical or educational needs.'}
+        </span>
       </section>
 
       <section className="efmp-branch-card">
-        <h3>{branch} EFMP Start Point</h3>
+        <h3>{headerLabel}</h3>
         <p>{branchInfo.note}</p>
         <div className="efmp-field"><span>Start with</span><strong>{branchInfo.office}</strong></div>
         <div className="efmp-list">
           {branchInfo.forms.map(form => <div key={form}>{form}</div>)}
         </div>
-        {branchInfo.url && <a href={branchInfo.url} target="_blank" rel="noopener noreferrer" style={{ background: theme.primary }}>Open {branch} EFMP Source</a>}
+        {branchInfo.url && <a href={branchInfo.url} target="_blank" rel="noopener noreferrer" style={{ background: theme.primary }}>
+          {isCivilian ? 'Open DCPAS Civilian Relocation' : `Open ${branch} EFMP Source`}
+        </a>}
       </section>
 
       <div className="pcs-progress-card">

@@ -28,10 +28,19 @@ function MetricCard({ label, value, note, tone = '#1565C0' }) {
 }
 
 export default function PPMFinancialEstimator({ theme, profile }) {
-  const [rank, setRank] = useState(profile?.paygrade || 'E-5');
+  const isCivilian = profile?.component === 'DoD Civilian';
+  // Civilian profiles carry a GS/SES/WG grade not in PPM_PAYGRADES.
+  // We fall back to an E-5 baseline so the calculator still produces a
+  // meaningful planning number; the civilian banner notes the
+  // limitation and points users to the authoritative DCPAS/JTR sources.
+  const initialRank = (profile?.paygrade && PPM_PAYGRADES.includes(profile.paygrade)) ? profile.paygrade : 'E-5';
+  const [rank, setRank] = useState(initialRank);
   const [yearsOfService, setYearsOfService] = useState('6');
   const [distanceMiles, setDistanceMiles] = useState('850');
-  const [estimatedWeightLbs, setEstimatedWeightLbs] = useState('7500');
+  // Civilian PCS weight allowance is a flat 18,000 lbs per FTR §302-7
+  // versus the military's rank-tied allowance. Default the field
+  // accordingly when the profile signals civilian status.
+  const [estimatedWeightLbs, setEstimatedWeightLbs] = useState(isCivilian ? '18000' : '7500');
 
   const estimate = useMemo(() => calculatePPMEstimate({
     rank,
@@ -52,6 +61,12 @@ export default function PPMFinancialEstimator({ theme, profile }) {
           Estimates 95 percent of a planning Government Constructive Cost against rental truck, fuel, labor, supplies, and tax withholding. Official PPM payment amounts must come from DPS, your PPPO/TMO, and current JTR guidance.
         </div>
       </div>
+
+      {isCivilian && (
+        <div style={{ background: '#FFF3E0', border: '1.5px solid #FFB74D', borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 12, color: '#6D4C00', lineHeight: 1.55 }}>
+          <strong>DoD Civilian planning estimate.</strong> Civilian PPM reimbursement follows the Federal Travel Regulation §302-7 — 95% of the constructed government cost against your 18,000 lb weight allowance. The rank field below maps to a military E/O paygrade for math purposes only; your actual reimbursement is calculated by your servicing DCPAS / TMO office at the gaining activity. Use this as a planning order-of-magnitude only.
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
         <label style={{ fontSize: 11, fontWeight: 900, color: theme.primary }}>

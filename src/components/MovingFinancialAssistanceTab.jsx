@@ -103,9 +103,80 @@ function isResourceForBranch(resource, branch) {
   return resource.branches.includes('ALL') || resource.branches.includes(branch);
 }
 
+// DoD Civilian financial assistance — public, authoritative resources
+// that apply to federal civilian employees during a PCS. Replaces
+// branch-specific military relief societies (which require uniformed
+// service) with civilian-eligible programs.
+const CIVILIAN_RESOURCES = [
+  {
+    name: 'Federal Employee Education and Assistance Fund (FEEA)',
+    type: 'GRANT / LOAN',
+    branches: ['DoD Civilian'],
+    audience: 'Federal civilian employees facing PCS-related financial hardship',
+    desc: 'No-interest emergency loans and need-based grants for federal employees facing relocation hardship, unexpected expenses, or shortfalls during a PCS.',
+    url: 'https://feea.org/our-programs/emergency-assistance/',
+  },
+  {
+    name: 'Federal Travel Regulation — Civilian PCS Allowances',
+    type: 'FREE ASSISTANCE',
+    branches: ['DoD Civilian'],
+    audience: 'Federal civilians on a PCS authorization',
+    desc: 'GSA Chapter 302 of the FTR governs civilian PCS allowances including HHG, TQSE, real-estate expense, miscellaneous expense, and house-hunting trip reimbursement.',
+    url: 'https://www.gsa.gov/policy-regulations/regulations/federal-travel-regulation-ftr',
+  },
+  {
+    name: 'DCPAS Civilian Relocation Policy Guide',
+    type: 'FREE ASSISTANCE',
+    branches: ['DoD Civilian'],
+    audience: 'DoD civilian employees relocating between agencies or installations',
+    desc: 'DoD Civilian Personnel Advisory Service guide explaining service agreements, advance pay, dependent travel, and FTR application within DoD.',
+    url: 'https://www.dcpas.osd.mil/policy/relocation',
+  },
+  {
+    name: 'OPM Locality Pay Tables',
+    type: 'FREE ASSISTANCE',
+    branches: ['DoD Civilian'],
+    audience: 'Federal civilians moving between localities',
+    desc: 'Office of Personnel Management current-year locality pay tables. Confirm your gaining locality pay rate before signing on a lease or mortgage at the new duty station.',
+    url: 'https://www.opm.gov/policy-data-oversight/pay-leave/salaries-wages/',
+  },
+  {
+    name: 'DSSR — Living Quarters Allowance & Post Allowance (OCONUS)',
+    type: 'FREE ASSISTANCE',
+    branches: ['DoD Civilian'],
+    audience: 'DoD civilians PCSing to OCONUS assignments',
+    desc: 'Department of State Standardized Regulations — authoritative LQA, TQSA, Post Allowance, and Education Allowance rates for U.S. government civilians overseas.',
+    url: 'https://aoprals.state.gov/Web920/dssr.asp',
+  },
+  {
+    name: 'TSP Hardship Withdrawal Guidance',
+    type: 'GRANT / LOAN',
+    branches: ['DoD Civilian'],
+    audience: 'Federal civilians with TSP accounts',
+    desc: 'Thrift Savings Plan financial hardship in-service withdrawal information — last-resort option for PCS-related cash needs.',
+    url: 'https://www.tsp.gov/access-your-account/withdrawals-in-retirement/in-service-withdrawals/',
+  },
+  {
+    name: 'Employee Assistance Program (EAP)',
+    type: 'FREE ASSISTANCE',
+    branches: ['DoD Civilian'],
+    audience: 'All federal employees and household members',
+    desc: 'Free, confidential financial, legal, and mental-health counseling for federal civilian employees. Available 24/7 by phone or online.',
+    url: 'https://www.opm.gov/policy-data-oversight/worklife/employee-assistance-programs/',
+  },
+];
+
 export default function MovingFinancialAssistanceTab({ theme = {}, profile = {} }) {
   const branch = normalizeBranch(profile?.branch);
-  const branchSpecific = RESOURCES.filter(resource => resource.branches.includes(branch));
+  const isCivilian = profile?.component === 'DoD Civilian';
+  // Civilians get the civilian resource set plus universal entries.
+  // Military profiles get branch-specific relief societies plus
+  // universal entries; civilians do NOT see Army Emergency Relief,
+  // Navy-Marine Corps Relief Society, etc. because eligibility requires
+  // active uniformed service.
+  const branchSpecific = isCivilian
+    ? CIVILIAN_RESOURCES
+    : RESOURCES.filter(resource => resource.branches.includes(branch));
   const universal = RESOURCES.filter(resource => resource.branches.includes('ALL'));
   const visibleResources = [...branchSpecific, ...universal].filter(resource => resource.url);
   const colors = {
@@ -124,7 +195,7 @@ export default function MovingFinancialAssistanceTab({ theme = {}, profile = {} 
       </div>
 
       <section className="assistance-band" aria-label="Branch priority assistance">
-        <div className="assistance-band__title">Start Here for {branch}</div>
+        <div className="assistance-band__title">Start Here for {isCivilian ? 'DoD Civilian' : branch}</div>
         <div className="assistance-grid">
           {branchSpecific.length ? (
             branchSpecific.filter(resource => resource.url).map(resource => (
