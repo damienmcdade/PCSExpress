@@ -1438,20 +1438,20 @@ function BasicInstallationCard({ name, theme }) {
         </div>
         <div style={{ display: 'grid', gap: 8 }}>
           <a href="https://installations.militaryonesource.mil/" target="_blank" rel="noopener noreferrer"
-            style={{ display: 'block', padding: '10px 14px', borderRadius: 10, background: theme.primary, color: '#FFF', textDecoration: 'none', fontSize: 12, fontWeight: 900, textAlign: 'center' }}>
+            className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>
             Military OneSource — Installation Finder
           </a>
           <a href="https://www.tricare.mil/Resources/Enrollment" target="_blank" rel="noopener noreferrer"
-            style={{ display: 'block', padding: '10px 14px', borderRadius: 10, background: '#1565C0', color: '#FFF', textDecoration: 'none', fontSize: 12, fontWeight: 900, textAlign: 'center' }}>
+            className="card-cta card-cta--block" style={{ '--cta-color': '#1565C0' }}>
             TRICARE Enrollment Transfer
           </a>
           <a href="https://www.dodea.edu/home.cfm" target="_blank" rel="noopener noreferrer"
-            style={{ display: 'block', padding: '10px 14px', borderRadius: 10, background: '#5D4037', color: '#FFF', textDecoration: 'none', fontSize: 12, fontWeight: 900, textAlign: 'center' }}>
+            className="card-cta card-cta--block" style={{ '--cta-color': '#5D4037' }}>
             DoDEA School Finder
           </a>
           {isOCONUS && (
             <a href="https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/" target="_blank" rel="noopener noreferrer"
-              style={{ display: 'block', padding: '10px 14px', borderRadius: 10, background: '#E65100', color: '#FFF', textDecoration: 'none', fontSize: 12, fontWeight: 900, textAlign: 'center' }}>
+              className="card-cta card-cta--block" style={{ '--cta-color': '#E65100' }}>
               DTMO — OHA Rate Lookup
             </a>
           )}
@@ -1614,18 +1614,18 @@ export default function DutyStationDirectory({ theme, profile }) {
               </div>
               {data.housing.waitTimeSource && (
                 <a href={data.housing.waitTimeSource} target="_blank" rel="noopener noreferrer"
-                  style={{ display: 'block', padding: 12, borderRadius: 12, background: theme.primary, color: '#FFF', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900 }}>
+                  className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>
                   Installation Housing Office — Official Page
                 </a>
               )}
               {data.housing.offPostNotesSource && (
                 <a href={data.housing.offPostNotesSource} target="_blank" rel="noopener noreferrer"
-                  style={{ display: 'block', padding: 12, borderRadius: 12, background: '#0D3B66', color: '#FFF', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900 }}>
+                  className="card-cta card-cta--block" style={{ '--cta-color': '#0D3B66' }}>
                   {data.oconus ? 'DTMO — OHA Rate Lookup' : 'DTMO — BAH Rate Lookup'}
                 </a>
               )}
               <a href="https://www.militaryonesource.mil/housing-and-moving/home-buying-and-renting/" target="_blank" rel="noopener noreferrer"
-                style={{ display: 'block', padding: 12, borderRadius: 12, background: '#F3F4F6', color: '#111827', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900, border: '1px solid #E5E7EB' }}>
+                className="card-cta card-cta--block card-cta--ghost">
                 Military OneSource Housing Resources
               </a>
             </div>
@@ -1651,12 +1651,12 @@ export default function DutyStationDirectory({ theme, profile }) {
               </div>
               {data.tricare.mtfSource && (
                 <a href={data.tricare.mtfSource} target="_blank" rel="noopener noreferrer"
-                  style={{ display: 'block', padding: 12, borderRadius: 12, background: '#1565C0', color: '#FFF', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900 }}>
+                  className="card-cta card-cta--block" style={{ '--cta-color': '#1565C0' }}>
                   Find a Doctor / Pharmacy near this installation
                 </a>
               )}
               <a href="https://www.tricare.mil/Resources/Enrollment" target="_blank" rel="noopener noreferrer"
-                style={{ display: 'block', padding: 12, borderRadius: 12, background: '#0D3B66', color: '#FFF', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900 }}>
+                className="card-cta card-cta--block" style={{ '--cta-color': '#0D3B66' }}>
                 TRICARE Enrollment Transfer (tricare.mil)
               </a>
             </div>
@@ -1684,12 +1684,12 @@ export default function DutyStationDirectory({ theme, profile }) {
               </div>
               {data.schools.districtSource && (
                 <a href={data.schools.districtSource} target="_blank" rel="noopener noreferrer"
-                  style={{ display: 'block', padding: 12, borderRadius: 12, background: '#5D4037', color: '#FFF', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900 }}>
+                  className="card-cta card-cta--block" style={{ '--cta-color': '#5D4037' }}>
                   Installation Schools — Official Page
                 </a>
               )}
               <a href="https://www.dodea.edu/home.cfm" target="_blank" rel="noopener noreferrer"
-                style={{ display: 'block', padding: 12, borderRadius: 12, background: '#3E2723', color: '#FFF', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900 }}>
+                className="card-cta card-cta--block" style={{ '--cta-color': '#3E2723' }}>
                 DoDEA School Finder
               </a>
             </div>
@@ -1707,18 +1707,18 @@ export default function DutyStationDirectory({ theme, profile }) {
               </div>
               {data.website && (
                 <a href={data.website} target="_blank" rel="noopener noreferrer"
-                  style={{ display: 'block', padding: 12, borderRadius: 12, background: theme.primary, color: '#FFF', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900 }}>
+                  className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>
                   Official Installation Website
                 </a>
               )}
               {data.militaryInstallationsUrl && (
                 <a href={data.militaryInstallationsUrl} target="_blank" rel="noopener noreferrer"
-                  style={{ display: 'block', padding: 12, borderRadius: 12, background: '#0D3B66', color: '#FFF', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900 }}>
+                  className="card-cta card-cta--block" style={{ '--cta-color': '#0D3B66' }}>
                   MilitaryINSTALLATIONS — {selected} Page
                 </a>
               )}
               <a href="https://installations.militaryonesource.mil/" target="_blank" rel="noopener noreferrer"
-                style={{ display: 'block', padding: 12, borderRadius: 12, background: '#F3F4F6', color: '#111827', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900, border: '1px solid #E5E7EB' }}>
+                className="card-cta card-cta--block card-cta--ghost">
                 Military OneSource — All Installations
               </a>
             </div>

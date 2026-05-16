@@ -407,13 +407,13 @@ export default function OHACalculatorTab({ theme, profile }) {
 
       {/* Official links */}
       <div style={{ display: 'grid', gap: 8 }}>
-        <a href="https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/OHA-Rate-Lookup/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, borderRadius: 12, background: theme.primary, color: '#FFFFFF', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900 }}>
+        <a href="https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/OHA-Rate-Lookup/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>
           Official DTMO OHA Rate Lookup Tool
         </a>
-        <a href="https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, borderRadius: 12, background: '#F3F4F6', color: '#111827', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900, border: '1px solid #E5E7EB' }}>
+        <a href="https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">
           DTMO OHA Policy & Regulations
         </a>
-        <a href="https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/MIHA/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, borderRadius: 12, background: '#F3F4F6', color: '#111827', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900, border: '1px solid #E5E7EB' }}>
+        <a href="https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/MIHA/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">
           DTMO MIHA Information
         </a>
       </div>

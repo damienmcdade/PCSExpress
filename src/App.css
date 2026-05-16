@@ -1761,6 +1761,44 @@ input, select, textarea {
   }
 }
 
+/* Full-width block variant — for "Official source" links at the bottom
+   of resource cards and calculator pages. Keeps the same shimmer light
+   effect, just spans the container width and re-centers content. */
+.card-cta--block {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.card-cta--block::after { display: none; }
+
+/* Subtle / secondary variant — light surface with primary-color text.
+   Used for the "compare on official.gov" or "policy reference" rows
+   where we want the same shimmer but less visual weight. */
+.card-cta--ghost {
+  background: #F3F4F6;
+  color: #111827;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 2px rgba(13, 24, 33, 0.04);
+}
+
+.card-cta--ghost::before {
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(66, 133, 244, 0.18) 50%,
+    transparent 65%,
+    transparent 100%
+  );
+}
+
+.card-cta--ghost::after { color: #4285F4; }
+
 /* ── Home category tiles ─────────────────────────────────────────────
    A modern, sleek hover treatment for the home-screen category grid.
    - A diagonal "wave" sheen sweeps across the tile when the cursor

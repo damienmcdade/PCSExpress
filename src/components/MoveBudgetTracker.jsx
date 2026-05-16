@@ -184,8 +184,8 @@ export default function MoveBudgetTracker({ theme }) {
       </div>
 
       <div style={{ display: 'grid', gap: 8 }}>
-        <a href="https://www.defensetravel.dod.mil/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, borderRadius: 12, background: theme.primary, color: '#FFF', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900 }}>Defense Travel Management Office</a>
-        <a href="https://dps.move.mil/cust/standard/user/home.xhtml" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, borderRadius: 12, background: '#F3F4F6', color: '#111827', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900, border: '1px solid #E5E7EB' }}>DPS / Move.mil — HHG & Claims</a>
+        <a href="https://www.defensetravel.dod.mil/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>Defense Travel Management Office</a>
+        <a href="https://dps.move.mil/cust/standard/user/home.xhtml" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">DPS / Move.mil — HHG & Claims</a>
       </div>
     </div>
   );

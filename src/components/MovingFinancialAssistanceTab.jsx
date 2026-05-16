@@ -254,7 +254,8 @@ function ResourceCard({ resource, theme, compact = false }) {
         target="_blank"
         rel="noopener noreferrer"
         aria-label={`Open ${resource.name}`}
-        style={{ background: theme.primary }}
+        className="card-cta"
+        style={{ '--cta-color': theme.primary }}
       >
         Open Resource
       </a>

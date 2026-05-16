@@ -413,16 +413,16 @@ export default function LQACalculatorTab({ theme, profile }) {
 
       {/* Official links */}
       <div style={{ display: 'grid', gap: 8 }}>
-        <a href="https://aoprals.state.gov/Web920/dssr.asp" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, borderRadius: 12, background: theme.primary || '#244247', color: '#FFFFFF', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900 }}>
+        <a href="https://aoprals.state.gov/Web920/dssr.asp" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary || '#244247' }}>
           Official DSSR Rate Lookup (Department of State)
         </a>
-        <a href="https://www.dcpas.osd.mil/policy/relocation/lqa" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, borderRadius: 12, background: '#F3F4F6', color: '#111827', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900, border: '1px solid #E5E7EB' }}>
+        <a href="https://www.dcpas.osd.mil/policy/relocation/lqa" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">
           DCPAS — LQA Worksheet & Eligibility Guide
         </a>
-        <a href="https://www.travel.dod.mil/Policy-Regulations/Joint-Travel-Regulations/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, borderRadius: 12, background: '#F3F4F6', color: '#111827', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900, border: '1px solid #E5E7EB' }}>
+        <a href="https://www.travel.dod.mil/Policy-Regulations/Joint-Travel-Regulations/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">
           DoD JTR Chapter 5 — DoD Civilian Travel
         </a>
-        <a href="https://www.gsa.gov/policy-regulations/regulations/federal-travel-regulation-ftr" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, borderRadius: 12, background: '#F3F4F6', color: '#111827', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900, border: '1px solid #E5E7EB' }}>
+        <a href="https://www.gsa.gov/policy-regulations/regulations/federal-travel-regulation-ftr" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">
           GSA Federal Travel Regulation (FTR) Chapter 302
         </a>
       </div>

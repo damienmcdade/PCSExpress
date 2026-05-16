@@ -119,8 +119,8 @@ export default function PPMFinancialEstimator({ theme, profile }) {
       </div>
 
       <div style={{ display: 'grid', gap: 8 }}>
-        <a href="https://www.travel.dod.mil/Policy-Regulations/Joint-Travel-Regulations/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, borderRadius: 12, background: theme.primary, color: '#FFFFFF', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900 }}>Open Joint Travel Regulations</a>
-        <a href="https://dps.move.mil/cust/standard/user/home.xhtml" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, borderRadius: 12, background: '#F3F4F6', color: '#111827', textAlign: 'center', textDecoration: 'none', fontSize: 12, fontWeight: 900, border: '1px solid #E5E7EB' }}>Open DPS / Move.mil</a>
+        <a href="https://www.travel.dod.mil/Policy-Regulations/Joint-Travel-Regulations/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>Open Joint Travel Regulations</a>
+        <a href="https://dps.move.mil/cust/standard/user/home.xhtml" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">Open DPS / Move.mil</a>
       </div>
     </div>
   );
