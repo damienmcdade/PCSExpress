@@ -5171,7 +5171,67 @@ function getDaysUntilDeparture(dateStr) {
 }
 
 // ─── Onboarding constants ──────────────────────────────────────────────────
-const COMPONENT_TYPES = ['Active Duty', 'Reserve', 'National Guard', 'AGR', 'Dependent'];
+const COMPONENT_TYPES = ['Active Duty', 'Reserve', 'National Guard', 'AGR', 'DoD Civilian', 'Dependent'];
+
+// Branch -> components offered. Filters the onboarding component
+// dropdown so users only see options that actually exist for their
+// branch.
+//   * Army & Air Force have full National Guard components (ARNG, ANG)
+//   * Marine Corps, Navy, Coast Guard, Space Force have no National
+//     Guard (Marines/Navy reserves only; Coast Guard has Reserve;
+//     Space Force has no Guard or AGR as of 2026)
+//   * Every branch has a civilian workforce, so DoD Civilian is
+//     available for all branches.
+//   * AGR (Active Guard Reserve) is a Guard/Reserve-only category;
+//     shows only when the branch has Reserve or Guard components.
+function componentsForBranch(branch) {
+  const b = String(branch || '').trim();
+  const hasGuard = b === 'Army' || b === 'Air Force';
+  const hasReserve = b === 'Army' || b === 'Navy' || b === 'Marine Corps' || b === 'Air Force' || b === 'Coast Guard';
+  const components = ['Active Duty'];
+  if (hasReserve) components.push('Reserve');
+  if (hasGuard) components.push('National Guard');
+  if (hasReserve || hasGuard) components.push('AGR');
+  components.push('DoD Civilian');
+  components.push('Dependent');
+  return components;
+}
+
+// Federal civilian grade structure (public, from OPM):
+//   * General Schedule (GS-1 through GS-15) — white-collar civilian
+//   * Senior Executive Service (SES) — top civilian leadership
+//   * Wage Grade (WG-1 through WG-15) — blue-collar / craft / trades
+//   * Foreign Service / Other excepted schedules tracked separately
+const CIVILIAN_GRADES = [
+  { grade: 'GS-1',  title: 'GS-1 (Grade 1)' },
+  { grade: 'GS-2',  title: 'GS-2 (Grade 2)' },
+  { grade: 'GS-3',  title: 'GS-3 (Grade 3)' },
+  { grade: 'GS-4',  title: 'GS-4 (Grade 4)' },
+  { grade: 'GS-5',  title: 'GS-5 (Grade 5)' },
+  { grade: 'GS-6',  title: 'GS-6 (Grade 6)' },
+  { grade: 'GS-7',  title: 'GS-7 (Grade 7)' },
+  { grade: 'GS-8',  title: 'GS-8 (Grade 8)' },
+  { grade: 'GS-9',  title: 'GS-9 (Grade 9)' },
+  { grade: 'GS-10', title: 'GS-10 (Grade 10)' },
+  { grade: 'GS-11', title: 'GS-11 (Grade 11)' },
+  { grade: 'GS-12', title: 'GS-12 (Grade 12)' },
+  { grade: 'GS-13', title: 'GS-13 (Grade 13)' },
+  { grade: 'GS-14', title: 'GS-14 (Grade 14)' },
+  { grade: 'GS-15', title: 'GS-15 (Grade 15)' },
+  { grade: 'SES',   title: 'SES — Senior Executive Service' },
+  { grade: 'WG',    title: 'WG — Wage Grade (Trades / Craft)' },
+  { grade: 'WS',    title: 'WS — Wage Supervisor' },
+  { grade: 'WL',    title: 'WL — Wage Leader' },
+];
+
+// True when the profile represents a DoD civilian employee (not a
+// uniformed service member or military dependent). Used to gate
+// military-specific UI (BAH calculator, military rank inputs, etc.)
+// and surface civilian-equivalent guidance (locality pay, FEHB,
+// PCS-civ entitlements).
+function isDodCivilian(profile) {
+  return String(profile?.component || '').trim() === 'DoD Civilian';
+}
 
 const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English',              native: 'English'    },
@@ -6463,25 +6523,46 @@ function Onboarding({ onComplete }) {
                 </div>
               </div>
 
-              {/* Component */}
+              {/* Component — filtered by branch. National Guard only
+                  appears for Army/Air Force; Reserve only for branches
+                  with a reserve component; DoD Civilian for all. */}
               <div style={{ marginBottom: 12 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('component')}</label>
                 <select value={p.component} onChange={e => {
                   const comp = e.target.value;
                   if (comp === 'Dependent') {
                     setP(prev => ({ ...prev, component: comp, paygrade: 'N/A' }));
+                  } else if (comp === 'DoD Civilian') {
+                    // Reset paygrade to the GS-equivalent default when
+                    // switching into civilian mode.
+                    const isMilitaryRank = prev => /^(E-|O-|W-)/.test(prev?.paygrade || '');
+                    setP(prev => ({ ...prev, component: comp, paygrade: isMilitaryRank(prev) ? 'GS-11' : (prev.paygrade || 'GS-11') }));
                   } else {
-                    setP(prev => ({ ...prev, component: comp, paygrade: prev.paygrade === 'N/A' ? 'E-5' : prev.paygrade }));
+                    setP(prev => ({ ...prev, component: comp, paygrade: prev.paygrade === 'N/A' || prev.paygrade?.startsWith('GS-') || prev.paygrade?.startsWith('WG') || prev.paygrade === 'SES' || prev.paygrade === 'WS' || prev.paygrade === 'WL' ? 'E-5' : prev.paygrade }));
                   }
                 }} style={inputSt}>
-                  {COMPONENT_TYPES.map(c => <option key={c}>{c}</option>)}
+                  {componentsForBranch(p.branch).map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
 
-              {/* Pay grade */}
+              {/* Pay grade / civilian grade — military rank list for
+                  uniformed components, GS/SES/WG ladder for DoD
+                  Civilians, N/A for dependents. */}
               {p.component === 'Dependent' ? (
                 <div style={{ marginBottom: 12, padding: '11px 14px', borderRadius: 10, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>
                   Pay Grade &amp; Rank — N/A ({p.component})
+                </div>
+              ) : p.component === 'DoD Civilian' ? (
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
+                    CIVILIAN GRADE <span style={{ fontWeight: 400, opacity: 0.5, fontSize: 10 }}>(optional)</span>
+                  </label>
+                  <select value={p.paygrade} onChange={e => upd('paygrade', e.target.value)} style={inputSt}>
+                    <option value="N/A">N/A — Not Applicable</option>
+                    {CIVILIAN_GRADES.map(g => (
+                      <option key={g.grade} value={g.grade}>{g.title}</option>
+                    ))}
+                  </select>
                 </div>
               ) : (
                 <div style={{ marginBottom: 12 }}>
@@ -6974,24 +7055,35 @@ function isOCONUSInstallation(name) {
 function HomeRelocationUnifiedTab({ theme, profile }) {
   const gaining = profile?.gainingInstallation || profile?.gaining || '';
   const oconus = isOCONUSInstallation(gaining);
-  const bahLabel = oconus ? 'OHA Calculator' : 'BAH Calculator';
+  const civilian = isDodCivilian(profile);
+  // DoD Civilians do not draw BAH/OHA. They receive locality pay
+  // (CONUS) or Living Quarters Allowance (LQA) / Temporary Quarters
+  // Subsistence Allowance (TQSA) (OCONUS) instead.
+  const housingLabel = civilian
+    ? (oconus ? 'LQA / TQSA Info' : 'Locality Pay Info')
+    : (oconus ? 'OHA Calculator' : 'BAH Calculator');
 
   const tabs = [
     { id: 'home-locator', label: 'Home Locator' },
-    { id: 'bah-calculator', label: bahLabel },
+    { id: 'bah-calculator', label: housingLabel },
     { id: 'ppm-estimator', label: 'PPM Estimator' },
     { id: 'budget-tracker', label: 'Budget Tracker' },
     { id: 'inventory-claims', label: 'Inventory & Claims' },
     { id: 'move-aid', label: 'Move Aid' },
+    // VA Loan is veteran-status, not active-civilian. We still show it
+    // because many DoD Civilians are also veterans — gated inside the
+    // panel itself by an eligibility note rather than being hidden.
     { id: 'va-loan', label: 'VA Loan' },
   ];
   const [tab, setTab] = useState('home-locator');
   return (
     <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
       {tab === 'home-locator' && <HomeLocatorTab theme={theme} profile={profile} />}
-      {tab === 'bah-calculator' && (oconus
-        ? <OHACalculatorTab theme={theme} profile={profile} />
-        : <BAHCalculatorTab theme={theme} profile={profile} />
+      {tab === 'bah-calculator' && (civilian
+        ? <DodCivilianHousingPanel theme={theme} profile={profile} oconus={oconus} />
+        : oconus
+          ? <OHACalculatorTab theme={theme} profile={profile} />
+          : <BAHCalculatorTab theme={theme} profile={profile} />
       )}
       {tab === 'ppm-estimator' && <PPMFinancialEstimator theme={theme} profile={profile} />}
       {tab === 'budget-tracker' && <MoveBudgetTracker theme={theme} profile={profile} />}
@@ -6999,6 +7091,86 @@ function HomeRelocationUnifiedTab({ theme, profile }) {
       {tab === 'move-aid' && <MovingFinancialAssistanceTab theme={theme} profile={profile} />}
       {tab === 'va-loan' && <VAHomeLoanPanel theme={theme} profile={profile} />}
     </CategoryTabShell>
+  );
+}
+
+// Civilian-equivalent housing allowance panel. Routes users to the
+// authoritative OPM / DoS / DoD sources for locality pay (CONUS) and
+// LQA/TQSA (OCONUS) instead of running a BAH calculation that does
+// not apply to them.
+function DodCivilianHousingPanel({ theme, profile, oconus }) {
+  const colors = {
+    primary: theme.primary || '#244247',
+    accent:  theme.accent  || '#C99A3D',
+    text:    '#0D1821',
+    muted:   '#56697C',
+  };
+  return (
+    <div style={{ padding: 16 }}>
+      <div style={{ background: theme.secondary || '#152F36', borderRadius: 12, padding: 14, marginBottom: 14, borderLeft: `3px solid ${colors.accent}` }}>
+        <div style={{ fontSize: 10, fontWeight: 900, color: colors.accent, letterSpacing: '.08em', marginBottom: 4 }}>CIVILIAN HOUSING ALLOWANCE</div>
+        <div style={{ fontSize: 14, fontWeight: 900, color: '#FFF', marginBottom: 5 }}>
+          {oconus ? 'Living Quarters Allowance (LQA) & TQSA' : 'Locality Pay & Civilian PCS Entitlements'}
+        </div>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.78)', lineHeight: 1.6 }}>
+          DoD Civilians do not draw BAH or OHA. {oconus
+            ? 'OCONUS assignments receive Living Quarters Allowance (LQA), Temporary Quarters Subsistence Allowance (TQSA), and Post Allowance under the Standardized Regulations (DSSR). Rates and eligibility are set by the Department of State and administered by your gaining DoD agency.'
+            : 'CONUS assignments receive locality pay under the General Schedule (GS) and a federal civilian PCS package: HHG move, temporary quarters subsistence (TQSE), real-estate expense allowance, and miscellaneous expense allowance per the Federal Travel Regulation (FTR).'}
+        </div>
+      </div>
+      <div style={{ display: 'grid', gap: 10 }}>
+        {oconus ? (
+          <>
+            <ResourceCard theme={theme}
+              label="DSSR — Standardized Regulations (LQA, TQSA, Post Allowance)"
+              url="https://aoprals.state.gov/Web920/dssr.asp"
+              desc="Authoritative Department of State allowance rates and eligibility tables for U.S. government civilians stationed overseas." />
+            <ResourceCard theme={theme}
+              label="LQA Worksheet & Eligibility Guide (DoD Civilian)"
+              url="https://www.dcpas.osd.mil/policy/relocation/lqa"
+              desc="Defense Civilian Personnel Advisory Service (DCPAS) policy guide explaining who qualifies and how LQA is computed." />
+            <ResourceCard theme={theme}
+              label="DoD Joint Travel Regulations — Civilian"
+              url="https://www.travel.dod.mil/Policy-Regulations/Joint-Travel-Regulations/"
+              desc="Chapter 5 (DoD civilian travel) of the JTR governs civilian PCS travel and per diem entitlements." />
+          </>
+        ) : (
+          <>
+            <ResourceCard theme={theme}
+              label="OPM Locality Pay Tables — current year"
+              url="https://www.opm.gov/policy-data-oversight/pay-leave/salaries-wages/"
+              desc="Official OPM General Schedule and locality pay tables. Find your locality area and base/locality salary rate." />
+            <ResourceCard theme={theme}
+              label="Federal Travel Regulation (FTR) — PCS Move Allowances"
+              url="https://www.gsa.gov/policy-regulations/regulations/federal-travel-regulation-ftr"
+              desc="GSA Chapter 302 details civilian PCS allowances: HHG, TQSE, real-estate, miscellaneous, and house-hunting trip." />
+            <ResourceCard theme={theme}
+              label="DoD Civilian Relocation Assistance"
+              url="https://www.dcpas.osd.mil/policy/relocation"
+              desc="DCPAS guide to civilian PCS benefits including service agreements, advance pay, and dependent travel." />
+          </>
+        )}
+        <ResourceCard theme={theme}
+          label="FEHB — Federal Employees Health Benefits"
+          url="https://www.opm.gov/healthcare-insurance/healthcare/"
+          desc="DoD Civilians enroll in FEHB rather than TRICARE. Change plans within 60 days of PCS as a qualifying life event." />
+        <ResourceCard theme={theme}
+          label="USAJOBS — Federal Civilian Career Portal"
+          url="https://www.usajobs.gov/"
+          desc="Find federal positions at the gaining installation or in the local commuting area. Useful for spousal employment after a civilian PCS." />
+      </div>
+    </div>
+  );
+}
+
+function ResourceCard({ theme, label, url, desc }) {
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer"
+      style={{ display: 'block', background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.accent || '#C99A3D'}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: '#0D1821' }}>
+      <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.55 }}>{desc}</div>
+      <div style={{ fontSize: 10, fontWeight: 800, color: theme.primary || '#244247', marginTop: 8 }}>Open official source →</div>
+    </a>
   );
 }
 
