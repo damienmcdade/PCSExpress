@@ -7171,17 +7171,16 @@ function FamilyFunTab({ theme, profile }) {
 
           <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
             {filtered.map(act => (
-              // Whole card is the click target - opens Google Maps
-              // turn-by-turn directions in a new tab. Inner action
-              // buttons (Website, OSM map) use stopPropagation so they
-              // open their own destinations without triggering the
-              // card-level handler.
+              // Whole card is the click target — opens the Google Maps
+              // search portal for the activity. We surface only the
+              // Google Maps deep link so the card click and visible
+              // "Open map view" pill always point to the same place.
               <a
                 key={act.id}
-                href={act.website || act.mapUrl}
+                href={act.mapUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={`Open ${act.name} information (${act.distanceMiles} miles away)`}
+                aria-label={`Open ${act.name} on Google Maps (${act.distanceMiles} miles away)`}
                 style={{ display: 'block', textDecoration: 'none', color: 'inherit', background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${colors.accent}`, borderRadius: 12, padding: 12, cursor: 'pointer' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
@@ -7199,17 +7198,8 @@ function FamilyFunTab({ theme, profile }) {
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                   <span style={{ background: colors.primary, color: '#FFF', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>
-                    Open {act.website ? 'website' : 'map view'}
+                    Open map view
                   </span>
-                  <a
-                    href={act.mapUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={e => e.stopPropagation()}
-                    style={{ textDecoration: 'none', background: '#FFFFFF', color: colors.primary, border: `1px solid ${colors.primary}`, fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}
-                  >
-                    Map view
-                  </a>
                 </div>
               </a>
             ))}
