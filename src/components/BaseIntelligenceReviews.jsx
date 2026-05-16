@@ -257,12 +257,26 @@ export default function BaseIntelligenceReviews({ theme, profile }) {
       {!hasAnyReviews && (
         <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 14, padding: 16, marginBottom: 14 }}>
           <div style={{ fontSize: 13, fontWeight: 950, color: '#6D4C00', marginBottom: 4 }}>No community reviews yet for {installationName}</div>
-          <div style={{ fontSize: 12, color: '#6D4C00', lineHeight: 1.55, marginBottom: 10 }}>
-            PCS Express only displays reviews submitted by verified service members and dependents. We don't auto-generate placeholder reviews. Be the first to share housing, schools, or childcare insights for this installation.
+          <div style={{ fontSize: 12, color: '#6D4C00', lineHeight: 1.55, marginBottom: 12 }}>
+            PCS Express only displays reviews submitted by verified service members and dependents. We don't auto-generate placeholder reviews. In the meantime, use the verified DoD-wide feedback and information channels below — they have current housing, school, and family-support details for every installation worldwide.
           </div>
-          <a href="https://installations.militaryonesource.mil/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '8px 12px', borderRadius: 10, background: theme.primary, color: '#FFFFFF', textDecoration: 'none', fontSize: 11, fontWeight: 900 }}>
-            Check Military OneSource for installation info
-          </a>
+          <div style={{ display: 'grid', gap: 8 }}>
+            <a href="https://ice.disa.mil/" target="_blank" rel="noopener noreferrer"
+              style={{ display: 'block', padding: '10px 12px', borderRadius: 10, background: '#FFFFFF', border: '1px solid #FFD54F', textDecoration: 'none', color: '#6D4C00' }}>
+              <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 2 }}>ICE — Interactive Customer Evaluation</div>
+              <div style={{ fontSize: 10, lineHeight: 1.45 }}>Official DoD-wide feedback portal. Submit and read installation-specific reviews for housing, MTF, schools, ACS/FRC, and base services.</div>
+            </a>
+            <a href={`https://installations.militaryonesource.mil/search?keyword=${encodeURIComponent(installationName)}`} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'block', padding: '10px 12px', borderRadius: 10, background: '#FFFFFF', border: '1px solid #FFD54F', textDecoration: 'none', color: '#6D4C00' }}>
+              <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 2 }}>MilitaryINSTALLATIONS Directory</div>
+              <div style={{ fontSize: 10, lineHeight: 1.45 }}>Official installation profile — points of contact, housing office, school liaison, family services, and program directories.</div>
+            </a>
+            <a href="https://www.militaryonesource.mil/" target="_blank" rel="noopener noreferrer"
+              style={{ display: 'block', padding: '10px 12px', borderRadius: 10, background: '#FFFFFF', border: '1px solid #FFD54F', textDecoration: 'none', color: '#6D4C00' }}>
+              <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 2 }}>Military OneSource — installation snapshot</div>
+              <div style={{ fontSize: 10, lineHeight: 1.45 }}>Confidential 24/7 support line plus a curated installation guide for new arrivals.</div>
+            </a>
+          </div>
         </div>
       )}
 

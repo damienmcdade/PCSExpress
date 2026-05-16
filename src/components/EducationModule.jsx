@@ -193,6 +193,7 @@ function EducationModule({ theme, profile }) {
           { id: 'schools', label: 'Schools', icon: '🏫' },
           { id: 'universities', label: 'Universities', icon: '🎓' },
           { id: 'spouse', label: 'Spouse Jobs', icon: '💼' },
+          { id: 'career', label: profile?.component === 'DoD Civilian' ? 'Civilian Career' : 'Career & Benefits', icon: '🎯' },
         ].map((t) => (
           <button
             key={t.id}
@@ -488,6 +489,53 @@ function EducationModule({ theme, profile }) {
           )}
         </div>
       )}
+
+      {/* CAREER & BENEFITS — component-aware. DoD Civilians get OPM /
+          DCPAS / DAU / USDA-Grad-School career resources. Uniformed
+          members get TA / GI Bill / SkillBridge / credentialing. */}
+      {activeTab === 'career' && (() => {
+        const civilian = profile?.component === 'DoD Civilian';
+        const cards = civilian ? [
+          { title: 'USDA Graduate School (Graduate School USA)',  desc: 'Continuing education and certificate programs widely used by federal civilians for career development and promotion eligibility.',  url: 'https://graduateschool.edu/' },
+          { title: 'Defense Acquisition University (DAU)',         desc: 'FREE training for DoD acquisition, engineering, contracting, and program-management civilians and military. Courses count toward DAWIA certifications.', url: 'https://www.dau.edu/' },
+          { title: 'OPM HR University',                            desc: 'Centralized federal HR training portal run by the Office of Personnel Management — free courses for federal civilians on hiring, classification, payroll, and leadership.', url: 'https://www.opm.gov/wiki/training/index.aspx' },
+          { title: 'DCPAS Civilian Career Development',            desc: 'DoD Civilian Personnel Advisory Service career-development guidance: career programs, leadership development, mentoring, IDP templates.', url: 'https://www.dcpas.osd.mil/policy/career-management' },
+          { title: 'OPM USA Learning',                             desc: 'Free professional-development courses available to all federal employees through OPM\'s shared learning platform.', url: 'https://www.usalearning.gov/' },
+          { title: 'DoD STEM Career Pathways',                     desc: 'STEM training and rotational opportunities for DoD civilian engineers, scientists, and analysts.', url: 'https://www.dodstem.us/' },
+          { title: 'Federal Employees Tuition Assistance',          desc: 'Many DoD agencies reimburse academic coursework related to current or future federal positions. Confirm with your servicing HR Service Center which agency-specific policy applies.', url: 'https://www.opm.gov/policy-data-oversight/training-and-development/' },
+          { title: 'USAJOBS Career Pathways',                       desc: 'Official federal hiring portal — Pathways internships, recent-graduate, and presidential management fellowships for civilian career progression.', url: 'https://www.usajobs.gov/help/working-in-government/unique-hiring-paths/students/' },
+          { title: 'Thrift Savings Plan (TSP) Education',           desc: 'Federal employee retirement savings — civilians should review contribution limits and matching during PCS to avoid interruption.', url: 'https://www.tsp.gov/publications/' },
+          { title: 'SkillBridge (DoD-Wide)',                        desc: 'Civilian employer internship program — DoD Civilians can post and host SkillBridge interns from transitioning service members.', url: 'https://skillbridge.osd.mil/' },
+        ] : [
+          { title: 'Post-9/11 GI Bill (Chapter 33)',                desc: 'Up to 36 months of full tuition, housing allowance (MHA), and book stipend. Verify your benefit status on the VA Education Service portal.',  url: 'https://www.va.gov/education/about-gi-bill-benefits/post-9-11/' },
+          { title: 'Tuition Assistance (TA)',                       desc: 'Branch-specific active-duty tuition assistance covering up to $4,500/year. Coordinate through your installation Education Center before enrolling.', url: 'https://www.dantes.mil/Education-Programs/Tuition-Assistance/' },
+          { title: 'DANTES & DSST Exams',                           desc: 'Free college-equivalency exams for service members — earn academic credit without classroom time.', url: 'https://www.dantes.mil/' },
+          { title: 'SkillBridge',                                   desc: 'DoD internship program for service members in their last 180 days — civilian employer placement before separation.', url: 'https://skillbridge.osd.mil/' },
+          { title: 'MyCAA (Military Spouse Career Advancement)',    desc: 'Up to $4,000 for portable career credentials for spouses of E-1 through E-5, W-1 through W-2, and O-1 through O-2.', url: 'https://mycaa.militaryonesource.mil/' },
+          { title: 'SECO Career Coaching',                          desc: 'Free career counseling for military spouses — résumé review, interview prep, federal-hiring guidance.', url: 'https://myseco.militaryonesource.mil/portal/' },
+          { title: 'Yellow Ribbon Program',                          desc: 'Tops-up Post-9/11 GI Bill at private and out-of-state schools beyond the standard tuition cap.', url: 'https://www.va.gov/education/about-gi-bill-benefits/post-9-11/yellow-ribbon-program/' },
+          { title: 'VR&E (Chapter 31)',                              desc: 'VA Vocational Rehabilitation & Employment for veterans with service-connected disabilities — covers training, education, and job-readiness.', url: 'https://www.va.gov/careers-employment/vocational-rehabilitation/' },
+        ];
+        return (
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 12 }}>
+              {civilian
+                ? 'Federal civilian career development resources. All free and run by OPM, DCPAS, DAU, or other DoD agencies.'
+                : 'Education benefits and career-development resources tied to your military service.'}
+            </div>
+            <div style={{ display: 'grid', gap: 10 }}>
+              {cards.map((c) => (
+                <a key={c.title} href={c.url} target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'block', background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.accent || '#C99A3D'}`, borderRadius: 12, padding: 12, textDecoration: 'none', color: '#0D1821' }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 4 }}>{c.title}</div>
+                  <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.55, marginBottom: 8 }}>{c.desc}</div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: theme.primary || '#244247' }}>Open official source →</div>
+                </a>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
