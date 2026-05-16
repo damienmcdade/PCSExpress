@@ -869,21 +869,32 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
   })()
 
   const [rapidApiResults, osmResults] = await Promise.all([rapidApiPromise, osmPromise])
-  // RapidAPI listings (priced units) come first; OSM complexes (real
-  // addresses, deep-linked Apartments.com search) follow.
-  // Three-source merge:
-  //   1. RapidAPI priced rentals (only when key configured) - real
-  //      addresses with bed/bath/sqft.
-  //   2. OSM apartment complexes - real complex names, click opens a
-  //      Google search across Apartments.com + Zillow + Trulia +
-  //      Realtor.com to surface the actual listing.
-  //   3. Synthetic search-CTA cards for non-apartment property types
-  //      (Single Family / Condo / Townhouse / Duplex / Triplex /
-  //      Quadplex) - linked to type-filtered Apartments.com landing
-  //      pages so the user can shop by housing type without a paid
-  //      data feed.
+  // Result ordering, top to bottom:
+  //   1. RapidAPI priced rentals — real addresses with bed/bath/sqft
+  //      (only when RAPIDAPI_KEY is configured).
+  //   2. Synthetic source-portal cards.
+  //      - CONUS: six property-type Google searches across U.S.
+  //        rental aggregators.
+  //      - OCONUS: four DoD-verified directory entry points
+  //        (HOMES.mil, AHRN, MilitaryByOwner, MilitaryINSTALLATIONS).
+  //      These come BEFORE OSM results so the directory cards are
+  //      always visible — OSM can return 40 neighborhood records for
+  //      dense urban areas and would otherwise crowd them out.
+  //   3. OSM apartment complexes / neighborhoods — real proper-noun
+  //      names that route to a Google search restricted to the
+  //      region-appropriate aggregator set.
   const syntheticResults = syntheticTypeCards(city, state, zip)
-  const combined = [...rapidApiResults, ...osmResults, ...syntheticResults].slice(0, 40)
+  const oconus = isOconusMarket(state)
+  // Cap OSM at a smaller window for OCONUS markets where neighborhood
+  // coverage is dense and the directory cards are the more actionable
+  // entry points. CONUS keeps the larger OSM window because real
+  // apartment-community names dominate the result set.
+  const osmCap = oconus ? 20 : 32
+  const combined = [
+    ...rapidApiResults,
+    ...syntheticResults,
+    ...osmResults.slice(0, osmCap),
+  ].slice(0, 40)
   // Skip caching empty results so transient upstream failures do not
   // poison the cache for 24 hours.
   if (combined.length > 0) {
