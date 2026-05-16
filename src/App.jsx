@@ -5049,7 +5049,7 @@ function EducationBenefitsTab({ theme, profile }) {
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         {[{ id: 'colleges', label: 'Colleges' }, { id: 'gibill', label: 'GI Bill Chapters' }, { id: 'mycaa', label: 'MyCAA (Spouses)' }, { id: 'tuition', label: 'Tuition Assistance' }].map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ padding: '7px 14px', borderRadius: 20, border: `1.5px solid ${activeTab === t.id ? theme.primary : '#E0E6EE'}`, background: activeTab === t.id ? theme.primary : '#FFF', color: activeTab === t.id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
+          <button key={t.id} onClick={() => setActiveTab(t.id)} className={`pcs-tab ${activeTab === t.id ? 'is-active' : ''}`} style={{ padding: '7px 14px', borderRadius: 20, border: `1.5px solid ${activeTab === t.id ? theme.primary : '#E0E6EE'}`, background: activeTab === t.id ? theme.primary : '#FFF', color: activeTab === t.id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
             {t.label}
           </button>
         ))}
@@ -6975,6 +6975,7 @@ function CategoryTabShell({ theme, tabs, activeTab, onChange, children }) {
           <button
             key={tab.id}
             onClick={() => onChange(tab.id)}
+            className={`pcs-tab ${activeTab === tab.id ? 'is-active' : ''}`}
             style={{
               padding: '8px 11px',
               borderRadius: 8,
@@ -7801,8 +7802,8 @@ function App() {
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
               {LOCALIZED_BOTTOM_NAV.map(item => (
-                <button key={item.id} onClick={() => goTo(item.id)} style={{ width: '100%', padding: '10px 16px', background: activeTab === item.id ? `${theme.accent}20` : 'transparent', border: 'none', borderLeft: `3px solid ${activeTab === item.id ? theme.accent : 'transparent'}`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.75)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, fontWeight: activeTab === item.id ? 800 : 600, textAlign: 'left', transition: 'all 0.15s' }}>
-                  <div style={{ width: 32, height: 24, borderRadius: 5, background: activeTab === item.id ? `${theme.accent}30` : 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 900, letterSpacing: '.06em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.6)', flexShrink: 0 }}>{item.icon}</div>
+                <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-side-link ${activeTab === item.id ? 'is-active' : ''}`} style={{ width: '100%', padding: '10px 16px', background: activeTab === item.id ? `${theme.accent}20` : 'transparent', border: 'none', borderLeft: `3px solid ${activeTab === item.id ? theme.accent : 'transparent'}`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.75)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, fontWeight: activeTab === item.id ? 800 : 600, textAlign: 'left', '--side-accent': theme.accent }}>
+                  <div className="pcs-side-link__icon" style={{ width: 32, height: 24, borderRadius: 5, background: activeTab === item.id ? `${theme.accent}30` : 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 900, letterSpacing: '.06em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.6)', flexShrink: 0, transition: 'background 200ms ease, color 200ms ease' }}>{item.icon}</div>
                   {item.label}
                 </button>
               ))}
@@ -7823,8 +7824,8 @@ function App() {
         {isNative && !isDesktop && (
           <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 310, background: theme.secondary, borderTop: `1px solid ${theme.accent}35`, display: 'flex', alignItems: 'stretch', paddingBottom: 'env(safe-area-inset-bottom)' }}>
             {IOS_TAB_BAR.map(item => (
-              <button key={item.id} onClick={() => goTo(item.id)} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
-                <span style={{ fontSize: 22, lineHeight: 1, filter: activeTab === item.id ? 'none' : 'grayscale(40%) opacity(0.55)' }}>{item.iosIcon}</span>
+              <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-bottom-tab ${activeTab === item.id ? 'is-active' : ''}`} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
+                <span className="pcs-bottom-tab__glyph" style={{ fontSize: 22, lineHeight: 1, filter: activeTab === item.id ? 'none' : 'grayscale(40%) opacity(0.55)' }}>{item.iosIcon}</span>
                 <span style={{ fontSize: 10, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>{item.label}</span>
               </button>
             ))}
@@ -7841,8 +7842,8 @@ function App() {
               <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 12px' }} />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, padding: '0 12px' }}>
                 {LOCALIZED_BOTTOM_NAV.map(item => (
-                  <button key={item.id} onClick={() => { goTo(item.id); setMoreOpen(false); }} style={{ padding: '10px 4px 8px', background: activeTab === item.id ? `${theme.accent}20` : 'rgba(255,255,255,0.05)', border: `1px solid ${activeTab === item.id ? theme.accent + '50' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, color: 'white', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                    <span style={{ fontSize: 20, lineHeight: 1 }}>{item.iosIcon}</span>
+                  <button key={item.id} onClick={() => { goTo(item.id); setMoreOpen(false); }} className={`pcs-bottom-tab ${activeTab === item.id ? 'is-active' : ''}`} style={{ padding: '10px 4px 8px', background: activeTab === item.id ? `${theme.accent}20` : 'rgba(255,255,255,0.05)', border: `1px solid ${activeTab === item.id ? theme.accent + '50' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, color: 'white', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                    <span className="pcs-bottom-tab__glyph" style={{ fontSize: 20, lineHeight: 1 }}>{item.iosIcon}</span>
                     <span style={{ fontSize: 9, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.65)', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
                   </button>
                 ))}
@@ -7951,8 +7952,8 @@ function App() {
         <div style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: 0, right: 0, maxWidth: 480, margin: '0 auto', zIndex: 200, background: theme.secondary, borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0 }}>
             {LOCALIZED_BOTTOM_NAV.map(item => (
-              <button key={item.id} onClick={() => goTo(item.id)} style={{ padding: '12px 4px', background: activeTab === item.id ? `${theme.accent}25` : 'transparent', border: 'none', borderBottom: `1px solid rgba(255,255,255,0.07)`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.75)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, fontSize: 9, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase' }}>
-                <div style={{ width: 38, height: 28, borderRadius: 6, background: activeTab === item.id ? `${theme.accent}30` : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 900, letterSpacing: '.08em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.6)', border: activeTab === item.id ? `1px solid ${theme.accent}60` : '1px solid rgba(255,255,255,0.1)' }}>{item.icon}</div>
+              <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-side-link ${activeTab === item.id ? 'is-active' : ''}`} style={{ padding: '12px 4px', background: activeTab === item.id ? `${theme.accent}25` : 'transparent', border: 'none', borderBottom: `1px solid rgba(255,255,255,0.07)`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.75)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, fontSize: 9, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', '--side-accent': theme.accent }}>
+                <div className="pcs-side-link__icon" style={{ width: 38, height: 28, borderRadius: 6, background: activeTab === item.id ? `${theme.accent}30` : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 900, letterSpacing: '.08em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.6)', border: activeTab === item.id ? `1px solid ${theme.accent}60` : '1px solid rgba(255,255,255,0.1)', transition: 'background 200ms ease, color 200ms ease' }}>{item.icon}</div>
                 {item.label}
               </button>
             ))}
@@ -8003,8 +8004,8 @@ function App() {
             </div>
             <div style={{ flex: 1, padding: '6px 0' }}>
               {LOCALIZED_BOTTOM_NAV.map(item => (
-                <button key={item.id} onClick={() => goTo(item.id)} style={{ width: '100%', padding: '9px 14px', background: activeTab === item.id ? `${theme.accent}18` : 'transparent', border: 'none', borderLeft: `3px solid ${activeTab === item.id ? theme.accent : 'transparent'}`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.72)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, fontWeight: activeTab === item.id ? 800 : 500, textAlign: 'left' }}>
-                  <div style={{ width: 30, height: 22, borderRadius: 5, background: activeTab === item.id ? `${theme.accent}28` : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 900, letterSpacing: '.05em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.55)', flexShrink: 0 }}>{item.icon}</div>
+                <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-side-link ${activeTab === item.id ? 'is-active' : ''}`} style={{ width: '100%', padding: '9px 14px', background: activeTab === item.id ? `${theme.accent}18` : 'transparent', border: 'none', borderLeft: `3px solid ${activeTab === item.id ? theme.accent : 'transparent'}`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.72)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, fontWeight: activeTab === item.id ? 800 : 500, textAlign: 'left', '--side-accent': theme.accent }}>
+                  <div className="pcs-side-link__icon" style={{ width: 30, height: 22, borderRadius: 5, background: activeTab === item.id ? `${theme.accent}28` : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 900, letterSpacing: '.05em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.55)', flexShrink: 0, transition: 'background 200ms ease, color 200ms ease' }}>{item.icon}</div>
                   {item.label}
                 </button>
               ))}
@@ -8174,8 +8175,8 @@ function App() {
             <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 12px' }} />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, padding: '0 12px' }}>
               {LOCALIZED_BOTTOM_NAV.map(item => (
-                <button key={item.id} onClick={() => { goTo(item.id); setMoreOpen(false); }} style={{ padding: '10px 4px 8px', background: activeTab === item.id ? `${theme.accent}20` : 'rgba(255,255,255,0.05)', border: `1px solid ${activeTab === item.id ? theme.accent + '50' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, color: 'white', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontSize: 20, lineHeight: 1, filter: activeTab === item.id ? 'none' : 'grayscale(30%) opacity(0.7)' }}>{item.iosIcon}</span>
+                <button key={item.id} onClick={() => { goTo(item.id); setMoreOpen(false); }} className={`pcs-bottom-tab ${activeTab === item.id ? 'is-active' : ''}`} style={{ padding: '10px 4px 8px', background: activeTab === item.id ? `${theme.accent}20` : 'rgba(255,255,255,0.05)', border: `1px solid ${activeTab === item.id ? theme.accent + '50' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, color: 'white', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                  <span className="pcs-bottom-tab__glyph" style={{ fontSize: 20, lineHeight: 1, filter: activeTab === item.id ? 'none' : 'grayscale(30%) opacity(0.7)' }}>{item.iosIcon}</span>
                   <span style={{ fontSize: 9, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.65)', letterSpacing: '.02em', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
                 </button>
               ))}

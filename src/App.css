@@ -1761,6 +1761,161 @@ input, select, textarea {
   }
 }
 
+/* ── Sub-tab pills ────────────────────────────────────────────────────
+   Universal hover/active treatment for any in-category tab bar:
+   CategoryTabShell (home-relocation / family / base-intelligence),
+   MedicalReadinessTab sub-tabs, DutyStationDirectory section tabs,
+   any other "row of pill buttons under a header". Adds a subtle slide,
+   shadow ramp, and underline-shimmer on hover. Active state already
+   carries a filled background; the hover effect lifts the inactive
+   pills so users see the row react.
+
+   Apply by adding className="pcs-tab" to each button. Apply
+   className="pcs-tab is-active" on the active one (or class +
+   inline aria-selected); the CSS reads only the .is-active modifier
+   for the inactive-vs-active branching. */
+.pcs-tab {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease;
+  will-change: transform, box-shadow;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pcs-tab::after {
+  content: '';
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 200ms ease;
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .pcs-tab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px -6px rgba(13, 24, 33, 0.20);
+  }
+  .pcs-tab:hover::after {
+    transform: scaleX(1);
+    opacity: 0.55;
+  }
+}
+
+.pcs-tab:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.pcs-tab:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcs-tab,
+  .pcs-tab::after {
+    animation: none !important;
+    transition-duration: 0ms !important;
+  }
+}
+
+/* ── Side / drawer navigation items ───────────────────────────────────
+   The desktop sidebar + mobile drawer list of category links. Subtle
+   slide-right on hover with a fading accent wash. The active state
+   keeps its existing left-bar accent; hover effects only apply when
+   not active. */
+.pcs-side-link {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background 200ms ease,
+    color 200ms ease,
+    border-left-color 200ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pcs-side-link::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--side-accent, #C99A3D) 10%, transparent) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 220ms ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@media (hover: hover) {
+  .pcs-side-link:not(.is-active):hover {
+    transform: translateX(2px);
+    color: var(--side-accent, #C99A3D) !important;
+  }
+  .pcs-side-link:not(.is-active):hover::before {
+    opacity: 1;
+  }
+  .pcs-side-link:not(.is-active):hover .pcs-side-link__icon {
+    background: color-mix(in srgb, var(--side-accent, #C99A3D) 20%, transparent) !important;
+    color: var(--side-accent, #C99A3D) !important;
+  }
+}
+
+.pcs-side-link:focus-visible {
+  outline: 2px solid var(--side-accent, #C99A3D);
+  outline-offset: -2px;
+}
+
+/* iOS bottom tab bar — small scale on press + accent wash behind the
+   icon when hovered (desktop / iPad with mouse). */
+.pcs-bottom-tab {
+  position: relative;
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .pcs-bottom-tab:hover:not(.is-active) .pcs-bottom-tab__glyph {
+    transform: translateY(-2px) scale(1.08);
+    filter: none !important;
+  }
+}
+
+.pcs-bottom-tab__glyph {
+  display: inline-block;
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 180ms ease;
+}
+
+.pcs-bottom-tab:active {
+  transform: scale(0.95);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcs-side-link,
+  .pcs-side-link::before,
+  .pcs-bottom-tab,
+  .pcs-bottom-tab__glyph {
+    animation: none !important;
+    transition-duration: 0ms !important;
+  }
+}
+
 /* Full-width block variant — for "Official source" links at the bottom
    of resource cards and calculator pages. Keeps the same shimmer light
    effect, just spans the container width and re-centers content. */

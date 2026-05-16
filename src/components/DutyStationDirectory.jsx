@@ -1591,6 +1591,7 @@ export default function DutyStationDirectory({ theme, profile }) {
           <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 14 }}>
             {sections.map(s => (
               <button key={s.id} onClick={() => setSection(s.id)}
+                className={`pcs-tab ${section === s.id ? 'is-active' : ''}`}
                 style={{ flexShrink: 0, padding: '7px 14px', borderRadius: 999, border: `1.5px solid ${section === s.id ? theme.primary : '#E0E6EE'}`, background: section === s.id ? theme.primary : '#FFF', color: section === s.id ? '#FFF' : '#56697C', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                 {s.label}
               </button>

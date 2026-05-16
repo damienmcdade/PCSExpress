@@ -198,6 +198,7 @@ function EducationModule({ theme, profile }) {
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
+            className={`pcs-tab ${activeTab === t.id ? 'is-active' : ''}`}
             style={{
               padding: '8px 12px',
               borderRadius: 20,
