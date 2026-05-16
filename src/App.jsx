@@ -3444,7 +3444,7 @@ function SchoolsTab({ theme, profile }) {
               <div style={{ marginBottom: 6 }}><StarRating rating={school.rating} /></div>
               <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 6 }}>{school.desc}</div>
               <div style={{ fontSize: 11, color: '#888', marginBottom: 10 }}>📍 {school.city}</div>
-              <a href={school.url || officialSchoolSearchUrl(school.name, school.city)} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '9px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>{school.url ? 'Visit School Website' : 'Find Official School Info'}</a>
+              <a href={school.url || officialSchoolSearchUrl(school.name, school.city)} target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>{school.url ? 'Visit School Website' : 'Find Official School Info'}</a>
             </div>
           ))}
           {agesFromProfile.length > 0 && !showAll && schools.length > filteredSchools.length && (
@@ -3743,7 +3743,7 @@ function VeteranBusinessesTab({ theme, profile }) {
                   </div>
                 )}
                 {biz.phone && <div style={{ fontSize: 11, color: '#56697C', marginBottom: 6 }}>{biz.phone}</div>}
-                <div style={{ marginTop: 8, display: 'inline-flex', padding: '6px 10px', borderRadius: 6, background: theme.primary, color: '#FFF', fontSize: 10, fontWeight: 800 }}>View on SAM.gov</div>
+                <span className="card-cta" style={{ '--cta-color': theme.primary, marginTop: 8, fontSize: 10 }}>View on SAM.gov</span>
               </a>
             ))}
           </div>
@@ -3776,7 +3776,7 @@ function VeteranBusinessesTab({ theme, profile }) {
                   <span style={{ background: '#EAF4FF', color: '#0D3B66', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4 }}>{c.type}</span>
                   <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginTop: 6, marginBottom: 4 }}>{c.name}</div>
                   <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.4 }}>{c.desc}</div>
-                  <div style={{ marginTop: 8, display: 'inline-flex', padding: '6px 10px', borderRadius: 6, background: theme.primary, color: '#FFF', fontSize: 11, fontWeight: 800 }}>Open search</div>
+                  <span className="card-cta" style={{ '--cta-color': theme.primary, marginTop: 8 }}>Open search</span>
                 </a>
               ))}
             </div>
@@ -3842,7 +3842,7 @@ function VeteranBusinessesTab({ theme, profile }) {
             </div>
           </div>
           <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 10 }}>{biz.desc}</div>
-          <a href={biz.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '9px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>
+          <a href={biz.url} target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>
             Open Source
           </a>
         </div>
@@ -5156,10 +5156,10 @@ function EducationBenefitsTab({ theme, profile }) {
                     <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 10 }}>{col.desc}</div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {links.applyUrl && (
-                        <a href={links.applyUrl} target="_blank" rel="noopener noreferrer" style={{ flex: 2, minWidth: 150, display: 'block', padding: '9px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 800, fontSize: 11 }}>Enrollment / Admissions</a>
+                        <a href={links.applyUrl} target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary, flex: 2, minWidth: 150 }}>Enrollment / Admissions</a>
                       )}
                       {links.siteUrl && (
-                        <a href={links.siteUrl} target="_blank" rel="noopener noreferrer" style={{ flex: 1, minWidth: 110, display: 'block', padding: '9px', borderRadius: 8, background: '#F0F4F8', color: theme.primary, textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>College Website</a>
+                        <a href={links.siteUrl} target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost" style={{ flex: 1, minWidth: 110 }}>College Website</a>
                       )}
                       {!links.applyUrl && !links.siteUrl && (
                         <div style={{ width: '100%', padding: '9px', borderRadius: 8, background: '#FFF8E1', color: '#7A4A00', border: '1px solid #FFE082', fontWeight: 800, fontSize: 11, textAlign: 'center' }}>Enrollment link under official review</div>
@@ -5349,7 +5349,7 @@ function ResourcesTab({ theme, profile }) {
               <span style={{ background: tc.bg, color: tc.color, fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 8, whiteSpace: 'nowrap' }}>{r.tag}</span>
             </div>
             <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 8 }}>{r.desc}</div>
-            <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '7px 14px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', fontWeight: 700, fontSize: 11 }}>Open Resource →</a>
+            <a href={r.url} target="_blank" rel="noopener noreferrer" className="card-cta" style={{ '--cta-color': theme.primary }}>Open Resource</a>
           </div>
         );
       })}

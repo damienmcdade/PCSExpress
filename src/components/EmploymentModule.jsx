@@ -642,7 +642,7 @@ function EmploymentModule({ theme, profile }) {
                     {job.description && (
                       <div style={{ fontSize: 11, color: '#46586B', lineHeight: 1.5, marginBottom: 8 }}>{job.description}</div>
                     )}
-                    <div style={{ display: 'inline-flex', padding: '6px 10px', borderRadius: 6, background: theme.primary, color: '#FFF', fontSize: 11, fontWeight: 800 }}>View posting</div>
+                    <span className="card-cta" style={{ '--cta-color': theme.primary }}>View posting</span>
                   </a>
                 ))}
               </div>
