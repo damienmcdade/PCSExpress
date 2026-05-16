@@ -1916,6 +1916,116 @@ input, select, textarea {
   }
 }
 
+/* ── Checklist items ──────────────────────────────────────────────────
+   Each PCS checklist row reacts to hover with a slide-right + accent
+   border-left flash, and the checkbox pulses on hover (inactive only).
+   Checked items get a satisfying green ✓ pop on toggle. */
+.pcs-check-item {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 180ms ease,
+    background 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pcs-check-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--check-accent, #C99A3D);
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (hover: hover) {
+  .pcs-check-item:not(.is-checked):hover {
+    transform: translateX(3px);
+    box-shadow: 0 6px 16px -8px rgba(13, 24, 33, 0.18);
+  }
+  .pcs-check-item:not(.is-checked):hover::before {
+    transform: scaleY(1);
+  }
+  .pcs-check-item:not(.is-checked):hover .pcs-check-item__box {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--check-accent, #C99A3D) 18%, transparent);
+  }
+}
+
+.pcs-check-item:active {
+  transform: translateX(1px) scale(0.99);
+}
+
+.pcs-check-item__box {
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 200ms ease;
+}
+
+.pcs-check-item.is-checked .pcs-check-item__box {
+  animation: pcs-check-pop 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes pcs-check-pop {
+  0%   { transform: scale(0.9); }
+  60%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcs-check-item,
+  .pcs-check-item::before,
+  .pcs-check-item__box {
+    animation: none !important;
+    transition-duration: 0ms !important;
+  }
+}
+
+/* ── Selection chips ──────────────────────────────────────────────────
+   Catch-all class for "toggle" or "filter" buttons that aren't full
+   sub-tabs but are still selectable (branch selector, component
+   buttons in onboarding, sort/filter chips, category-narrowing pills
+   inside Schools / Family Fun / DutyStation grids, etc.). Lighter
+   weight than .pcs-tab — just lift + scale + active-press feedback. */
+.pcs-chip {
+  position: relative;
+  transition:
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .pcs-chip:hover {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 4px 10px -4px rgba(13, 24, 33, 0.18);
+  }
+}
+
+.pcs-chip:active {
+  transform: scale(0.96);
+}
+
+.pcs-chip:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcs-chip {
+    animation: none !important;
+    transition-duration: 0ms !important;
+  }
+}
+
 /* Full-width block variant — for "Official source" links at the bottom
    of resource cards and calculator pages. Keeps the same shimmer light
    effect, just spans the container width and re-centers content. */

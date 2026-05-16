@@ -3173,7 +3173,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
           const phaseDone = phaseTasks.filter(k => checklistItems[k]).length;
           const phaseOverdue = daysUntil !== null && PHASE_WINDOWS[phase] && daysUntil < PHASE_WINDOWS[phase].overdueAt && phaseDone < phaseTasks.length;
           return (
-            <button key={phase} onClick={() => setActivePhase(phase)} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${phaseOverdue ? '#EF9A9A' : activePhase === phase ? theme.primary : '#E0E6EE'}`, background: activePhase === phase ? theme.primary : phaseOverdue ? '#FFF5F5' : '#FFF', color: activePhase === phase ? '#FFF' : phaseOverdue ? '#C62828' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: phaseOverdue || activePhase === phase ? 800 : 700, whiteSpace: 'nowrap' }}>
+            <button key={phase} onClick={() => setActivePhase(phase)} className={`pcs-tab ${activePhase === phase ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${phaseOverdue ? '#EF9A9A' : activePhase === phase ? theme.primary : '#E0E6EE'}`, background: activePhase === phase ? theme.primary : phaseOverdue ? '#FFF5F5' : '#FFF', color: activePhase === phase ? '#FFF' : phaseOverdue ? '#C62828' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: phaseOverdue || activePhase === phase ? 800 : 700, whiteSpace: 'nowrap' }}>
               {phaseOverdue ? '⚠ ' : ''}{phase} ({phaseDone}/{phaseTasks.length})
             </button>
           );
@@ -3186,8 +3186,8 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
           const checked = !!checklistItems[`${activePhase}-${i}`];
           const taskOverdue = phaseIsOverdue && !checked;
           return (
-            <div key={i} onClick={() => toggleCheckItem(activePhase, i)} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 14px', borderRadius: 8, background: checked ? '#E8F5E9' : taskOverdue ? '#FFF5F5' : '#FFFFFF', border: `1px solid ${checked ? '#A5D6A7' : taskOverdue ? '#FFCDD2' : 'rgba(0,0,0,0.08)'}`, cursor: 'pointer', marginBottom: 8, transition: 'all 0.15s' }}>
-              <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${checked ? '#2E7D32' : taskOverdue ? '#E57373' : theme.accent}`, background: checked ? '#2E7D32' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+            <div key={i} onClick={() => toggleCheckItem(activePhase, i)} className={`pcs-check-item ${checked ? 'is-checked' : ''} ${taskOverdue ? 'is-overdue' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 14px', borderRadius: 8, background: checked ? '#E8F5E9' : taskOverdue ? '#FFF5F5' : '#FFFFFF', border: `1px solid ${checked ? '#A5D6A7' : taskOverdue ? '#FFCDD2' : 'rgba(0,0,0,0.08)'}`, cursor: 'pointer', marginBottom: 8, '--check-accent': theme.accent }}>
+              <div className="pcs-check-item__box" style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${checked ? '#2E7D32' : taskOverdue ? '#E57373' : theme.accent}`, background: checked ? '#2E7D32' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
                 {checked && <span style={{ color: '#fff', fontSize: 14, fontWeight: 900 }}>✓</span>}
               </div>
               <div style={{ flex: 1 }}>
@@ -3336,7 +3336,7 @@ function SchoolsTab({ theme, profile }) {
       {/* Section tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
         {[['schools', 'K–12 Schools'], ['daycare', 'Daycare & CDC'], ['search', 'Find Schools']].map(([id, label]) => (
-          <button key={id} onClick={() => setSection(id)} style={{ flex: 1, padding: '8px 4px', borderRadius: 20, border: `1.5px solid ${section === id ? theme.primary : '#E0E6EE'}`, background: section === id ? theme.primary : '#FFF', color: section === id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
+          <button key={id} onClick={() => setSection(id)} className={`pcs-tab ${section === id ? 'is-active' : ''}`} style={{ flex: 1, padding: '8px 4px', borderRadius: 20, border: `1.5px solid ${section === id ? theme.primary : '#E0E6EE'}`, background: section === id ? theme.primary : '#FFF', color: section === id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
             {label}
           </button>
         ))}
@@ -3428,7 +3428,7 @@ function SchoolsTab({ theme, profile }) {
             <div style={{ display: 'flex', gap: 6, marginBottom: 12, alignItems: 'center' }}>
               <span style={{ fontSize: 11, color: '#888' }}>Sort curated:</span>
               {[['rating', 'Highest Rated'], ['name', 'A–Z']].map(([id, label]) => (
-                <button key={id} onClick={() => setSortBy(id)} style={{ padding: '5px 10px', borderRadius: 14, border: `1.5px solid ${sortBy === id ? theme.primary : '#E0E6EE'}`, background: sortBy === id ? theme.primary : '#FFF', color: sortBy === id ? '#FFF' : '#56697C', fontSize: 10, cursor: 'pointer', fontWeight: 700 }}>
+                <button key={id} onClick={() => setSortBy(id)} className={`pcs-chip ${sortBy === id ? 'is-active' : ''}`} style={{ padding: '5px 10px', borderRadius: 14, border: `1.5px solid ${sortBy === id ? theme.primary : '#E0E6EE'}`, background: sortBy === id ? theme.primary : '#FFF', color: sortBy === id ? '#FFF' : '#56697C', fontSize: 10, cursor: 'pointer', fontWeight: 700 }}>
                   {label}
                 </button>
               ))}
@@ -3649,6 +3649,7 @@ function VeteranBusinessesTab({ theme, profile }) {
           <button
             key={t.id}
             onClick={() => setVetTab(t.id)}
+            className={`pcs-tab ${vetTab === t.id ? 'is-active' : ''}`}
             style={{
               padding: '8px 16px', borderRadius: 20,
               border: `1.5px solid ${vetTab === t.id ? theme.primary : '#D6E0EA'}`,
@@ -5333,7 +5334,7 @@ function ResourcesTab({ theme, profile }) {
       {/* Section tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
         {SECTIONS.map(s => (
-          <button key={s.id} onClick={() => setActiveSection(s.id)} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${activeSection === s.id ? theme.primary : '#E0E6EE'}`, background: activeSection === s.id ? theme.primary : '#FFF', color: activeSection === s.id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
+          <button key={s.id} onClick={() => setActiveSection(s.id)} className={`pcs-tab ${activeSection === s.id ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${activeSection === s.id ? theme.primary : '#E0E6EE'}`, background: activeSection === s.id ? theme.primary : '#FFF', color: activeSection === s.id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
             {s.icon} {s.label}
           </button>
         ))}
@@ -6706,7 +6707,7 @@ function Onboarding({ onComplete }) {
                   const t = BRANCH_THEMES[b];
                   const active = p.branch === b;
                   return (
-                    <button key={b} onClick={() => updBranch(b)} style={{ padding: '11px 4px', borderRadius: 10, border: `2px solid ${active ? t.accent : 'rgba(255,255,255,0.15)'}`, background: active ? `${t.accent}30` : 'rgba(255,255,255,0.04)', color: active ? t.accent : 'rgba(255,255,255,0.55)', fontSize: 10, fontWeight: active ? 800 : 500, cursor: 'pointer', lineHeight: 1.3, textAlign: 'center' }}>
+                    <button key={b} onClick={() => updBranch(b)} className={`pcs-chip ${active ? 'is-active' : ''}`} style={{ padding: '11px 4px', borderRadius: 10, border: `2px solid ${active ? t.accent : 'rgba(255,255,255,0.15)'}`, background: active ? `${t.accent}30` : 'rgba(255,255,255,0.04)', color: active ? t.accent : 'rgba(255,255,255,0.55)', fontSize: 10, fontWeight: active ? 800 : 500, cursor: 'pointer', lineHeight: 1.3, textAlign: 'center' }}>
                       {b}
                     </button>
                   );
@@ -6877,7 +6878,7 @@ function Onboarding({ onComplete }) {
               <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>{ot('familyPreferences')}</div>
 
               {/* Dependent travel */}
-              <div onClick={() => upd('hasDependents', !p.hasDependents)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, marginBottom: 10, background: p.hasDependents ? `${theme.accent}20` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${p.hasDependents ? `${theme.accent}66` : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer' }}>
+              <div onClick={() => upd('hasDependents', !p.hasDependents)} className={`pcs-chip ${p.hasDependents ? 'is-active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, marginBottom: 10, background: p.hasDependents ? `${theme.accent}20` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${p.hasDependents ? `${theme.accent}66` : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer' }}>
                 <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${p.hasDependents ? theme.accent : 'rgba(255,255,255,0.25)'}`, background: p.hasDependents ? theme.accent : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {p.hasDependents && <span style={{ color: theme.secondary, fontSize: 13, fontWeight: 900 }}>✓</span>}
                 </div>
@@ -6902,7 +6903,7 @@ function Onboarding({ onComplete }) {
               </div>
 
               {/* Pets toggle (per redesign brief) */}
-              <div onClick={() => upd('hasPets', !p.hasPets)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, marginBottom: 10, background: p.hasPets ? `${theme.accent}20` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${p.hasPets ? `${theme.accent}66` : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer' }}>
+              <div onClick={() => upd('hasPets', !p.hasPets)} className={`pcs-chip ${p.hasPets ? 'is-active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, marginBottom: 10, background: p.hasPets ? `${theme.accent}20` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${p.hasPets ? `${theme.accent}66` : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer' }}>
                 <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${p.hasPets ? theme.accent : 'rgba(255,255,255,0.25)'}`, background: p.hasPets ? theme.accent : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {p.hasPets && <span style={{ color: theme.secondary, fontSize: 13, fontWeight: 900 }}>✓</span>}
                 </div>
@@ -6917,7 +6918,7 @@ function Onboarding({ onComplete }) {
                 <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('moveType')}</label>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {['HHG', 'PPM'].map(opt => (
-                    <button key={opt} onClick={() => upd('moveType', opt)} style={{ flex: 1, padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${p.moveType === opt ? theme.accent : 'rgba(255,255,255,0.18)'}`, background: p.moveType === opt ? `${theme.accent}25` : 'rgba(255,255,255,0.04)', color: p.moveType === opt ? '#FFF' : 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: p.moveType === opt ? 800 : 600, cursor: 'pointer', textAlign: 'left' }}>
+                    <button key={opt} onClick={() => upd('moveType', opt)} className={`pcs-chip ${p.moveType === opt ? 'is-active' : ''}`} style={{ flex: 1, padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${p.moveType === opt ? theme.accent : 'rgba(255,255,255,0.18)'}`, background: p.moveType === opt ? `${theme.accent}25` : 'rgba(255,255,255,0.04)', color: p.moveType === opt ? '#FFF' : 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: p.moveType === opt ? 800 : 600, cursor: 'pointer', textAlign: 'left' }}>
                       <div style={{ fontWeight: 900, fontSize: 13 }}>{ot(opt === 'HHG' ? 'moveTypeHHG' : 'moveTypePPM')}</div>
                       <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 3, lineHeight: 1.4 }}>{ot(opt === 'HHG' ? 'moveTypeHHGHelp' : 'moveTypePPMHelp')}</div>
                     </button>
@@ -7139,6 +7140,7 @@ function FamilyFunTab({ theme, profile }) {
           <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <button
               onClick={() => setFilter('all')}
+              className={`pcs-chip ${filter === 'all' ? 'is-active' : ''}`}
               style={{
                 padding: '6px 12px', borderRadius: 18,
                 border: `1.5px solid ${filter === 'all' ? colors.primary : '#D6E0EA'}`,
@@ -7156,6 +7158,7 @@ function FamilyFunTab({ theme, profile }) {
                 <button
                   key={cat.id}
                   onClick={() => setFilter(cat.id)}
+                  className={`pcs-chip ${filter === cat.id ? 'is-active' : ''}`}
                   style={{
                     padding: '6px 12px', borderRadius: 18,
                     border: `1.5px solid ${filter === cat.id ? colors.primary : '#D6E0EA'}`,

@@ -448,7 +448,7 @@ function ReligiousServicesModule({ theme, profile }) {
       {/* TAB BAR */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
         {TABS.map((t) => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} style={tabBtn(t)}>
+          <button key={t.id} onClick={() => setActiveTab(t.id)} className={`pcs-tab ${activeTab === t.id ? 'is-active' : ''}`} style={tabBtn(t)}>
             <span>{t.icon}</span>
             <span>{t.label}</span>
           </button>

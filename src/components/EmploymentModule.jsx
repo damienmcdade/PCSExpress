@@ -581,7 +581,7 @@ function EmploymentModule({ theme, profile }) {
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
         {tabs.map((tab) => (
-          <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} style={tabStyle(tab.id)}>
+          <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`pcs-tab ${activeTab === tab.id ? 'is-active' : ''}`} style={tabStyle(tab.id)}>
             {tab.label}
           </button>
         ))}
