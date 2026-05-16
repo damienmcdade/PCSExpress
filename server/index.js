@@ -564,9 +564,9 @@ async function overpassApartmentsFetch(lat, lng, radiusMeters) {
   return { elements: merged }
 }
 
-function shapeOsmApartmentComplex(el, originLat, originLng, originCity, originState) {
+function shapeOsmApartmentComplex(el, originLat, originLng, originCity, originState, userLang) {
   const tags = el.tags || {}
-  const name = tags.name || tags['name:en']
+  const name = pickOsmName(tags, userLang)
   if (!isUsableOsmName(name, 'apartments')) return null
 
   // Resolve property type from whichever recognized housing/place tag
@@ -708,11 +708,14 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
   const state = String(req.query.state || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 16)
   const zip = String(req.query.zip || '').trim().replace(/[^A-Za-z0-9\-]/g, '').slice(0, 10)
   const address = String(req.query.address || '').trim().slice(0, 160)
+  const userLang = String(req.query.lang || 'en').toLowerCase().replace(/[^a-z]/g, '').slice(0, 5) || 'en'
   if (!city && !zip && !address) {
     return res.status(400).json({ error: 'city, zip, or address is required', listings: [], fallback: true })
   }
 
-  const cacheKey = `${city}|${state}|${zip}|${address}`
+  // Cache key includes userLang so different-language users do not
+  // share the same cache entry (each language gets its own name set).
+  const cacheKey = `${city}|${state}|${zip}|${address}|${userLang}`
   const cached = HOUSING_CACHE.get(cacheKey)
   if (cached && Date.now() - cached.fetchedAt < HOUSING_TTL_MS) {
     return res.status(200).json({ listings: cached.listings, fallback: cached.listings.length === 0, source: 'cache', fetchedAt: cached.fetchedAt })
@@ -767,7 +770,7 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
       const seen = new Set()
       const complexes = []
       for (const el of elements) {
-        const shaped = shapeOsmApartmentComplex(el, origin.lat, origin.lng, city, state)
+        const shaped = shapeOsmApartmentComplex(el, origin.lat, origin.lng, city, state, userLang)
         if (!shaped) continue
         const key = `${shaped.name}|${Math.round(shaped.lat * 100)}|${Math.round(shaped.lng * 100)}`
         if (seen.has(key)) continue
@@ -1117,10 +1120,10 @@ function religiousRateLimit(req, res, next) {
   return next()
 }
 
-function shapeOsmReligious(el, originLat, originLng) {
+function shapeOsmReligious(el, originLat, originLng, userLang) {
   const tags = el.tags || {}
   if (tags.amenity !== 'place_of_worship') return null
-  const rawName = tags.name || tags['name:en'] || ''
+  const rawName = pickOsmName(tags, userLang) || ''
   if (!isUsableOsmName(rawName, 'place of worship')) return null
   const name = rawName
   const elLat = el.lat ?? el.center?.lat
@@ -1169,13 +1172,14 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
   const zip = String(req.query.zip || '').trim().slice(0, 10)
   const address = String(req.query.address || '').trim().slice(0, 160)
   const radiusMiles = Math.max(5, Math.min(50, parseInt(req.query.radiusMiles, 10) || 25))
+  const userLang = String(req.query.lang || 'en').toLowerCase().replace(/[^a-z]/g, '').slice(0, 5) || 'en'
 
   const geocodeQuery = address || [city, state, zip].filter(Boolean).join(', ')
   if (!geocodeQuery) {
     return res.status(400).json({ error: 'address, city, or zip is required', services: [], fallback: true })
   }
 
-  const cacheKey = `${geocodeQuery}|${radiusMiles}`
+  const cacheKey = `${geocodeQuery}|${radiusMiles}|${userLang}`
   const cached = RELIGIOUS_CACHE.get(cacheKey)
   if (cached && Date.now() - cached.fetchedAt < RELIGIOUS_TTL_MS) {
     return res.status(200).json({ services: cached.services, origin: cached.origin, source: 'cache', fetchedAt: cached.fetchedAt })
@@ -1204,7 +1208,7 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
   const seenIds = new Set()
   const services = []
   for (const el of elements) {
-    const shaped = shapeOsmReligious(el, origin.lat, origin.lng)
+    const shaped = shapeOsmReligious(el, origin.lat, origin.lng, userLang)
     if (!shaped) continue
     const key = `${shaped.name}|${Math.round(shaped.lat * 100)}|${Math.round(shaped.lng * 100)}`
     if (seenIds.has(key)) continue
@@ -1288,7 +1292,7 @@ function inferMilitarySchool(tags, distance) {
   return false
 }
 
-function shapeOsmSchool(el, originLat, originLng) {
+function shapeOsmSchool(el, originLat, originLng, userLang) {
   const tags = el.tags || {}
   let matchTag = null
   for (const tag of Object.keys(SCHOOL_TAG_MAP)) {
@@ -1297,7 +1301,7 @@ function shapeOsmSchool(el, originLat, originLng) {
   }
   if (!matchTag) return null
   const meta = SCHOOL_TAG_MAP[matchTag]
-  const rawName = tags.name || tags['name:en'] || ''
+  const rawName = pickOsmName(tags, userLang) || ''
   if (!isUsableOsmName(rawName, meta.type)) return null
   const name = rawName
   const elLat = el.lat ?? el.center?.lat
@@ -1384,13 +1388,14 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
   const zip = String(req.query.zip || '').trim().slice(0, 10)
   const address = String(req.query.address || '').trim().slice(0, 160)
   const radiusMiles = Math.max(5, Math.min(50, parseInt(req.query.radiusMiles, 10) || 25))
+  const userLang = String(req.query.lang || 'en').toLowerCase().replace(/[^a-z]/g, '').slice(0, 5) || 'en'
 
   const geocodeQuery = address || [city, state, zip].filter(Boolean).join(', ')
   if (!geocodeQuery) {
     return res.status(400).json({ error: 'address, city, or zip is required', categories: SCHOOL_CATEGORIES, schools: [], fallback: true })
   }
 
-  const cacheKey = `${geocodeQuery}|${radiusMiles}`
+  const cacheKey = `${geocodeQuery}|${radiusMiles}|${userLang}`
   const cached = SCHOOL_CACHE.get(cacheKey)
   if (cached && Date.now() - cached.fetchedAt < SCHOOL_TTL_MS) {
     return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: cached.schools, origin: cached.origin, source: 'cache', fetchedAt: cached.fetchedAt })
@@ -1419,7 +1424,7 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
   const seenIds = new Set()
   const schools = []
   for (const el of elements) {
-    const shaped = shapeOsmSchool(el, origin.lat, origin.lng)
+    const shaped = shapeOsmSchool(el, origin.lat, origin.lng, userLang)
     if (!shaped) continue
     const key = `${shaped.name}|${Math.round(shaped.lat * 100)}|${Math.round(shaped.lng * 100)}`
     if (seenIds.has(key)) continue
@@ -1562,6 +1567,24 @@ function familyRateLimit(req, res, next) {
 // placeholder names like "c", "B", "1", or just the type word
 // (e.g., name="Park" on a leisure=park node). These produce visually
 // junk cards. Reject anything that does not look like a real name.
+// Pick the OSM name tag that best matches the user's preferred
+// language. OSM's `name` tag holds the canonical (usually LOCAL-
+// language) name - so a museum in Vicenza, Italy will be tagged
+// `name=Museo Civico` in Italian. Users PCSing to that area with a
+// preferred language of Spanish/English/Korean/etc. should NOT see
+// the local-language name. OSM publishes language-specific variants
+// as `name:en`, `name:es`, `name:de`, etc. Coverage is best for
+// English; Spanish / German / French / Korean / Japanese / Chinese
+// / Italian / Portuguese / Arabic / Vietnamese vary by region.
+// Fallback order: name:{userLang} -> name:en -> name -> ''.
+function pickOsmName(tags, userLang) {
+  if (!tags) return ''
+  const lang = String(userLang || 'en').toLowerCase()
+  if (lang && tags[`name:${lang}`]) return tags[`name:${lang}`]
+  if (tags['name:en']) return tags['name:en']
+  return tags.name || ''
+}
+
 function isUsableOsmName(name, type) {
   if (!name) return false
   const trimmed = String(name).trim()
@@ -1689,7 +1712,7 @@ async function overpassFetch(lat, lng, radiusMeters) {
   return { elements: merged }
 }
 
-function shapeOsmElement(el, originLat, originLng) {
+function shapeOsmElement(el, originLat, originLng, userLang) {
   const tags = el.tags || {}
   let matchTag = null
   for (const tag of Object.keys(OSM_TAG_MAP)) {
@@ -1698,7 +1721,7 @@ function shapeOsmElement(el, originLat, originLng) {
   }
   if (!matchTag) return null
   const meta = OSM_TAG_MAP[matchTag]
-  const rawName = tags.name || tags['name:en'] || ''
+  const rawName = pickOsmName(tags, userLang) || ''
   if (!isUsableOsmName(rawName, meta.type)) return null
   const name = rawName
   const elLat = el.lat ?? el.center?.lat
@@ -1739,6 +1762,7 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
   const zip = String(req.query.zip || '').trim().slice(0, 10)
   const address = String(req.query.address || '').trim().slice(0, 160)
   const radiusMiles = Math.max(5, Math.min(75, parseInt(req.query.radiusMiles, 10) || 50))
+  const userLang = String(req.query.lang || 'en').toLowerCase().replace(/[^a-z]/g, '').slice(0, 5) || 'en'
 
   // Build the geocode query - prefer the user-supplied address, fall
   // back to the installation market.
@@ -1747,7 +1771,7 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
     return res.status(400).json({ error: 'address, city, or zip is required', categories: FAMILY_CATEGORIES, activities: [], fallback: true })
   }
 
-  const cacheKey = `${geocodeQuery}|${radiusMiles}`
+  const cacheKey = `${geocodeQuery}|${radiusMiles}|${userLang}`
   const cached = FAMILY_CACHE.get(cacheKey)
   if (cached && Date.now() - cached.fetchedAt < FAMILY_TTL_MS) {
     return res.status(200).json({
@@ -1782,7 +1806,7 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
   const seenIds = new Set()
   const activities = []
   for (const el of elements) {
-    const shaped = shapeOsmElement(el, origin.lat, origin.lng)
+    const shaped = shapeOsmElement(el, origin.lat, origin.lng, userLang)
     if (!shaped) continue
     // De-dupe by name within ~0.3 mi - OSM often has overlapping
     // node/way tags for the same physical place.

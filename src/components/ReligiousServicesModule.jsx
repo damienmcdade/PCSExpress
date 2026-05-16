@@ -326,6 +326,7 @@ function ReligiousServicesModule({ theme, profile }) {
     let cancelled = false
     setLiveServices(s => ({ ...s, status: 'loading' }))
     const params = new URLSearchParams({ address: inst, radiusMiles: '25' })
+    if (profile?.language) params.set('lang', profile.language)
     fetch(`/api/religious-services?${params.toString()}`, { headers: { Accept: 'application/json' } })
       .then(r => r.ok ? r.json() : { services: [], fallback: true })
       .then(data => {

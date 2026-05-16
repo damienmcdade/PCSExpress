@@ -121,6 +121,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
     if (market.city) params.set('city', market.city);
     if (market.state) params.set('state', market.state);
     if (market.zip) params.set('zip', market.zip);
+    if (profile?.language) params.set('lang', profile.language);
     fetch(`/api/housing-listings?${params.toString()}`, { headers: { Accept: 'application/json' } })
       .then(r => r.ok ? r.json() : { listings: [], fallback: true, reason: `http-${r.status}` })
       .then(data => {

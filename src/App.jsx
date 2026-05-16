@@ -3047,6 +3047,7 @@ function SchoolsTab({ theme, profile }) {
       params.set('address', instName);
     }
     params.set('radiusMiles', '25');
+    if (profile?.language) params.set('lang', profile.language);
     fetch(`/api/schools-nearby?${params.toString()}`, { headers: { Accept: 'application/json' } })
       .then(r => r.ok ? r.json() : { schools: [], fallback: true })
       .then(data => {
@@ -6744,6 +6745,7 @@ function FamilyFunTab({ theme, profile }) {
       params.set('address', rawInstallation);
     }
     params.set('radiusMiles', '50');
+    if (profile?.language) params.set('lang', profile.language);
     fetch(`/api/family-activities?${params.toString()}`, { headers: { Accept: 'application/json' } })
       .then(r => r.ok ? r.json() : { categories: [], activities: [], fallback: true, reason: `http-${r.status}` })
       .then(data => {
