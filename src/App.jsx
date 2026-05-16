@@ -250,6 +250,10 @@ const PROFILE_DEFAULTS = {
   branch: 'Army',
   component: 'Active Duty',
   paygrade: 'E-5',
+  // ordersType applies only when component is Reserve or National Guard.
+  // Controls eligibility filtering for BAH, TRICARE Prime, PCS
+  // entitlements, etc. Empty string for non-Reserve/NG profiles.
+  ordersType: '',
   losingInstallation: '',
   gainingInstallation: '',
   departingDate: '',
@@ -268,6 +272,48 @@ const PROFILE_DEFAULTS = {
   language: 'en',
   religiousPreference: 'No Preference',
 };
+
+// Reserve / National Guard orders-type catalog. Source: 10 USC §12301-12305,
+// 32 USC §502 / §709, JTR Chapter 7 (Reserve/Guard PCS), and the DoD
+// Reserve Components publications. The eligibility flags drive UI
+// gating — only tasks/forms/info that apply to the selected orders
+// type are shown.
+//
+// Eligibility flags:
+//   pcsEntitled:    full PCS package (HHG, DLA, per diem, TQSE/TLE)
+//   bahEligible:    drawing BAH at the duty-station ZIP
+//   tricarePrime:   eligible to enroll in TRICARE Prime
+//   federalActive:  on federal active duty status (vs. state SAD)
+//   ordersDuration: 'short' | 'long' — short ≤30 days (drills, AT),
+//                    long >30 days triggers PCS-tier benefits
+const RESERVE_ORDERS_TYPES = [
+  { value: 'title10_pcs',          label: 'Title 10 PCS Orders (Federal Active Duty, 180+ days)',  desc: '10 USC §12301(d) voluntary, or §12302 partial mobilization. Full active-duty PCS entitlements: BAH at gaining ZIP, TRICARE Prime, HHG, DLA, TLE/TQSE.',                                                                pcsEntitled: true,  bahEligible: true,  tricarePrime: true,  federalActive: true,  ordersDuration: 'long'  },
+  { value: 'title10_mobilization', label: 'Title 10 Mobilization (Involuntary, 30+ days)',         desc: '10 USC §12302 / §12304 / §12304b. Active duty for contingency, presidential reserve call-up, or pre-planned mission. Same benefits as Title 10 PCS for the duration.',                                          pcsEntitled: true,  bahEligible: true,  tricarePrime: true,  federalActive: true,  ordersDuration: 'long'  },
+  { value: 'title10_ados',         label: 'Title 10 ADOS / ADSW',                                  desc: 'Active Duty Operational Support — voluntary federal active duty for specific projects. Benefits scale with duration: 30+ days unlocks BAH; 180+ days unlocks full PCS package.',                                  pcsEntitled: false, bahEligible: true,  tricarePrime: true,  federalActive: true,  ordersDuration: 'long'  },
+  { value: 'title10_at',           label: 'Annual Training (AT / ADT / IADT, ≤30 days)',           desc: '10 USC §12301(b). Short-term federal active duty for training. No PCS, no BAH at gaining ZIP, but TRICARE coverage for duration plus 6 months post.',                                                            pcsEntitled: false, bahEligible: false, tricarePrime: true,  federalActive: true,  ordersDuration: 'short' },
+  { value: 'idt',                  label: 'Drill / IDT (Inactive Duty Training)',                  desc: '10 USC §10147. Weekend drill assemblies. No active-duty status, no PCS, no BAH. TRICARE Reserve Select (TRS) available as a premium option for continuous coverage.',                                              pcsEntitled: false, bahEligible: false, tricarePrime: false, federalActive: false, ordersDuration: 'short' },
+  { value: 'reserve_pcs',          label: 'Reserve Center Change (Inter-Unit Transfer)',           desc: 'Administrative move between Reserve Centers without active-duty status change. May qualify for limited relocation assistance through the gaining unit but no JTR PCS package.',                                  pcsEntitled: false, bahEligible: false, tricarePrime: false, federalActive: false, ordersDuration: 'short' },
+]
+
+const GUARD_ORDERS_TYPES = [
+  { value: 'title10_pcs',          label: 'Title 10 PCS Orders (Federal Active Duty, 180+ days)',  desc: '10 USC §12301(d) voluntary or §12302 mobilization. Same benefits as Active Duty: BAH at gaining ZIP, TRICARE Prime, HHG, DLA, TLE/TQSE.',                                                                       pcsEntitled: true,  bahEligible: true,  tricarePrime: true,  federalActive: true,  ordersDuration: 'long'  },
+  { value: 'title10_mobilization', label: 'Title 10 Mobilization (Involuntary)',                   desc: '10 USC §12302 / §12304. Full federal active duty for contingency or presidential call-up. Same benefits as Title 10 PCS for the duration.',                                                                     pcsEntitled: true,  bahEligible: true,  tricarePrime: true,  federalActive: true,  ordersDuration: 'long'  },
+  { value: 'title32_502f',         label: 'Title 32 §502(f) Orders (Federal Pay, State Control)',  desc: '32 USC §502(f). Federal funding, state-controlled — common for state-mobilized federal missions (e.g., border, COVID response). BAH and TRICARE Prime apply for orders 30+ days.',                              pcsEntitled: false, bahEligible: true,  tricarePrime: true,  federalActive: true,  ordersDuration: 'long'  },
+  { value: 'title32_709',          label: 'Title 32 §709 (Dual-Status Technician)',                desc: '32 USC §709. Full-time federal civilian + Guard membership. Benefits flow primarily from the FEDERAL CIVILIAN side (FEHB, FERS, locality pay). Guard-side benefits limited to drill / AT.',                       pcsEntitled: false, bahEligible: false, tricarePrime: false, federalActive: false, ordersDuration: 'short' },
+  { value: 'agr',                  label: 'AGR (Active Guard Reserve)',                            desc: 'Full-time Title 10 or Title 32 active duty supporting the Guard. Benefits match Active Duty: BAH, TRICARE Prime, HHG, full JTR PCS package.',                                                                  pcsEntitled: true,  bahEligible: true,  tricarePrime: true,  federalActive: true,  ordersDuration: 'long'  },
+  { value: 'idt',                  label: 'Drill / IDT (Inactive Duty Training)',                  desc: '32 USC §502(a). Weekend drills. No active-duty status, no PCS, no BAH. TRICARE Reserve Select (TRS) available as a premium option for continuous coverage.',                                                    pcsEntitled: false, bahEligible: false, tricarePrime: false, federalActive: false, ordersDuration: 'short' },
+  { value: 'sad',                  label: 'State Active Duty (SAD) — Governor-directed',           desc: 'State funding, state control — common for state emergencies (hurricane, fire, civil disturbance). NO federal benefits (no BAH, no TRICARE, no PCS), only state pay and benefits per state law.',               pcsEntitled: false, bahEligible: false, tricarePrime: false, federalActive: false, ordersDuration: 'short' },
+]
+
+function ordersTypeCatalog(component) {
+  if (component === 'National Guard') return GUARD_ORDERS_TYPES
+  if (component === 'Reserve') return RESERVE_ORDERS_TYPES
+  return []
+}
+
+function ordersTypeMeta(component, ordersType) {
+  return ordersTypeCatalog(component).find(o => o.value === ordersType) || null
+}
 
 function normalizeProfile(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
@@ -2726,6 +2772,26 @@ const CHECKLIST_FILTERS = [
     keep: (p) => p.moveType === 'PPM' },
   { pattern: /\boconus\b|no-fee passport|overseas screening|\bsofa\b|country clearance|host nation|host-nation|\bvisa\b/i,
     keep: (p) => p.isOverseas },
+  // Reserve / National Guard orders-type gating. Tasks that depend on
+  // PCS-tier entitlements (BAH, HHG, DLA, TLE/TQSE, on-post housing
+  // application) are hidden when the user's orders type does not
+  // qualify (IDT, drill, SAD, technician). Active Duty / AGR / Title 10
+  // PCS / Title 10 Mobilization users continue to see everything.
+  { pattern: /\bbah\b|basic allowance for housing|on-post housing|on-installation housing|housing waitlist/i,
+    keep: (p) => p.component !== 'Reserve' && p.component !== 'National Guard'
+      ? true
+      : !p.ordersType /* no orders selected yet */
+        || (ordersTypeMeta(p.component, p.ordersType)?.bahEligible !== false) },
+  { pattern: /\bhhg\b|household goods|dps\b|tmo\b|tle\b|tqse\b|dla\b|dislocation allowance|per diem|household-goods/i,
+    keep: (p) => p.component !== 'Reserve' && p.component !== 'National Guard'
+      ? true
+      : !p.ordersType
+        || (ordersTypeMeta(p.component, p.ordersType)?.pcsEntitled !== false) },
+  { pattern: /\btricare prime\b|enroll in tricare/i,
+    keep: (p) => p.component !== 'Reserve' && p.component !== 'National Guard'
+      ? true
+      : !p.ordersType
+        || (ordersTypeMeta(p.component, p.ordersType)?.tricarePrime !== false) },
 ];
 
 function applyChecklistFilters(items, profileAttrs) {
@@ -3003,6 +3069,7 @@ function StarRating({ rating }) {
 function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
   const branchChecklist = getTailoredChecklist(profile?.branch || 'Army', {
     component:     profile?.component || 'Active Duty',
+    ordersType:    profile?.ordersType || '',
     hasDependents: !!profile?.hasDependents,
     hasChildren:   !!profile?.hasChildren,
     hasPets:       !!profile?.hasPets,
@@ -6691,6 +6758,29 @@ function Onboarding({ onComplete }) {
                 </div>
               )}
 
+              {/* Reserve / National Guard orders type — only shown
+                  when the component is Reserve or National Guard.
+                  Drives downstream eligibility gating for BAH, TRICARE
+                  Prime, HHG, and the rest of the PCS package. */}
+              {(p.component === 'Reserve' || p.component === 'National Guard') && (
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
+                    ORDERS TYPE
+                  </label>
+                  <select value={p.ordersType || ''} onChange={e => upd('ordersType', e.target.value)} style={inputSt}>
+                    <option value="">— Select your orders type —</option>
+                    {ordersTypeCatalog(p.component).map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                  {p.ordersType && ordersTypeMeta(p.component, p.ordersType) && (
+                    <div style={{ marginTop: 6, padding: '8px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 11, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+                      {ordersTypeMeta(p.component, p.ordersType).desc}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Language */}
               <div style={{ marginBottom: 16 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('preferredLanguage')}</label>
@@ -7512,6 +7602,7 @@ function App() {
           if (daysUntilDeparture === null || daysUntilDeparture > win.activeAt) return false;
           const tailoredAlerts = getTailoredChecklist(profile?.branch || 'Army', {
             component:     profile?.component || 'Active Duty',
+            ordersType:    profile?.ordersType || '',
             hasDependents: !!profile?.hasDependents,
             hasChildren:   !!profile?.hasChildren,
             hasPets:       !!profile?.hasPets,
@@ -7527,6 +7618,7 @@ function App() {
           daysUntil: daysUntilDeparture,
           count: ((getTailoredChecklist(profile?.branch || 'Army', {
             component:     profile?.component || 'Active Duty',
+            ordersType:    profile?.ordersType || '',
             hasDependents: !!profile?.hasDependents,
             hasChildren:   !!profile?.hasChildren,
             hasPets:       !!profile?.hasPets,

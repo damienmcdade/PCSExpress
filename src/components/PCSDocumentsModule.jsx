@@ -330,7 +330,21 @@ export default function PCSDocumentsModule({ theme, profile }) {
     hasPets:       !!profile?.hasPets,
     moveType:      profile?.moveType || 'HHG',
     component:     profile?.component || 'Active Duty',
+    ordersType:    profile?.ordersType || '',
   };
+  // Reserve / National Guard users on non-PCS-tier orders (IDT, drill,
+  // SAD, technician) won't qualify for the full active-duty document
+  // package. We still render the documents list but surface a banner
+  // explaining which entitlements apply to their specific orders.
+  const isReserveOrGuard = profileAttrs.component === 'Reserve' || profileAttrs.component === 'National Guard';
+  const reserveOrdersNote = isReserveOrGuard && profileAttrs.ordersType
+    ? (profileAttrs.ordersType === 'idt' ? 'IDT / drill — no PCS entitlement; finance, transportation, and housing forms below apply only if you switch to Title 10 orders.'
+      : profileAttrs.ordersType === 'sad' ? 'State Active Duty — federal forms below do not apply; check your state National Guard HQ for state-specific paperwork.'
+      : profileAttrs.ordersType === 'title32_709' ? 'Title 32 §709 technician — federal civilian benefits apply; use the DoD Civilian document set for PCS-style paperwork.'
+      : profileAttrs.ordersType === 'reserve_pcs' ? 'Reserve Center transfer — coordinate any limited relocation assistance through your gaining unit; full JTR PCS package below does not apply.'
+      : profileAttrs.ordersType === 'title10_at' ? 'Annual Training / ADT — short-term federal active duty; only orders + travel voucher forms typically apply.'
+      : null)
+    : null;
   const allDocs   = getDocsForBranch(branch, isOconus, profileAttrs);
 
   const [states, setStates] = useState(() => sanitizeStates(loadStates()));
@@ -384,8 +398,13 @@ export default function PCSDocumentsModule({ theme, profile }) {
       <div style={{ background: theme.secondary, padding: '16px 16px 14px' }}>
         <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 2 }}>PCS Documents</div>
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginBottom: 12 }}>
-          {branch} · {isOconus ? 'OCONUS Assignment' : 'CONUS Assignment'} · {totalObtained}/{totalDocs} marked gathered
+          {branch}{isReserveOrGuard ? ` · ${profileAttrs.component}` : ''} · {isOconus ? 'OCONUS Assignment' : 'CONUS Assignment'} · {totalObtained}/{totalDocs} marked gathered
         </div>
+        {reserveOrdersNote && (
+          <div style={{ background: 'rgba(255,179,0,0.18)', border: '1px solid rgba(255,179,0,0.45)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 11, color: '#FFD54F', lineHeight: 1.5 }}>
+            <strong>Orders type:</strong> {reserveOrdersNote}
+          </div>
+        )}
         <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 6, height: 8, marginBottom: 6 }}>
           <div style={{ height: 8, borderRadius: 6, background: theme.accent, width: `${pct}%`, transition: 'width .4s' }} />
         </div>
