@@ -99,6 +99,12 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
   // installation. This replaces the Google classic embed which had
   // intermittent zoom and consent-wall issues. CSP already allows
   // https://nominatim.openstreetmap.org for the route planner.
+  // Geocode the installation through Nominatim. The previous query was
+  // just "<installation> military installation" which sometimes pulled
+  // a state-level or wrong-base result. We now first try a curated
+  // city/state lookup from installationMarkets (when matched), then
+  // fall back to the raw installation name. Multiple candidates are
+  // requested so we can pick the most likely one by name match.
   const [geo, setGeo] = useState({ status: 'idle', lat: null, lng: null });
   useEffect(() => {
     if (!installation) {
@@ -107,19 +113,42 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
     }
     let cancelled = false;
     setGeo(s => ({ ...s, status: 'loading' }));
-    const q = encodeURIComponent(`${installation} military installation`);
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`, {
-      headers: { Accept: 'application/json' },
-    })
-      .then(r => r.ok ? r.json() : [])
-      .then(data => {
-        if (cancelled) return;
-        const hit = Array.isArray(data) && data[0];
-        if (hit) {
-          setGeo({ status: 'ready', lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) });
-        } else {
-          setGeo({ status: 'not-found', lat: null, lng: null });
+
+    // Dynamic import keeps the BaseMapModule decoupled from the
+    // markets data file at the bundle level.
+    import('../data/installationMarkets')
+      .then(({ findKnownMarket }) => {
+        const market = findKnownMarket(installation);
+        // Query candidates in priority order. Most specific first.
+        const candidates = [];
+        if (market && market.city && market.state) {
+          // "Fort Liberty, Fayetteville, NC" - tight precise geocode.
+          candidates.push(`${market.alias || market.installation || installation}, ${market.city}, ${market.state}`);
+          candidates.push(`${market.alias || market.installation || installation}, ${market.city}`);
         }
+        candidates.push(`${installation} military installation`);
+        candidates.push(installation);
+
+        // Try each candidate sequentially; first hit wins.
+        (async () => {
+          for (const q of candidates) {
+            if (cancelled) return;
+            try {
+              const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`, {
+                headers: { Accept: 'application/json' },
+              });
+              if (!r.ok) continue;
+              const data = await r.json();
+              const hit = Array.isArray(data) && data[0];
+              if (hit) {
+                if (cancelled) return;
+                setGeo({ status: 'ready', lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) });
+                return;
+              }
+            } catch {}
+          }
+          if (!cancelled) setGeo({ status: 'not-found', lat: null, lng: null });
+        })();
       })
       .catch(() => {
         if (!cancelled) setGeo({ status: 'error', lat: null, lng: null });

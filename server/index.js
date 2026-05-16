@@ -512,31 +512,77 @@ function shapeListing(raw) {
   }
 }
 
-// OSM Overpass: real apartment complexes (building=apartments with a
-// name tag) near the geocoded installation. Each complex is a real
-// place with an address and distance; the user taps the card to open
-// Google Maps directions and the Apartments.com button to see real
-// unit-level availability at that specific address. No API key
-// required - OSM is the same free dataset that powers Family Fun and
-// the Schools tab.
+// OSM Overpass: ALL named residential places near the geocoded
+// installation - apartment communities, named single-family
+// communities, townhouse rows, semi-detached duplex communities,
+// plus place=neighbourhood / suburb / quarter (named neighborhoods).
+// Building type is preserved so the frontend can categorize each
+// card by housing type instead of lumping everything into
+// "Apartment community".
+// OSM building tags we query for housing. `building=house` and
+// `building=residential` are intentionally excluded - millions of
+// unnamed buildings per metro overflow Overpass timeouts even with
+// a name filter. We keep the larger named structures that map well
+// to property types and let the synthetic search-CTA cards cover
+// the missing types (Single Family / Condo / etc.) via Apartments.com
+// deep links.
+const HOUSING_BUILDING_TAGS = {
+  'building=apartments':         { type: 'Apartment community', propertyType: 'Apartment community' },
+  'building=terrace':            { type: 'Townhouse community', propertyType: 'Townhouse' },
+  'building=semidetached_house': { type: 'Duplex community',    propertyType: 'Duplex' },
+  'building=detached':           { type: 'Single-family community', propertyType: 'Single Family' },
+}
+const PLACE_TAGS = {
+  'place=neighbourhood': { type: 'Neighborhood',  propertyType: 'Neighborhood' },
+  'place=suburb':        { type: 'Suburb',        propertyType: 'Neighborhood' },
+  'place=quarter':       { type: 'District',      propertyType: 'Neighborhood' },
+}
+
 async function overpassApartmentsFetch(lat, lng, radiusMeters) {
-  const query = `[out:json][timeout:20];(node["building"="apartments"]["name"](around:${radiusMeters},${lat},${lng});way["building"="apartments"]["name"](around:${radiusMeters},${lat},${lng});node["building"="residential"]["name"]["apartments"="yes"](around:${radiusMeters},${lat},${lng}););out center tags;`
-  return overpassQuery(query)
+  // Two query batches kept under the per-mirror 20s in-query timeout.
+  // Batch A: named residential BUILDINGS (apartments / terrace /
+  // detached / etc.) with a name tag.
+  const buildingFilters = Object.keys(HOUSING_BUILDING_TAGS).map(t => {
+    const [k, v] = t.split('=')
+    return `node["${k}"="${v}"]["name"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"]["name"](around:${radiusMeters},${lat},${lng});`
+  }).join('')
+  // Batch B: named PLACES (neighborhoods / suburbs).
+  const placeFilters = Object.keys(PLACE_TAGS).map(t => {
+    const [k, v] = t.split('=')
+    return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
+  }).join('')
+
+  const merged = []
+  for (const filters of [buildingFilters, placeFilters]) {
+    try {
+      const data = await overpassQuery(`[out:json][timeout:20];(${filters});out center tags;`)
+      if (Array.isArray(data?.elements)) merged.push(...data.elements)
+    } catch (err) {
+      console.error(`[overpass-housing] batch failed: ${err.message}`)
+    }
+  }
+  return { elements: merged }
 }
 
 function shapeOsmApartmentComplex(el, originLat, originLng, originCity, originState) {
   const tags = el.tags || {}
   const name = tags.name || tags['name:en']
   if (!isUsableOsmName(name, 'apartments')) return null
+
+  // Resolve property type from whichever recognized housing/place tag
+  // the element carries. Defaults to "Apartment community" so existing
+  // behavior is preserved when a complex has no explicit building tag.
+  let typeMeta = { type: 'Apartment community', propertyType: 'Apartment community' }
+  for (const [tag, meta] of Object.entries({ ...HOUSING_BUILDING_TAGS, ...PLACE_TAGS })) {
+    const [k, v] = tag.split('=')
+    if (tags[k] === v) { typeMeta = meta; break }
+  }
+
   const elLat = el.lat ?? el.center?.lat
   const elLng = el.lon ?? el.center?.lon
   if (typeof elLat !== 'number' || typeof elLng !== 'number') return null
   const distance = haversineMiles(originLat, originLng, elLat, elLng)
   const street = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ')
-  // Many OSM complexes have a name tagged but no addr:city / addr:state.
-  // Fall back to the user-supplied search market so the city/state are
-  // never empty - lets the Google-search deep link below use the
-  // first branch (name + city/state) for every complex.
   const addrCity = tags['addr:city'] || originCity || ''
   const addrState = tags['addr:state'] || originState || ''
   const addrZip = tags['addr:postcode'] || ''
@@ -545,8 +591,8 @@ function shapeOsmApartmentComplex(el, originLat, originLng, originCity, originSt
   if (levels) descParts.push(levels)
   if (tags['units'] || tags['building:units']) descParts.push(`${tags['units'] || tags['building:units']} units`)
   if (tags.year_built) descParts.push(`built ${tags.year_built}`)
-  const baseDesc = descParts.length ? descParts.join(' · ') : 'apartment community'
-  const description = `${baseDesc} approximately ${distance} mi away. Bed, bath, square footage, and rent vary by unit - tap the Apartments.com button to see current availability for this address.`
+  const baseDesc = descParts.length ? descParts.join(' · ') : typeMeta.type.toLowerCase()
+  const description = `${baseDesc} approximately ${distance} mi away. Bed, bath, square footage, and rent vary by unit - tap the listings button to see current availability for this address.`
 
   // Deep-link to listing data. Apartments.com's free-text search
   // often lands on a generic page when the query does not match its
@@ -576,7 +622,7 @@ function shapeOsmApartmentComplex(el, originLat, originLng, originCity, originSt
     beds: null,
     baths: null,
     sqft: null,
-    propertyType: 'Apartment community',
+    propertyType: typeMeta.propertyType,
     distanceMiles: distance,
     description,
     price: null,
@@ -1418,24 +1464,22 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
 // OpenStreetMap Foundation. We follow their usage policies: explicit
 // User-Agent, server-side caching, request batching, and graceful
 // fallback when they return 429/504 or time out.
-// Family Fun category list. Each tag in OSM_TAG_MAP below must map
-// to a categoryId here. Tags that are not genuinely family-friendly
-// (pro stadiums, adult gyms, generic galleries, generic
-// "attraction", marketplaces, malls, ice-cream shops, etc.) are
-// excluded entirely - we only surface venues a family would
-// reasonably plan a visit to.
+// Family Fun category list. Expanded per user direction to include
+// arcades, amusement parks, playgrounds, shopping malls, community
+// centers, water parks, paintball, airsoft, race tracks, and other
+// hands-on family activities.
 const FAMILY_CATEGORIES = [
   { id: 'parks', label: 'Parks & Outdoors', emoji: '🌲', description: 'Parks, playgrounds, gardens, trails, nature reserves, and national parks.' },
-  { id: 'amusement', label: 'Amusement & Theme Parks', emoji: '🎢', description: 'Theme parks, water parks, and family arcades.' },
+  { id: 'amusement', label: 'Amusement, Theme & Water Parks', emoji: '🎢', description: 'Theme parks, water parks, family arcades.' },
   { id: 'movies', label: 'Movie Theaters', emoji: '🎦', description: 'Family-friendly cinemas.' },
   { id: 'museums', label: 'Museums', emoji: '🏛️', description: 'Children’s, science, history, and military museums plus public memorials.' },
-  { id: 'sports', label: 'Active Play', emoji: '🏟️', description: 'Pools, ice rinks, bowling, mini-golf, climbing - hands-on activities for all ages.' },
-  { id: 'culture', label: 'Arts & Libraries', emoji: '🎨', description: 'Arts centers, libraries, and public art kids can explore.' },
+  { id: 'sports', label: 'Active Play & Sports', emoji: '🏟️', description: 'Pools, ice rinks, bowling, mini-golf, climbing, paintball, airsoft, kart and motorsport tracks.' },
+  { id: 'culture', label: 'Arts, Libraries & Community', emoji: '🎨', description: 'Arts centers, libraries, community centers, public art.' },
   { id: 'family', label: 'Zoos & Aquariums', emoji: '🦓', description: 'Live animal venues - zoos, aquariums, animal sanctuaries.' },
+  { id: 'shopping', label: 'Shopping & Markets', emoji: '🛍️', description: 'Shopping malls, family marketplaces, kid-friendly retail districts.' },
 ]
 
-// Maps OSM tag pairs to our internal category + a short type label.
-// Curated to only include genuinely family-pertinent POI types.
+// OSM tag mappings. Expanded with the categories the user requested.
 const OSM_TAG_MAP = {
   // Parks & Outdoors
   'leisure=park': { categoryId: 'parks', type: 'Park' },
@@ -1446,34 +1490,50 @@ const OSM_TAG_MAP = {
   'tourism=picnic_site': { categoryId: 'parks', type: 'Picnic site' },
   'tourism=viewpoint': { categoryId: 'parks', type: 'Viewpoint' },
   'boundary=national_park': { categoryId: 'parks', type: 'National park' },
-  // Amusement & Theme Parks
+  // Amusement & Theme Parks (incl. water parks + arcades)
   'tourism=theme_park': { categoryId: 'amusement', type: 'Theme park' },
   'leisure=water_park': { categoryId: 'amusement', type: 'Water park' },
-  'tourism=amusement_arcade': { categoryId: 'amusement', type: 'Family arcade' },
+  'tourism=amusement_arcade': { categoryId: 'amusement', type: 'Arcade' },
+  'leisure=amusement_arcade': { categoryId: 'amusement', type: 'Arcade' },
   // Movie Theaters
   'amenity=cinema': { categoryId: 'movies', type: 'Cinema' },
-  // Museums (galleries removed - too often adult-oriented)
+  // Museums
   'tourism=museum': { categoryId: 'museums', type: 'Museum' },
   'historic=monument': { categoryId: 'museums', type: 'Monument' },
   'historic=memorial': { categoryId: 'museums', type: 'Memorial' },
-  // Active Play (pro stadiums, adult fitness gyms, and athletic
-  // tracks intentionally excluded - they are not destinations a
-  // family typically visits together for fun)
+  // Active Play & Sports - expanded per user direction
   'leisure=swimming_pool': { categoryId: 'sports', type: 'Swimming pool' },
   'leisure=ice_rink': { categoryId: 'sports', type: 'Ice rink' },
   'amenity=ice_rink': { categoryId: 'sports', type: 'Ice rink' },
   'leisure=bowling_alley': { categoryId: 'sports', type: 'Bowling alley' },
   'leisure=miniature_golf': { categoryId: 'sports', type: 'Mini-golf' },
   'sport=climbing': { categoryId: 'sports', type: 'Climbing gym' },
-  // Arts & Libraries (community_centre dropped - too often AA
-  // meeting halls or senior centers)
+  // Paintball + airsoft (OSM tags `sport=paintball` / `sport=airsoft`
+  // appear on leisure=pitch, leisure=sports_centre, or as
+  // dedicated nodes)
+  'sport=paintball': { categoryId: 'sports', type: 'Paintball' },
+  'sport=airsoft': { categoryId: 'sports', type: 'Airsoft' },
+  'sport=laser_tag': { categoryId: 'sports', type: 'Laser tag' },
+  // Race tracks (motorsport / karting)
+  'leisure=motorsport': { categoryId: 'sports', type: 'Motorsport track' },
+  'leisure=kart_track': { categoryId: 'sports', type: 'Kart track' },
+  'landuse=raceway': { categoryId: 'sports', type: 'Raceway' },
+  'sport=motor': { categoryId: 'sports', type: 'Motorsport' },
+  'sport=karting': { categoryId: 'sports', type: 'Karting' },
+  // Generic trampoline parks + escape rooms tag on amenity / leisure
+  'leisure=trampoline_park': { categoryId: 'sports', type: 'Trampoline park' },
+  'leisure=escape_game': { categoryId: 'sports', type: 'Escape room' },
+  // Arts, Libraries & Community
   'amenity=arts_centre': { categoryId: 'culture', type: 'Arts center' },
   'amenity=library': { categoryId: 'culture', type: 'Library' },
   'tourism=artwork': { categoryId: 'culture', type: 'Public art' },
-  // Zoos & Aquariums (generic "attraction" + ice cream shops
-  // dropped - too unfocused)
+  'amenity=community_centre': { categoryId: 'culture', type: 'Community center' },
+  // Zoos & Aquariums
   'tourism=zoo': { categoryId: 'family', type: 'Zoo' },
   'tourism=aquarium': { categoryId: 'family', type: 'Aquarium' },
+  // Shopping & Markets (restored per user direction)
+  'shop=mall': { categoryId: 'shopping', type: 'Shopping mall' },
+  'amenity=marketplace': { categoryId: 'shopping', type: 'Marketplace' },
 }
 
 const FAMILY_CACHE = new Map()

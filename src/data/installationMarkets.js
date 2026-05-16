@@ -527,6 +527,59 @@ export const INSTALLATION_MARKETS = {
   'USCG Station Ketchikan': { city: 'Ketchikan', state: 'AK', zip: '99901' },
   'USCG Station Kodiak': { city: 'Kodiak', state: 'AK', zip: '99619' },
   'USCG Station Honolulu': { city: 'Honolulu', state: 'HI', zip: '96819' },
+
+  // ── OCONUS AUDIT · SUB-INSTALLATIONS PREVIOUSLY LUMPED ────────────────
+  // Surfaced by the OCONUS content audit. Many overseas Army Garrisons
+  // are umbrella designations covering 2+ physically separate posts
+  // with different addresses, ZIPs, and BAH/OHA centroids. Listing
+  // them as siblings rather than aliases lets users PCSing to the
+  // specific sub-installation get accurate market lookups.
+
+  // ITALY - USAG Italy umbrella covers Vicenza area + Camp Darby Livorno.
+  // Within Vicenza there are TWO separate posts ~6 km apart:
+  //   - Caserma Ederle (south Vicenza, original 1955 post)
+  //   - Caserma Del Din (north Vicenza, new 2013 campus)
+  'Caserma Ederle': { city: 'Vicenza', state: 'Italy', zip: '36100' },
+  'Caserma Del Din': { city: 'Vicenza', state: 'Italy', zip: '36050' },
+  'Camp Darby': { city: 'Livorno', state: 'Italy', zip: '57124', alias: 'USAG Italy (Livorno)' },
+
+  // GERMANY - USAG Bavaria umbrella covers four named training areas /
+  // garrisons across central Bavaria.
+  'Grafenwöhr Training Area': { city: 'Grafenwöhr', state: 'Germany', zip: '92655', alias: 'USAG Bavaria' },
+  'Rose Barracks Vilseck': { city: 'Vilseck', state: 'Germany', zip: '92249' },
+  'Hohenfels Training Area': { city: 'Hohenfels', state: 'Germany', zip: '92366', alias: 'USAG Hohenfels' },
+  'Garmisch Resort': { city: 'Garmisch-Partenkirchen', state: 'Germany', zip: '82467', alias: 'USAG Garmisch' },
+
+  // USAG Rheinland-Pfalz umbrella covers Kaiserslautern Military
+  // Community sites + Baumholder + Landstuhl Regional Medical Center.
+  'Kaiserslautern Military Community': { city: 'Kaiserslautern', state: 'Germany', zip: '67663', alias: 'USAG Rheinland-Pfalz (Kaiserslautern)' },
+  'Landstuhl Regional Medical Center': { city: 'Landstuhl', state: 'Germany', zip: '66849' },
+  'Sembach Kaserne': { city: 'Sembach', state: 'Germany', zip: '67681' },
+  'Pulaski Barracks': { city: 'Kaiserslautern', state: 'Germany', zip: '67661' },
+  'Panzer Kaserne': { city: 'Kaiserslautern', state: 'Germany', zip: '67661' },
+  'Vogelweh Military Complex': { city: 'Kaiserslautern', state: 'Germany', zip: '67661' },
+
+  // JAPAN - USAG Japan covers Camp Zama HQ + several smaller sites.
+  'Sagami Depot': { city: 'Sagamihara', state: 'Japan', zip: '252-0345' },
+  'Yokohama North Dock': { city: 'Yokohama', state: 'Japan', zip: '231-0001' },
+
+  // KOREA - USAG Daegu umbrella covers Camp Walker HQ + Camp Henry +
+  // Camp Carroll + Busan storage.
+  'Camp Henry': { city: 'Daegu', state: 'South Korea', zip: '41945' },
+  'Camp Carroll': { city: 'Waegwan', state: 'South Korea', zip: '40083' },
+  'Pier 8 Busan': { city: 'Busan', state: 'South Korea', zip: '49044' },
+  // USAG Yongsan-Casey: Yongsan HQ moved to Pyeongtaek but garrison
+  // retains Camp Casey (Dongducheon) + Camp Hovey + Camp Red Cloud.
+  'Camp Casey': { city: 'Dongducheon', state: 'South Korea', zip: '11192', alias: 'USAG Yongsan-Casey' },
+  'Camp Hovey': { city: 'Dongducheon', state: 'South Korea', zip: '11186' },
+
+  // BELGIUM / NETHERLANDS - USAG Benelux umbrella covers SHAPE +
+  // Brussels NATO HQ + Brunssum JFC.
+  'Chievres Air Base': { city: 'Chièvres', state: 'Belgium', zip: '7950' },
+  'Daumerie Caserne': { city: 'Chièvres', state: 'Belgium', zip: '7950' },
+  // POLAND - USAG Poland covers Powidz Air Base + Camp Kosciuszko Poznań.
+  'Camp Kosciuszko Poznan': { city: 'Poznań', state: 'Poland', zip: '60-960' },
+  'Powidz Air Base': { city: 'Powidz', state: 'Poland', zip: '62-430', alias: 'USAG Poland' },
 };
 
 const clean = value => String(value || '').trim();
