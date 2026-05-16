@@ -3362,7 +3362,7 @@ function SchoolsTab({ theme, profile }) {
           )}
           {liveSchools.status === 'loading' && (
             <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 11, color: '#56697C' }}>
-              Searching nearby schools from OpenStreetMap...
+              Loading Google Maps school category cards near your installation...
             </div>
           )}
           {liveK12.length > 0 && (
@@ -3420,7 +3420,7 @@ function SchoolsTab({ theme, profile }) {
                 ))}
               </div>
               <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5, marginTop: 6 }}>
-                Live results from OpenStreetMap within 25 miles. Military / DoDEA / on-installation schools appear first. Confirm enrollment, district zoning, and parent reviews on NCES SchoolSearch or the local school website before deciding.
+                Google Maps category cards within 25 miles of your installation. Military / DoDEA / on-installation schools appear first. Confirm enrollment, district zoning, and parent reviews on NCES SchoolSearch or the local school website before deciding.
               </div>
             </section>
           )}
@@ -3463,7 +3463,7 @@ function SchoolsTab({ theme, profile }) {
           </div>
           {liveSchools.status === 'loading' && (
             <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 11, color: '#56697C' }}>
-              Searching nearby childcare from OpenStreetMap...
+              Loading Google Maps childcare cards near your installation...
             </div>
           )}
           {liveDaycare.length > 0 && (
@@ -7094,7 +7094,7 @@ function FamilyFunTab({ theme, profile }) {
           {appliedAddress ? `Activities within 50 mi of ${appliedAddress}` : market.matched ? `Activities within 50 mi of ${market.installation}` : 'Set a gaining installation or address to see family activities'}
         </div>
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.78)', lineHeight: 1.6 }}>
-          Parks, theme parks, movies, museums, sports, arts, shopping, zoos, and more — pulled live from OpenStreetMap and filtered to only show named, real-world places. Use the category chips to narrow by type. Tap any card to open turn-by-turn Google Maps directions. Distances are straight-line estimates; confirm hours, prices, and accessibility on the destination page.
+          Parks, theme parks, movies, museums, sports, arts, shopping, zoos, and more — each category card opens a Google Maps search pre-filtered to your gaining locality so you see real venues with ratings, hours, and directions in one tap. Confirm prices and accessibility on the destination page.
         </div>
       </div>
 
@@ -7129,7 +7129,7 @@ function FamilyFunTab({ theme, profile }) {
 
       {state.status === 'loading' && (
         <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 12, color: colors.muted }}>
-          Searching OpenStreetMap for nearby family activities...
+          Loading Google Maps category cards for nearby family activities...
         </div>
       )}
 
@@ -7214,8 +7214,8 @@ function FamilyFunTab({ theme, profile }) {
             : state.reason === 'address-not-found'
               ? 'Could not locate that address on the map. Try a different format like "City, ST" or a ZIP code.'
               : state.reason === 'overpass-failed' || state.reason === 'geocode-failed'
-                ? 'OpenStreetMap is temporarily unavailable. Try again in a minute.'
-                : 'No nearby family activities found within 50 miles. Try a larger address or check back later as the OSM dataset is community-edited.'}
+                ? 'Map search is temporarily unavailable. Try again in a minute.'
+                : 'No nearby family activities found within 50 miles. Try a larger address or a nearby ZIP code.'}
         </div>
       )}
     </div>

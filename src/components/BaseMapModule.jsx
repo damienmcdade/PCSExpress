@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { osmBoundingBoxEmbedUrl, publicMapEmbedUrl, publicMapSearchUrl } from '../lib/mapEmbedUrl';
+import { publicMapEmbedUrl, publicMapSearchUrl } from '../lib/mapEmbedUrl';
 import { findKnownMarket } from '../data/installationMarkets';
 
 const OFFICIAL_INSTALLATION_DIRECTORY = 'https://installations.militaryonesource.mil/';

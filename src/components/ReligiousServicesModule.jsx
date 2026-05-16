@@ -468,7 +468,7 @@ function ReligiousServicesModule({ theme, profile }) {
           {/* Live nearby places of worship */}
           {liveServices.status === 'loading' && (
             <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 11, color: '#56697C' }}>
-              Looking up nearby places of worship from OpenStreetMap...
+              Loading Google Maps cards for nearby places of worship...
             </div>
           )}
           {liveServices.status === 'ready' && liveServices.services.length > 0 && (
@@ -509,13 +509,13 @@ function ReligiousServicesModule({ theme, profile }) {
                 ))}
               </div>
               <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5, marginTop: 6 }}>
-                Live results from OpenStreetMap within 25 miles. Confirm service times, accessibility, and on-base access policies directly with each congregation. The curated chapel listings below show official on-installation chapel programs.
+                Google Maps category cards within 25 miles of your installation. Confirm service times, accessibility, and on-base access policies directly with each congregation. The curated chapel listings below show official on-installation chapel programs.
               </div>
             </section>
           )}
           {liveServices.status === 'ready' && liveServices.services.length === 0 && liveServices.reason && (
             <div style={{ background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 11, color: '#0D3B66', lineHeight: 1.5 }}>
-              No nearby places of worship returned from OpenStreetMap right now. The curated installation chapel listings below remain available.
+              Map search did not return nearby places of worship right now. The curated installation chapel listings below remain available.
             </div>
           )}
           </div>

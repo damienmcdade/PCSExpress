@@ -415,7 +415,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
             ))}
           </div>
           <div style={{ fontSize: 10, color: colors.muted, lineHeight: 1.5, marginTop: 8 }}>
-            Apartment community names and addresses are sourced from OpenStreetMap. Each card opens a verified listing search at the source aggregator for current availability, floorplans, and pricing.
+            Each card opens a Google Maps search restricted to the rental aggregator network for current availability, floorplans, and pricing.
           </div>
         </section>
         );
