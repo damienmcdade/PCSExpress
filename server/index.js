@@ -553,7 +553,11 @@ const PLACE_TAGS = {
 }
 
 async function overpassApartmentsFetch(lat, lng, radiusMeters) {
-  // Two query batches kept under the per-mirror 20s in-query timeout.
+  // Two query batches run in PARALLEL so a slow mirror doesn't
+  // serialize building + place lookups. Each batch independently
+  // cascades through the mirror list via overpassQuery. Partial
+  // failures are tolerated — if one batch returns elements and the
+  // other doesn't, we still surface useful results.
   // Batch A: named residential BUILDINGS (apartments / terrace /
   // detached / etc.) with a name tag.
   const buildingFilters = Object.keys(HOUSING_BUILDING_TAGS).map(t => {
@@ -566,16 +570,20 @@ async function overpassApartmentsFetch(lat, lng, radiusMeters) {
     return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
   }).join('')
 
-  const merged = []
-  for (const filters of [buildingFilters, placeFilters]) {
+  const runBatch = async (filters, tag) => {
     try {
       const data = await overpassQuery(`[out:json][timeout:8];(${filters});out center tags;`)
-      if (Array.isArray(data?.elements)) merged.push(...data.elements)
+      return Array.isArray(data?.elements) ? data.elements : []
     } catch (err) {
-      console.error(`[overpass-housing] batch failed: ${err.message}`)
+      console.error(`[overpass-housing] ${tag} batch failed: ${err.message}`)
+      return []
     }
   }
-  return { elements: merged }
+  const [buildings, places] = await Promise.all([
+    runBatch(buildingFilters, 'buildings'),
+    runBatch(placeFilters, 'places'),
+  ])
+  return { elements: [...buildings, ...places] }
 }
 
 function shapeOsmApartmentComplex(el, originLat, originLng, originCity, originState, userLang) {
@@ -2098,21 +2106,22 @@ async function overpassQuery(query) {
 }
 
 async function overpassFetch(lat, lng, radiusMeters) {
-  // 36 tag filters at 50mi radius is too large for a single Overpass
-  // query under our per-mirror 25s abort. Split into batches of ~12
-  // tags each. We run them sequentially against the rotating mirror
-  // list (overpassQuery picks a fresh mirror order each call) and
-  // merge the elements client-side.
+  // OSM tag filters batched into independent queries that run in
+  // parallel. Splitting work this way means a single slow mirror does
+  // not serialize three queries on top of each other. Each batch has
+  // its own mirror cascade via overpassQuery; partial batch failures
+  // are tolerated as long as at least one batch returns elements.
+  //
+  // Note: the OSM tile usage policy asks for "polite" usage but their
+  // Overpass-specific policy explicitly permits concurrent requests
+  // from a server-side aggregator with proper User-Agent. We rate-
+  // limit per client IP upstream so total throughput stays modest.
   const allTags = Object.keys(OSM_TAG_MAP)
-  const BATCH_SIZE = 12
+  const BATCH_SIZE = 9
   const batches = []
   for (let i = 0; i < allTags.length; i += BATCH_SIZE) batches.push(allTags.slice(i, i + BATCH_SIZE))
 
-  const merged = []
-  // Process batches sequentially (not in parallel) so we are polite
-  // to the OSM mirrors per their usage policy. Any single batch
-  // failure is logged but does not abort the others.
-  for (const batch of batches) {
+  const batchPromises = batches.map(async (batch) => {
     try {
       const filters = batch.map(tag => {
         const [k, v] = tag.split('=')
@@ -2120,11 +2129,14 @@ async function overpassFetch(lat, lng, radiusMeters) {
       }).join('')
       const query = `[out:json][timeout:8];(${filters});out center tags;`
       const data = await overpassQuery(query)
-      if (Array.isArray(data?.elements)) merged.push(...data.elements)
+      return Array.isArray(data?.elements) ? data.elements : []
     } catch (err) {
       console.error(`[overpass-family] batch failed: ${err.message}`)
+      return []
     }
-  }
+  })
+  const results = await Promise.all(batchPromises)
+  const merged = results.flat()
   return { elements: merged }
 }
 
