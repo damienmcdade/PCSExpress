@@ -3529,8 +3529,8 @@ function SchoolsTab({ theme, profile }) {
             </div>
           ))}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 4 }}>
-            <a href="https://militarychildcare.com/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 10, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>MilitaryChildCare.com</a>
-            <a href="https://www.militaryonesource.mil/parenting/child-care/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 10, background: theme.secondary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>Military OneSource Child Care</a>
+            <a href="https://militarychildcare.com/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>MilitaryChildCare.com</a>
+            <a href="https://www.militaryonesource.mil/parenting/child-care/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.secondary }}>Military OneSource Child Care</a>
           </div>
         </>
       )}
@@ -5070,7 +5070,7 @@ function EducationBenefitsTab({ theme, profile }) {
               {ch.benefits.map((b, i) => (
                 <div key={i} style={{ fontSize: 12, color: '#333', marginBottom: 4 }}>✓ {b}</div>
               ))}
-              <a href={ch.apply} target="_blank" rel="noopener noreferrer" style={{ display: 'block', marginTop: 10, padding: '8px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>Apply Online</a>
+              <a href={ch.apply} target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary, marginTop: 10 }}>Apply Online</a>
             </div>
           ))}
         </div>
@@ -5087,7 +5087,7 @@ function EducationBenefitsTab({ theme, profile }) {
               </div>
             </div>
           ))}
-          <a href="https://www.va.gov/education/how-to-apply/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 12, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 13, marginTop: 8 }}>
+          <a href="https://www.va.gov/education/how-to-apply/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary, marginTop: 8, fontSize: 13 }}>
             Start Application on VA.gov
           </a>
         </div>
@@ -5112,15 +5112,15 @@ function EducationBenefitsTab({ theme, profile }) {
           ))}
 
           <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
-            <a href={selectedTA.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 12, background: theme.primary, color: '#FFFFFF', textDecoration: 'none', textAlign: 'center', fontWeight: 800, fontSize: 13 }}>
+            <a href={selectedTA.url} target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary, fontSize: 13 }}>
               Open {selectedTA.portal}
             </a>
             {selectedTA.secondaryUrl && (
-              <a href={selectedTA.secondaryUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 12, background: '#F3F4F6', color: '#111827', textDecoration: 'none', textAlign: 'center', fontWeight: 800, fontSize: 12, border: '1px solid #E5E7EB' }}>
+              <a href={selectedTA.secondaryUrl} target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">
                 Open application portal
               </a>
             )}
-            <a href={selectedTA.source} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '11px', borderRadius: 12, background: '#F8F6EE', color: '#374151', textDecoration: 'none', textAlign: 'center', fontWeight: 800, fontSize: 12, border: '1px solid #DDD5C2' }}>
+            <a href={selectedTA.source} target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">
               Review official/public branch education guidance
             </a>
           </div>
@@ -5223,8 +5223,8 @@ function EducationBenefitsTab({ theme, profile }) {
               ))}
             </div>
           ))}
-          <a data-link-removed="https://aiportal.acc.af.mil/mycaa" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 12, background: theme.primary, color: '#FFF', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Apply for MyCAA →</a>
-          <a href="https://www.militaryonesource.mil/education-employment/for-spouses/mycaa-scholarship-program/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '12px', borderRadius: 12, background: '#E8F5E9', color: '#2E7D32', textDecoration: 'none', textAlign: 'center', fontWeight: 700, fontSize: 12 }}>Learn More at MilitaryOneSource →</a>
+          <a data-link-removed="https://aiportal.acc.af.mil/mycaa" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary, marginBottom: 10, fontSize: 13 }}>Apply for MyCAA</a>
+          <a href="https://www.militaryonesource.mil/education-employment/for-spouses/mycaa-scholarship-program/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': '#2E7D32' }}>Learn More at MilitaryOneSource</a>
         </div>
       )}
     </div>
