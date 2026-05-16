@@ -861,79 +861,21 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
     }
   })()
 
-  const osmPromise = (async () => {
-    const geocodeQuery = address || [city, state, zip].filter(Boolean).join(', ')
-    if (!geocodeQuery) return []
-    let origin
-    try {
-      origin = await geocodeNominatim({ address, city, state, zip })
-    } catch (err) {
-      console.error(`[housing-listings] geocode ${err.message}`)
-      return []
-    }
-    if (!origin) return []
-    try {
-      const overpassData = await overpassApartmentsFetch(origin.lat, origin.lng, Math.round(15 * 1609.34))
-      const elements = Array.isArray(overpassData?.elements) ? overpassData.elements : []
-      const seen = new Set()
-      const complexes = []
-      for (const el of elements) {
-        const shaped = shapeOsmApartmentComplex(el, origin.lat, origin.lng, city, state, userLang)
-        if (!shaped) continue
-        const key = `${shaped.name}|${Math.round(shaped.lat * 100)}|${Math.round(shaped.lng * 100)}`
-        if (seen.has(key)) continue
-        seen.add(key)
-        complexes.push(shaped)
-      }
-      complexes.sort((a, b) => a.distanceMiles - b.distanceMiles)
-      return complexes
-    } catch (err) {
-      console.error(`[housing-listings] overpass ${err.message}`)
-      return []
-    }
-  })()
-
-  // Hard time budget for the OSM/Overpass leg. The endpoint should
-  // never spin longer than this from the user's perspective — synthetic
-  // directory cards are always available instantly and are the most
-  // actionable content for OCONUS markets. If Overpass exceeds the
-  // budget we return [] for the OSM leg and the response completes
-  // with rapidApi + synthetic. The cache will fill on a subsequent
-  // request once Overpass warms up.
-  const OSM_TIME_BUDGET_MS = 18_000
-  const osmWithTimeout = Promise.race([
-    osmPromise,
-    new Promise(resolve => setTimeout(() => {
-      console.error('[housing-listings] osm budget exceeded; returning synthetic-only response')
-      resolve([])
-    }, OSM_TIME_BUDGET_MS)),
-  ])
-  const [rapidApiResults, osmResults] = await Promise.all([rapidApiPromise, osmWithTimeout])
+  const rapidApiResults = await rapidApiPromise
   // Result ordering, top to bottom:
   //   1. RapidAPI priced rentals — real addresses with bed/bath/sqft
   //      (only when RAPIDAPI_KEY is configured).
-  //   2. Synthetic source-portal cards.
-  //      - CONUS: six property-type Google searches across U.S.
-  //        rental aggregators.
-  //      - OCONUS: four DoD-verified directory entry points
-  //        (HOMES.mil, AHRN, MilitaryByOwner, MilitaryINSTALLATIONS).
-  //      These come BEFORE OSM results so the directory cards are
-  //      always visible — OSM can return 40 neighborhood records for
-  //      dense urban areas and would otherwise crowd them out.
-  //   3. OSM apartment complexes / neighborhoods — real proper-noun
-  //      names that route to a Google search restricted to the
-  //      region-appropriate aggregator set.
+  //   2. Google Maps source-portal cards.
+  //      - CONUS: property-type Google searches across U.S. rental
+  //        aggregators.
+  //      - OCONUS: DoD-verified directory entry points (HOMES.mil,
+  //        AHRN, MilitaryByOwner, MilitaryINSTALLATIONS).
+  // Google Maps is the canonical POI data source — no OSM/Overpass
+  // call so the response returns in <1s for every market.
   const syntheticResults = syntheticTypeCards(city, state, zip)
-  const oconus = isOconusMarket(state)
-  // Cap OSM at a smaller window for OCONUS markets where neighborhood
-  // coverage is dense and the directory cards are the more actionable
-  // entry points. CONUS keeps the larger OSM window because real
-  // apartment-community names dominate the result set.
-  const osmCap = oconus ? 20 : 32
   const combined = [
     ...rapidApiResults,
     ...syntheticResults,
-    ...osmResults.slice(0, osmCap),
   ].slice(0, 40)
   // Skip caching empty results so transient upstream failures do not
   // poison the cache for 24 hours.
@@ -1499,50 +1441,21 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
     return res.status(200).json({ services: [], fallback: true, reason: 'address-not-found' })
   }
 
-  // Curated Google Maps cards by denomination — always available, used
-  // as fallback when Overpass returns empty / fails and as supplement
-  // when it returns sparse data.
-  const syntheticCards = syntheticReligiousCards(city, state)
+  // Google Maps denomination cards are the canonical Religious
+  // Services directory. Each card deep-links to a Google Maps
+  // search restricted to the locality so users see service times,
+  // contact info, and directions in one tap.
+  const cards = syntheticReligiousCards(city, state)
 
-  let overpassData
-  try {
-    overpassData = await Promise.race([
-      overpassReligiousFetch(origin.lat, origin.lng, Math.round(radiusMiles * 1609.34)),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('overpass-budget-exceeded')), 22_000)),
-    ])
-  } catch (err) {
-    console.error(`[religious] overpass ${err.message}`)
-    return res.status(200).json({ services: syntheticCards, origin, fallback: syntheticCards.length === 0, reason: 'overpass-failed', source: 'synthetic-fallback' })
-  }
-
-  const elements = Array.isArray(overpassData?.elements) ? overpassData.elements : []
-  const seenIds = new Set()
-  const services = []
-  for (const el of elements) {
-    const shaped = shapeOsmReligious(el, origin.lat, origin.lng, userLang)
-    if (!shaped) continue
-    const key = `${shaped.name}|${Math.round(shaped.lat * 100)}|${Math.round(shaped.lng * 100)}`
-    if (seenIds.has(key)) continue
-    seenIds.add(key)
-    services.push(shaped)
-  }
-  services.sort((a, b) => a.distanceMiles - b.distanceMiles)
-  const osmLimited = services.slice(0, 60)
-  // Merge OSM real-named places first, synthetic search-portal cards
-  // last so users always have actionable content for any denomination.
-  const limited = [...osmLimited, ...syntheticCards]
-
-  // Skip caching empty results so transient Overpass failures do not
-  // serve users an empty Spiritual Readiness tab for 24h.
-  if (limited.length > 0) {
-    RELIGIOUS_CACHE.set(cacheKey, { services: limited, origin, fetchedAt: Date.now() })
+  if (cards.length > 0) {
+    RELIGIOUS_CACHE.set(cacheKey, { services: cards, origin, fetchedAt: Date.now() })
   }
 
   res.status(200).json({
-    services: limited,
+    services: cards,
     origin,
     radiusMiles,
-    source: 'openstreetmap',
+    source: 'google-maps-search',
     fetchedAt: Date.now(),
   })
 })
@@ -1726,56 +1639,22 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
     return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: [], fallback: true, reason: 'address-not-found' })
   }
 
-  // Curated Google Maps cards by school category — always available
-  // so users at sparse / cold-cache markets see actionable content.
-  const syntheticCards = syntheticSchoolCards(city, state)
+  // Google Maps category cards are the canonical school directory.
+  // Each card deep-links to a Google Maps search for the category
+  // restricted to the locality so users see real schools with
+  // ratings, contact info, and zoning details.
+  const cards = syntheticSchoolCards(city, state)
 
-  let overpassData
-  try {
-    overpassData = await Promise.race([
-      overpassSchoolsFetch(origin.lat, origin.lng, Math.round(radiusMiles * 1609.34)),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('overpass-budget-exceeded')), 22_000)),
-    ])
-  } catch (err) {
-    console.error(`[schools] overpass ${err.message}`)
-    return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: syntheticCards, origin, fallback: syntheticCards.length === 0, reason: 'overpass-failed', source: 'synthetic-fallback' })
-  }
-
-  const elements = Array.isArray(overpassData?.elements) ? overpassData.elements : []
-  const seenIds = new Set()
-  const schools = []
-  for (const el of elements) {
-    const shaped = shapeOsmSchool(el, origin.lat, origin.lng, userLang)
-    if (!shaped) continue
-    const key = `${shaped.name}|${Math.round(shaped.lat * 100)}|${Math.round(shaped.lng * 100)}`
-    if (seenIds.has(key)) continue
-    seenIds.add(key)
-    schools.push(shaped)
-  }
-  // Sort: military / DoDEA / on-installation schools first, then by
-  // ascending distance. Front-end may apply additional child-age
-  // grade-band reordering on top of this.
-  schools.sort((a, b) => {
-    if (a.isMilitary !== b.isMilitary) return a.isMilitary ? -1 : 1
-    return a.distanceMiles - b.distanceMiles
-  })
-  const osmLimited = schools.slice(0, 80)
-  // Real OSM schools first, then curated Google-Maps search portals so
-  // every market shows at least the seven school categories.
-  const limited = [...osmLimited, ...syntheticCards]
-
-  // Skip caching empty results so transient Overpass failures do not
-  // hide schools for 24 hours.
-  if (limited.length > 0) {
-    SCHOOL_CACHE.set(cacheKey, { schools: limited, origin, fetchedAt: Date.now() })
+  if (cards.length > 0) {
+    SCHOOL_CACHE.set(cacheKey, { schools: cards, origin, fetchedAt: Date.now() })
   }
 
   res.status(200).json({
     categories: SCHOOL_CATEGORIES,
-    schools: limited,
+    schools: cards,
     origin,
     radiusMiles,
-    source: 'openstreetmap',
+    source: 'google-maps-search',
     fetchedAt: Date.now(),
   })
 })
@@ -2353,70 +2232,23 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
     return res.status(200).json({ categories: FAMILY_CATEGORIES, activities: [], fallback: true, reason: 'address-not-found' })
   }
 
-  // Curated Google Maps search-portal cards are ALWAYS available
-  // regardless of Overpass status. They serve as both fallback when
-  // OSM is unavailable AND a baseline for sparse OCONUS regions.
-  const syntheticCards = syntheticFamilyCards(city, state)
+  // Google Maps search-portal cards are the canonical Family Fun
+  // data source. Each card deep-links to a Google Maps search for
+  // the category restricted to the installation's locality, so users
+  // see real venues with ratings/hours/directions in one tap.
+  // No OSM/Overpass call — Google Maps is authoritative for POI data.
+  const cards = syntheticFamilyCards(city, state)
 
-  // Hard time budget for Overpass — 22s total. Cold-cache markets can
-  // otherwise hang for 60-75s waiting for mirror failover. If the
-  // budget trips we return the synthetic cards alone so users never
-  // see an empty Family Fun screen.
-  const OVERPASS_BUDGET_MS = 22_000
-  let overpassData
-  try {
-    overpassData = await Promise.race([
-      overpassFetch(origin.lat, origin.lng, Math.round(radiusMiles * 1609.34)),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('overpass-budget-exceeded')), OVERPASS_BUDGET_MS)),
-    ])
-  } catch (err) {
-    console.error(`[family-activities] overpass ${err.message}`)
-    return res.status(200).json({
-      categories: FAMILY_CATEGORIES,
-      activities: syntheticCards,
-      origin,
-      fallback: syntheticCards.length === 0,
-      reason: 'overpass-failed',
-      source: 'synthetic-fallback',
-    })
-  }
-
-  const elements = Array.isArray(overpassData?.elements) ? overpassData.elements : []
-  const seenIds = new Set()
-  const activities = []
-  for (const el of elements) {
-    const shaped = shapeOsmElement(el, origin.lat, origin.lng, userLang)
-    if (!shaped) continue
-    // De-dupe by name within ~0.3 mi - OSM often has overlapping
-    // node/way tags for the same physical place.
-    const key = `${shaped.name}|${Math.round(shaped.lat * 100)}|${Math.round(shaped.lng * 100)}`
-    if (seenIds.has(key)) continue
-    seenIds.add(key)
-    activities.push(shaped)
-  }
-  activities.sort((a, b) => a.distanceMiles - b.distanceMiles)
-  const osmLimited = activities.slice(0, 60)
-
-  // Merge order: OSM real-named POIs first (real venues with addresses),
-  // then synthetic search-portal cards (one per category). User always
-  // sees at least the eight synthetic category cards.
-  const merged = [...osmLimited, ...syntheticCards]
-
-  // Skip caching when there is nothing useful (no OSM AND no synthetic
-  // — should never happen unless city/state were empty, which is
-  // already rejected earlier).
-  if (merged.length > 0) {
-    FAMILY_CACHE.set(cacheKey, { activities: merged, origin, fetchedAt: Date.now() })
+  if (cards.length > 0) {
+    FAMILY_CACHE.set(cacheKey, { activities: cards, origin, fetchedAt: Date.now() })
   }
 
   res.status(200).json({
     categories: FAMILY_CATEGORIES,
-    activities: merged,
+    activities: cards,
     origin,
     radiusMiles,
-    source: osmLimited.length > 0 ? 'openstreetmap+synthetic' : 'synthetic-only',
-    osmCount: osmLimited.length,
-    syntheticCount: syntheticCards.length,
+    source: 'google-maps-search',
     fetchedAt: Date.now(),
   })
 })

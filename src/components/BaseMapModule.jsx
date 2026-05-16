@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { osmBoundingBoxEmbedUrl, publicMapEmbedUrl, publicMapSearchUrl } from '../lib/mapEmbedUrl';
+import { findKnownMarket } from '../data/installationMarkets';
 
 const OFFICIAL_INSTALLATION_DIRECTORY = 'https://installations.militaryonesource.mil/';
 const MILITARY_ONESOURCE_OVERVIEW = 'https://www.militaryonesource.mil/resources/network/militaryinstallations/';
@@ -91,7 +92,20 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
 
   const installation = clean(submittedInstallation || installationInput || profileInstallation);
   const displayInstallation = installation || 'Enter a gaining installation';
-  const mapQuery = installation ? `${installation} military installation` : 'military installation';
+  // Build the most specific Google Maps query possible. Pulling
+  // city/state/country from INSTALLATION_MARKETS lets the embed land
+  // on the correct installation immediately — without it, ambiguous
+  // names like "Fort Bragg" resolve to the wrong place (e.g., the
+  // coastal town in CA instead of Fort Liberty / Fort Bragg NC).
+  const knownMarket = useMemo(() => findKnownMarket(installation), [installation]);
+  const mapQuery = useMemo(() => {
+    if (!installation) return 'military installation';
+    const parts = [installation];
+    if (knownMarket?.city) parts.push(knownMarket.city);
+    if (knownMarket?.state) parts.push(knownMarket.state);
+    if (knownMarket?.country && knownMarket.country !== 'United States') parts.push(knownMarket.country);
+    return parts.join(', ');
+  }, [installation, knownMarket]);
   const mapSearchUrl = useMemo(() => publicMapSearchUrl(mapQuery), [mapQuery]);
   const cards = useMemo(() => sourceCards(installation, branch), [installation, branch]);
 
@@ -114,54 +128,59 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
     let cancelled = false;
     setGeo(s => ({ ...s, status: 'loading' }));
 
-    // Dynamic import keeps the BaseMapModule decoupled from the
-    // markets data file at the bundle level.
-    import('../data/installationMarkets')
-      .then(({ findKnownMarket }) => {
-        const market = findKnownMarket(installation);
-        // Query candidates in priority order. Most specific first.
-        const candidates = [];
-        if (market && market.city && market.state) {
-          // "Fort Liberty, Fayetteville, NC" - tight precise geocode.
-          candidates.push(`${market.alias || market.installation || installation}, ${market.city}, ${market.state}`);
-          candidates.push(`${market.alias || market.installation || installation}, ${market.city}`);
-        }
-        candidates.push(`${installation} military installation`);
-        candidates.push(installation);
+    // Build geocode candidates in priority order. Most specific
+    // first so ambiguous installation names (Fort Bragg, Camp Lejeune,
+    // etc.) resolve to the correct location.
+    const market = knownMarket;
+    const installationAlias = market?.alias || market?.installation || installation;
+    const candidates = [];
+    if (market && market.city && market.state) {
+      if (market.postal) {
+        candidates.push(`${installationAlias}, ${market.city}, ${market.state} ${market.postal}`);
+      }
+      candidates.push(`${installationAlias}, ${market.city}, ${market.state}${market.country ? `, ${market.country}` : ''}`);
+      candidates.push(`${installationAlias}, ${market.city}, ${market.state}`);
+      candidates.push(`${installationAlias}, ${market.city}`);
+    } else if (market && market.country) {
+      candidates.push(`${installationAlias}, ${market.country}`);
+    }
+    candidates.push(`${installation} military installation`);
+    candidates.push(installation);
 
-        // Try each candidate sequentially; first hit wins.
-        (async () => {
-          for (const q of candidates) {
+    // Try each candidate sequentially; first hit wins.
+    (async () => {
+      for (const q of candidates) {
+        if (cancelled) return;
+        try {
+          const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`, {
+            headers: { Accept: 'application/json' },
+          });
+          if (!r.ok) continue;
+          const data = await r.json();
+          const hit = Array.isArray(data) && data[0];
+          if (hit) {
             if (cancelled) return;
-            try {
-              const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`, {
-                headers: { Accept: 'application/json' },
-              });
-              if (!r.ok) continue;
-              const data = await r.json();
-              const hit = Array.isArray(data) && data[0];
-              if (hit) {
-                if (cancelled) return;
-                setGeo({ status: 'ready', lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) });
-                return;
-              }
-            } catch {}
+            setGeo({ status: 'ready', lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) });
+            return;
           }
-          if (!cancelled) setGeo({ status: 'not-found', lat: null, lng: null });
-        })();
-      })
-      .catch(() => {
-        if (!cancelled) setGeo({ status: 'error', lat: null, lng: null });
-      });
+        } catch {}
+      }
+      if (!cancelled) setGeo({ status: 'not-found', lat: null, lng: null });
+    })();
     return () => { cancelled = true; };
-  }, [installation]);
+  }, [installation, knownMarket]);
 
   const embedUrl = useMemo(() => {
+    // Google Maps is the canonical base-map provider. Prefer a
+    // lat/lng-pinned Google embed once Nominatim resolves the
+    // installation — that's the only form that guarantees the map is
+    // centered on the correct installation. Until then, fall back to
+    // a fully-qualified market query (installation + city + state +
+    // country) so Google can disambiguate (e.g., Fort Bragg, NC vs.
+    // Fort Bragg, CA).
     if (geo.status === 'ready') {
-      return osmBoundingBoxEmbedUrl(geo.lat, geo.lng, 0.06);
+      return `https://maps.google.com/maps?q=${geo.lat},${geo.lng}&z=13&output=embed`;
     }
-    // Google embed as a fallback while geocoding or if Nominatim
-    // could not resolve the installation name.
     return publicMapEmbedUrl(mapQuery);
   }, [geo, mapQuery]);
 

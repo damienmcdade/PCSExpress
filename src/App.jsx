@@ -24,6 +24,7 @@ import DynamicTimeline from './components/DynamicTimeline'
 import PPMFinancialEstimator from './components/PPMFinancialEstimator'
 import BAHCalculatorTab from './components/BAHCalculatorTab'
 import OHACalculatorTab from './components/OHACalculatorTab'
+import LQACalculatorTab from './components/LQACalculatorTab'
 import MoveBudgetTracker from './components/MoveBudgetTracker'
 import DutyStationDirectory from './components/DutyStationDirectory'
 import PrivacyShield from './components/PrivacyShield'
@@ -7309,7 +7310,9 @@ function HomeRelocationUnifiedTab({ theme, profile }) {
     <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
       {tab === 'home-locator' && <HomeLocatorTab theme={theme} profile={profile} />}
       {tab === 'bah-calculator' && (civilian
-        ? <DodCivilianHousingPanel theme={theme} profile={profile} oconus={oconus} />
+        ? (oconus
+            ? <LQACalculatorTab theme={theme} profile={profile} />
+            : <DodCivilianHousingPanel theme={theme} profile={profile} oconus={false} />)
         : oconus
           ? <OHACalculatorTab theme={theme} profile={profile} />
           : <BAHCalculatorTab theme={theme} profile={profile} />
