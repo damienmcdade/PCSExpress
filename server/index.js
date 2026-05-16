@@ -594,23 +594,27 @@ function shapeOsmApartmentComplex(el, originLat, originLng, originCity, originSt
   const baseDesc = descParts.length ? descParts.join(' · ') : typeMeta.type.toLowerCase()
   const description = `${baseDesc} approximately ${distance} mi away. Bed, bath, square footage, and rent vary by unit - tap the listings button to see current availability for this address.`
 
-  // Deep-link to listing data. Apartments.com's free-text search
-  // often lands on a generic page when the query does not match its
-  // listing taxonomy exactly. A Google search pinned to four major
-  // rental aggregators surfaces the actual property's listing on
-  // whichever site has it indexed - usually the first organic
-  // result. The user gets one click to a real listing instead of an
-  // Apartments.com homepage.
+  // Deep-link to verified listing data. Aggregator set switches based
+  // on whether the market is CONUS (US rental sites: apartments.com,
+  // zillow, trulia, realtor, rent, apartmentlist) or OCONUS (AHRN,
+  // MilitaryByOwner, HOMES.mil, rentbyowner). OCONUS aggregators are
+  // DoD-sanctioned worldwide military housing networks; US sites do
+  // not cover overseas military communities.
   const ev = encodeURIComponent
   const cityState = [addrCity, addrState].filter(Boolean).join(' ')
-  const aggregatorSites = 'site:apartments.com OR site:zillow.com OR site:trulia.com OR site:realtor.com OR site:rent.com OR site:apartmentlist.com'
+  const oconus = isOconusMarket(addrState)
+  const aggregatorSites = oconus
+    ? 'site:ahrn.com OR site:militarybyowner.com OR site:homes.mil OR site:rentbyowner.com'
+    : 'site:apartments.com OR site:zillow.com OR site:trulia.com OR site:realtor.com OR site:rent.com OR site:apartmentlist.com'
   const apartmentsSearch = name && cityState
     ? `https://www.google.com/search?q=${ev(`"${name}" ${cityState} ${aggregatorSites}`)}`
     : street && cityState
       ? `https://www.google.com/search?q=${ev(`"${street}" ${cityState} apartments for rent ${aggregatorSites}`)}`
       : cityState
-        ? `https://www.apartments.com/${ev(addrCity.toLowerCase().replace(/\s+/g, '-'))}-${(addrState || '').toLowerCase()}/`
-        : `https://www.apartments.com/search/?q=${ev(name || '')}`
+        ? (oconus
+          ? `https://www.ahrn.com/search?q=${ev(cityState)}`
+          : `https://www.apartments.com/${ev(addrCity.toLowerCase().replace(/\s+/g, '-'))}-${(addrState || '').toLowerCase()}/`)
+        : `https://www.google.com/search?q=${ev((name || '') + ' apartments for rent ' + aggregatorSites)}`
 
   return {
     id: `${el.type}/${el.id}`,
@@ -638,20 +642,45 @@ function shapeOsmApartmentComplex(el, originLat, originLng, originCity, originSt
   }
 }
 
+// A US state is either a 2-letter postal abbreviation or one of a
+// few territory codes (PR, GU, VI, MP, AS). Anything else is OCONUS.
+const US_STATE_CODES = new Set([
+  'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
+  'KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
+  'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT',
+  'VA','WA','WV','WI','WY','DC','PR','GU','VI','MP','AS','AE','AP','AA',
+])
+function isOconusMarket(state) {
+  if (!state) return false
+  const s = String(state).trim().toUpperCase()
+  if (s.length === 2 && US_STATE_CODES.has(s)) return false
+  return true
+}
+
 // Synthetic property-type search-CTA cards. OSM only has names on
 // apartment complexes; single family homes, condos, townhouses, and
 // duplex/triplex/quadplex addresses are rarely named in OSM and even
 // when present have no rent / unit / bedroom data. For those types we
-// emit one card per category that deep-links to an Apartments.com or
-// Realtor.com filtered search prefilled with the installation's
-// city/state. Users get a real button to shop by property type even
-// without a RapidAPI rentals key configured.
+// emit one card per category that deep-links to a working aggregator
+// for the appropriate region:
+//   - CONUS: Apartments.com + Google search across US aggregators
+//   - OCONUS: AHRN (DoD's Automated Housing Referral Network) +
+//     MilitaryByOwner + Google search across regional sources. Both
+//     sites cover U.S. military installations worldwide.
 function syntheticTypeCards(city, state, zip) {
   if (!city) return []
   const slug = `${city.toLowerCase().replace(/\s+/g, '-')}-${(state || '').toLowerCase()}`
   const ev = encodeURIComponent
   const cityState = `${city}${state ? ', ' + state : ''}`
-  const aggregatorSites = 'site:apartments.com OR site:zillow.com OR site:trulia.com OR site:realtor.com OR site:rent.com OR site:apartmentlist.com OR site:redfin.com OR site:homes.com'
+  const oconus = isOconusMarket(state)
+  // CONUS aggregators: 8 US-only rental sites.
+  // OCONUS aggregators: AHRN.com (DoD-sanctioned worldwide housing
+  // search), MilitaryByOwner (covers OCONUS), HOMES.mil (official
+  // DoD privatized housing search). Removing US-only sites prevents
+  // 404s like apartments.com/vicenza-italy/houses/.
+  const aggregatorSites = oconus
+    ? 'site:ahrn.com OR site:militarybyowner.com OR site:homes.mil OR site:rentbyowner.com'
+    : 'site:apartments.com OR site:zillow.com OR site:trulia.com OR site:realtor.com OR site:rent.com OR site:apartmentlist.com OR site:redfin.com OR site:homes.com'
   const TYPES = [
     { propertyType: 'Single Family',     query: 'single family homes for rent',         apartmentsPath: 'houses' },
     { propertyType: 'Condo',             query: 'condos for rent',                      apartmentsPath: 'condos' },
@@ -661,17 +690,21 @@ function syntheticTypeCards(city, state, zip) {
     { propertyType: 'Quadplex',          query: 'quadplex fourplex for rent',           apartmentsQuery: 'quadplex fourplex' },
   ]
   return TYPES.map(t => {
-    // Primary deep-link: Google search restricted to major rental
-    // aggregators. This returns actual listings, not a landing page.
+    // Primary deep-link: Google search restricted to working aggregators
+    // for the market region (CONUS vs OCONUS). Returns actual listings.
     const googleSearchUrl = `https://www.google.com/search?q=${ev(`${t.query} ${cityState} ${aggregatorSites}`)}`
     // Secondary deep-link: Google Maps search for the same property
-    // type, returns real homes on a map.
+    // type. Maps works everywhere, including OCONUS.
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${ev(`${t.query} ${cityState}`)}`
-    // Apartments.com type-filtered landing page (tertiary - kept for
-    // users who prefer a single-aggregator view).
-    const apartmentsUrl = t.apartmentsPath
-      ? `https://www.apartments.com/${slug}/${t.apartmentsPath}/`
-      : `https://www.apartments.com/search/?q=${ev(t.apartmentsQuery + ' ' + cityState)}`
+    // Tertiary deep-link:
+    //   - CONUS: Apartments.com type-filtered landing page
+    //   - OCONUS: AHRN.com search prefilled with city + property type
+    //     (AHRN covers every U.S. military installation worldwide)
+    const apartmentsUrl = oconus
+      ? `https://www.ahrn.com/search?q=${ev(`${t.query} ${cityState}`)}`
+      : t.apartmentsPath
+        ? `https://www.apartments.com/${slug}/${t.apartmentsPath}/`
+        : `https://www.apartments.com/search/?q=${ev(t.apartmentsQuery + ' ' + cityState)}`
     return {
       id: `synthetic-${t.propertyType.toLowerCase().replace(/\s+/g, '-')}-${slug}`,
       name: `${t.propertyType} rentals near ${city}`,
@@ -813,6 +846,175 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
     sources: {
       rapidapi: RAPIDAPI_KEY ? `ok-${rapidApiResults.length}` : 'no-api-key',
       openstreetmap: `ok-${osmResults.length}`,
+    },
+    fetchedAt: Date.now(),
+  })
+})
+
+// === HOUSING MARKET STATS (FRED + HUD USER) ===
+// Public-data market context for the gaining installation's PCS market.
+// Two free U.S. government data sources, both keyed (free registration):
+//   1. FRED (Federal Reserve Economic Data, stlouisfed.org)
+//      - MORTGAGE30US: 30-year fixed-rate mortgage average (weekly)
+//      - MSPUS:        Median Sales Price of Houses Sold (national, Q)
+//      - CSUSHPISA:    S&P/Case-Shiller National Home Price Index (M)
+//   2. HUD User (huduser.gov) Fair Market Rents
+//      - FY 40th-percentile FMRs by metro / county
+//      - Sets the BAH-comparison baseline service members care about
+// Both endpoints degrade silently when the corresponding API key env
+// var is unset; the frontend hides the panel section in that case.
+// CONUS-only: HUD FMRs do not cover OCONUS installations. OCONUS
+// requests return mortgageRate (still useful as a national constant)
+// but an empty fairMarketRent block.
+const FRED_API_KEY = process.env.FRED_API_KEY || ''
+const HUD_API_KEY = process.env.HUD_API_KEY || ''
+const MARKET_STATS_CACHE = new Map()
+const MARKET_STATS_TTL_MS = 6 * 60 * 60 * 1000   // 6h
+const MARKET_STATS_RATE_LIMIT = 30
+const MARKET_STATS_RATE_WINDOW_MS = 60_000
+const _marketStatsHits = new Map()
+
+function marketStatsRateLimit(req, res, next) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const now = Date.now()
+  const entry = _marketStatsHits.get(ip)
+  if (!entry || now - entry.windowStart > MARKET_STATS_RATE_WINDOW_MS) {
+    _marketStatsHits.set(ip, { count: 1, windowStart: now })
+    return next()
+  }
+  if (entry.count >= MARKET_STATS_RATE_LIMIT) {
+    return res.status(429).json({ error: 'Rate limit exceeded. Try again in a minute.', stats: null, fallback: true })
+  }
+  entry.count += 1
+  return next()
+}
+
+// FRED latest observation. Returns { value:number, asOf:'YYYY-MM-DD' }
+// or null on any failure / missing key. We sort desc and ask for one
+// row so a single round-trip pulls the freshest data point.
+async function fredLatestObservation(seriesId) {
+  if (!FRED_API_KEY) return null
+  try {
+    const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${encodeURIComponent(seriesId)}&api_key=${encodeURIComponent(FRED_API_KEY)}&file_type=json&sort_order=desc&limit=1`
+    const r = await fetch(url, { signal: AbortSignal.timeout(8000) })
+    if (!r.ok) { console.error(`[market-stats] fred ${seriesId} ${r.status}`); return null }
+    const data = await r.json()
+    const obs = Array.isArray(data?.observations) ? data.observations[0] : null
+    if (!obs || obs.value === '.' || obs.value == null) return null
+    const value = Number(obs.value)
+    if (!Number.isFinite(value)) return null
+    return { value, asOf: obs.date, seriesId }
+  } catch (err) {
+    console.error(`[market-stats] fred ${seriesId} ${err.message}`)
+    return null
+  }
+}
+
+// HUD User FMR: pull all county/metro rows for a state, pick the row
+// whose town_name / county_name / metro_name best matches the user's
+// city. statedata returns a heterogeneous shape (metroareas + counties)
+// so we walk both. Returns null when no key, not US, or no match.
+async function hudFmrForCityState(city, state) {
+  if (!HUD_API_KEY) return null
+  if (isOconusMarket(state)) return null
+  const s = String(state || '').trim().toUpperCase()
+  if (s.length !== 2 || !US_STATE_CODES.has(s)) return null
+  try {
+    const url = `https://www.huduser.gov/hudapi/public/fmr/statedata/${encodeURIComponent(s)}`
+    const r = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${HUD_API_KEY}`,
+      },
+      signal: AbortSignal.timeout(10000),
+    })
+    if (!r.ok) { console.error(`[market-stats] hud ${s} ${r.status}`); return null }
+    const data = await r.json()
+    const year = data?.data?.year || null
+    const counties = Array.isArray(data?.data?.counties) ? data.data.counties : []
+    const metros = Array.isArray(data?.data?.metroareas) ? data.data.metroareas : []
+    const cityLc = String(city || '').toLowerCase().trim()
+    // Score every candidate; pick the highest-scoring match. Exact
+    // town_name match wins over county/metro substring matches.
+    const score = (row) => {
+      const town = String(row.town_name || '').toLowerCase()
+      const county = String(row.county_name || '').toLowerCase()
+      const metro = String(row.metro_name || row.area_name || '').toLowerCase()
+      if (cityLc && town === cityLc) return 100
+      if (cityLc && town.includes(cityLc)) return 80
+      if (cityLc && metro.includes(cityLc)) return 60
+      if (cityLc && county.includes(cityLc)) return 50
+      return 0
+    }
+    const all = [...metros, ...counties]
+    if (!all.length) return null
+    let best = null
+    let bestScore = -1
+    for (const row of all) {
+      const sc = score(row)
+      if (sc > bestScore) { bestScore = sc; best = row }
+    }
+    if (!best || bestScore <= 0) {
+      // Fall back to first metro (state average) when nothing matched
+      best = metros[0] || counties[0]
+      if (!best) return null
+    }
+    const num = (v) => {
+      const n = Number(v)
+      return Number.isFinite(n) && n > 0 ? n : null
+    }
+    return {
+      areaName: best.town_name || best.metro_name || best.area_name || best.county_name || `${s} (state)`,
+      year,
+      efficiency: num(best.Efficiency ?? best.efficiency ?? best.fmr_0),
+      oneBedroom: num(best['One-Bedroom'] ?? best.one_bedroom ?? best.fmr_1),
+      twoBedroom: num(best['Two-Bedroom'] ?? best.two_bedroom ?? best.fmr_2),
+      threeBedroom: num(best['Three-Bedroom'] ?? best.three_bedroom ?? best.fmr_3),
+      fourBedroom: num(best['Four-Bedroom'] ?? best.four_bedroom ?? best.fmr_4),
+      matchType: bestScore >= 80 ? 'city' : bestScore >= 50 ? 'metro' : 'state-avg',
+    }
+  } catch (err) {
+    console.error(`[market-stats] hud ${s} ${err.message}`)
+    return null
+  }
+}
+
+app.get('/api/market-stats', marketStatsRateLimit, async (req, res) => {
+  const city = String(req.query.city || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 60)
+  const state = String(req.query.state || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 16)
+  const zip = String(req.query.zip || '').trim().replace(/[^A-Za-z0-9\-]/g, '').slice(0, 10)
+  if (!city && !state && !zip) {
+    return res.status(400).json({ error: 'city, state, or zip is required', stats: null, fallback: true })
+  }
+  const cacheKey = `${city}|${state}|${zip}`
+  const cached = MARKET_STATS_CACHE.get(cacheKey)
+  if (cached && Date.now() - cached.fetchedAt < MARKET_STATS_TTL_MS) {
+    return res.status(200).json({ stats: cached.stats, fallback: false, source: 'cache', fetchedAt: cached.fetchedAt })
+  }
+
+  const [mortgageRate, medianHomePrice, homePriceIndex, fairMarketRent] = await Promise.all([
+    fredLatestObservation('MORTGAGE30US'),
+    fredLatestObservation('MSPUS'),
+    fredLatestObservation('CSUSHPISA'),
+    hudFmrForCityState(city, state),
+  ])
+
+  const stats = {
+    mortgageRate30Yr: mortgageRate, // { value, asOf, seriesId } or null
+    medianHomePrice,                 // national, quarterly
+    homePriceIndex,                  // S&P/Case-Shiller (Jan 2000 = 100)
+    fairMarketRent,                  // by bedroom count (HUD, CONUS only)
+  }
+  const hasAnyData = Object.values(stats).some(v => v && (v.value != null || v.areaName))
+  if (hasAnyData) {
+    MARKET_STATS_CACHE.set(cacheKey, { stats, fetchedAt: Date.now() })
+  }
+  res.status(200).json({
+    stats,
+    fallback: !hasAnyData,
+    sources: {
+      fred: FRED_API_KEY ? (mortgageRate ? 'ok' : 'error') : 'no-api-key',
+      hud:  HUD_API_KEY  ? (fairMarketRent ? 'ok' : (isOconusMarket(state) ? 'oconus-not-covered' : 'no-match')) : 'no-api-key',
     },
     fetchedAt: Date.now(),
   })
@@ -1539,6 +1741,22 @@ const OSM_TAG_MAP = {
   // Shopping & Markets (restored per user direction)
   'shop=mall': { categoryId: 'shopping', type: 'Shopping mall' },
   'amenity=marketplace': { categoryId: 'shopping', type: 'Marketplace' },
+  // Historic family attractions (free castles, forts, archaeological
+  // sites - great family education stops)
+  'historic=castle': { categoryId: 'museums', type: 'Castle' },
+  'historic=fort': { categoryId: 'museums', type: 'Historic fort' },
+  'historic=archaeological_site': { categoryId: 'museums', type: 'Archaeological site' },
+  'historic=ruins': { categoryId: 'museums', type: 'Historic ruins' },
+  // Outdoor recreation expanded
+  'leisure=horse_riding': { categoryId: 'sports', type: 'Horse riding' },
+  'leisure=disc_golf_course': { categoryId: 'sports', type: 'Disc golf' },
+  'leisure=skatepark': { categoryId: 'sports', type: 'Skate park' },
+  'leisure=fitness_station': { categoryId: 'sports', type: 'Outdoor fitness' },
+  'leisure=fishing': { categoryId: 'parks', type: 'Fishing area' },
+  'leisure=swimming_area': { categoryId: 'parks', type: 'Swimming area' },
+  // Farms / petting zoos (popular family destinations)
+  'tourism=farm': { categoryId: 'family', type: 'Farm visit' },
+  'tourism=wine_cellar': { categoryId: 'family', type: 'Vineyard' },
 }
 
 const FAMILY_CACHE = new Map()

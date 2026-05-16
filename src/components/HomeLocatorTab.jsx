@@ -110,13 +110,20 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
   // link cards below as the verified fallback path.
   const [listings, setListings] = useState({ status: 'idle', items: [], fallback: false, reason: '' });
   const [typeFilter, setTypeFilter] = useState('All');
+  // Market stats from /api/market-stats — FRED (30-yr mortgage rate,
+  // median home price, Case-Shiller HPI) + HUD User (Fair Market Rents
+  // by bedroom count). Optional context above the listings grid;
+  // hidden entirely when neither API key is configured.
+  const [marketStats, setMarketStats] = useState({ status: 'idle', stats: null });
   useEffect(() => {
     if (!market.matched || (!market.city && !market.zip)) {
       setListings({ status: 'no-market', items: [], fallback: true, reason: 'unknown-installation' });
+      setMarketStats({ status: 'no-market', stats: null });
       return;
     }
     let cancelled = false;
     setListings(s => ({ ...s, status: 'loading' }));
+    setMarketStats({ status: 'loading', stats: null });
     const params = new URLSearchParams();
     if (market.city) params.set('city', market.city);
     if (market.state) params.set('state', market.state);
@@ -136,6 +143,16 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
       .catch(err => {
         if (cancelled) return;
         setListings({ status: 'ready', items: [], fallback: true, reason: `network-${err?.message || 'error'}` });
+      });
+    fetch(`/api/market-stats?${params.toString()}`, { headers: { Accept: 'application/json' } })
+      .then(r => r.ok ? r.json() : { stats: null, fallback: true })
+      .then(data => {
+        if (cancelled) return;
+        setMarketStats({ status: 'ready', stats: data?.stats || null });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setMarketStats({ status: 'ready', stats: null });
       });
     return () => { cancelled = true; };
   }, [market.city, market.state, market.zip, market.matched]);
@@ -162,6 +179,87 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
           Leave this blank to use the gaining installation from onboarding.
         </div>
       </div>
+
+      {marketStats.status === 'ready' && marketStats.stats && (() => {
+        const s = marketStats.stats;
+        const m = s.mortgageRate30Yr;
+        const mhp = s.medianHomePrice;
+        const fmr = s.fairMarketRent;
+        const hasFred = !!(m || mhp);
+        const hasFmr = !!fmr;
+        if (!hasFred && !hasFmr) return null;
+        const usd = (n) => n == null ? '' : '$' + Math.round(n).toLocaleString();
+        const fmtDate = (iso) => {
+          if (!iso) return '';
+          const d = new Date(iso);
+          if (Number.isNaN(d.getTime())) return iso;
+          return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        };
+        return (
+          <section style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 900, color: colors.text }}>
+                Market snapshot
+                <span style={{ fontSize: 10, fontWeight: 700, color: colors.muted, marginLeft: 8 }}>
+                  {fmr?.areaName ? `${fmr.areaName}` : (market.city ? `${market.city}${market.state ? ', ' + market.state : ''}` : 'national')}
+                </span>
+              </div>
+              <div style={{ fontSize: 9, color: colors.muted, letterSpacing: '.06em' }}>
+                FRED · HUD User
+              </div>
+            </div>
+            {hasFred && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginBottom: hasFmr ? 10 : 0 }}>
+                {m && (
+                  <div style={{ background: '#F4F7F7', borderLeft: `3px solid ${colors.accent}`, borderRadius: 8, padding: '8px 10px' }}>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: colors.muted, letterSpacing: '.06em' }}>30-YR MORTGAGE</div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: colors.text, marginTop: 2 }}>{m.value.toFixed(2)}%</div>
+                    <div style={{ fontSize: 9, color: colors.muted, marginTop: 2 }}>as of {fmtDate(m.asOf)} · Freddie Mac via FRED</div>
+                  </div>
+                )}
+                {mhp && (
+                  <div style={{ background: '#F4F7F7', borderLeft: `3px solid ${colors.accent}`, borderRadius: 8, padding: '8px 10px' }}>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: colors.muted, letterSpacing: '.06em' }}>MEDIAN HOME PRICE (US)</div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: colors.text, marginTop: 2 }}>{usd(mhp.value * 1000)}</div>
+                    <div style={{ fontSize: 9, color: colors.muted, marginTop: 2 }}>as of {fmtDate(mhp.asOf)} · Census/HUD via FRED</div>
+                  </div>
+                )}
+                {s.homePriceIndex && (
+                  <div style={{ background: '#F4F7F7', borderLeft: `3px solid ${colors.accent}`, borderRadius: 8, padding: '8px 10px' }}>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: colors.muted, letterSpacing: '.06em' }}>HOME PRICE INDEX</div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: colors.text, marginTop: 2 }}>{s.homePriceIndex.value.toFixed(1)}</div>
+                    <div style={{ fontSize: 9, color: colors.muted, marginTop: 2 }}>S&amp;P/Case-Shiller · {fmtDate(s.homePriceIndex.asOf)}</div>
+                  </div>
+                )}
+              </div>
+            )}
+            {hasFmr && (
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: colors.muted, letterSpacing: '.06em', marginBottom: 6 }}>
+                  HUD FAIR MARKET RENT {fmr.year ? `· FY${fmr.year}` : ''} {fmr.matchType === 'state-avg' ? '· state average' : ''}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: 6 }}>
+                  {[
+                    ['Studio', fmr.efficiency],
+                    ['1 BR', fmr.oneBedroom],
+                    ['2 BR', fmr.twoBedroom],
+                    ['3 BR', fmr.threeBedroom],
+                    ['4 BR', fmr.fourBedroom],
+                  ].filter(([, v]) => v != null).map(([label, value]) => (
+                    <div key={label} style={{ background: '#EAF4FF', borderRadius: 6, padding: '6px 8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: 9, fontWeight: 700, color: '#0D3B66' }}>{label}</div>
+                      <div style={{ fontSize: 14, fontWeight: 900, color: '#0D3B66', marginTop: 1 }}>{usd(value)}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: 9, color: colors.muted, marginTop: 6 }}>
+                  HUD FMRs are the 40th-percentile rent for standard quality units — compare against your BAH to gauge cost. Public data, no PII.
+                </div>
+              </div>
+            )}
+          </section>
+        );
+      })()}
 
       {listings.status === 'loading' && (
         <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 12, color: colors.muted }}>

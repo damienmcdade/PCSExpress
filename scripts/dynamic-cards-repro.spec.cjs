@@ -53,7 +53,10 @@ test('Family Fun dynamic cards populate on live deploy', async ({ page }) => {
   const familyFunBtn = page.locator('text="Family Fun"').first();
   if (await familyFunBtn.count() > 0) {
     await familyFunBtn.click({ timeout: 5000 }).catch(() => {});
-    await page.waitForTimeout(3500);
+    // First load against an empty Overpass cache can take 20-40s at
+    // 50mi radius; wait for the request to actually finish.
+    await page.waitForResponse(r => r.url().includes('/api/family-activities'), { timeout: 60_000 }).catch(() => {});
+    await page.waitForTimeout(1500);
   }
 
   // Look for the cards section text
