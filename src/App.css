@@ -1612,3 +1612,200 @@ input, select, textarea {
   }
 }
 
+/* ── Home category tiles ─────────────────────────────────────────────
+   A modern, sleek hover treatment for the home-screen category grid.
+   - A diagonal "wave" sheen sweeps across the tile when the cursor
+     passes over it (or when scrolled into view on touch devices).
+   - The small icon (emoji glyph + 3-letter abbreviation) lifts and
+     rotates slightly so the entire tile feels alive.
+   - Each tile carries a custom property --cat-color (passed from JS)
+     that drives the border accent, sheen tint, and glow color.
+   - Per-tile --cat-delay staggers the in-view appearance so the grid
+     reveals as the user scrolls.                                       */
+.home-cat-grid {
+  --hcg-stagger: 35ms;
+}
+
+.home-cat-tile {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--pcs-line, #E0E6EE);
+  border-top: 4px solid var(--cat-color, #244247);
+  border-radius: 14px;
+  background: var(--pcs-surface, #FFFFFF);
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 12px 28px rgba(38, 53, 31, 0.12);
+  transition:
+    transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 220ms ease;
+  font: inherit;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+  animation: home-cat-rise 540ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--cat-delay, 0ms);
+  will-change: transform, box-shadow;
+}
+
+.home-cat-tile__sheen {
+  position: absolute;
+  inset: -40% -120%;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    transparent 38%,
+    color-mix(in srgb, var(--cat-color, #244247) 14%, transparent) 50%,
+    color-mix(in srgb, var(--cat-color, #244247) 26%, transparent) 52%,
+    color-mix(in srgb, var(--cat-color, #244247) 14%, transparent) 54%,
+    transparent 66%,
+    transparent 100%
+  );
+  transform: translateX(-60%);
+  opacity: 0;
+  transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 220ms ease;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+.home-cat-tile__icon {
+  position: relative;
+  z-index: 1;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid transparent;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 2px 6px rgba(13, 24, 33, 0.06);
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.home-cat-tile__glyph {
+  font-size: 22px;
+  line-height: 1;
+  display: inline-block;
+  filter: drop-shadow(0 1px 1px rgba(13, 24, 33, 0.20));
+  transition: transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.home-cat-tile__abbr {
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.home-cat-tile__label {
+  position: relative;
+  z-index: 1;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.2;
+  color: #0D1821;
+  transition: letter-spacing 240ms ease, color 240ms ease;
+}
+
+@media (hover: hover) {
+  .home-cat-tile:hover,
+  .home-cat-tile:focus-visible {
+    transform: translateY(-3px);
+    box-shadow:
+      0 18px 32px -10px rgba(13, 24, 33, 0.22),
+      0 0 0 1px color-mix(in srgb, var(--cat-color, #244247) 30%, transparent);
+    border-top-color: var(--cat-color, #244247);
+  }
+
+  .home-cat-tile:hover .home-cat-tile__sheen,
+  .home-cat-tile:focus-visible .home-cat-tile__sheen {
+    transform: translateX(60%);
+    opacity: 1;
+  }
+
+  .home-cat-tile:hover .home-cat-tile__icon,
+  .home-cat-tile:focus-visible .home-cat-tile__icon {
+    transform: translateY(-4px) rotate(-3deg) scale(1.06);
+  }
+
+  .home-cat-tile:hover .home-cat-tile__glyph,
+  .home-cat-tile:focus-visible .home-cat-tile__glyph {
+    animation: home-cat-glyph-bounce 700ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .home-cat-tile:hover .home-cat-tile__label,
+  .home-cat-tile:focus-visible .home-cat-tile__label {
+    letter-spacing: 0.02em;
+    color: var(--cat-color, #244247);
+  }
+}
+
+.home-cat-tile:active {
+  transform: translateY(-1px) scale(0.985);
+  box-shadow: 0 6px 14px -6px rgba(13, 24, 33, 0.20);
+}
+
+.home-cat-tile:focus-visible {
+  outline: 2px solid var(--cat-color, #244247);
+  outline-offset: 3px;
+}
+
+@keyframes home-cat-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes home-cat-glyph-bounce {
+  0%   { transform: translateY(0) rotate(0deg); }
+  35%  { transform: translateY(-6px) rotate(-8deg); }
+  60%  { transform: translateY(2px) rotate(4deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+/* Honor reduced-motion preferences — drop the rise animation and the
+   bouncing glyph for users with vestibular sensitivity. */
+@media (prefers-reduced-motion: reduce) {
+  .home-cat-tile,
+  .home-cat-tile__sheen,
+  .home-cat-tile__icon,
+  .home-cat-tile__glyph,
+  .home-cat-tile__label {
+    animation: none !important;
+    transition-duration: 0ms !important;
+  }
+}
+
+/* Touch devices: idle sheen sweep so the affordance is visible without
+   needing a hover. The sweep is slower and lower opacity than hover. */
+@media (hover: none) {
+  .home-cat-tile__sheen {
+    opacity: 0.55;
+    animation: home-cat-idle-sheen 4500ms ease-in-out infinite;
+    animation-delay: var(--cat-delay, 0ms);
+  }
+}
+
+@keyframes home-cat-idle-sheen {
+  0%, 70%, 100% { transform: translateX(-60%); opacity: 0.0; }
+  85%           { transform: translateX(60%);  opacity: 0.55; }
+}
+

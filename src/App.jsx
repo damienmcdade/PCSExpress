@@ -8056,14 +8056,28 @@ function App() {
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {HOME_CATEGORIES.map((item) => (
-                <div key={item.id} onClick={() => goTo(item.id)} style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderTop: `4px solid ${item.color}`, borderRadius: 14, padding: isDesktop ? '18px 12px' : '15px 10px', cursor: 'pointer', textAlign: 'center', boxShadow: '0 12px 28px rgba(38,53,31,0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: isDesktop ? 118 : 104, position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ width: 50, height: 36, borderRadius: 10, background: `${item.color}16`, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${item.color}35`, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.45)` }}>
-                    <span style={{ fontSize: 11, fontWeight: 900, color: item.color, letterSpacing: '.08em' }}>{item.icon}</span>
-                  </div>
-                  <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821', lineHeight: 1.2 }}>{item.label}</div>
-                </div>
+            <div className="home-cat-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {HOME_CATEGORIES.map((item, idx) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => goTo(item.id)}
+                  className="home-cat-tile"
+                  style={{
+                    '--cat-color': item.color,
+                    '--cat-delay': `${idx * 35}ms`,
+                    minHeight: isDesktop ? 118 : 104,
+                    padding: isDesktop ? '18px 12px' : '15px 10px',
+                  }}
+                  aria-label={item.label}
+                >
+                  <span className="home-cat-tile__sheen" aria-hidden="true" />
+                  <span className="home-cat-tile__icon" style={{ background: `${item.color}16`, borderColor: `${item.color}35` }} aria-hidden="true">
+                    <span className="home-cat-tile__glyph">{item.iosIcon}</span>
+                    <span className="home-cat-tile__abbr" style={{ color: item.color }}>{item.icon}</span>
+                  </span>
+                  <span className="home-cat-tile__label">{item.label}</span>
+                </button>
               ))}
             </div>
 
