@@ -289,6 +289,7 @@ const PROFILE_DEFAULTS = {
 const RESERVE_ORDERS_TYPES = [
   { value: 'title10_pcs',          label: 'Title 10 PCS Orders (Federal Active Duty, 180+ days)',  desc: '10 USC §12301(d) voluntary, or §12302 partial mobilization. Full active-duty PCS entitlements: BAH at gaining ZIP, TRICARE Prime, HHG, DLA, TLE/TQSE.',                                                                pcsEntitled: true,  bahEligible: true,  tricarePrime: true,  federalActive: true,  ordersDuration: 'long'  },
   { value: 'title10_mobilization', label: 'Title 10 Mobilization (Involuntary, 30+ days)',         desc: '10 USC §12302 / §12304 / §12304b. Active duty for contingency, presidential reserve call-up, or pre-planned mission. Same benefits as Title 10 PCS for the duration.',                                          pcsEntitled: true,  bahEligible: true,  tricarePrime: true,  federalActive: true,  ordersDuration: 'long'  },
+  { value: 'agr',                  label: 'AGR (Active Guard Reserve) / TAR / AR Program',         desc: 'Full-time Title 10 active duty supporting the Reserve component (Army AGR, Navy TAR, Marine AR, Air Force AGR, Coast Guard RPA). Benefits match Active Duty: BAH, TRICARE Prime, HHG, full JTR PCS package.',  pcsEntitled: true,  bahEligible: true,  tricarePrime: true,  federalActive: true,  ordersDuration: 'long'  },
   { value: 'title10_ados',         label: 'Title 10 ADOS / ADSW',                                  desc: 'Active Duty Operational Support — voluntary federal active duty for specific projects. Benefits scale with duration: 30+ days unlocks BAH; 180+ days unlocks full PCS package.',                                  pcsEntitled: false, bahEligible: true,  tricarePrime: true,  federalActive: true,  ordersDuration: 'long'  },
   { value: 'title10_at',           label: 'Annual Training (AT / ADT / IADT, ≤30 days)',           desc: '10 USC §12301(b). Short-term federal active duty for training. No PCS, no BAH at gaining ZIP, but TRICARE coverage for duration plus 6 months post.',                                                            pcsEntitled: false, bahEligible: false, tricarePrime: true,  federalActive: true,  ordersDuration: 'short' },
   { value: 'idt',                  label: 'Drill / IDT (Inactive Duty Training)',                  desc: '10 USC §10147. Weekend drill assemblies. No active-duty status, no PCS, no BAH. TRICARE Reserve Select (TRS) available as a premium option for continuous coverage.',                                              pcsEntitled: false, bahEligible: false, tricarePrime: false, federalActive: false, ordersDuration: 'short' },
@@ -322,13 +323,33 @@ function normalizeProfile(raw) {
     ? raw.childAges.filter(a => a !== '' && !isNaN(Number(a))).map(Number)
     : String(raw.childrenAges || '').split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
 
+  // Migrate retired component values. AGR is no longer a top-level
+  // component — it became an orders-type inside Reserve. Dependent is
+  // no longer a top-level onboarding option. Both fall back to Active
+  // Duty so the rest of the profile (branch, paygrade) stays usable.
+  let migratedComponent = raw.component || PROFILE_DEFAULTS.component;
+  let migratedOrdersType = raw.ordersType || '';
+  if (raw.component === 'AGR') {
+    migratedComponent = 'Reserve';
+    migratedOrdersType = 'agr';
+  } else if (raw.component === 'Dependent') {
+    migratedComponent = 'Active Duty';
+  }
+  // ordersType only applies to Reserve and National Guard. Strip any
+  // leftover value for Active Duty or DoD Civilian profiles so the
+  // checklist/document filters don't accidentally narrow benefits.
+  if (migratedComponent !== 'Reserve' && migratedComponent !== 'National Guard') {
+    migratedOrdersType = '';
+  }
+
   return {
     ...PROFILE_DEFAULTS,
     ...raw,
     branch,
     firstName: String(raw.firstName || ''),
     lastName: String(raw.lastName || ''),
-    component: ['FTNG', 'Spouse'].includes(raw.component) ? PROFILE_DEFAULTS.component : (raw.component || PROFILE_DEFAULTS.component),
+    component: ['FTNG', 'Spouse'].includes(raw.component) ? PROFILE_DEFAULTS.component : migratedComponent,
+    ordersType: migratedOrdersType,
     paygrade: raw.paygrade || PROFILE_DEFAULTS.paygrade,
     losingInstallation: String(raw.losingInstallation || ''),
     gainingInstallation: String(raw.gainingInstallation || ''),
@@ -5355,15 +5376,16 @@ const COMPONENT_TYPES = ['Active Duty', 'Reserve', 'National Guard', 'AGR', 'DoD
 
 // Branch -> components offered. Filters the onboarding component
 // dropdown so users only see options that actually exist for their
-// branch.
+// branch. AGR is NOT a top-level component — it is an orders-type
+// selection inside Reserve/National Guard. Dependent is not a
+// selectable onboarding component either; family members configure
+// their profile under the sponsoring service member.
 //   * Army & Air Force have full National Guard components (ARNG, ANG)
 //   * Marine Corps, Navy, Coast Guard, Space Force have no National
 //     Guard (Marines/Navy reserves only; Coast Guard has Reserve;
-//     Space Force has no Guard or AGR as of 2026)
+//     Space Force has no Guard component as of 2026)
 //   * Every branch has a civilian workforce, so DoD Civilian is
 //     available for all branches.
-//   * AGR (Active Guard Reserve) is a Guard/Reserve-only category;
-//     shows only when the branch has Reserve or Guard components.
 function componentsForBranch(branch) {
   const b = String(branch || '').trim();
   const hasGuard = b === 'Army' || b === 'Air Force';
@@ -5371,9 +5393,7 @@ function componentsForBranch(branch) {
   const components = ['Active Duty'];
   if (hasReserve) components.push('Reserve');
   if (hasGuard) components.push('National Guard');
-  if (hasReserve || hasGuard) components.push('AGR');
   components.push('DoD Civilian');
-  components.push('Dependent');
   return components;
 }
 
@@ -6705,20 +6725,26 @@ function Onboarding({ onComplete }) {
 
               {/* Component — filtered by branch. National Guard only
                   appears for Army/Air Force; Reserve only for branches
-                  with a reserve component; DoD Civilian for all. */}
+                  with a reserve component; DoD Civilian for all. AGR
+                  is not a top-level option — pick Reserve or National
+                  Guard, then select AGR as your orders type below. */}
               <div style={{ marginBottom: 12 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('component')}</label>
                 <select value={p.component} onChange={e => {
                   const comp = e.target.value;
-                  if (comp === 'Dependent') {
-                    setP(prev => ({ ...prev, component: comp, paygrade: 'N/A' }));
-                  } else if (comp === 'DoD Civilian') {
+                  if (comp === 'DoD Civilian') {
                     // Reset paygrade to the GS-equivalent default when
-                    // switching into civilian mode.
+                    // switching into civilian mode. Civilians never
+                    // have an ordersType.
                     const isMilitaryRank = prev => /^(E-|O-|W-)/.test(prev?.paygrade || '');
-                    setP(prev => ({ ...prev, component: comp, paygrade: isMilitaryRank(prev) ? 'GS-11' : (prev.paygrade || 'GS-11') }));
+                    setP(prev => ({ ...prev, component: comp, ordersType: '', paygrade: isMilitaryRank(prev) ? 'GS-11' : (prev.paygrade || 'GS-11') }));
                   } else {
-                    setP(prev => ({ ...prev, component: comp, paygrade: prev.paygrade === 'N/A' || prev.paygrade?.startsWith('GS-') || prev.paygrade?.startsWith('WG') || prev.paygrade === 'SES' || prev.paygrade === 'WS' || prev.paygrade === 'WL' ? 'E-5' : prev.paygrade }));
+                    // Switching to Active Duty clears any ordersType
+                    // (only Reserve/NG use it). Switching to Reserve or
+                    // National Guard from another component leaves the
+                    // ordersType blank so the user picks one.
+                    const clearedOrders = (comp === 'Active Duty') ? '' : (p.ordersType || '');
+                    setP(prev => ({ ...prev, component: comp, ordersType: clearedOrders, paygrade: prev.paygrade === 'N/A' || prev.paygrade?.startsWith('GS-') || prev.paygrade?.startsWith('WG') || prev.paygrade === 'SES' || prev.paygrade === 'WS' || prev.paygrade === 'WL' ? 'E-5' : prev.paygrade }));
                   }
                 }} style={inputSt}>
                   {componentsForBranch(p.branch).map(c => <option key={c}>{c}</option>)}
