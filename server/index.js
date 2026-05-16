@@ -663,13 +663,16 @@ function shapeOsmApartmentComplex(el, originLat, originLng, originCity, originSt
   }
 }
 
-// A US state is either a 2-letter postal abbreviation or one of a
-// few territory codes (PR, GU, VI, MP, AS). Anything else is OCONUS.
+// A US state is either a 2-letter postal abbreviation, DC, or one of
+// the geographic territories (PR, GU, VI, MP, AS). Military mail
+// routing codes (AE, AP, AA) are NOT geocodable and are intentionally
+// excluded — installations that historically used them have been
+// updated to carry real city/country data instead.
 const US_STATE_CODES = new Set([
   'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
   'KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
   'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT',
-  'VA','WA','WV','WI','WY','DC','PR','GU','VI','MP','AS','AE','AP','AA',
+  'VA','WA','WV','WI','WY','DC','PR','GU','VI','MP','AS',
 ])
 function isOconusMarket(state) {
   if (!state) return false
@@ -882,7 +885,22 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
     }
   })()
 
-  const [rapidApiResults, osmResults] = await Promise.all([rapidApiPromise, osmPromise])
+  // Hard time budget for the OSM/Overpass leg. The endpoint should
+  // never spin longer than this from the user's perspective — synthetic
+  // directory cards are always available instantly and are the most
+  // actionable content for OCONUS markets. If Overpass exceeds the
+  // budget we return [] for the OSM leg and the response completes
+  // with rapidApi + synthetic. The cache will fill on a subsequent
+  // request once Overpass warms up.
+  const OSM_TIME_BUDGET_MS = 18_000
+  const osmWithTimeout = Promise.race([
+    osmPromise,
+    new Promise(resolve => setTimeout(() => {
+      console.error('[housing-listings] osm budget exceeded; returning synthetic-only response')
+      resolve([])
+    }, OSM_TIME_BUDGET_MS)),
+  ])
+  const [rapidApiResults, osmResults] = await Promise.all([rapidApiPromise, osmWithTimeout])
   // Result ordering, top to bottom:
   //   1. RapidAPI priced rentals — real addresses with bed/bath/sqft
   //      (only when RAPIDAPI_KEY is configured).
@@ -1934,13 +1952,26 @@ async function geocodeNominatim(input) {
   }
   // Structured path — try variants in order of specificity.
   const { address, city, state, zip } = input || {}
+  // Defensive guard: military mail routing codes (AE, AP, AA) and
+  // "APO" / "FPO" placeholder cities are NOT geocodable. Treat them
+  // as if no state/city was supplied; the caller will see null and
+  // surface the unknown-installation message rather than resolving
+  // to a random foreign city.
+  const stateUp = String(state || '').trim().toUpperCase()
+  const cityUp = String(city || '').trim().toUpperCase()
+  const isMilitaryMailState = stateUp === 'AE' || stateUp === 'AP' || stateUp === 'AA'
+  const isMilitaryMailCity = cityUp === 'APO' || cityUp === 'FPO' || cityUp === 'DPO'
+  const safeState = isMilitaryMailState ? '' : state
+  const safeCity = isMilitaryMailCity ? '' : city
   const variants = []
   if (address) variants.push(address)
-  if (city && state && zip) variants.push(`${city}, ${state}, ${zip}`)
-  if (city && state) variants.push(`${city}, ${state}`)
-  if (zip && state) variants.push(`${zip}, ${state}`)
-  if (zip) variants.push(zip)
-  if (city) variants.push(city)
+  if (safeCity && safeState && zip) variants.push(`${safeCity}, ${safeState}, ${zip}`)
+  if (safeCity && safeState) variants.push(`${safeCity}, ${safeState}`)
+  if (zip && safeState) variants.push(`${zip}, ${safeState}`)
+  // Bare zip-only lookups are skipped when state is missing — too many
+  // zips collide across countries (e.g., "36100" matches both Vicenza
+  // Italy and an Algerian village). Require some country context.
+  if (safeCity) variants.push(safeCity)
   // Dedupe while preserving order.
   const seen = new Set()
   for (const v of variants) {

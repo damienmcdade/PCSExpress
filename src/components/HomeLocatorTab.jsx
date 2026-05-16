@@ -130,9 +130,19 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
     if (market.state) params.set('state', market.state);
     if (market.zip) params.set('zip', market.zip);
     if (profile?.language) params.set('lang', profile.language);
-    fetch(apiUrl(`/api/housing-listings?${params.toString()}`), { headers: { Accept: 'application/json' } })
+    // Client-side abort after 25s. The server already caps the OSM
+    // leg at 18s and returns synthetic-only when Overpass is slow, so
+    // 25s is a generous outer bound. If the network fails entirely we
+    // surface a non-blocking message rather than spinning indefinitely.
+    const housingAbort = new AbortController();
+    const housingTimer = setTimeout(() => housingAbort.abort(), 25_000);
+    fetch(apiUrl(`/api/housing-listings?${params.toString()}`), {
+      headers: { Accept: 'application/json' },
+      signal: housingAbort.signal,
+    })
       .then(r => r.ok ? r.json() : { listings: [], fallback: true, reason: `http-${r.status}` })
       .then(data => {
+        clearTimeout(housingTimer);
         if (cancelled) return;
         setListings({
           status: 'ready',
@@ -142,20 +152,35 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
         });
       })
       .catch(err => {
+        clearTimeout(housingTimer);
         if (cancelled) return;
-        setListings({ status: 'ready', items: [], fallback: true, reason: `network-${err?.message || 'error'}` });
+        const reason = err?.name === 'AbortError' ? 'timeout' : `network-${err?.message || 'error'}`;
+        setListings({ status: 'ready', items: [], fallback: true, reason });
       });
-    fetch(apiUrl(`/api/market-stats?${params.toString()}`), { headers: { Accept: 'application/json' } })
+    const statsAbort = new AbortController();
+    const statsTimer = setTimeout(() => statsAbort.abort(), 12_000);
+    fetch(apiUrl(`/api/market-stats?${params.toString()}`), {
+      headers: { Accept: 'application/json' },
+      signal: statsAbort.signal,
+    })
       .then(r => r.ok ? r.json() : { stats: null, fallback: true })
       .then(data => {
+        clearTimeout(statsTimer);
         if (cancelled) return;
         setMarketStats({ status: 'ready', stats: data?.stats || null });
       })
       .catch(() => {
+        clearTimeout(statsTimer);
         if (cancelled) return;
         setMarketStats({ status: 'ready', stats: null });
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      clearTimeout(housingTimer);
+      clearTimeout(statsTimer);
+      housingAbort.abort();
+      statsAbort.abort();
+    };
   }, [market.city, market.state, market.zip, market.matched]);
 
   return (
@@ -399,7 +424,9 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
         <div style={{ background: '#EAF4FF', border: '1px solid #B9D9F6', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 11, color: '#0D3B66', lineHeight: 1.5 }}>
           {listings.reason === 'unknown-installation'
             ? 'Select a gaining installation during onboarding, or enter one in the search field above, to load active rental listings. The official housing directory below works for every installation worldwide.'
-            : `Active rental data is not currently cached for ${market.installation || 'this installation'}. Use the official housing directory below to search current availability through DoD-sanctioned sources.`}
+            : listings.reason === 'timeout' || listings.reason === 'network-Failed to fetch'
+              ? `Connection to the rental data service timed out. The official housing directory below remains available for ${market.installation || 'this installation'} — tap any source to search current availability.`
+              : `Active rental data is not currently cached for ${market.installation || 'this installation'}. Use the official housing directory below to search current availability through DoD-sanctioned sources.`}
         </div>
       )}
 
