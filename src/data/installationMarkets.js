@@ -172,6 +172,90 @@ export const INSTALLATION_MARKETS = {
   'Kunsan AB': { city: 'APO', state: 'AP', zip: '96264' },
   'Naval Station Guam': { city: 'FPO', state: 'AP', zip: '96540' },
   'Andersen AFB': { city: 'APO', state: 'AP', zip: '96543' },
+
+  // ── ARMY RESERVE ──────────────────────────────────────────────────────
+  // Public city/state/zip from army.mil / usar.army.mil installation pages.
+  'Fort McCoy': { city: 'Sparta', state: 'WI', zip: '54656' },
+  'Camp Atterbury': { city: 'Edinburgh', state: 'IN', zip: '46124' },
+  'Camp Parks (Parks RFTA)': { city: 'Dublin', state: 'CA', zip: '94568' },
+  'Devens Reserve Forces Training Area': { city: 'Devens', state: 'MA', zip: '01434' },
+  '88th Readiness Division HQ Fort McCoy': { city: 'Sparta', state: 'WI', zip: '54656' },
+  '99th Readiness Division HQ Fort Dix': { city: 'Joint Base McGuire-Dix-Lakehurst', state: 'NJ', zip: '08640' },
+  '63rd Readiness Division HQ Mountain View': { city: 'Mountain View', state: 'CA', zip: '94043' },
+  '81st Readiness Division HQ Fort Jackson': { city: 'Columbia', state: 'SC', zip: '29207' },
+
+  // ── ARMY NATIONAL GUARD · MAJOR TRAINING CENTERS ──────────────────────
+  // Public addresses from nationalguard.mil and state ARNG sites.
+  'Camp Shelby Joint Forces Training Center': { city: 'Hattiesburg', state: 'MS', zip: '39407' },
+  'Camp Williams (Utah NG)': { city: 'Bluffdale', state: 'UT', zip: '84065' },
+  'Camp Robinson': { city: 'North Little Rock', state: 'AR', zip: '72199' },
+  'Camp Mabry (Texas Military Forces HQ)': { city: 'Austin', state: 'TX', zip: '78763' },
+  'Camp Murray (Washington NG)': { city: 'Tacoma', state: 'WA', zip: '98430' },
+  'Camp Roberts': { city: 'San Miguel', state: 'CA', zip: '93451' },
+  'Camp Ripley': { city: 'Little Falls', state: 'MN', zip: '56345' },
+  'Camp Grayling Joint Maneuver Training Center': { city: 'Grayling', state: 'MI', zip: '49739' },
+  'Camp Dawson': { city: 'Kingwood', state: 'WV', zip: '26537' },
+  'Camp Dodge': { city: 'Johnston', state: 'IA', zip: '50131' },
+  'Camp Beauregard': { city: 'Pineville', state: 'LA', zip: '71360' },
+  'Camp Edwards (Joint Base Cape Cod)': { city: 'Bourne', state: 'MA', zip: '02542' },
+  'Camp Smith Training Site': { city: 'Cortlandt Manor', state: 'NY', zip: '10567' },
+  'Camp Blanding Joint Training Center': { city: 'Starke', state: 'FL', zip: '32091' },
+  'Fort Indiantown Gap': { city: 'Annville', state: 'PA', zip: '17003' },
+  'Gowen Field': { city: 'Boise', state: 'ID', zip: '83705' },
+  'McEntire Joint National Guard Base': { city: 'Eastover', state: 'SC', zip: '29044' },
+  'Volk Field Combat Readiness Training Center': { city: 'Camp Douglas', state: 'WI', zip: '54618' },
+
+  // ── AIR FORCE RESERVE · HOST BASES ─────────────────────────────────────
+  // Public addresses from afrc.af.mil installations directory.
+  'Westover Air Reserve Base': { city: 'Chicopee', state: 'MA', zip: '01022' },
+  'March Air Reserve Base': { city: 'Riverside', state: 'CA', zip: '92518' },
+  'Dobbins Air Reserve Base': { city: 'Marietta', state: 'GA', zip: '30069' },
+  'Youngstown Air Reserve Station': { city: 'Vienna', state: 'OH', zip: '44473' },
+  'Pittsburgh Air Reserve Station': { city: 'Coraopolis', state: 'PA', zip: '15108' },
+  'Niagara Falls Air Reserve Station': { city: 'Niagara Falls', state: 'NY', zip: '14304' },
+  'Grissom Air Reserve Base': { city: 'Peru', state: 'IN', zip: '46971' },
+  'Homestead Air Reserve Base': { city: 'Homestead', state: 'FL', zip: '33039' },
+
+  // ── AIR NATIONAL GUARD · WING HOSTS ────────────────────────────────────
+  // Public airfield addresses from ang.af.mil wing pages.
+  'Barnes Air National Guard Base': { city: 'Westfield', state: 'MA', zip: '01085' },
+  'Bradley Air National Guard Base': { city: 'East Granby', state: 'CT', zip: '06026' },
+  'Burlington Air National Guard Base': { city: 'South Burlington', state: 'VT', zip: '05403' },
+  'Fresno Air National Guard Base': { city: 'Fresno', state: 'CA', zip: '93727' },
+  'Joe Foss Field': { city: 'Sioux Falls', state: 'SD', zip: '57104' },
+  'Otis Air National Guard Base': { city: 'Mashpee', state: 'MA', zip: '02649' },
+  'Selfridge Air National Guard Base': { city: 'Harrison Township', state: 'MI', zip: '48045' },
+  'Springfield Air National Guard Base': { city: 'Springfield', state: 'IL', zip: '62707' },
+  'Tulsa Air National Guard Base': { city: 'Tulsa', state: 'OK', zip: '74115' },
+  'Sioux City Air National Guard Base': { city: 'Sioux City', state: 'IA', zip: '51110' },
+  'Forbes Field Air National Guard Base': { city: 'Topeka', state: 'KS', zip: '66619' },
+  'Truax Field Air National Guard Base': { city: 'Madison', state: 'WI', zip: '53704' },
+  'Hancock Field Air National Guard Base': { city: 'Syracuse', state: 'NY', zip: '13211' },
+  'Pease Air National Guard Base': { city: 'Newington', state: 'NH', zip: '03801' },
+  'Atlantic City Air National Guard Base': { city: 'Egg Harbor Township', state: 'NJ', zip: '08234' },
+  'Reno-Tahoe Air National Guard Base': { city: 'Reno', state: 'NV', zip: '89502' },
+  'Klamath Falls Air National Guard Base': { city: 'Klamath Falls', state: 'OR', zip: '97603' },
+  'Portland Air National Guard Base': { city: 'Portland', state: 'OR', zip: '97218' },
+  'Camp Murray (ANG HQ)': { city: 'Tacoma', state: 'WA', zip: '98430' },
+  'Sumpter Smith Air National Guard Base': { city: 'Birmingham', state: 'AL', zip: '35217' },
+  'Montgomery Regional Air National Guard': { city: 'Montgomery', state: 'AL', zip: '36108' },
+  'New Castle Air National Guard Base': { city: 'New Castle', state: 'DE', zip: '19720' },
+
+  // ── NAVY RESERVE · MAJOR CENTERS ───────────────────────────────────────
+  // Public addresses from navyreserve.navy.mil.
+  'NAS Joint Reserve Base Fort Worth': { city: 'Fort Worth', state: 'TX', zip: '76127' },
+  'NAS Joint Reserve Base New Orleans': { city: 'Belle Chasse', state: 'LA', zip: '70143' },
+  'NOSC Phoenix': { city: 'Phoenix', state: 'AZ', zip: '85008' },
+  'NOSC Denver': { city: 'Aurora', state: 'CO', zip: '80011' },
+  'NOSC Jacksonville': { city: 'Jacksonville', state: 'FL', zip: '32212' },
+  'NOSC Minneapolis': { city: 'Bloomington', state: 'MN', zip: '55425' },
+
+  // ── MARINE CORPS RESERVE ───────────────────────────────────────────────
+  // Public addresses from marines.mil/forcesreserve.
+  'Marine Forces Reserve HQ New Orleans': { city: 'New Orleans', state: 'LA', zip: '70146' },
+  'MCRC Anacostia Annex': { city: 'Washington', state: 'DC', zip: '20373' },
+  'MCRC Pasadena': { city: 'Pasadena', state: 'CA', zip: '91103' },
+  'MCRC Twin Cities': { city: 'Minneapolis', state: 'MN', zip: '55450' },
 };
 
 const clean = value => String(value || '').trim();

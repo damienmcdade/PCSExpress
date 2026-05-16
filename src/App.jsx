@@ -1057,6 +1057,107 @@ const MILITARY_DUTY_STATIONS = [
   { name: 'Defense Intelligence Agency (DIA)',       state: 'VA', branch: 'Joint' },
   { name: 'Joint Base Myer-Henderson Hall',          state: 'VA', branch: 'Joint' },
   { name: 'Joint Region Marianas',                   state: 'GU',  branch: 'Joint', country: 'Guam' },
+
+  // ── ARMY RESERVE · MAJOR INSTALLATIONS ──────────────────────────────────
+  // Largest USAR training and mobilization sites. Smaller Army
+  // Reserve Centers (USARCs) are spread across every state and are
+  // not enumerated here; users at smaller USARCs should enter the
+  // nearest larger installation. Verified against army.mil/usar.
+  { name: 'Fort McCoy',                              state: 'WI', branch: 'Army Reserve' },
+  { name: 'Camp Atterbury',                          state: 'IN', branch: 'Army Reserve' },
+  { name: 'Fort Buchanan',                           state: 'PR', branch: 'Army Reserve' },
+  { name: 'Camp Parks (Parks RFTA)',                 state: 'CA', branch: 'Army Reserve' },
+  { name: 'Devens Reserve Forces Training Area',     state: 'MA', branch: 'Army Reserve' },
+  { name: '88th Readiness Division HQ Fort McCoy',   state: 'WI', branch: 'Army Reserve' },
+  { name: '99th Readiness Division HQ Fort Dix',     state: 'NJ', branch: 'Army Reserve' },
+  { name: '63rd Readiness Division HQ Mountain View', state: 'CA', branch: 'Army Reserve' },
+  { name: '81st Readiness Division HQ Fort Jackson', state: 'SC', branch: 'Army Reserve' },
+
+  // ── ARMY NATIONAL GUARD · MAJOR TRAINING CENTERS ────────────────────────
+  // ARNG operates ~2,700 armories nationally. Only the larger
+  // training centers and state-headquarters armories are listed
+  // here. Verified against nationalguard.mil and state guard sites.
+  { name: 'Camp Shelby Joint Forces Training Center', state: 'MS', branch: 'Army National Guard' },
+  { name: 'Camp Williams (Utah NG)',                  state: 'UT', branch: 'Army National Guard' },
+  { name: 'Camp Robinson',                            state: 'AR', branch: 'Army National Guard' },
+  { name: 'Camp Mabry (Texas Military Forces HQ)',    state: 'TX', branch: 'Army National Guard' },
+  { name: 'Camp Murray (Washington NG)',              state: 'WA', branch: 'Army National Guard' },
+  { name: 'Camp Roberts',                             state: 'CA', branch: 'Army National Guard' },
+  { name: 'Camp Ripley',                              state: 'MN', branch: 'Army National Guard' },
+  { name: 'Camp Grayling Joint Maneuver Training Center', state: 'MI', branch: 'Army National Guard' },
+  { name: 'Camp Dawson',                              state: 'WV', branch: 'Army National Guard' },
+  { name: 'Camp Dodge',                               state: 'IA', branch: 'Army National Guard' },
+  { name: 'Camp Beauregard',                          state: 'LA', branch: 'Army National Guard' },
+  { name: 'Camp Edwards (Joint Base Cape Cod)',       state: 'MA', branch: 'Army National Guard' },
+  { name: 'Camp Smith Training Site',                 state: 'NY', branch: 'Army National Guard' },
+  { name: 'Camp Blanding Joint Training Center',      state: 'FL', branch: 'Army National Guard' },
+  { name: 'Fort Indiantown Gap',                      state: 'PA', branch: 'Army National Guard' },
+  { name: 'Gowen Field',                              state: 'ID', branch: 'Army National Guard' },
+  { name: 'McEntire Joint National Guard Base',       state: 'SC', branch: 'Army National Guard' },
+  { name: 'Volk Field Combat Readiness Training Center', state: 'WI', branch: 'Army National Guard' },
+
+  // ── AIR FORCE RESERVE · HOST BASES ──────────────────────────────────────
+  // Verified against afrc.af.mil installations directory.
+  { name: 'Westover Air Reserve Base',                state: 'MA', branch: 'Air Force Reserve' },
+  { name: 'March Air Reserve Base',                   state: 'CA', branch: 'Air Force Reserve' },
+  { name: 'Dobbins Air Reserve Base',                 state: 'GA', branch: 'Air Force Reserve' },
+  { name: 'Youngstown Air Reserve Station',           state: 'OH', branch: 'Air Force Reserve' },
+  { name: 'Pittsburgh Air Reserve Station',           state: 'PA', branch: 'Air Force Reserve' },
+  { name: 'Niagara Falls Air Reserve Station',        state: 'NY', branch: 'Air Force Reserve' },
+  { name: 'Grissom Air Reserve Base',                 state: 'IN', branch: 'Air Force Reserve' },
+  { name: 'Homestead Air Reserve Base',               state: 'FL', branch: 'Air Force Reserve' },
+  { name: 'Patrick Space Force Base (AFRC tenant)',   state: 'FL', branch: 'Air Force Reserve' },
+
+  // ── AIR NATIONAL GUARD · WING HOSTS ─────────────────────────────────────
+  // Wing-host installations - ~88 ANG wings total, the larger ones
+  // commonly cited as duty stations in PCS orders. Verified against
+  // ang.af.mil wing list.
+  { name: 'Barnes Air National Guard Base',           state: 'MA', branch: 'Air National Guard' },
+  { name: 'Bradley Air National Guard Base',          state: 'CT', branch: 'Air National Guard' },
+  { name: 'Burlington Air National Guard Base',       state: 'VT', branch: 'Air National Guard' },
+  { name: 'Fresno Air National Guard Base',           state: 'CA', branch: 'Air National Guard' },
+  { name: 'Joe Foss Field',                           state: 'SD', branch: 'Air National Guard' },
+  { name: 'Otis Air National Guard Base',             state: 'MA', branch: 'Air National Guard' },
+  { name: 'Selfridge Air National Guard Base',        state: 'MI', branch: 'Air National Guard' },
+  { name: 'Springfield Air National Guard Base',      state: 'IL', branch: 'Air National Guard' },
+  { name: 'Tulsa Air National Guard Base',            state: 'OK', branch: 'Air National Guard' },
+  { name: 'Sioux City Air National Guard Base',       state: 'IA', branch: 'Air National Guard' },
+  { name: 'Forbes Field Air National Guard Base',     state: 'KS', branch: 'Air National Guard' },
+  { name: 'Truax Field Air National Guard Base',      state: 'WI', branch: 'Air National Guard' },
+  { name: 'Hancock Field Air National Guard Base',    state: 'NY', branch: 'Air National Guard' },
+  { name: 'Pease Air National Guard Base',            state: 'NH', branch: 'Air National Guard' },
+  { name: 'Atlantic City Air National Guard Base',    state: 'NJ', branch: 'Air National Guard' },
+  { name: 'Reno-Tahoe Air National Guard Base',       state: 'NV', branch: 'Air National Guard' },
+  { name: 'Kirtland Air National Guard Base',         state: 'NM', branch: 'Air National Guard' },
+  { name: 'Buckley Air National Guard Base',          state: 'CO', branch: 'Air National Guard' },
+  { name: 'Klamath Falls Air National Guard Base',    state: 'OR', branch: 'Air National Guard' },
+  { name: 'Portland Air National Guard Base',         state: 'OR', branch: 'Air National Guard' },
+  { name: 'Camp Murray (ANG HQ)',                     state: 'WA', branch: 'Air National Guard' },
+  { name: 'Sumpter Smith Air National Guard Base',    state: 'AL', branch: 'Air National Guard' },
+  { name: 'Montgomery Regional Air National Guard',   state: 'AL', branch: 'Air National Guard' },
+  { name: 'New Castle Air National Guard Base',       state: 'DE', branch: 'Air National Guard' },
+
+  // ── NAVY RESERVE · MAJOR CENTERS ────────────────────────────────────────
+  // Joint Reserve Bases host all branches; pure Navy Reserve sites
+  // are smaller and city-located. Verified against navyreserve.navy.mil.
+  { name: 'NAS Joint Reserve Base Fort Worth',        state: 'TX', branch: 'Navy Reserve' },
+  { name: 'NAS Joint Reserve Base New Orleans',       state: 'LA', branch: 'Navy Reserve' },
+  { name: 'NOSC Phoenix',                             state: 'AZ', branch: 'Navy Reserve' },
+  { name: 'NOSC Denver',                              state: 'CO', branch: 'Navy Reserve' },
+  { name: 'NOSC Jacksonville',                        state: 'FL', branch: 'Navy Reserve' },
+  { name: 'NOSC Minneapolis',                         state: 'MN', branch: 'Navy Reserve' },
+
+  // ── MARINE CORPS RESERVE · MAJOR CENTERS ────────────────────────────────
+  // Verified against marines.mil/forcesreserve.
+  { name: 'Marine Forces Reserve HQ New Orleans',     state: 'LA', branch: 'Marine Corps Reserve' },
+  { name: 'MCRC Anacostia Annex',                     state: 'DC', branch: 'Marine Corps Reserve' },
+  { name: 'MCRC Pasadena',                            state: 'CA', branch: 'Marine Corps Reserve' },
+  { name: 'MCRC Twin Cities',                         state: 'MN', branch: 'Marine Corps Reserve' },
+
+  // ── COAST GUARD RESERVE ────────────────────────────────────────────────
+  // CG Reserve operates from active CG installations rather than
+  // separate Reserve bases.  Reservists report to the active CG
+  // facility shown in their orders; see existing USCG entries above.
 ];
 
 const INSTALLATION_SCHOOLS = {
@@ -6210,9 +6311,23 @@ function Onboarding({ onComplete }) {
   const onboardingLanguage = getAppLanguage(p.language);
   const ot = (key) => trFrom(onboardingLanguage, key);
 
+  // Sort autofill suggestions so the user's branch + component
+  // variants come first. A Reserve user whose branch is Army should
+  // see "Army Reserve" sites + Joint Reserve Bases above active-duty
+  // Army installations they don't actually report to. National
+  // Guard users similarly see their state's ARNG/ANG sites first.
   const sortByBranch = (items, branch) => {
-    const primary = items.filter(b => b.branch === branch || b.branch === 'Joint');
-    const others  = items.filter(b => b.branch !== branch && b.branch !== 'Joint');
+    const component = String(p.component || '').trim();
+    const reserveTag = `${branch} Reserve`;
+    const ngTag = branch === 'Air Force' ? 'Air National Guard'
+              : branch === 'Army' ? 'Army National Guard'
+              : '';
+    const componentPriority = component === 'Reserve' ? [reserveTag, 'Navy Reserve', 'Air Force Reserve', 'Marine Corps Reserve', 'Joint']
+      : component === 'National Guard' ? [ngTag, 'Army National Guard', 'Air National Guard', 'Joint']
+      : [branch, 'Joint'];
+    const isPrimary = (b) => componentPriority.includes(b.branch);
+    const primary = items.filter(isPrimary);
+    const others  = items.filter(b => !isPrimary(b));
     return [...primary, ...others];
   };
   const losingSuggestions = losingSearch.length > 1
