@@ -5572,8 +5572,8 @@ const APP_TRANSLATIONS = {
       familyBody: 'Step 3 asks if your spouse and kids are coming with you, their ages, if you have pets, how you\'re moving, and your faith preference. This tailors the rest of the app so you only see what applies to you — school stuff if you have kids, pet stuff if you have pets, chaplain options that match your faith.',
       selectorTitle: 'Home — Pick a category',
       selectorBody: 'The home screen has all the planning areas in alphabetical order so you can jump straight to what you need.',
-      completeTitle: 'Tour complete — Thank you',
-      completeBody: 'That\'s the quick tour. Thank you for your service. Reset anytime from the More menu if you want to start over.',
+      completeTitle: 'Tour complete — your PCS, end-to-end',
+      completeBody: 'You just toured every category PCS Express ships with: a phased Checklist tied to your Report-NLT date, a Documents tracker, Home Relocation with BAH / OHA / LQA calculators and a PPM estimator, Family Readiness covering EFMP / immigration / employment / pets / schools, Medical Readiness with ER / hospital / urgent care / behavioral health / pharmacy locators, Base Intelligence for the gaining installation, Education for GI Bill / MyCAA / Tuition Assistance / nearby colleges, Spiritual Readiness with chapel and counseling, Veteran Resources, and an offline Translation pack for OCONUS communities. Every link is .mil / .gov / Google Maps — no fabricated providers, no PII upload, all encrypted on-device. Reset anytime from the More menu to start your real PCS plan.',
     },
   },
 };
@@ -6562,11 +6562,35 @@ function _futureDate(daysAhead) {
   d.setDate(d.getDate() + daysAhead);
   return d.toISOString().slice(0, 10);
 }
+// Demo profile — populated with realistic, full-coverage fields so the
+// interactive tour exercises every feature in the app:
+//   - Army National Guard E-7 on Title 10 PCS orders unlocks every
+//     active-duty entitlement filter (BAH, HHG, TRICARE Prime, full
+//     JTR PCS package) so the Checklist and Documents views are
+//     populated end-to-end.
+//   - OCONUS gaining installation (USAG Humphreys, South Korea)
+//     exercises OHA Calculator, OCONUS housing aggregators, DoDEA
+//     schools, International SOS TRICARE Overseas routing, and the
+//     Spiritual Readiness OCONUS chapel-finder path.
+//   - 3 dependent children ages 8 / 11 / 14 exercise child-age
+//     grade-band sorting in Schools, daycare/CDC routing, EFMP family
+//     content, and family-allowance forms.
+//   - Pets + PPM move exercise pet-relocation paperwork (USDA/APHIS),
+//     weight-ticket prompts, and the PPM Financial Estimator.
+//   - Protestant Christian preference exercises the Religious
+//     Services chaplain/denomination routing.
+//   - Religious preference, gainingZip, and gainingState are set so
+//     Medical Readiness routes TRICARE region (Overseas → International
+//     SOS) and pharmacy / behavioral health locator deep-links work.
 const DEMO_PROFILE = {
   demoMode: true,
   firstName: 'Marcus', lastName: 'Thompson',
   branch: 'Army', component: 'National Guard', paygrade: 'E-7',
+  // Title 10 PCS orders → full active-duty entitlement package
+  ordersType: 'title10_pcs',
   losingInstallation: 'Fort Liberty', gainingInstallation: 'USAG Humphreys',
+  // Geocoded fields backing Medical Readiness / Family Fun routing
+  gainingCity: 'Pyeongtaek', gainingState: 'South Korea', gainingZip: '17977',
   departingDate: _futureDate(75),
   reportNLTDate: _futureDate(75),
   isOverseas: true,
