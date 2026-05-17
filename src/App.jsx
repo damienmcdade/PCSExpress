@@ -5226,7 +5226,7 @@ function EducationBenefitsTab({ theme, profile }) {
               ))}
             </div>
           ))}
-          <a data-link-removed="https://aiportal.acc.af.mil/mycaa" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary, marginBottom: 10, fontSize: 13 }}>Apply for MyCAA</a>
+          <a href="https://mycaa.militaryonesource.mil/mycaa/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary, marginBottom: 10, fontSize: 13 }}>Apply for MyCAA</a>
           <a href="https://www.militaryonesource.mil/education-employment/for-spouses/mycaa-scholarship-program/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': '#2E7D32' }}>Learn More at MilitaryOneSource</a>
         </div>
       )}

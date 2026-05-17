@@ -90,7 +90,7 @@ const CHECKLIST_ITEMS = [
     id: 'cp_ds260',
     category: 'Green Card — Consular Processing (Abroad)',
     text: 'Complete Form DS-260, Immigrant Visa Application (online via Ceac.state.gov)',
-    url: '',
+    url: 'https://ceac.state.gov/iv/',
     note: 'Required for consular processing. Complete all sections carefully.',
   },
   // Parole in Place
@@ -98,8 +98,8 @@ const CHECKLIST_ITEMS = [
     id: 'pip_apply',
     category: 'Parole in Place (PIP) — Military Families',
     text: 'Apply for Parole in Place if spouse entered without inspection (EWI)',
-    url: '',
-    note: 'PIP allows undocumented spouses of active duty military to adjust status without leaving the U.S.',
+    url: 'https://www.uscis.gov/i-131',
+    note: 'PIP allows undocumented spouses of active duty military to adjust status without leaving the U.S. File Form I-131 with military supporting documents.',
   },
   // Citizenship
   {
