@@ -1435,15 +1435,14 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
     return res.status(200).json({ services: cached.services, origin: cached.origin, source: 'cache', fetchedAt: cached.fetchedAt })
   }
 
-  let origin
+  // Geocoding is best-effort — synthetic Google Maps cards don't
+  // need lat/lng and must render even when Nominatim can't resolve
+  // the OCONUS market.
+  let origin = null
   try {
     origin = await geocodeNominatim({ address, city, state, zip })
   } catch (err) {
     console.error(`[religious] geocode ${err.message}`)
-    return res.status(200).json({ services: [], fallback: true, reason: 'geocode-failed' })
-  }
-  if (!origin) {
-    return res.status(200).json({ services: [], fallback: true, reason: 'address-not-found' })
   }
 
   // Google Maps denomination cards are the canonical Religious
@@ -1452,9 +1451,11 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
   // contact info, and directions in one tap.
   const cards = syntheticReligiousCards(city, state)
 
-  if (cards.length > 0) {
-    RELIGIOUS_CACHE.set(cacheKey, { services: cards, origin, fetchedAt: Date.now() })
+  if (cards.length === 0) {
+    return res.status(200).json({ services: [], origin, fallback: true, reason: 'no-locality', source: 'google-maps-search' })
   }
+
+  RELIGIOUS_CACHE.set(cacheKey, { services: cards, origin, fetchedAt: Date.now() })
 
   res.status(200).json({
     services: cards,
@@ -1633,15 +1634,14 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
     return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: cached.schools, origin: cached.origin, source: 'cache', fetchedAt: cached.fetchedAt })
   }
 
-  let origin
+  // Geocoding is best-effort — synthetic Google Maps cards work
+  // from city/state alone and must surface even when Nominatim
+  // can't resolve an OCONUS market.
+  let origin = null
   try {
     origin = await geocodeNominatim({ address, city, state, zip })
   } catch (err) {
     console.error(`[schools] geocode ${err.message}`)
-    return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: [], fallback: true, reason: 'geocode-failed' })
-  }
-  if (!origin) {
-    return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: [], fallback: true, reason: 'address-not-found' })
   }
 
   // Google Maps category cards are the canonical school directory.
@@ -1650,9 +1650,11 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
   // ratings, contact info, and zoning details.
   const cards = syntheticSchoolCards(city, state)
 
-  if (cards.length > 0) {
-    SCHOOL_CACHE.set(cacheKey, { schools: cards, origin, fetchedAt: Date.now() })
+  if (cards.length === 0) {
+    return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: [], origin, fallback: true, reason: 'no-locality', source: 'google-maps-search' })
   }
+
+  SCHOOL_CACHE.set(cacheKey, { schools: cards, origin, fetchedAt: Date.now() })
 
   res.status(200).json({
     categories: SCHOOL_CATEGORIES,
@@ -2226,27 +2228,39 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
     })
   }
 
-  let origin
+  // Geocoding is now best-effort. Google Maps category cards are
+  // built from city/state strings — they don't need lat/lng — so a
+  // Nominatim failure or 'not found' on OCONUS markets (where
+  // Nominatim has spotty coverage outside the U.S.) MUST NOT block
+  // the response. We still try to attach origin lat/lng so the front
+  // end can show the right map marker, but an empty/null origin is
+  // perfectly acceptable.
+  let origin = null
   try {
     origin = await geocodeNominatim({ address, city, state, zip })
   } catch (err) {
     console.error(`[family-activities] geocode ${err.message}`)
-    return res.status(200).json({ categories: FAMILY_CATEGORIES, activities: [], fallback: true, reason: 'geocode-failed' })
-  }
-  if (!origin) {
-    return res.status(200).json({ categories: FAMILY_CATEGORIES, activities: [], fallback: true, reason: 'address-not-found' })
+    // fall through — synthetic cards still work without origin
   }
 
   // Google Maps search-portal cards are the canonical Family Fun
   // data source. Each card deep-links to a Google Maps search for
   // the category restricted to the installation's locality, so users
   // see real venues with ratings/hours/directions in one tap.
-  // No OSM/Overpass call — Google Maps is authoritative for POI data.
   const cards = syntheticFamilyCards(city, state)
 
-  if (cards.length > 0) {
-    FAMILY_CACHE.set(cacheKey, { activities: cards, origin, fetchedAt: Date.now() })
+  if (cards.length === 0) {
+    return res.status(200).json({
+      categories: FAMILY_CATEGORIES,
+      activities: [],
+      origin,
+      fallback: true,
+      reason: 'no-locality',
+      source: 'google-maps-search',
+    })
   }
+
+  FAMILY_CACHE.set(cacheKey, { activities: cards, origin, fetchedAt: Date.now() })
 
   res.status(200).json({
     categories: FAMILY_CATEGORIES,
