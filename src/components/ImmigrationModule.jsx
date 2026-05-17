@@ -378,7 +378,7 @@ export default function ImmigrationModule({ theme, profile }) {
       {/* Sub-tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
         {SUB_TABS.map(t => (
-          <button key={t.id} onClick={() => setSubTab(t.id)} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${subTab === t.id ? theme.primary : '#E0E6EE'}`, background: subTab === t.id ? theme.primary : '#FFF', color: subTab === t.id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
+          <button key={t.id} onClick={() => setSubTab(t.id)} className={`pcs-tab ${subTab === t.id ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${subTab === t.id ? theme.primary : '#E0E6EE'}`, background: subTab === t.id ? theme.primary : '#FFF', color: subTab === t.id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
             {t.label}
           </button>
         ))}

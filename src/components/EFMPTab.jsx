@@ -195,6 +195,7 @@ export default function EFMPTab({ theme, profile }) {
               onClick={() => setActivePhase(section.phase)}
               aria-label={`Open ${section.phase} EFMP phase`}
               aria-pressed={active}
+              className={`pcs-tab ${active ? 'is-active' : ''}`}
               style={{
                 borderColor: active ? theme.primary : '#E0E6EE',
                 background: active ? theme.primary : '#FFF',

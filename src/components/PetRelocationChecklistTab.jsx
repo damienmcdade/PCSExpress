@@ -103,6 +103,7 @@ export default function PetRelocationChecklistTab({ theme, profile }) {
               onClick={() => setActivePhase(phase)}
               aria-label={`Open ${phase} pet relocation phase`}
               aria-pressed={active}
+              className={`pcs-tab ${active ? 'is-active' : ''}`}
               style={{
                 borderColor: active ? theme.primary : '#E0E6EE',
                 background: active ? theme.primary : '#FFF',

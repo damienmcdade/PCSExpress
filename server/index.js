@@ -19,14 +19,19 @@ const PORT = process.env.PORT || 3001
 const HOST = process.env.HOST || '0.0.0.0'
 const API_KEY = process.env.ANTHROPIC_API_KEY
 const distPath = path.join(__dirname, '..', 'dist')
+// CSP — extended to allow the Google Website Translator widget so
+// non-English onboarding language picks reach every UI string. Google's
+// translation engine only loads when the user has explicitly selected a
+// non-English preferred language; for 'en' (default) no Google
+// resources are loaded.
 const csp = [
   "default-src 'self'",
-  "script-src 'self'",
-  "style-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline' https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://www.google.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com",
   "img-src 'self' data: blob: https:",
-  "font-src 'self' data:",
-  "connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://*.tile.openstreetmap.org",
-  "frame-src 'self' https://maps.google.com https://www.google.com https://www.openstreetmap.org",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://*.tile.openstreetmap.org https://translate.googleapis.com https://translate-pa.googleapis.com",
+  "frame-src 'self' https://maps.google.com https://www.google.com https://translate.google.com https://www.openstreetmap.org",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

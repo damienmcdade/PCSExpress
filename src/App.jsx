@@ -34,6 +34,7 @@ import { AuditLogger, secureLocalStore, readLegacyJson } from './security/Securi
 import { ALL_BASES } from './components/BaseMapModule'
 import { resolveMarket } from './data/installationMarkets'
 import { useAppLanguageRuntime } from './i18n/useAppLanguageRuntime'
+import { applyGoogleTranslateLanguage } from './i18n/googleTranslateRuntime'
 
 const store = {
   get: (k) => readLegacyJson(k, null),
@@ -3702,6 +3703,7 @@ function VeteranBusinessesTab({ theme, profile }) {
               <button
                 key={opt.id}
                 onClick={() => setIndustryFilter(opt.id)}
+                className={`pcs-chip ${industryFilter === opt.id ? 'is-active' : ''}`}
                 style={{
                   padding: '6px 12px',
                   borderRadius: 18,
@@ -7616,6 +7618,10 @@ function App() {
   useEffect(() => {
     document.documentElement.lang = appLanguage;
     document.documentElement.dir = appDir;
+    // Google Website Translator covers strings the dictionary-based
+    // runtime missed. Activates only for non-English preferred
+    // languages; for 'en' the widget remains dormant.
+    applyGoogleTranslateLanguage(appLanguage);
   }, [appLanguage, appDir]);
 
   // Compute pending alerts based on departure date and checklist completion
