@@ -26,12 +26,12 @@ const distPath = path.join(__dirname, '..', 'dist')
 // resources are loaded.
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://www.google.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://translate.google.com https://translate.googleapis.com https://translate.googleusercontent.com https://www.gstatic.com https://www.google.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https://fonts.gstatic.com",
-  "connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://*.tile.openstreetmap.org https://translate.googleapis.com https://translate-pa.googleapis.com",
-  "frame-src 'self' https://maps.google.com https://www.google.com https://translate.google.com https://www.openstreetmap.org",
+  "connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://*.tile.openstreetmap.org https://translate.googleapis.com https://translate-pa.googleapis.com https://translate.googleusercontent.com",
+  "frame-src 'self' https://maps.google.com https://www.google.com https://translate.google.com https://translate.googleusercontent.com https://www.openstreetmap.org",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

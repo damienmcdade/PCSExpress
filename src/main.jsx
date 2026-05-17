@@ -1,6 +1,21 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
+import { applyGoogleTranslateLanguage } from './i18n/googleTranslateRuntime'
+
+// Bootstrap step: read the user's saved language preference BEFORE
+// React renders and apply the Google Translate cookie so the widget
+// picks up the right target on its first DOM walk. Without this, the
+// first React render is in English and users see a brief mixed-
+// language flash before the widget runs.
+try {
+  const saved = localStorage.getItem('pcs_user_language')
+  if (saved && saved !== 'en') {
+    applyGoogleTranslateLanguage(saved)
+  }
+} catch {
+  // localStorage unavailable in privacy modes — no-op
+}
 
 function renderBootRecovery(error) {
   const root = document.getElementById('root')

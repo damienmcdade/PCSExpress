@@ -1,39 +1,24 @@
 /*
- * Google Translate Website Translator runtime.
+ * Google Translate Website Translator runtime — cookie-first variant.
  *
- * Augments the dictionary-based useAppLanguageRuntime by loading the
- * Google Website Translator script (translate.google.com/translate_a/
- * element.js) which walks the DOM and translates any text not already
- * localized by the in-app dictionary. The Google widget UI is hidden;
- * only the translation engine is used.
- *
- * Why this approach:
- *   - No Google Cloud Translation API key / billing required
- *   - Coverage across every UI string regardless of where it lives
- *     (inline JSX, dynamic content, third-party component text)
- *   - Plays well with the existing runtime — dictionary strings are
- *     translated first, then Google fills in the gaps
+ * Why cookie-first:
+ *   Google's Website Translator (translate.google.com/translate_a/
+ *   element.js) reads a `googtrans=/auto/<targetLang>` cookie at boot.
+ *   When the cookie is set BEFORE the script loads, the widget
+ *   auto-translates the page during its first DOM walk — no need to
+ *   wait for the hidden <select> to mount, no race with React renders.
+ *   The previous implementation tried to programmatically change the
+ *   select value after mount; on slow mounts (mobile, throttled CPU)
+ *   the change event fired before the select was attached, leaving
+ *   the page un-translated and the user seeing English.
  *
  * Privacy / DoD considerations:
- *   - The widget sends page text to Google's translation servers.
- *     Only happens when the user explicitly selects a non-English
- *     preferred language during onboarding.
- *   - The widget is opt-in and never activates for users who keep the
- *     default 'en' selection.
- *   - The app never sends PII to Google — onboarding profile data
- *     (name, paygrade, installation, etc.) is stored in localStorage
- *     only; Google translates only what is rendered to the DOM and
- *     even then only when the user has chosen translation.
- *
- * Server CSP extensions (server/index.js) admit these origins so the
- * widget can load:
- *   script-src    translate.google.com translate.googleapis.com
- *                 www.gstatic.com www.google.com
- *   connect-src   translate.googleapis.com translate-pa.googleapis.com
- *   img-src       www.gstatic.com translate.google.com
- *   style-src     fonts.googleapis.com
- *   font-src      fonts.gstatic.com
- *   frame-src     www.google.com translate.google.com
+ *   - The widget sends rendered DOM text to Google's translation
+ *     servers only when the user has selected a non-English language.
+ *   - Onboarding profile data never leaves the device; localStorage
+ *     keys (pcs_*) stay on the client.
+ *   - The googtrans cookie is set on the current host only (no
+ *     domain attribute on localhost so the browser scopes it).
  */
 
 const GOOGLE_SUPPORTED_LANGS = new Set([
@@ -43,8 +28,9 @@ const GOOGLE_SUPPORTED_LANGS = new Set([
 const WIDGET_HIDE_CSS = `
   /* Hide every visible surface of the Google Website Translator
      widget while keeping its translation engine running underneath. */
-  body { top: 0 !important; }
+  body { top: 0 !important; position: static !important; }
   .goog-te-banner-frame.skiptranslate,
+  .goog-te-banner-frame,
   iframe.skiptranslate,
   .goog-te-gadget,
   .goog-te-balloon-frame,
@@ -62,10 +48,39 @@ const WIDGET_HIDE_CSS = `
     background: transparent !important;
     box-shadow: none !important;
   }
+  /* The body sometimes gets shifted by inline style top:40px when the
+     widget injects its banner — keep it pinned to the top. */
+  body[style*="top"] { top: 0 !important; }
 `;
 
 let widgetInitialized = false;
 let activeLang = null;
+
+function setGoogTransCookie(targetLang) {
+  // Format: googtrans=/<source>/<target>. Setting /auto/<lang> tells
+  // the widget to auto-detect source (we know it's English, but auto
+  // is safer for mixed-content pages) and translate to <lang>.
+  const value = `/auto/${targetLang}`;
+  // Path=/ so every route under the app receives the cookie. We
+  // intentionally do NOT set Domain on localhost (browser scoping).
+  const isLocalHost = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(window.location.hostname);
+  const domainAttr = isLocalHost ? '' : `domain=${window.location.hostname};`;
+  document.cookie = `googtrans=${value}; path=/; ${domainAttr} samesite=lax`;
+  // Also set the bare-domain variant for production hosts (e.g.,
+  // pcsexpress.app needs both .pcsexpress.app and pcsexpress.app).
+  if (!isLocalHost && window.location.hostname.split('.').length >= 2) {
+    document.cookie = `googtrans=${value}; path=/; domain=.${window.location.hostname}; samesite=lax`;
+  }
+}
+
+function clearGoogTransCookie() {
+  const expire = 'Thu, 01 Jan 1970 00:00:00 UTC';
+  document.cookie = `googtrans=; path=/; expires=${expire};`;
+  if (!/^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(window.location.hostname)) {
+    document.cookie = `googtrans=; path=/; domain=${window.location.hostname}; expires=${expire};`;
+    document.cookie = `googtrans=; path=/; domain=.${window.location.hostname}; expires=${expire};`;
+  }
+}
 
 function ensureHideStyle() {
   if (document.getElementById('pcs-gtranslate-hide')) return;
@@ -89,9 +104,7 @@ function ensureHostElement() {
   document.body.appendChild(host);
 }
 
-function installInitCallback(targetLang) {
-  // The Google Translate element script invokes window.googleTranslateElementInit
-  // when it finishes loading.
+function installInitCallback() {
   window.googleTranslateElementInit = function googleTranslateElementInit() {
     if (typeof window.google === 'undefined' || !window.google.translate) return;
     try {
@@ -106,48 +119,37 @@ function installInitCallback(targetLang) {
         },
         'google_translate_element'
       );
-      // Once the element is mounted, programmatically select the
-      // user's preferred language by setting the hidden select value
-      // and firing a change event.
-      setTimeout(() => triggerLanguageSelect(targetLang), 350);
     } catch (err) {
       console.warn('[google-translate] init failed', err);
     }
   };
 }
 
-function triggerLanguageSelect(targetLang) {
-  if (!targetLang || targetLang === 'en') return;
-  const select = document.querySelector('select.goog-te-combo');
-  if (!select) {
-    // Widget hasn't mounted yet — retry once.
-    setTimeout(() => triggerLanguageSelect(targetLang), 500);
-    return;
-  }
-  select.value = targetLang;
-  select.dispatchEvent(new Event('change', { bubbles: true }));
-}
-
 function loadGoogleTranslateScript() {
   if (document.getElementById('pcs-gtranslate-script')) return;
   const script = document.createElement('script');
   script.id = 'pcs-gtranslate-script';
-  script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-  script.defer = true;
-  script.crossOrigin = 'anonymous';
-  document.body.appendChild(script);
+  // Explicit https URL — the protocol-less variant 502s behind some
+  // corporate proxies. No crossOrigin attribute — Google does not
+  // serve CORS headers for the element.js endpoint and requesting
+  // CORS causes the script to be rejected on most browsers.
+  script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+  script.async = true;
+  script.onerror = (err) => console.warn('[google-translate] script load failed', err);
+  document.head.appendChild(script);
 }
 
-function clearGoogleTranslation() {
-  // Resetting to the original language requires the widget. We
-  // programmatically trigger a language change back to 'en' which
-  // Google interprets as "show original". For users who switch from a
-  // non-English language back to English mid-session.
-  const select = document.querySelector('select.goog-te-combo');
-  if (select) {
-    select.value = '';
+function forceWidgetReTranslate(targetLang) {
+  // After the script is loaded, if the user changes language at
+  // runtime, the cookie won't be re-read automatically. We re-trigger
+  // the select element's change event so Google Translate retranslates
+  // the page to the new language.
+  setTimeout(() => {
+    const select = document.querySelector('select.goog-te-combo');
+    if (!select) return;
+    select.value = targetLang;
     select.dispatchEvent(new Event('change', { bubbles: true }));
-  }
+  }, 200);
 }
 
 /**
@@ -155,32 +157,49 @@ function clearGoogleTranslation() {
  * `lang`. Safe to call repeatedly — the script is loaded once and the
  * widget is re-pointed when the language changes.
  *
+ * Cookie-first: sets googtrans=/auto/<lang> before loading the script
+ * so the widget picks up the language on its first DOM walk. After the
+ * first load, language changes are propagated via the hidden <select>.
+ *
  * @param {string} lang  ISO 639-1 code from the onboarding language
  *                        picker. 'en' or unsupported codes are no-ops.
  */
 export function applyGoogleTranslateLanguage(lang) {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  // English / unsupported / null → clear translation
   if (!lang || lang === 'en' || !GOOGLE_SUPPORTED_LANGS.has(lang)) {
-    if (widgetInitialized && activeLang && activeLang !== lang) {
-      clearGoogleTranslation();
-      activeLang = null;
+    if (widgetInitialized && activeLang) {
+      clearGoogTransCookie();
+      // The widget caches its target — reload is the only fully
+      // reliable way to revert to the source language. Skip when the
+      // page has just loaded (activeLang null) so we don't loop.
+      window.location.reload();
     }
+    activeLang = null;
     return;
   }
+
   if (activeLang === lang && widgetInitialized) return;
-  activeLang = lang;
 
   ensureHideStyle();
   ensureHostElement();
-  installInitCallback(lang);
 
-  if (widgetInitialized) {
-    // Widget already loaded — just re-target.
-    triggerLanguageSelect(lang);
+  // Always update the cookie so subsequent navigations / hard reloads
+  // pick up the latest target language.
+  setGoogTransCookie(lang);
+
+  if (!widgetInitialized) {
+    widgetInitialized = true;
+    activeLang = lang;
+    installInitCallback();
+    loadGoogleTranslateScript();
     return;
   }
-  widgetInitialized = true;
-  loadGoogleTranslateScript();
+
+  // Widget already mounted — change target via the hidden select.
+  activeLang = lang;
+  forceWidgetReTranslate(lang);
 }
 
 /**
@@ -188,6 +207,7 @@ export function applyGoogleTranslateLanguage(lang) {
  * untranslated DOM. Used when a user resets their profile.
  */
 export function resetGoogleTranslate() {
-  clearGoogleTranslation();
+  clearGoogTransCookie();
   activeLang = null;
+  widgetInitialized = false;
 }
