@@ -3412,10 +3412,10 @@ function SchoolsTab({ theme, profile }) {
                     </div>
                     {s.address && <div style={{ fontSize: 11, color: '#56697C', marginBottom: 4 }}>{s.address}</div>}
                     <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 8 }}>{s.description}</div>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                      <span style={{ background: theme.primary, color: '#FFF', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 6 }}>Open {s.website ? 'school website' : 'NCES record'}</span>
-                      <a href={s.ratingsSearchUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ textDecoration: 'none', background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>Reviews</a>
-                      <a href={s.ncesUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ textDecoration: 'none', background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, fontSize: 10, fontWeight: 800, padding: '5px 9px', borderRadius: 5 }}>NCES</a>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginTop: 4 }}>
+                      <span className="card-cta" style={{ '--cta-color': theme.primary }}>Open {s.website ? 'school website' : 'NCES record'}</span>
+                      <a href={s.ratingsSearchUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="card-cta card-cta--ghost" style={{ fontSize: 10 }}>Reviews</a>
+                      <a href={s.ncesUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="card-cta card-cta--ghost" style={{ fontSize: 10 }}>NCES</a>
                     </div>
                   </a>
                 ))}
