@@ -87,9 +87,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Node.js
+        # Capacitor 8 CLI requires Node >= 22.
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Set up JDK 21
@@ -137,9 +138,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Node.js
+        # Capacitor 8 CLI requires Node >= 22.
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install JS dependencies
