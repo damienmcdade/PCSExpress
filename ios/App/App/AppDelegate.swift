@@ -54,10 +54,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
-        // Called when the app was launched with an activity, including Universal Links.
-        // Feel free to add additional processing here, but if you want the App API to support
-        // tracking app url opens, make sure to keep this call
-        return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
+        // Called when the app was launched with an activity, including
+        // Universal Links. Capacitor 8 removed the legacy
+        // ApplicationDelegateProxy.application(_:continue:restorationHandler:)
+        // bridge call — Universal Link forwarding now happens inside
+        // the Capacitor bridge automatically (see the App plugin /
+        // listeners on the JS side) so this delegate only needs to
+        // return true to keep the activity continuation alive while
+        // the WebView resolves the URL. Returning false would tell
+        // iOS the app is not handling the activity at all.
+        return true
     }
 
 }
