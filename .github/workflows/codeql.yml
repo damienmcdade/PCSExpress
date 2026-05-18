@@ -46,16 +46,16 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@f411752efdf656cb71aa17b755b22c890960da1d  # v3
         with:
           languages: javascript
           queries: security-extended
 
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@f411752efdf656cb71aa17b755b22c890960da1d  # v3
         with:
           category: '/language:javascript'
 
@@ -65,16 +65,16 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@f411752efdf656cb71aa17b755b22c890960da1d  # v3
         with:
           languages: actions
           queries: security-extended
 
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@f411752efdf656cb71aa17b755b22c890960da1d  # v3
         with:
           category: '/language:actions'
 
@@ -84,17 +84,17 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
       - name: Set up Node.js
         # Capacitor 8 CLI requires Node >= 22.
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
         with:
           node-version: '22'
           cache: 'npm'
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9  # v4
         with:
           distribution: temurin
           java-version: '21'
@@ -109,7 +109,7 @@ jobs:
         run: npx cap sync android
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@f411752efdf656cb71aa17b755b22c890960da1d  # v3
         with:
           languages: java-kotlin
           queries: security-extended
@@ -125,7 +125,7 @@ jobs:
           ./gradlew assembleDebug --no-daemon --console=plain
 
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@f411752efdf656cb71aa17b755b22c890960da1d  # v3
         with:
           category: '/language:java-kotlin'
 
@@ -135,11 +135,11 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
       - name: Set up Node.js
         # Capacitor 8 CLI requires Node >= 22.
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
         with:
           node-version: '22'
           cache: 'npm'
@@ -154,7 +154,7 @@ jobs:
         run: npx cap sync ios
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@f411752efdf656cb71aa17b755b22c890960da1d  # v3
         with:
           languages: swift
           queries: security-extended
@@ -201,6 +201,6 @@ jobs:
             COMPILER_INDEX_STORE_ENABLE=NO
 
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@f411752efdf656cb71aa17b755b22c890960da1d  # v3
         with:
           category: '/language:swift'
