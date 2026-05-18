@@ -160,18 +160,32 @@ jobs:
           queries: security-extended
           build-mode: manual
 
+      - name: Clear stale SwiftPM artifact cache
+        # GitHub macOS runners sometimes carry a partial / corrupted
+        # SwiftPM artifact cache that triggers
+        #   "...Cordova.xcframework.zip already exists in file system"
+        # during package resolution. Wiping the cache before resolve
+        # forces SPM to re-download cleanly.
+        run: |
+          rm -rf ~/Library/Caches/org.swift.swiftpm
+          rm -rf ~/Library/Developer/Xcode/DerivedData
+          rm -rf "$HOME/Library/org.swift.swiftpm"
+
       - name: Resolve Swift Package dependencies
         run: |
           cd ios/App
           xcodebuild \
             -resolvePackageDependencies \
             -project App.xcodeproj \
-            -scheme App
+            -scheme App \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/SourcePackages"
 
       - name: Build iOS (xcodebuild)
         # -scheme App is required for Capacitor 8 (SPM-based). Skip
         # signing entirely — CI does not have provisioning profiles
-        # and we only need a compile for static analysis.
+        # and we only need a compile for static analysis. Reuse the
+        # cloned-packages directory from the resolve step so we don't
+        # re-fetch SPM artifacts.
         run: |
           cd ios/App
           xcodebuild \
@@ -180,6 +194,7 @@ jobs:
             -scheme App \
             -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/SourcePackages" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \
