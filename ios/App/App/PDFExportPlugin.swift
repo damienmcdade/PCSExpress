@@ -1,3 +1,13 @@
+// Gated by ENABLE_NATIVE_PDF_EXPORT_PLUGIN. Same situation as
+// JTRPlugin — the plugin uses Capacitor 7-era APIs (CAPPluginCall
+// reject/resolve signatures, CAPBridgeProtocol.viewController and
+// .webView accessors) that Capacitor 8 SPM no longer exposes. No
+// JavaScript code in src/ references PDFExport / exportDD1351 /
+// exportPDF / generatePDF (verified by grep). Wrap-and-gate keeps
+// the source for a future Capacitor-8 port without forcing deletion.
+// Re-enable by adding ENABLE_NATIVE_PDF_EXPORT_PLUGIN to the App
+// target's OTHER_SWIFT_FLAGS after porting the API calls.
+#if ENABLE_NATIVE_PDF_EXPORT_PLUGIN
 import Capacitor
 import UIKit
 
@@ -194,3 +204,4 @@ extension PDFExportPlugin {
         }
     }
 }
+#endif // ENABLE_NATIVE_PDF_EXPORT_PLUGIN
