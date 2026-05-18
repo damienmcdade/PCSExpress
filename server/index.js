@@ -19,12 +19,48 @@ const PORT = process.env.PORT || 3001
 const HOST = process.env.HOST || '0.0.0.0'
 const API_KEY = process.env.ANTHROPIC_API_KEY
 const distPath = path.join(__dirname, '..', 'dist')
-// CSP — extended to allow the Google Website Translator widget so
-// non-English onboarding language picks reach every UI string. Google's
-// translation engine only loads when the user has explicitly selected a
-// non-English preferred language; for 'en' (default) no Google
-// resources are loaded.
-const csp = [
+
+// CSP is conditional on whether the user has opted into Google
+// Translate. The default policy is strict — no 'unsafe-eval', no
+// 'unsafe-inline' in script-src, none of the translate.google.com
+// hosts. The relaxed policy adds those allowances ONLY when the
+// request carries a `googtrans` cookie set by the client-side
+// runtime when the user picks a non-English language during
+// onboarding. That cookie cannot exist on the first page load and
+// only persists for users who actively chose a translation, so
+// 90 %+ of requests get the strict policy.
+//
+// Why the relaxations exist at all:
+//   - 'unsafe-eval'  — Google's translate.google.com/translate_a/
+//     element.js calls eval() internally for its translation engine.
+//   - 'unsafe-inline' — the widget injects inline <script> blocks.
+//   - translate.google.com / translate.googleapis.com /
+//     translate.googleusercontent.com / www.gstatic.com / www.google.com
+//     — script / xhr / iframe origins the widget loads from.
+//   - fonts.googleapis.com / fonts.gstatic.com — fonts for the widget.
+//
+// Removing the widget entirely would lose translation coverage for
+// any string outside the in-app dictionary (useAppLanguageRuntime),
+// so the right trade is to enforce strict CSP for the default case
+// and only relax for the explicit opt-in. The user has to set their
+// language preference twice: first stores the cookie + reloads, the
+// reload then comes back with the relaxed CSP and the widget loads.
+const CSP_STRICT_BASE = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://*.tile.openstreetmap.org",
+  "frame-src 'self' https://maps.google.com https://www.google.com https://www.openstreetmap.org",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self'",
+  "upgrade-insecure-requests",
+].join('; ')
+
+const CSP_TRANSLATE_RELAXED = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://translate.google.com https://translate.googleapis.com https://translate.googleusercontent.com https://www.gstatic.com https://www.google.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com",
@@ -39,6 +75,19 @@ const csp = [
   "upgrade-insecure-requests",
 ].join('; ')
 
+// Detect whether the request comes from a Google-Translate-opted-in
+// session. The client-side runtime sets `googtrans=/auto/<lang>` on
+// the cookie store before loading the widget; that same cookie is
+// what triggers the relaxed CSP on subsequent navigations / reloads.
+function wantsTranslateRelaxedCsp(req) {
+  const cookieHeader = req.headers.cookie || ''
+  if (!cookieHeader) return false
+  // Match googtrans=/<source>/<target> where target is one of the
+  // 11 non-English locales the runtime supports. Anything else
+  // (including /auto/en) falls back to strict CSP.
+  return /(?:^|;\s*)googtrans=\/[^/]+\/(es|de|fr|ko|ja|tl|ar|zh|it|pt|vi)\b/.test(cookieHeader)
+}
+
 console.log('[SERVER] ════════════════════════════════════════════════════════')
 console.log('[SERVER] PCS Express - Node.js Backend Server')
 console.log('[SERVER] ════════════════════════════════════════════════════════')
@@ -51,7 +100,13 @@ console.log('[SERVER] ═══════════════════�
 
 // === MIDDLEWARE ===
 app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', csp)
+  // Conditional CSP — strict by default, relaxed only for the
+  // Google Translate opt-in cookie set by useGoogleTranslateRuntime.
+  // The `Vary: Cookie` response header tells caches not to share a
+  // strict-CSP response with a translate-enabled client (or vice
+  // versa), avoiding the Vercel / Railway edge cache mixing the two.
+  res.setHeader('Content-Security-Policy', wantsTranslateRelaxedCsp(req) ? CSP_TRANSLATE_RELAXED : CSP_STRICT_BASE)
+  res.setHeader('Vary', 'Cookie')
   res.setHeader('X-Content-Type-Options', 'nosniff')
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=()')

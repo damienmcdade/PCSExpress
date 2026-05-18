@@ -192,6 +192,21 @@ export function applyGoogleTranslateLanguage(lang) {
   if (!widgetInitialized) {
     widgetInitialized = true;
     activeLang = lang;
+
+    // First-time opt-in to translation. Server CSP defaults to strict
+    // (no 'unsafe-eval') and only relaxes when the googtrans cookie is
+    // present on the request. Since the cookie was just set client-
+    // side, the CURRENT response was sent under strict CSP — meaning
+    // Google's element.js would fail to eval inside this page. We
+    // must reload so the next response carries the relaxed CSP. Skip
+    // the reload when the cookie was already present on initial load
+    // (returning user) — in that case the strict-vs-relaxed switch
+    // already happened upstream and the script can load normally.
+    if (!hadTranslateCookieAtBoot()) {
+      window.location.reload();
+      return;
+    }
+
     installInitCallback();
     loadGoogleTranslateScript();
     return;
@@ -200,6 +215,18 @@ export function applyGoogleTranslateLanguage(lang) {
   // Widget already mounted — change target via the hidden select.
   activeLang = lang;
   forceWidgetReTranslate(lang);
+}
+
+// Records the cookie state at module-load time so applyGoogleTranslate
+// Language can distinguish "user just picked a non-English language for
+// the first time" (needs reload to get relaxed CSP) from "cookie was
+// already set on initial request" (CSP already relaxed, no reload).
+const _hadTranslateCookieAtBoot = (() => {
+  if (typeof document === 'undefined') return false;
+  return /(?:^|;\s*)googtrans=\/[^/]+\/(es|de|fr|ko|ja|tl|ar|zh|it|pt|vi)\b/.test(document.cookie || '');
+})();
+function hadTranslateCookieAtBoot() {
+  return _hadTranslateCookieAtBoot;
 }
 
 /**
