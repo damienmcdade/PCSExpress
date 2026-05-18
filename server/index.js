@@ -125,12 +125,33 @@ app.get('/api/base-reviews/schema', (req, res) => {
   res.status(200).json(BASE_REVIEW_SCHEMA);
 });
 
+// Rate-limit map registry — every in-memory per-IP hit Map registers
+// itself here so the periodic cleanup below can prune expired entries
+// across all limiters in one pass. Without this, long-running servers
+// accumulate one Map entry per unique source IP and never release the
+// memory; the audit on 2026-05-18 flagged this as a slow-leak risk.
+const _rateLimitRegistry = []; // [{ map, windowMs }]
+function registerRateLimitMap(map, windowMs) {
+  _rateLimitRegistry.push({ map, windowMs });
+}
+// Sweep every 5 minutes — drops entries whose window expired more than
+// 2x the window duration ago (gives stragglers time to roll over).
+setInterval(() => {
+  const now = Date.now();
+  for (const { map, windowMs } of _rateLimitRegistry) {
+    for (const [ip, entry] of map) {
+      if (now - entry.windowStart > windowMs * 2) map.delete(ip);
+    }
+  }
+}, 5 * 60_000).unref?.();
+
 // Per-IP rate limit for the base-review validator. The endpoint
 // performs schema/PII validation but no persistence — limiting it
 // blocks enumeration / DoS abuse. Matches NIST SP 800-53 SC-5 and
 // OWASP ASVS V4 (5.4) defense-in-depth tier alongside the upstream
 // nginx limit.
 const _baseReviewHits = new Map();
+registerRateLimitMap(_baseReviewHits, 60_000);
 const BASE_REVIEW_LIMIT = 30;
 const BASE_REVIEW_WINDOW_MS = 60_000;
 function baseReviewRateLimit(req, res, next) {
@@ -165,6 +186,7 @@ app.post('/api/base-reviews/validate', baseReviewRateLimit, (req, res) => {
 const _aiHits = new Map(); // ip -> { count, windowStart }
 const AI_RATE_LIMIT = 20;          // 20 requests
 const AI_RATE_WINDOW_MS = 60_000;  // per 60 seconds
+registerRateLimitMap(_aiHits, AI_RATE_WINDOW_MS);
 
 function aiRateLimit(req, res, next) {
   const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
@@ -257,6 +279,7 @@ const VET_BIZ_TTL_MS = 24 * 60 * 60 * 1000
 const VET_BIZ_RATE_LIMIT = 30
 const VET_BIZ_RATE_WINDOW_MS = 60_000
 const _vetBizHits = new Map()
+registerRateLimitMap(_vetBizHits, 60_000)
 
 function vetBizRateLimit(req, res, next) {
   const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
@@ -498,6 +521,7 @@ const HOUSING_TTL_MS = 6 * 60 * 60 * 1000   // 6h
 const HOUSING_RATE_LIMIT = 30
 const HOUSING_RATE_WINDOW_MS = 60_000
 const _housingHits = new Map()
+registerRateLimitMap(_housingHits, 60_000)
 
 function housingRateLimit(req, res, next) {
   const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
@@ -944,6 +968,7 @@ const MARKET_STATS_TTL_MS = 6 * 60 * 60 * 1000   // 6h
 const MARKET_STATS_RATE_LIMIT = 30
 const MARKET_STATS_RATE_WINDOW_MS = 60_000
 const _marketStatsHits = new Map()
+registerRateLimitMap(_marketStatsHits, 60_000)
 
 function marketStatsRateLimit(req, res, next) {
   const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
@@ -1109,6 +1134,7 @@ const JOBS_TTL_MS = 60 * 60 * 1000   // 1h - listings move fast
 const JOBS_RATE_LIMIT = 30
 const JOBS_RATE_WINDOW_MS = 60_000
 const _jobsHits = new Map()
+registerRateLimitMap(_jobsHits, 60_000)
 
 function jobsRateLimit(req, res, next) {
   const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
@@ -1377,6 +1403,7 @@ const RELIGIOUS_TTL_MS = 24 * 60 * 60 * 1000
 const RELIGIOUS_RATE_LIMIT = 20
 const RELIGIOUS_RATE_WINDOW_MS = 60_000
 const _religiousHits = new Map()
+registerRateLimitMap(_religiousHits, 60_000)
 
 function religiousRateLimit(req, res, next) {
   const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
@@ -1514,6 +1541,7 @@ const SCHOOL_TTL_MS = 24 * 60 * 60 * 1000
 const SCHOOL_RATE_LIMIT = 20
 const SCHOOL_RATE_WINDOW_MS = 60_000
 const _schoolHits = new Map()
+registerRateLimitMap(_schoolHits, 60_000)
 
 function schoolRateLimit(req, res, next) {
   const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
@@ -1912,6 +1940,7 @@ const FAMILY_TTL_MS = 24 * 60 * 60 * 1000
 const FAMILY_RATE_LIMIT = 20
 const FAMILY_RATE_WINDOW_MS = 60_000
 const _familyHits = new Map()
+registerRateLimitMap(_familyHits, 60_000)
 const OSM_USER_AGENT = process.env.OSM_USER_AGENT || 'PCSExpress/1.0 (https://github.com/damienmcdade/PCSExpress)'
 
 function familyRateLimit(req, res, next) {
