@@ -125,7 +125,30 @@ app.get('/api/base-reviews/schema', (req, res) => {
   res.status(200).json(BASE_REVIEW_SCHEMA);
 });
 
-app.post('/api/base-reviews/validate', (req, res) => {
+// Per-IP rate limit for the base-review validator. The endpoint
+// performs schema/PII validation but no persistence — limiting it
+// blocks enumeration / DoS abuse. Matches NIST SP 800-53 SC-5 and
+// OWASP ASVS V4 (5.4) defense-in-depth tier alongside the upstream
+// nginx limit.
+const _baseReviewHits = new Map();
+const BASE_REVIEW_LIMIT = 30;
+const BASE_REVIEW_WINDOW_MS = 60_000;
+function baseReviewRateLimit(req, res, next) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+  const now = Date.now();
+  const entry = _baseReviewHits.get(ip);
+  if (!entry || now - entry.windowStart > BASE_REVIEW_WINDOW_MS) {
+    _baseReviewHits.set(ip, { count: 1, windowStart: now });
+    return next();
+  }
+  if (entry.count >= BASE_REVIEW_LIMIT) {
+    return res.status(429).json({ error: 'Rate limit exceeded. Try again in a minute.' });
+  }
+  entry.count += 1;
+  return next();
+}
+
+app.post('/api/base-reviews/validate', baseReviewRateLimit, (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   const { InstallationName, Category, Rating, UserRank } = req.body || {};
   if (containsLikelyPii(req.body)) return res.status(400).json({ error: 'Raw PII is not accepted by this endpoint.' });
