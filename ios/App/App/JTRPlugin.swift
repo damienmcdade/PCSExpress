@@ -1,3 +1,13 @@
+// Gated by ENABLE_NATIVE_JTR_PLUGIN. The plugin was authored against
+// an older Capacitor SDK and uses APIs that the Capacitor 8 SPM build
+// no longer exposes (`call.reject`/`call.resolve` signatures and
+// `bridge.viewController`). No JavaScript code in `src/` references
+// `JTRPlugin`, so the plugin is currently dead native code blocking
+// the Swift compile in CI. Wrap-and-gate keeps the source for a
+// future Capacitor-8 port without forcing a deletion. Re-enable by
+// adding `ENABLE_NATIVE_JTR_PLUGIN` to OTHER_SWIFT_FLAGS in the
+// App target's Build Settings, after porting the API calls.
+#if ENABLE_NATIVE_JTR_PLUGIN
 import Capacitor
 import Foundation
 import SwiftUI
@@ -254,3 +264,4 @@ public class JTRPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 }
+#endif // ENABLE_NATIVE_JTR_PLUGIN
