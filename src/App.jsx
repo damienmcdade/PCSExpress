@@ -549,80 +549,125 @@ function TMinusDashboard({ theme, profile }) {
 // ───────────────────────────────────────────────────────────────────
 // Mission Lanes — Command Center task triage.
 //
-// Buckets TMINUS_MILESTONES into three lanes ("Today", "This Week",
-// "Before You Report") based on the user's report-NLT date. Each
-// lane shows the most-imminent open items so the user knows what to
-// work on first the moment they open the app. Tapping any item routes
-// to PCS Operations where the full checklist lives.
+// Pulls the user's tailored PCS checklist (per-branch + filtered by
+// component / orders type / pets / children / OCONUS / move type),
+// then surfaces the most-imminent UNCHECKED items in three lanes:
+//
+//   • Today          → current phase per PHASE_WINDOWS
+//   • This Week      → next phase chronologically
+//   • Before You Report → remaining phases before In-Processing
+//
+// Checking an item in PCS Operations → Checklist removes it from the
+// lanes automatically (state is shared via checklistItems). Tapping
+// any lane row routes to PCS Operations where the full checklist
+// lives.
 // ───────────────────────────────────────────────────────────────────
-function MissionLanes({ theme, profile, onJumpToOps }) {
+const PHASE_ORDER = ['Orders Received', '90 Days Out', '60 Days Out', '30 Days Out', 'Move Week', 'In-Processing'];
+
+function resolveCurrentPhase(daysUntil) {
+  if (daysUntil == null) return null;
+  // Walk PHASE_WINDOWS in chronological order — the current phase is
+  // the FIRST one whose activeAt is greater than or equal to daysUntil
+  // but where overdueAt is less than daysUntil. Falls through to
+  // In-Processing once we are past the report date.
+  if (daysUntil >  90) return 'Orders Received';
+  if (daysUntil >  60) return '90 Days Out';
+  if (daysUntil >  30) return '60 Days Out';
+  if (daysUntil >   7) return '30 Days Out';
+  if (daysUntil >=  0) return 'Move Week';
+  return 'In-Processing';
+}
+
+function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
   const target = profile?.reportNLTDate || profile?.departingDate;
   if (!target) return null;
   const targetDate = new Date(target);
   if (isNaN(targetDate.getTime())) return null;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  const daysUntil = Math.floor((targetDate - today) / 86400000);
 
-  // Each milestone fires `days` relative to RNLTD (negative = before
-  // the report date). Compute days-from-today for every entry.
-  const enriched = TMINUS_MILESTONES.map(m => {
-    const dueDate = new Date(targetDate.getTime() + m.days * 86400000);
-    const daysFromToday = Math.round((dueDate - today) / 86400000);
-    return { ...m, dueDate, daysFromToday };
+  // Build the same tailored per-phase checklist the user sees in PCS
+  // Operations → Checklist, then index each task by its `phase-idx`
+  // key so we can match against the persisted checklistItems map.
+  const tailored = getTailoredChecklist(profile?.branch || 'Army', {
+    component:     profile?.component || 'Active Duty',
+    ordersType:    profile?.ordersType || '',
+    hasDependents: !!profile?.hasDependents,
+    hasChildren:   !!profile?.hasChildren,
+    hasPets:       !!profile?.hasPets,
+    moveType:      profile?.moveType || 'HHG',
+    isOverseas:    !!profile?.isOverseas,
   });
 
-  // Bucketing rules:
-  //   Today        → due in [-1, +1] days
-  //   This Week    → due in [+2, +7] days
-  //   Before report→ due in [+8, daysUntilReport] (cap at 6 entries)
+  const pickItems = (phase, limit) => {
+    const list = tailored[phase] || [];
+    const open = [];
+    for (let i = 0; i < list.length; i += 1) {
+      const key = `${phase}-${i}`;
+      if (!(checklistItems || {})[key]) {
+        open.push({ phase, idx: i, label: list[i] });
+        if (open.length >= limit) break;
+      }
+    }
+    return open;
+  };
+
+  const currentPhase = resolveCurrentPhase(daysUntil);
+  const currentIdx = PHASE_ORDER.indexOf(currentPhase);
+  const nextPhase = currentIdx >= 0 && currentIdx < PHASE_ORDER.length - 1 ? PHASE_ORDER[currentIdx + 1] : null;
+  const futurePhases = currentIdx >= 0 ? PHASE_ORDER.slice(currentIdx + 2) : [];
+  const futureItems = futurePhases.flatMap(p => pickItems(p, 3)).slice(0, 6);
+
   const lanes = [
-    { id: 'today',  title: 'Today',           accent: '#C62828', items: enriched.filter(m => m.daysFromToday >= -1 && m.daysFromToday <= 1) },
-    { id: 'week',   title: 'This Week',       accent: '#E65100', items: enriched.filter(m => m.daysFromToday >= 2 && m.daysFromToday <= 7) },
-    { id: 'before', title: 'Before You Report', accent: theme.primary, items: enriched.filter(m => m.daysFromToday >= 8 && m.daysFromToday <= 60).slice(0, 6) },
+    { id: 'today',  title: 'Today',             accent: '#C62828', phaseLabel: currentPhase, items: pickItems(currentPhase, 4) },
+    { id: 'week',   title: 'This Week',         accent: '#E65100', phaseLabel: nextPhase || '—', items: nextPhase ? pickItems(nextPhase, 4) : [] },
+    { id: 'before', title: 'Before You Report', accent: theme.primary, phaseLabel: null, items: futureItems },
   ];
   const total = lanes.reduce((s, l) => s + l.items.length, 0);
   if (total === 0) return null;
 
-  const fmtDate = (d) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-  const fmtRelative = (n) => {
-    if (n === 0) return 'today';
-    if (n === 1) return 'tomorrow';
-    if (n === -1) return 'yesterday';
-    if (n < 0) return `${-n} days ago`;
-    return `in ${n} days`;
-  };
+  // RNLTD context line. Helps the user calibrate "today" against the
+  // actual report date without scrolling back up to TMinusDashboard.
+  const reportContext = daysUntil >= 0
+    ? `T-${daysUntil} · ${currentPhase || 'Pre-orders'} phase`
+    : `T+${Math.abs(daysUntil)} · ${currentPhase || 'In-Processing'} phase`;
 
   return (
     <div style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
         <div style={{ fontSize: 11, fontWeight: 950, color: theme.primary, letterSpacing: '.12em' }}>MISSION LANES</div>
         <button onClick={onJumpToOps} style={{ fontSize: 10, fontWeight: 800, color: theme.primary, background: 'transparent', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '.06em' }}>
           Full checklist →
         </button>
       </div>
+      <div style={{ fontSize: 10, fontWeight: 700, color: UI_PALETTE.muted, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>{reportContext}</div>
       {lanes.map(lane => (
         <section key={lane.id} aria-label={lane.title} style={{ marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: lane.accent }} />
             <div style={{ fontSize: 10, fontWeight: 950, color: lane.accent, letterSpacing: '.10em', textTransform: 'uppercase' }}>{lane.title}</div>
+            {lane.phaseLabel && (
+              <div style={{ fontSize: 9, fontWeight: 700, color: UI_PALETTE.muted, letterSpacing: '.06em' }}>· {lane.phaseLabel}</div>
+            )}
             <div style={{ fontSize: 10, fontWeight: 700, color: UI_PALETTE.muted, marginLeft: 'auto' }}>{lane.items.length}</div>
           </div>
           {lane.items.length === 0 ? (
             <div style={{ fontSize: 11, color: UI_PALETTE.muted, padding: '4px 0 6px', fontStyle: 'italic' }}>
-              {lane.id === 'today' ? 'No tasks due today.' : lane.id === 'week' ? 'Nothing on the books this week.' : 'Nothing flagged in the next two months.'}
+              {lane.id === 'today' ? 'Nothing open for the current phase. Crush.' : lane.id === 'week' ? 'No open items in the next phase yet.' : 'Nothing flagged further out.'}
             </div>
           ) : (
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 4 }}>
-              {lane.items.map((item, idx) => (
-                <li key={idx}>
+              {lane.items.map(item => (
+                <li key={`${item.phase}-${item.idx}`}>
                   <button
                     onClick={onJumpToOps}
                     style={{ width: '100%', textAlign: 'left', background: UI_PALETTE.surfaceSoft || '#F6F1E4', border: `1px solid ${UI_PALETTE.line}`, borderLeft: `3px solid ${lane.accent}`, borderRadius: 8, padding: '8px 10px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}
                     aria-label={`Open PCS Operations for: ${item.label}`}
                   >
                     <span style={{ fontSize: 12, fontWeight: 600, color: UI_PALETTE.text, lineHeight: 1.45, flex: 1 }}>{item.label}</span>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: lane.accent, whiteSpace: 'nowrap', marginTop: 1 }}>
-                      {fmtDate(item.dueDate)} · {fmtRelative(item.daysFromToday)}
+                    <span style={{ fontSize: 9, fontWeight: 800, color: lane.accent, whiteSpace: 'nowrap', marginTop: 2, letterSpacing: '.04em', textTransform: 'uppercase' }}>
+                      {item.phase}
                     </span>
                   </button>
                 </li>
@@ -8650,8 +8695,11 @@ function App() {
             {/* T-Minus dashboard — derived from Report-NLT date per redesign brief */}
             <TMinusDashboard theme={theme} profile={profile} />
 
-            {/* Mission Lanes — Today / This Week / Before You Report */}
-            <MissionLanes theme={theme} profile={profile} onJumpToOps={() => goTo('pcs-operations')} />
+            {/* Mission Lanes — Today / This Week / Before You Report.
+                Pulls live unchecked items from the user's tailored
+                checklist so the home dashboard reflects real progress,
+                not a static milestone array. */}
+            <MissionLanes theme={theme} profile={profile} checklistItems={checklistItems} onJumpToOps={() => goTo('pcs-operations')} />
 
             {/* Component-specific notes (Reserve / National Guard / AGR) */}
             {COMPONENT_NOTES[profile.component] && (
