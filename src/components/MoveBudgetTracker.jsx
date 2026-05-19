@@ -23,7 +23,7 @@ const ENTITLEMENT_CATEGORIES = [
   { id: 'ppm', label: 'PPM Incentive (if applicable)', hint: '95% of GCC if you did a personally procured move.', defaultPct: 0 },
 ];
 
-const EXPENSE_CATEGORIES = [
+const EXPENSE_CATEGORIES_BASE = [
   { id: 'lodging', label: 'Lodging / TLE out-of-pocket', icon: '🏨' },
   { id: 'meals', label: 'Meals during travel', icon: '🍽️' },
   { id: 'fuel', label: 'Fuel & tolls', icon: '⛽' },
@@ -36,6 +36,24 @@ const EXPENSE_CATEGORIES = [
   { id: 'repairs', label: 'Vehicle or HHG damage', icon: '🔧' },
   { id: 'misc', label: 'Other miscellaneous', icon: '📎' },
 ];
+
+// OCONUS-only expense categories. These cost lines are systematically
+// underestimated by families until they arrive — large security
+// deposits in host-nation currency, utility connection-fee shock, FX
+// loss between expense and reimbursement, and visa/work-permit fees
+// for accompanying spouses are the four most common surprises.
+const EXPENSE_CATEGORIES_OCONUS_EXTRA = [
+  { id: 'miha_security',  label: 'MIHA Security / host-nation rental deposit (1-3 months)', icon: '🌐' },
+  { id: 'utility_setup',  label: 'Host-nation utility connection fees',                      icon: '⚡' },
+  { id: 'fx_loss',        label: 'Currency exchange / FX loss vs reimbursement rate',        icon: '💱' },
+  { id: 'visa_workperm',  label: 'Spouse visa / work-permit / host-nation document fees',    icon: '🛂' },
+  { id: 'voltage_adapt',  label: 'Voltage transformers / appliance replacement (110V→220V)', icon: '🔌' },
+];
+function buildExpenseCategories(profile) {
+  return profile?.isOverseas
+    ? [...EXPENSE_CATEGORIES_BASE, ...EXPENSE_CATEGORIES_OCONUS_EXTRA]
+    : EXPENSE_CATEGORIES_BASE;
+}
 
 function CurrencyInput({ value, onChange, placeholder }) {
   return (
@@ -58,7 +76,8 @@ function fmt(n) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 }
 
-export default function MoveBudgetTracker({ theme }) {
+export default function MoveBudgetTracker({ theme, profile }) {
+  const EXPENSE_CATEGORIES = useMemo(() => buildExpenseCategories(profile), [profile?.isOverseas]);
   const [entitlements, setEntitlements] = useState(() =>
     Object.fromEntries(ENTITLEMENT_CATEGORIES.map(c => [c.id, '']))
   );
@@ -73,7 +92,7 @@ export default function MoveBudgetTracker({ theme }) {
 
   const totalExpenses = useMemo(() =>
     EXPENSE_CATEGORIES.reduce((sum, c) => sum + parseNum(expenses[c.id]), 0),
-    [expenses]
+    [expenses, EXPENSE_CATEGORIES]
   );
 
   const netPosition = totalEntitlements - totalExpenses;

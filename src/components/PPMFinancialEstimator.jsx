@@ -27,8 +27,32 @@ function MetricCard({ label, value, note, tone = '#1565C0' }) {
   );
 }
 
+// Per JTR §050302, PPM (Personally Procured Move) is generally not
+// authorized for OCONUS PCS. The DoD ships household goods through the
+// Defense Personal Property System (DPS) using the Patriot Express or
+// commercial-port sea shipment instead. A small number of OCONUS
+// localities (Alaska, Hawaii, Guam, and a few specific Pacific bases)
+// can authorize a partial PPM, but the gaining PPSO has the final call.
+const OCONUS_PPM_PARTIAL_ALLOWED = new Set([
+  // Alaska intra-theatre / inter-base moves can be PPM-authorized.
+  'fort wainwright','fort greely','jber','elmendorf','eielson','clear space force station',
+  // Hawaii intra-island moves can be authorized as PPM.
+  'jbphh','schofield','shafter','fort shafter','kaneohe','barbers point','wheeler army airfield','mcb hawaii',
+  // Guam intra-island.
+  'andersen','nb guam','naval base guam','navy base guam',
+]);
+function gainingIsOconusPpmRestricted(profile) {
+  const raw = String(profile?.gainingInstallation || '').toLowerCase();
+  if (!raw) return false;
+  if (!profile?.isOverseas) return false;
+  // Profile is OCONUS — check if the gaining base is on the limited
+  // PPM-allowed allowlist. If not, surface the JTR §050302 restriction.
+  return !Array.from(OCONUS_PPM_PARTIAL_ALLOWED).some(kw => raw.includes(kw));
+}
+
 export default function PPMFinancialEstimator({ theme, profile }) {
   const isCivilian = profile?.component === 'DoD Civilian';
+  const oconusRestricted = gainingIsOconusPpmRestricted(profile);
   // Civilian profiles carry a GS/SES/WG grade not in PPM_PAYGRADES.
   // We fall back to an E-5 baseline so the calculator still produces a
   // meaningful planning number; the civilian banner notes the
@@ -65,6 +89,12 @@ export default function PPMFinancialEstimator({ theme, profile }) {
       {isCivilian && (
         <div style={{ background: '#FFF3E0', border: '1.5px solid #FFB74D', borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 12, color: '#6D4C00', lineHeight: 1.55 }}>
           <strong>DoD Civilian planning estimate.</strong> Civilian PPM reimbursement follows the Federal Travel Regulation §302-7 — 95% of the constructed government cost against your 18,000 lb weight allowance. The rank field below maps to a military E/O paygrade for math purposes only; your actual reimbursement is calculated by your servicing DCPAS / TMO office at the gaining activity. Use this as a planning order-of-magnitude only.
+        </div>
+      )}
+
+      {oconusRestricted && (
+        <div style={{ background: '#FFEBEE', border: '1.5px solid #EF9A9A', borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 12, color: '#7F0000', lineHeight: 1.55 }}>
+          <strong>OCONUS PPM is generally not authorized.</strong> Per JTR §050302, PPM is restricted at most overseas installations — household goods normally ship through DPS via Patriot Express or sea-freight, with the optional partial-PPM only at Alaska / Hawaii / Guam and select Pacific bases. Confirm with the gaining PPSO before relying on the numbers below. If the gaining PPSO denies PPM authorization, the figures here will overstate your reimbursement.
         </div>
       )}
 

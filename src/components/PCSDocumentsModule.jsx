@@ -201,7 +201,12 @@ const DOC_APPLICABILITY = {
   da5960_bah:            (p) => p.hasDependents && !p.isOverseas,
   bah_auth:              (p) => !p.isOverseas,
   navpers_1070_602:      (p) => p.hasDependents,
-  command_sponsorship:   (p) => p.hasDependents || p.hasChildren,
+  // Command sponsorship (CS) is required for ALL OCONUS PCS, accompanied
+  // or unaccompanied, per JTR §050203 and DoDI 1315.18 — the sponsor
+  // package gates country clearance, no-fee passport, and dependent
+  // travel approval. Gating to "hasDependents" alone hid this from
+  // single unaccompanied OCONUS service members who still need it.
+  command_sponsorship:   (p) => p.isOverseas || p.hasDependents || p.hasChildren,
   // POV shipment authorization (DD 788) and International Driving
   // Permit are overseas-only. Civilian POV ship gated symmetrically.
   pov_shipment:          (p) =>  p.isOverseas,

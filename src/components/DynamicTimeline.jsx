@@ -47,28 +47,44 @@ function writeNotificationState(value) {
   } catch {}
 }
 
+// Date math is performed in UTC. The RNLTD comes in as a YYYY-MM-DD
+// string from the profile and is parsed below as a UTC midnight Date,
+// so adding/subtracting days and computing "days until due" must also
+// use UTC accessors — otherwise OCONUS users in UTC+9 (Japan/Korea) or
+// UTC-10 (Hawaii) hit off-by-one errors when the device's local
+// midnight straddles UTC midnight.
 function addDays(date, days) {
   const next = new Date(date);
-  next.setDate(next.getDate() + days);
+  next.setUTCDate(next.getUTCDate() + days);
   return next;
 }
 
 function formatDate(date) {
   if (!date || Number.isNaN(date.getTime())) return 'Set RNLTD';
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
 function daysBetween(a, b) {
-  const start = new Date(a.getFullYear(), a.getMonth(), a.getDate());
-  const end = new Date(b.getFullYear(), b.getMonth(), b.getDate());
-  return Math.ceil((end - start) / 86400000);
+  const start = Date.UTC(a.getUTCFullYear(), a.getUTCMonth(), a.getUTCDate());
+  const end   = Date.UTC(b.getUTCFullYear(), b.getUTCMonth(), b.getUTCDate());
+  return Math.round((end - start) / 86400000);
 }
 
 export default function DynamicTimeline({ theme, profile }) {
   const [enabled, setEnabled] = useState(() => readNotificationState());
   const [permission, setPermission] = useState(() => (typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'));
-  const rnltDate = useMemo(() => profile?.departingDate ? new Date(`${profile.departingDate}T12:00:00`) : null, [profile?.departingDate]);
-  const today = useMemo(() => new Date(), []);
+  // Parse RNLTD as UTC midnight so it is identical for users in any
+  // timezone. `new Date('YYYY-MM-DDT00:00:00Z')` gives us the UTC
+  // anchor; same for today's date — collapsing both to UTC midnight
+  // avoids off-by-one in OCONUS timezones.
+  const rnltDate = useMemo(() => {
+    if (!profile?.departingDate) return null;
+    return new Date(`${profile.departingDate}T00:00:00Z`);
+  }, [profile?.departingDate]);
+  const today = useMemo(() => {
+    const now = new Date();
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  }, []);
 
   useEffect(() => writeNotificationState(enabled), [enabled]);
 
