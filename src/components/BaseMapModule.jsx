@@ -176,12 +176,23 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
   }, [installation, knownMarket]);
 
   const embedUrl = useMemo(() => {
-    // Facility focus takes priority — when the user taps an on-base
-    // facility card, the embed re-runs as a Google Maps search for
-    // that facility, so the iframe shows its location, address, and
-    // surrounding streets without opening a new tab.
+    // Facility focus: anchor the map view on the base coordinates
+    // (when geocoded) and only USE the facility query as a search
+    // highlight on top. Without the explicit ll= + z= anchor, Google's
+    // geocoder will reinterpret a query like "commissary Fort Bragg"
+    // into the most globally-popular match — which sometimes lives
+    // half a continent away from the gaining installation and zooms
+    // the user off the base. With ll= anchored to the resolved
+    // installation lat/lng, the embed stays centered on the base
+    // even if the facility match is approximate.
+    if (focusedFacility && geo.status === 'ready') {
+      const q = encodeURIComponent(focusedFacility.q);
+      return `https://maps.google.com/maps?ll=${geo.lat},${geo.lng}&z=16&q=${q}&output=embed`;
+    }
+    // Facility focus without resolved coordinates — fall back to the
+    // search-only embed. Best we can do until geocoding completes.
     if (focusedFacility) {
-      return `https://maps.google.com/maps?q=${encodeURIComponent(focusedFacility.q)}&output=embed`;
+      return `https://maps.google.com/maps?q=${encodeURIComponent(focusedFacility.q + ' ' + installation)}&output=embed`;
     }
     // Google Maps is the canonical base-map provider. Prefer a
     // lat/lng-pinned Google embed once Nominatim resolves the
@@ -194,7 +205,7 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
       return `https://maps.google.com/maps?q=${geo.lat},${geo.lng}&z=13&output=embed`;
     }
     return publicMapEmbedUrl(mapQuery);
-  }, [geo, mapQuery, focusedFacility]);
+  }, [geo, mapQuery, focusedFacility, installation]);
 
   const colors = {
     primary: theme.primary || '#21424A',
@@ -305,7 +316,10 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
           )}
           {focusedFacility && (
             <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: colors.muted }}>
-              <strong style={{ color: colors.primary }}>{focusedFacility.icon} {focusedFacility.label}</strong> · viewing on map
+              <strong style={{ color: colors.primary }}>{focusedFacility.icon} {focusedFacility.label}</strong>
+              {geo.status === 'ready'
+                ? ' · centered on the base'
+                : ' · resolving base coordinates…'}
             </div>
           )}
           <a href={focusedFacility
