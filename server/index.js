@@ -826,18 +826,18 @@ function syntheticTypeCards(city, state, zip) {
   const oconus = isOconusMarket(state)
 
   if (oconus) {
-    // Each entry maps to a real, working entry point. URLs verified
-    // live; AHRN.com /find-a-home is the discovery page where users
-    // can type the installation; HOMES.mil session entry pre-accepts
-    // the Government Information System banner so users go straight
-    // to the search; MilitaryByOwner's /find-rentals/ landing page
-    // lets the user filter by country.
+    // DoD-sanctioned portal landing pages (homes.mil, ahrn.com,
+    // militarybyowner.com, militaryinstallations) — each opens at a
+    // discovery page where the user types the installation. Query-
+    // param deep linking isn't supported uniformly across these
+    // sites, so we keep their canonical landing URLs and let the
+    // adjacent Google Maps card handle the immediate-search case.
     const directory = [
       {
         propertyType: 'DoD official',
         name: 'HOMES.mil — DoD privatized housing',
         description: 'Official Department of Defense privatized housing portal. Search on-installation and partner housing worldwide, including OCONUS communities. Government-managed; no advertising; no broker fees.',
-        url: 'https://www.homes.mil/homes/DispatchServlet/HomesEntry?agreed=true',
+        url: 'https://www.homes.mil/',
       },
       {
         propertyType: 'AHRN.com',
@@ -856,6 +856,12 @@ function syntheticTypeCards(city, state, zip) {
         name: `MilitaryINSTALLATIONS — ${city || 'installation'} resources`,
         description: 'Department of Defense installation directory with housing, school liaison, and family-readiness contacts for every base worldwide. Authoritative source for on-installation housing waitlists and points of contact.',
         url: `https://installations.militaryonesource.mil/search?keyword=${ev(city || state)}`,
+      },
+      {
+        propertyType: 'Google Maps',
+        name: `Off-base rentals on Google Maps near ${city || 'your installation'}`,
+        description: 'Curated Google Maps search for apartments, rental agencies, and landlord listings in the host-nation area around your gaining installation. Opens with the locality pre-filtered so you see real properties, photos, and reviews — useful when the DoD-sanctioned portals do not surface the unit type you need.',
+        url: `https://www.google.com/maps/search/?api=1&query=${ev(`apartments for rent near ${city || ''} ${state || ''}`.trim())}`,
       },
     ]
     return directory.map((entry, idx) => ({
