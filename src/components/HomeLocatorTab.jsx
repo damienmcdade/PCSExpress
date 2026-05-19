@@ -367,9 +367,14 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
       })()}
 
       {listings.status === 'loading' && (
-        <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 12, color: colors.muted }}>
-          Looking up active rental listings near {market.installation || 'your gaining installation'}...
-        </div>
+        <section aria-busy="true" aria-label="Loading rental listings" style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: colors.muted, letterSpacing: '.06em', marginBottom: 8 }}>
+            LOADING ACTIVE LISTINGS NEAR {String(market.installation || 'your gaining installation').toUpperCase()}…
+          </div>
+          {[0,1,2].map(i => (
+            <div key={i} className="pcs-skeleton" style={{ background: 'linear-gradient(90deg, #F0F4F8 25%, #FAFBFC 50%, #F0F4F8 75%)', backgroundSize: '200% 100%', animation: 'pcs-skeleton-shimmer 1.4s ease-in-out infinite', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 8, height: 64 }} />
+          ))}
+        </section>
       )}
       {listings.status === 'ready' && listings.items.length > 0 && (() => {
         // Build the type-filter chip list from whatever property types

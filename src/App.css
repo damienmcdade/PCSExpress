@@ -2261,6 +2261,30 @@ input, select, textarea {
   }
 }
 
+/* Skeleton shimmer used by data-loading placeholders (HomeLocator,
+   future API-driven cards). The card already carries the gradient and
+   background-size inline; this keyframe drives the position sweep. */
+@keyframes pcs-skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pcs-skeleton {
+    animation: none !important;
+    background: #F0F4F8 !important;
+  }
+}
+
+/* CopyableText subtle hover affordance + copied-state pulse. */
+.copyable-text:hover,
+.copyable-text:focus-visible {
+  background: rgba(13, 24, 33, 0.05);
+}
+.copyable-text:focus-visible {
+  outline: 2px solid rgba(13, 24, 33, 0.25);
+  outline-offset: 1px;
+}
+
 @keyframes home-cat-glyph-bounce {
   0%   { transform: translateY(0) rotate(0deg); }
   35%  { transform: translateY(-6px) rotate(-8deg); }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { apiUrl } from '../config/apiConfig'
+import CopyableText from './CopyableText'
 
 const OVERSEAS_KEYWORDS = [
   'Humphreys', 'Kadena', 'Yokota', 'Ramstein', 'Stuttgart',
@@ -756,9 +757,14 @@ function ReligiousServicesModule({ theme, profile }) {
                   </div>
                 )}
                 {c.phone && (
-                  <button onClick={() => window.open(`tel:${c.phone}`)} style={{ width: '100%', padding: '10px', borderRadius: 8, background: theme.primary, color: '#FFFFFF', border: 'none', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
-                    <span style={{ marginRight: 6 }}>📞</span>Call chaplain office: {c.phone}
-                  </button>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={() => window.open(`tel:${c.phone}`)} style={{ flex: 1, padding: '10px', borderRadius: 8, background: theme.primary, color: '#FFFFFF', border: 'none', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                      <span style={{ marginRight: 6 }}>📞</span>Call chaplain office: {c.phone}
+                    </button>
+                    <CopyableText value={c.phone} ariaLabel="Copy chaplain phone" style={{ padding: '10px 12px', background: '#FFFFFF', color: theme.primary, border: `1px solid ${theme.primary}`, borderRadius: 8, fontWeight: 700, fontSize: 11 }}>
+                      Copy
+                    </CopyableText>
+                  </div>
                 )}
               </div>
             ))}

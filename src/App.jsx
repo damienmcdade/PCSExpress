@@ -17,6 +17,7 @@ import ShipmentTrackerModule from './components/ShipmentTrackerModule'
 import ComplianceAttestationModule from './components/ComplianceAttestationModule'
 import InventoryVaultModule from './components/InventoryVaultModule'
 import JTRAssistantModule from './components/JTRAssistantModule'
+import CrisisLineChip from './components/CrisisLineChip'
 import ImmigrationModule from './components/ImmigrationModule'
 import MovingFinancialAssistanceTab from './components/MovingFinancialAssistanceTab'
 import PetRelocationChecklistTab from './components/PetRelocationChecklistTab'
@@ -541,6 +542,95 @@ function TMinusDashboard({ theme, profile }) {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────
+// Mission Lanes — Command Center task triage.
+//
+// Buckets TMINUS_MILESTONES into three lanes ("Today", "This Week",
+// "Before You Report") based on the user's report-NLT date. Each
+// lane shows the most-imminent open items so the user knows what to
+// work on first the moment they open the app. Tapping any item routes
+// to PCS Operations where the full checklist lives.
+// ───────────────────────────────────────────────────────────────────
+function MissionLanes({ theme, profile, onJumpToOps }) {
+  const target = profile?.reportNLTDate || profile?.departingDate;
+  if (!target) return null;
+  const targetDate = new Date(target);
+  if (isNaN(targetDate.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Each milestone fires `days` relative to RNLTD (negative = before
+  // the report date). Compute days-from-today for every entry.
+  const enriched = TMINUS_MILESTONES.map(m => {
+    const dueDate = new Date(targetDate.getTime() + m.days * 86400000);
+    const daysFromToday = Math.round((dueDate - today) / 86400000);
+    return { ...m, dueDate, daysFromToday };
+  });
+
+  // Bucketing rules:
+  //   Today        → due in [-1, +1] days
+  //   This Week    → due in [+2, +7] days
+  //   Before report→ due in [+8, daysUntilReport] (cap at 6 entries)
+  const lanes = [
+    { id: 'today',  title: 'Today',           accent: '#C62828', items: enriched.filter(m => m.daysFromToday >= -1 && m.daysFromToday <= 1) },
+    { id: 'week',   title: 'This Week',       accent: '#E65100', items: enriched.filter(m => m.daysFromToday >= 2 && m.daysFromToday <= 7) },
+    { id: 'before', title: 'Before You Report', accent: theme.primary, items: enriched.filter(m => m.daysFromToday >= 8 && m.daysFromToday <= 60).slice(0, 6) },
+  ];
+  const total = lanes.reduce((s, l) => s + l.items.length, 0);
+  if (total === 0) return null;
+
+  const fmtDate = (d) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const fmtRelative = (n) => {
+    if (n === 0) return 'today';
+    if (n === 1) return 'tomorrow';
+    if (n === -1) return 'yesterday';
+    if (n < 0) return `${-n} days ago`;
+    return `in ${n} days`;
+  };
+
+  return (
+    <div style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 950, color: theme.primary, letterSpacing: '.12em' }}>MISSION LANES</div>
+        <button onClick={onJumpToOps} style={{ fontSize: 10, fontWeight: 800, color: theme.primary, background: 'transparent', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+          Full checklist →
+        </button>
+      </div>
+      {lanes.map(lane => (
+        <section key={lane.id} aria-label={lane.title} style={{ marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: lane.accent }} />
+            <div style={{ fontSize: 10, fontWeight: 950, color: lane.accent, letterSpacing: '.10em', textTransform: 'uppercase' }}>{lane.title}</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: UI_PALETTE.muted, marginLeft: 'auto' }}>{lane.items.length}</div>
+          </div>
+          {lane.items.length === 0 ? (
+            <div style={{ fontSize: 11, color: UI_PALETTE.muted, padding: '4px 0 6px', fontStyle: 'italic' }}>
+              {lane.id === 'today' ? 'No tasks due today.' : lane.id === 'week' ? 'Nothing on the books this week.' : 'Nothing flagged in the next two months.'}
+            </div>
+          ) : (
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 4 }}>
+              {lane.items.map((item, idx) => (
+                <li key={idx}>
+                  <button
+                    onClick={onJumpToOps}
+                    style={{ width: '100%', textAlign: 'left', background: UI_PALETTE.surfaceSoft || '#F6F1E4', border: `1px solid ${UI_PALETTE.line}`, borderLeft: `3px solid ${lane.accent}`, borderRadius: 8, padding: '8px 10px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}
+                    aria-label={`Open PCS Operations for: ${item.label}`}
+                  >
+                    <span style={{ fontSize: 12, fontWeight: 600, color: UI_PALETTE.text, lineHeight: 1.45, flex: 1 }}>{item.label}</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: lane.accent, whiteSpace: 'nowrap', marginTop: 1 }}>
+                      {fmtDate(item.dueDate)} · {fmtRelative(item.daysFromToday)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ))}
     </div>
   );
 }
@@ -8492,6 +8582,9 @@ function App() {
             {/* T-Minus dashboard — derived from Report-NLT date per redesign brief */}
             <TMinusDashboard theme={theme} profile={profile} />
 
+            {/* Mission Lanes — Today / This Week / Before You Report */}
+            <MissionLanes theme={theme} profile={profile} onJumpToOps={() => goTo('pcs-operations')} />
+
             {/* Component-specific notes (Reserve / National Guard / AGR) */}
             {COMPONENT_NOTES[profile.component] && (
               <div style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderLeft: `4px solid ${theme.accent}`, borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
@@ -8502,6 +8595,12 @@ function App() {
               </div>
             )}
 
+            {/* Mission-group tiles. The accent color is bound to the
+                user's branch (theme.primary / theme.accent) so the
+                Home grid reads as a single coherent dashboard owned by
+                the branch — not a quilt of designer-chosen colors.
+                Per-group differentiation comes from the iosIcon glyph
+                and the three-letter abbr. */}
             <div className="home-cat-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {HOME_CATEGORIES.map((item, idx) => (
                 <button
@@ -8510,7 +8609,7 @@ function App() {
                   onClick={() => goTo(item.id)}
                   className="home-cat-tile"
                   style={{
-                    '--cat-color': item.color,
+                    '--cat-color': theme.primary,
                     '--cat-delay': `${idx * 35}ms`,
                     minHeight: isDesktop ? 118 : 104,
                     padding: isDesktop ? '18px 12px' : '15px 10px',
@@ -8518,9 +8617,9 @@ function App() {
                   aria-label={item.label}
                 >
                   <span className="home-cat-tile__sheen" aria-hidden="true" />
-                  <span className="home-cat-tile__icon" style={{ background: `${item.color}16`, borderColor: `${item.color}35` }} aria-hidden="true">
+                  <span className="home-cat-tile__icon" style={{ background: `${theme.accent}1C`, borderColor: `${theme.primary}30` }} aria-hidden="true">
                     <span className="home-cat-tile__glyph">{item.iosIcon}</span>
-                    <span className="home-cat-tile__abbr" style={{ color: item.color }}>{item.icon}</span>
+                    <span className="home-cat-tile__abbr" style={{ color: theme.primary }}>{item.icon}</span>
                   </span>
                   <span className="home-cat-tile__label">{item.label}</span>
                 </button>
@@ -8576,6 +8675,11 @@ function App() {
         {activeTab === 'veterans'   && renderCategoryFrame('veterans',   <VeteranBusinessesTab theme={theme} profile={profile} />)}
       </div>
       </div>{/* end body container */}
+
+      {/* Persistent crisis-line chip — always one tap from 988 + OneSource.
+          Renders over every mission group so a stressed user never has
+          to navigate to find help. */}
+      <CrisisLineChip isNative={isNative} isDesktop={isDesktop} />
 
       {/* COMPLIANCE MODAL — opened from the Security & data-handling
           button at the bottom of the Home tab. The Compliance content

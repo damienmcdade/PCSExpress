@@ -19,6 +19,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
+import CopyableText from './CopyableText';
 
 const STORAGE_KEY = 'pcs_shipment_tracker';
 
@@ -126,15 +127,22 @@ export default function ShipmentTrackerModule({ theme, profile }) {
         <div style={{ fontSize: 12, fontWeight: 900, color: theme.primary, letterSpacing: '.06em', marginBottom: 10 }}>SHIPMENT DETAILS</div>
         <div style={{ display: 'grid', gap: 8 }}>
           {FIELDS.map(f => (
-            <label key={f.id} style={{ display: 'block' }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', letterSpacing: '.06em', marginBottom: 4 }}>{f.label.toUpperCase()}</div>
+            <div key={f.id} style={{ display: 'block' }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', letterSpacing: '.06em', marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <span>{f.label.toUpperCase()}</span>
+                {state.fields?.[f.id] && (
+                  <CopyableText value={state.fields[f.id]} ariaLabel={`Copy ${f.label}`} style={{ fontSize: 10, color: theme.primary, padding: '0 4px' }}>
+                    Copy
+                  </CopyableText>
+                )}
+              </div>
               <input
                 value={state.fields?.[f.id] || ''}
                 onChange={e => updField(f.id, e.target.value)}
                 placeholder={f.placeholder}
                 style={{ width: '100%', border: '1px solid #D8DEE7', borderRadius: 8, padding: '8px 10px', fontSize: 13, color: '#111827', background: '#FFFFFF', boxSizing: 'border-box' }}
               />
-            </label>
+            </div>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
