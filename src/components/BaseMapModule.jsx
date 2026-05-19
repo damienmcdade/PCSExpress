@@ -84,10 +84,15 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
   const branch = getSelectedBranch(profile);
   const [installationInput, setInstallationInput] = useState(profileInstallation);
   const [submittedInstallation, setSubmittedInstallation] = useState(profileInstallation);
+  // When the user taps an on-base facility card, the embedded map
+  // re-focuses on that facility inline (instead of opening a new tab).
+  // `null` keeps the embed centered on the base itself.
+  const [focusedFacility, setFocusedFacility] = useState(null);
 
   useEffect(() => {
     setInstallationInput(profileInstallation);
     setSubmittedInstallation(profileInstallation);
+    setFocusedFacility(null);
   }, [profileInstallation]);
 
   const installation = clean(submittedInstallation || installationInput || profileInstallation);
@@ -171,6 +176,13 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
   }, [installation, knownMarket]);
 
   const embedUrl = useMemo(() => {
+    // Facility focus takes priority — when the user taps an on-base
+    // facility card, the embed re-runs as a Google Maps search for
+    // that facility, so the iframe shows its location, address, and
+    // surrounding streets without opening a new tab.
+    if (focusedFacility) {
+      return `https://maps.google.com/maps?q=${encodeURIComponent(focusedFacility.q)}&output=embed`;
+    }
     // Google Maps is the canonical base-map provider. Prefer a
     // lat/lng-pinned Google embed once Nominatim resolves the
     // installation — that's the only form that guarantees the map is
@@ -182,7 +194,7 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
       return `https://maps.google.com/maps?q=${geo.lat},${geo.lng}&z=13&output=embed`;
     }
     return publicMapEmbedUrl(mapQuery);
-  }, [geo, mapQuery]);
+  }, [geo, mapQuery, focusedFacility]);
 
   const colors = {
     primary: theme.primary || '#21424A',
@@ -280,9 +292,27 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
           style={{ width: '100%', height: 420, border: 0, display: 'block', background: '#EDF2F4' }}
           allowFullScreen
         />
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', padding: 12, borderTop: `1px solid ${colors.border}` }}>
-          <a href={mapSearchUrl} target="_blank" rel="noopener noreferrer" style={buttonStyle}>
-            Open public map
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', padding: 12, borderTop: `1px solid ${colors.border}`, alignItems: 'center' }}>
+          {focusedFacility && (
+            <button
+              type="button"
+              onClick={() => setFocusedFacility(null)}
+              style={{ ...buttonStyle, background: colors.soft, color: colors.primary, border: `1px solid ${colors.border}` }}
+              aria-label="Back to base view"
+            >
+              ← Back to base view
+            </button>
+          )}
+          {focusedFacility && (
+            <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: colors.muted }}>
+              <strong style={{ color: colors.primary }}>{focusedFacility.icon} {focusedFacility.label}</strong> · viewing on map
+            </div>
+          )}
+          <a href={focusedFacility
+              ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(focusedFacility.q)}`
+              : mapSearchUrl}
+            target="_blank" rel="noopener noreferrer" style={buttonStyle}>
+            Open full map ↗
           </a>
           <a href={OFFICIAL_INSTALLATION_DIRECTORY} target="_blank" rel="noopener noreferrer" style={{ ...buttonStyle, background: colors.accent, color: '#101820' }}>
             Open MilitaryINSTALLATIONS
@@ -307,7 +337,7 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
               Tap a facility to open its Google Maps location with photos, hours, and directions.
             </span>
           </div>
-          <div data-dynamic-card="google" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8 }}>
             {[
               { icon: '🏥', label: 'Medical (MTF) / Hospital',     q: `medical treatment facility hospital ${installation}` },
               { icon: '🏠', label: 'Housing Office',                q: `housing office ${installation}` },
@@ -325,19 +355,38 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
               { icon: '🚓', label: 'Provost Marshal / Security',    q: `provost marshal security forces ${installation}` },
               { icon: '🚌', label: 'Transportation (TMO)',          q: `transportation motor pool TMO ${installation}` },
               { icon: '🎓', label: 'Education Center',              q: `education center voluntary education ${installation}` },
-            ].map((f) => (
-              <a
-                key={f.label}
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(f.q)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`Open ${f.label} at ${installation} on Google Maps`}
-                style={{ background: colors.soft, border: `1px solid ${colors.border}`, borderRadius: 10, padding: '10px 12px', textDecoration: 'none', color: colors.text, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
-              >
-                <span style={{ fontSize: 20, flexShrink: 0 }} aria-hidden="true">{f.icon}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.25 }}>{f.label}</span>
-              </a>
-            ))}
+            ].map((f) => {
+              const isActive = focusedFacility?.label === f.label;
+              return (
+                <button
+                  key={f.label}
+                  type="button"
+                  onClick={() => setFocusedFacility(isActive ? null : f)}
+                  aria-pressed={isActive}
+                  aria-label={`Show ${f.label} at ${installation} on the embedded map`}
+                  style={{
+                    background: isActive ? colors.primary : colors.soft,
+                    border: `1px solid ${isActive ? colors.primary : colors.border}`,
+                    borderRadius: 10,
+                    padding: '10px 12px',
+                    color: isActive ? '#FFFFFF' : colors.text,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    cursor: 'pointer',
+                    fontWeight: 700,
+                    fontSize: 12,
+                    lineHeight: 1.25,
+                    transition: 'background 180ms ease, color 180ms ease, transform 180ms ease',
+                    transform: isActive ? 'translateY(-1px)' : 'none',
+                    textAlign: 'left',
+                  }}
+                >
+                  <span style={{ fontSize: 20, flexShrink: 0 }} aria-hidden="true">{f.icon}</span>
+                  <span style={{ flex: 1 }}>{f.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

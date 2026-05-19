@@ -581,6 +581,60 @@ app.get('/api/vet-businesses', vetBizRateLimit, async (req, res) => {
     })
   }
 
+  // CONUS Google Maps discovery cards — appended to both the
+  // USASpending and SAM.gov result sets. USASpending / SAM.gov match
+  // on the EXACT installation city only, which misses veteran-owned
+  // firms one zip code over. Google Maps "veteran-owned businesses
+  // near {city}" naturally surfaces results in the ~50-mile retail
+  // area around the gaining installation, giving the user broader
+  // discovery alongside the federal-contracting records.
+  const where = [city, state].filter(Boolean).join(', ') || city || state || 'your installation'
+  const ev2 = encodeURIComponent
+  const conusGoogleMapsCards = [
+    {
+      id: `conus-google-maps-vetbiz`,
+      name: `Veteran-owned businesses on Google Maps near ${where}`,
+      address: '', city, state: state || '', zip: '',
+      businessTypes: ['Local search (~50 mi)'],
+      naicsCode: '', naicsDesc: '',
+      industry: 'all',
+      url: `https://www.google.com/maps/search/?api=1&query=${ev2(`veteran-owned business near ${where}`)}`,
+      phone: '',
+      contact: '',
+      samUrl: `https://www.google.com/maps/search/?api=1&query=${ev2(`veteran-owned business near ${where}`)}`,
+      synthetic: true,
+      description: `Google Maps search for businesses that self-identify as veteran-owned or veteran-operated in the ~50-mile area around ${where}. Surfaces on-the-ground service providers (auto repair, movers, restaurants, real estate, contractors) with photos, hours, and reviews — complements the SAM.gov / USASpending federal-contracting records above.`,
+    },
+    {
+      id: `conus-google-maps-sdvosb`,
+      name: `Service-disabled veteran-owned firms on Google Maps near ${where}`,
+      address: '', city, state: state || '', zip: '',
+      businessTypes: ['Local search (~50 mi)'],
+      naicsCode: '', naicsDesc: '',
+      industry: 'service',
+      url: `https://www.google.com/maps/search/?api=1&query=${ev2(`SDVOSB service disabled veteran owned business near ${where}`)}`,
+      phone: '',
+      contact: '',
+      samUrl: `https://www.google.com/maps/search/?api=1&query=${ev2(`SDVOSB service disabled veteran owned business near ${where}`)}`,
+      synthetic: true,
+      description: `Companion search for SDVOSB (Service-Disabled Veteran-Owned Small Business) certified firms in the ~50-mile area. SDVOSBs qualify for special DoD set-aside contracts; many also serve the local economy directly.`,
+    },
+    {
+      id: `conus-google-maps-spouse`,
+      name: `Military-spouse businesses on Google Maps near ${where}`,
+      address: '', city, state: state || '', zip: '',
+      businessTypes: ['Local search (~50 mi)'],
+      naicsCode: '', naicsDesc: '',
+      industry: 'service',
+      url: `https://www.google.com/maps/search/?api=1&query=${ev2(`military spouse business near ${where}`)}`,
+      phone: '',
+      contact: '',
+      samUrl: `https://www.google.com/maps/search/?api=1&query=${ev2(`military spouse business near ${where}`)}`,
+      synthetic: true,
+      description: `Military-spouse-owned local businesses in the ~50-mile area around ${where}. Many spouse-owned firms (childcare, photography, virtual assistant, real-estate, fitness, tutoring) don't appear in SAM.gov but are discoverable through Google Maps with photos and reviews.`,
+    },
+  ]
+
   // USASpending.gov fallback path: no SAM_API_KEY is required. Real
   // veteran-owned federal contractors filtered to the installation's
   // city. When SAM_API_KEY IS configured we fall through to the
@@ -593,12 +647,17 @@ app.get('/api/vet-businesses', vetBizRateLimit, async (req, res) => {
     }
     try {
       const entries = await fetchUsaSpendingVetBusinesses(city, state)
-      const businesses = entries.slice(0, 25).map(e => shapeUsaSpendingBusiness(e, city, state))
-      if (businesses.length > 0) VET_BIZ_CACHE.set(cacheKey, { businesses, fetchedAt: Date.now() })
-      return res.status(200).json({ businesses, fallback: businesses.length === 0, source: 'usaspending.gov', fetchedAt: Date.now() })
+      const entityRecords = entries.slice(0, 25).map(e => shapeUsaSpendingBusiness(e, city, state))
+      // Always include Google Maps discovery cards so the user gets a
+      // ~50-mile-radius supplement to USASpending's exact-city match.
+      const businesses = [...entityRecords, ...conusGoogleMapsCards]
+      VET_BIZ_CACHE.set(cacheKey, { businesses, fetchedAt: Date.now() })
+      return res.status(200).json({ businesses, fallback: entityRecords.length === 0, source: 'usaspending.gov+google-maps', fetchedAt: Date.now() })
     } catch (err) {
       console.error(`[vet-businesses] usaspending ${err.message}`)
-      return res.status(200).json({ businesses: [], fallback: true, reason: 'upstream-error' })
+      // Even on upstream error, return the Google Maps discovery cards
+      // so the user has something actionable instead of an empty tab.
+      return res.status(200).json({ businesses: conusGoogleMapsCards, fallback: true, reason: 'upstream-error', source: 'google-maps-only' })
     }
   }
 
@@ -630,17 +689,17 @@ app.get('/api/vet-businesses', vetBizRateLimit, async (req, res) => {
     const entities = Array.isArray(data?.entityData) ? data.entityData : []
     const veteranOnly = entities.filter(isVeteranBusinessEntity).map(shapeBusiness)
     // Cap returned results so the UI stays responsive on slow devices.
-    const businesses = veteranOnly.slice(0, 25)
-    // Only cache non-empty results - empty responses are usually
-    // transient upstream failures and we want the next request to
-    // retry, not be served the empty cache for 24h.
-    if (businesses.length > 0) {
-      VET_BIZ_CACHE.set(cacheKey, { businesses, fetchedAt: Date.now() })
-    }
-    return res.status(200).json({ businesses, fallback: businesses.length === 0, source: 'sam.gov', fetchedAt: Date.now() })
+    const entityRecords = veteranOnly.slice(0, 25)
+    // Append Google Maps discovery cards for the ~50-mile area so the
+    // user gets supplemental local businesses alongside the SAM.gov
+    // federal-contractor records.
+    const businesses = [...entityRecords, ...conusGoogleMapsCards]
+    VET_BIZ_CACHE.set(cacheKey, { businesses, fetchedAt: Date.now() })
+    return res.status(200).json({ businesses, fallback: entityRecords.length === 0, source: 'sam.gov+google-maps', fetchedAt: Date.now() })
   } catch (err) {
     console.error(`[vet-businesses] ${err.message}`)
-    return res.status(200).json({ businesses: [], fallback: true, reason: 'network-error' })
+    // Even on upstream error, return the Google Maps discovery cards.
+    return res.status(200).json({ businesses: conusGoogleMapsCards, fallback: true, reason: 'network-error', source: 'google-maps-only' })
   }
 })
 
