@@ -8085,33 +8085,28 @@ function App() {
     }} />;
   }
 
+  // Brief category overview demo. Every entry sits on tab: 'home' so
+  // advancing the tour never switches the active tab — the bottom-nav
+  // highlight stays on Home throughout, and the user gets a clean
+  // one-paragraph summary of what each category does without being
+  // teleported around the app.
   const DEMO_TIPS = [
-    { tab: 'home', title: t('demo.securityTitle'), body: t('demo.securityBody') },
-    { tab: 'home', title: t('demo.tminusTitle'),   body: t('demo.tminusBody') },
-    { tab: 'home', title: t('demo.componentTitle'), body: t('demo.componentBody') },
-    { tab: 'home', title: t('demo.householdTitle'), body: t('demo.householdBody') },
-    { tab: 'home', title: t('demo.profileTitle'), body: t('demo.profileBody') },
-    { tab: 'home', title: t('demo.basesTitle'), body: t('demo.basesBody') },
-    { tab: 'home', title: t('demo.familyTitle'), body: t('demo.familyBody') },
-    { tab: 'home', title: t('demo.selectorTitle'), body: t('demo.selectorBody') },
-    { tab: 'base-intelligence', title: t('nav.base-intelligence'), body: t('desc.base-intelligence') },
-    { tab: 'checklist', title: t('nav.checklist'), body: t('desc.checklist') },
-    { tab: 'documents', title: t('nav.documents'), body: t('desc.documents') },
-    { tab: 'education', title: t('nav.education'), body: t('desc.education') },
-    { tab: 'family', title: t('nav.family'), body: t('desc.family') },
-    { tab: 'home-relocation', title: t('nav.home-relocation'), body: t('desc.home-relocation') },
-    { tab: 'home-relocation', title: 'NEW · HHG Shipment Tracker', body: '10-stage DPS milestone ladder with JTR service-level alerts: counseling → TSP assigned → pre-move survey → packing → loaded → in transit → arrival call → delivered → claim filed → claim settled. Overdue stages flash amber. Optional browser-push alerts. All shipment metadata AES-256 encrypted on the device.' },
-    { tab: 'home-relocation', title: 'NEW · Digital Inventory & Claims Vault', body: 'Replaces paper DD 1840 / 1840R. Photo-first walk-through, per-room declared value + condition + notes, pre-packout and post-delivery phases, one-tap export to a DD 1840R-ready printable PDF for DPS damage claims. Photos compressed to 720px and stored encrypted on the device.' },
-    { tab: 'home-relocation', title: 'NEW · JTR Assistant', body: 'Curated Q&A over the Joint Travel Regulations, Federal Travel Regulation, and DSSR — 14 cited answers covering PPM payout, TLE/TLA, DLA, POV ship, OCONUS OHA/MIHA/LQA, pet allowance, civilian HHT, real-estate reimbursement, CZTE, FEIE, weight allowance, MALT, claim window. Optional AI gateway when an operator configures a provider.' },
-    { tab: 'home-relocation', title: 'NEW · Inflation-Adjusted Budget', body: 'Every expense category now shows a 2026 planning range built from BLS CPI (gasoline +12.4% YoY, lodging +9.8%, food +6.1%) and GSA per-diem ceilings. Entering an actual cost over the high estimate flags a red callout suggesting supplemental reimbursement coordination with finance.' },
-    { tab: 'medical-readiness', title: t('nav.medical-readiness'), body: t('desc.medical-readiness') },
-    { tab: 'nav', title: t('nav.nav'), body: t('desc.nav') },
-    { tab: 'resources', title: t('nav.resources'), body: t('desc.resources') },
-    { tab: 'religion', title: t('nav.religion'), body: t('desc.religion') },
-    { tab: 'translation', title: t('nav.translation'), body: t('desc.translation') },
-    { tab: 'veterans', title: t('nav.veterans'), body: t('desc.veterans') },
-    { tab: 'compliance', title: t('nav.compliance'), body: t('desc.compliance') },
-    { tab: 'home', title: t('demo.completeTitle'), body: t('demo.completeBody') },
+    { tab: 'home', title: 'Welcome to PCS Express', body: 'A quick tour of every category. Each card explains one tab in one sentence so you know where to look when you actually need it. Use the dots to skip ahead or hit Skip to close.' },
+    { tab: 'home', title: 'Home', body: 'Your dashboard: the days-until-report countdown, branch-specific tips, and any time-sensitive alerts.' },
+    { tab: 'home', title: 'Base Intelligence', body: 'Verified reviews from real military families on housing, schools, and childcare at your gaining installation.' },
+    { tab: 'home', title: 'Checklist', body: 'A phased PCS task list — Orders Received through In-Processing — written for your branch and your situation.' },
+    { tab: 'home', title: 'Documents', body: 'A PCS Binder for every form you need to gather. Snap a photo of each doc, then export the whole binder as one PDF for your gaining S1 / HR / VA.' },
+    { tab: 'home', title: 'Education', body: 'Tuition Assistance portals, GI Bill chapters, MyCAA spouse benefits, and colleges near the gaining installation.' },
+    { tab: 'home', title: 'Family Readiness', body: 'Sub-tabs for Deployment, EFMP, Spouse Employment, Permanent Resident, Pets, and Schools.' },
+    { tab: 'home', title: 'Home Relocation', body: 'BAH/OHA/LQA calculators, PPM estimator, inflation-adjusted budget, live shipment tracker, digital inventory vault, JTR Assistant, Move Aid, and VA Loan.' },
+    { tab: 'home', title: 'Medical Readiness', body: 'Emergency rooms, hospitals, urgent care, behavioral health, dental, vision, and pharmacy resources around the gaining base.' },
+    { tab: 'home', title: 'Navigation', body: 'Plan routes and save directions on a public installation map — no restricted base details.' },
+    { tab: 'home', title: 'Resources', body: 'One hub of official military, government, family, financial, healthcare, and PCS resources.' },
+    { tab: 'home', title: 'Spiritual Readiness', body: 'Chaplain, counseling, worship, and community support resources tied to your optional spiritual preference.' },
+    { tab: 'home', title: 'Translation', body: 'Translate common PCS, housing, medical, school, and daily-life phrases between 20+ supported languages.' },
+    { tab: 'home', title: 'Veterans', body: 'Veteran-owned businesses, public directories, and local search around the gaining location.' },
+    { tab: 'home', title: 'Compliance', body: 'A plain-language page showing exactly how PCS Express keeps your information safe — everything stays AES-256 encrypted on your phone.' },
+    { tab: 'home', title: 'Thank you for your service.', body: 'That\'s every category. Close this card and explore — your data stays on your device.' },
   ];
 
   const BOTTOM_NAV = [
@@ -8259,15 +8254,15 @@ function App() {
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: 14 }}>{DEMO_TIPS[demoTip].body}</div>
               <div style={{ display: 'flex', gap: 4, marginBottom: 12, justifyContent: 'center' }}>
                 {DEMO_TIPS.map((_, i) => (
-                  <div key={i} onClick={() => { setDemoTip(i); goTo(DEMO_TIPS[i].tab); }} style={{ width: i === demoTip ? 20 : 6, height: 6, borderRadius: 3, background: i <= demoTip ? theme.accent : 'rgba(255,255,255,0.2)', cursor: 'pointer', transition: 'all .2s' }} />
+                  <div key={i} onClick={() => setDemoTip(i)} style={{ width: i === demoTip ? 20 : 6, height: 6, borderRadius: 3, background: i <= demoTip ? theme.accent : 'rgba(255,255,255,0.2)', cursor: 'pointer', transition: 'all .2s' }} />
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {demoTip > 0 && (
-                  <button onClick={() => { const prev = demoTip - 1; setDemoTip(prev); goTo(DEMO_TIPS[prev].tab); }} style={{ flex: 1, padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>← {t('back')}</button>
+                  <button onClick={() => setDemoTip(demoTip - 1)} style={{ flex: 1, padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>← {t('back')}</button>
                 )}
                 {demoTip < DEMO_TIPS.length - 1 ? (
-                  <button onClick={() => { const next = demoTip + 1; setDemoTip(next); goTo(DEMO_TIPS[next].tab); }} style={{ flex: 2, padding: '10px', borderRadius: 10, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
+                  <button onClick={() => setDemoTip(demoTip + 1)} style={{ flex: 2, padding: '10px', borderRadius: 10, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
                     {t('next')}: {DEMO_TIPS[demoTip + 1].title.split('!')[0]} →
                   </button>
                 ) : (
