@@ -17,7 +17,7 @@ import ShipmentTrackerModule from './components/ShipmentTrackerModule'
 import ComplianceAttestationModule from './components/ComplianceAttestationModule'
 import InventoryVaultModule from './components/InventoryVaultModule'
 import JTRAssistantModule from './components/JTRAssistantModule'
-import CrisisLineChip from './components/CrisisLineChip'
+import AIAssistantChip from './components/AIAssistantChip'
 import ImmigrationModule from './components/ImmigrationModule'
 import MovingFinancialAssistanceTab from './components/MovingFinancialAssistanceTab'
 import PetRelocationChecklistTab from './components/PetRelocationChecklistTab'
@@ -8711,12 +8711,11 @@ function App() {
               </div>
             )}
 
-            {/* Mission-group tiles. The accent color is bound to the
-                user's branch (theme.primary / theme.accent) so the
-                Home grid reads as a single coherent dashboard owned by
-                the branch — not a quilt of designer-chosen colors.
-                Per-group differentiation comes from the iosIcon glyph
-                and the three-letter abbr. */}
+            {/* Mission-group tiles — mobile only. On desktop the
+                persistent left sidebar is the canonical category
+                selector with the same six routes, so rendering this
+                grid there would duplicate the navigation surface. */}
+            {!isDesktop && (
             <div className="home-cat-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {HOME_CATEGORIES.map((item, idx) => (
                 <button
@@ -8727,8 +8726,8 @@ function App() {
                   style={{
                     '--cat-color': theme.primary,
                     '--cat-delay': `${idx * 35}ms`,
-                    minHeight: isDesktop ? 118 : 104,
-                    padding: isDesktop ? '18px 12px' : '15px 10px',
+                    minHeight: 104,
+                    padding: '15px 10px',
                   }}
                   aria-label={item.label}
                 >
@@ -8741,6 +8740,7 @@ function App() {
                 </button>
               ))}
             </div>
+            )}
 
             {/* Quick profile summary */}
             <div style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderRadius: 14, padding: 14, marginTop: 16, color: UI_PALETTE.text, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
@@ -8793,10 +8793,11 @@ function App() {
       </div>{/* end body container */}
       </div>{/* end main column (header + body) — wraps sibling of desktop aside */}
 
-      {/* Persistent crisis-line chip — always one tap from 988 + OneSource.
-          Renders over every mission group so a stressed user never has
-          to navigate to find help. */}
-      <CrisisLineChip isNative={isNative} isDesktop={isDesktop} />
+      {/* Persistent AI Assistant chip — opens a live chat that posts
+          to /api/jtr-assistant. The crisis-line (988 then 1) and
+          Military OneSource numbers remain pinned as a safety header
+          inside the modal, so 988 stays one tap away. */}
+      <AIAssistantChip isNative={isNative} isDesktop={isDesktop} />
 
       {/* COMPLIANCE MODAL — opened from the Security & data-handling
           button at the bottom of the Home tab. The Compliance content
