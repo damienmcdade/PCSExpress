@@ -7289,8 +7289,8 @@ function VAHomeLoanPanel({ theme, profile }) {
   return (
     <div>
       <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, marginBottom: 14, borderLeft: `3px solid ${theme.accent}` }}>
-        <div style={{ fontSize: 10, fontWeight: 900, color: theme.primary, letterSpacing: '.14em', marginBottom: 4 }}>VA HOME LOAN</div>
-        <div style={{ fontSize: 12, color: UI_PALETTE.muted, lineHeight: 1.6 }}>
+        <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 4 }}>VA HOME LOAN</div>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.6, fontWeight: 500 }}>
           Use this checklist to prepare for VA-backed homebuying near {profile?.gainingInstallation || 'your gaining installation'}. Verify all loan terms directly with the VA and the lender before committing.
         </div>
       </div>

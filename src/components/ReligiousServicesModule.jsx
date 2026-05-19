@@ -368,16 +368,28 @@ function ReligiousServicesModule({ theme, profile }) {
     'southern-baptist', 'free-methodist', 'wesleyan', 'church-of-the-brethren',
     'moravian',
   ])
+  // Matchers run against three possible card-shape fields:
+  //   - religion     (OSM-derived live cards carry this)
+  //   - denomination (curated + synthetic Google-Maps category cards)
+  //   - categoryId   (synthetic Google-Maps cards; same value as
+  //                   denomination but kept for the renderer)
+  // The previous version only inspected `religion` for Buddhist /
+  // Hindu / Sikh users, so the synthetic OCONUS cards (which lack
+  // a `religion` field) were filtered out entirely and the user saw
+  // an empty Spiritual Readiness tab.
+  const m = (s) => `${s.religion || ''} ${s.denomination || ''} ${s.categoryId || ''}`.toLowerCase()
   const PREF_TO_MATCHER = {
-    Catholic:  (s) => /catholic/i.test(s.denomination) || /^catholic$/i.test(s.religion),
-    Protestant: (s) => PROTESTANT_DENOMS.has(String(s.denomination || '').toLowerCase()) || /^protestant$/i.test(s.religion),
-    Christian: (s) => /christian|catholic|protestant|baptist|methodist|lutheran|presbyterian|episcopal|pentecostal|evangelical|adventist/i.test(`${s.religion} ${s.denomination}`),
-    Jewish:    (s) => /^jewish$/i.test(s.religion) || /jewish|orthodox-jewish|reform|conservative|hasidic|chabad/i.test(s.denomination),
-    Muslim:    (s) => /^(islamic|muslim)$/i.test(s.religion) || /muslim|sunni|shia/i.test(s.denomination),
-    Islamic:   (s) => /^(islamic|muslim)$/i.test(s.religion) || /muslim|sunni|shia/i.test(s.denomination),
-    Buddhist:  (s) => /^buddhist$/i.test(s.religion),
-    Hindu:     (s) => /^hindu$/i.test(s.religion),
-    Sikh:      (s) => /^sikh$/i.test(s.religion),
+    Catholic:   (s) => /\bcatholic\b/.test(m(s)),
+    Protestant: (s) => PROTESTANT_DENOMS.has(String(s.denomination || '').toLowerCase())
+                    || PROTESTANT_DENOMS.has(String(s.categoryId   || '').toLowerCase())
+                    || /\bprotestant\b|\bbaptist\b|\bmethodist\b|\blds\b|latter[- ]?day|\borthodox\b|\bchapel\b/.test(m(s)),
+    Christian:  (s) => /christian|catholic|protestant|baptist|methodist|lutheran|presbyterian|episcopal|pentecostal|evangelical|adventist|lds|latter[- ]?day|\borthodox\b|\bchapel\b/.test(m(s)),
+    Jewish:     (s) => /\bjewish\b|synagogue|orthodox-jewish|reform|conservative|hasidic|chabad/.test(m(s)),
+    Muslim:     (s) => /\b(islamic|muslim|mosque|sunni|shia)\b/.test(m(s)),
+    Islamic:    (s) => /\b(islamic|muslim|mosque|sunni|shia)\b/.test(m(s)),
+    Buddhist:   (s) => /\bbuddhist\b|buddhist temple/.test(m(s)),
+    Hindu:      (s) => /\bhindu\b|hindu temple/.test(m(s)),
+    Sikh:       (s) => /\bsikh\b|gurdwara/.test(m(s)),
   }
   const prefRaw = String(profile?.religiousPreference || '').trim()
   const matcher = PREF_TO_MATCHER[prefRaw]

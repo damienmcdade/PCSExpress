@@ -216,14 +216,40 @@ function EducationModule({ theme, profile }) {
       </div>
 
       {/* SCHOOLS */}
-      {activeTab === 'schools' && (
+      {activeTab === 'schools' && (() => {
+        const installName = profile?.gainingInstallation?.split(',')[0]?.trim() || '';
+        const k12 = getEducationInstitutions()
+          .filter(s => s.type.includes('Elementary') || s.type.includes('Middle') || s.type.includes('High'));
+        const showGoogleFallback = k12.length === 0 && installName;
+        return (
         <div>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 12 }}>
             K-12 SCHOOLS IN AREA
           </div>
-          {getEducationInstitutions()
-            .filter(s => s.type.includes('Elementary') || s.type.includes('Middle') || s.type.includes('High'))
-            .map((school) => (
+          {showGoogleFallback && (
+            <div data-dynamic-card="google" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginBottom: 12 }}>
+              {[
+                { label: 'Public elementary schools', query: `public elementary schools near ${installName}` },
+                { label: 'Public middle schools',     query: `public middle schools near ${installName}` },
+                { label: 'Public high schools',       query: `public high schools near ${installName}` },
+                { label: 'DoDEA schools (overseas)',  query: `DoDEA schools near ${installName}` },
+                { label: 'Private schools',           query: `private schools near ${installName}` },
+                { label: 'Charter schools',           query: `charter schools near ${installName}` },
+              ].map((cat, idx) => (
+                <a key={idx}
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cat.query)}`}
+                  target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'block', textDecoration: 'none', color: 'inherit', background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.accent}`, borderRadius: 12, padding: 12 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 4 }}>{cat.label} near {installName}</div>
+                  <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 8 }}>
+                    Curated Google Maps search pre-filtered to the area around your gaining installation. Opens with real schools, ratings, zoning details, and contacts. Verify enrollment with the local district before deciding.
+                  </div>
+                  <span className="card-cta" style={{ '--cta-color': theme.primary }}>Open map view</span>
+                </a>
+              ))}
+            </div>
+          )}
+          {k12.map((school) => (
               <div
                 key={school.id}
                 style={{
@@ -283,17 +309,42 @@ function EducationModule({ theme, profile }) {
               </div>
             ))}
         </div>
-      )}
+        );
+      })()}
 
       {/* UNIVERSITIES & COLLEGES */}
-      {activeTab === 'universities' && (
+      {activeTab === 'universities' && (() => {
+        const installName = profile?.gainingInstallation?.split(',')[0]?.trim() || '';
+        const colleges = getEducationInstitutions()
+          .filter(s => s.type.includes('University') || s.type.includes('College'));
+        const showGoogleFallback = colleges.length === 0 && installName;
+        return (
         <div>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 12 }}>
             COLLEGES & UNIVERSITIES
           </div>
-          {getEducationInstitutions()
-            .filter(s => s.type.includes('University') || s.type.includes('College'))
-            .map((school) => (
+          {showGoogleFallback && (
+            <div data-dynamic-card="google" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginBottom: 12 }}>
+              {[
+                { label: 'Colleges & universities', query: `colleges and universities near ${installName}` },
+                { label: 'DoD voluntary education partners', query: `DoD voluntary education partners near ${installName}` },
+                { label: 'Community colleges', query: `community colleges near ${installName}` },
+                { label: 'Online programs with military TA', query: `online university accepting military tuition assistance` },
+              ].map((cat, idx) => (
+                <a key={idx}
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cat.query)}`}
+                  target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'block', textDecoration: 'none', color: 'inherit', background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.accent}`, borderRadius: 12, padding: 12 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 4 }}>{cat.label} near {installName}</div>
+                  <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 8 }}>
+                    Curated Google Maps search pre-filtered to the area around your gaining installation. Opens with real local schools, ratings, and contact info so you can compare and apply.
+                  </div>
+                  <span className="card-cta" style={{ '--cta-color': theme.primary }}>Open map view</span>
+                </a>
+              ))}
+            </div>
+          )}
+          {colleges.map((school) => (
               <div
                 key={school.id}
                 style={{
@@ -353,7 +404,8 @@ function EducationModule({ theme, profile }) {
               </div>
             ))}
         </div>
-      )}
+        );
+      })()}
 
       {/* SPOUSE EMPLOYMENT */}
       {activeTab === 'spouse' && (
