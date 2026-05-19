@@ -3,7 +3,7 @@
  * Third-party dependencies: React, Leaflet through child map modules, Capacitor bridge when running native.
  */
 
-import { Component, useState, useEffect } from 'react'
+import { Component, useState, useEffect, useRef } from 'react'
 import './App.css'
 import { apiUrl } from './config/apiConfig'
 import EmploymentModule from './components/EmploymentModule'
@@ -18,6 +18,7 @@ import ComplianceAttestationModule from './components/ComplianceAttestationModul
 import InventoryVaultModule from './components/InventoryVaultModule'
 import JTRAssistantModule from './components/JTRAssistantModule'
 import { AIAssistantModal, AIAssistantTrigger } from './components/AIAssistantChip'
+import PlatformBanners from './components/PlatformBanners'
 import ImmigrationModule from './components/ImmigrationModule'
 import MovingFinancialAssistanceTab from './components/MovingFinancialAssistanceTab'
 import PetRelocationChecklistTab from './components/PetRelocationChecklistTab'
@@ -665,19 +666,28 @@ function WeeklyDigestCard({ theme, checklistItems }) {
   const [stats, setStats] = useState(null);
   useEffect(() => {
     let mounted = true;
-    secureLocalStore.get('pcs_audit_log', []).then(list => {
-      if (!mounted) return;
-      const sevenDaysAgo = Date.now() - 7 * 86400000;
-      const recent = (Array.isArray(list) ? list : []).filter(e => e?.timestamp && new Date(e.timestamp).getTime() >= sevenDaysAgo);
-      const completed = recent.filter(e => e.action === 'pcs_milestone_status_change' && e.details?.complete).length;
-      const reopened  = recent.filter(e => e.action === 'pcs_milestone_status_change' && !e.details?.complete).length;
-      const inv       = recent.filter(e => e.action === 'inventory_vault_change').length;
-      const aiOpens   = recent.filter(e => e.action === 'ai_assistant_opened').length;
-      const pet       = recent.filter(e => e.action === 'pet_relocation_checklist_change').length;
-      const ship      = recent.filter(e => e.action === 'shipment_tracker_change').length;
-      const totalOpen = Object.values(checklistItems || {}).filter(Boolean).length;
-      setStats({ completed, reopened, inv, aiOpens, pet, ship, totalChecked: totalOpen });
-    }).catch(() => setStats(null));
+    Promise.resolve()
+      .then(() => secureLocalStore.get('pcs_audit_log', []))
+      .then(list => {
+        if (!mounted) return;
+        try {
+          const sevenDaysAgo = Date.now() - 7 * 86400000;
+          const recent = (Array.isArray(list) ? list : []).filter(e => e?.timestamp && new Date(e.timestamp).getTime() >= sevenDaysAgo);
+          const completed = recent.filter(e => e.action === 'pcs_milestone_status_change' && e.details?.complete).length;
+          const reopened  = recent.filter(e => e.action === 'pcs_milestone_status_change' && !e.details?.complete).length;
+          const inv       = recent.filter(e => e.action === 'inventory_vault_change').length;
+          const aiOpens   = recent.filter(e => e.action === 'ai_assistant_opened').length;
+          const pet       = recent.filter(e => e.action === 'pet_relocation_checklist_change').length;
+          const ship      = recent.filter(e => e.action === 'shipment_tracker_change').length;
+          const totalOpen = Object.values(checklistItems || {}).filter(Boolean).length;
+          setStats({ completed, reopened, inv, aiOpens, pet, ship, totalChecked: totalOpen });
+        } catch (err) {
+          console.error('[WeeklyDigestCard] aggregation failed', err);
+          setStats(null);
+        }
+      })
+      .catch((err) => { console.error('[WeeklyDigestCard] load failed', err); setStats(null); });
+    return () => { mounted = false; };
   }, [checklistItems]);
   if (!stats) return null;
   const anyActivity = stats.completed + stats.reopened + stats.inv + stats.aiOpens + stats.pet + stats.ship > 0;
@@ -3599,6 +3609,69 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
     isOverseas:    !!profile?.isOverseas,
   });
   const [activePhase, setActivePhase] = useState(Object.keys(branchChecklist)[0]);
+  // Reminders: { 'phase-idx': 'YYYY-MM-DDTHH:MM' }
+  const [reminders, setReminders] = useState({});
+  useEffect(() => {
+    let mounted = true;
+    secureLocalStore.get('pcs_checklist_reminders', {}).then(saved => {
+      if (mounted) setReminders(saved && typeof saved === 'object' ? saved : {});
+    });
+  }, []);
+  // Fired-already tracker so a 60-second poll doesn't re-fire.
+  const firedRef = useRef({});
+  useEffect(() => {
+    if (typeof Notification === 'undefined') return;
+    const tick = () => {
+      if (Notification.permission !== 'granted') return;
+      const now = Date.now();
+      for (const [key, iso] of Object.entries(reminders)) {
+        if (!iso || firedRef.current[key]) continue;
+        const t = new Date(iso).getTime();
+        if (!Number.isFinite(t)) continue;
+        if (t <= now && now - t < 24 * 3600 * 1000) {
+          // Don't fire if already checked off.
+          if (checklistItems[key]) continue;
+          const [phase, idx] = key.split('-');
+          const label = (branchChecklist[phase] || [])[parseInt(idx, 10)] || 'PCS task';
+          try {
+            const n = new Notification('PCS Express reminder', {
+              body: label,
+              tag: `pcs-rem-${key}`,
+            });
+            n.onclick = () => { try { window.focus(); } catch {} };
+            firedRef.current[key] = true;
+            AuditLogger.record('pcs_reminder_fired', { task: key });
+          } catch {}
+        }
+      }
+    };
+    tick();                          // check on mount
+    const id = setInterval(tick, 60_000);
+    return () => clearInterval(id);
+  }, [reminders, checklistItems, branchChecklist]);
+
+  const setReminder = (key, iso) => {
+    setReminders(prev => {
+      const next = { ...prev, [key]: iso };
+      secureLocalStore.set('pcs_checklist_reminders', next);
+      AuditLogger.record('pcs_reminder_set', { task: key, at: iso });
+      // Reset the "already fired" guard so a future reschedule fires.
+      firedRef.current[key] = false;
+      return next;
+    });
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {});
+    }
+  };
+  const clearReminder = (key) => {
+    setReminders(prev => {
+      const next = { ...prev };
+      delete next[key];
+      secureLocalStore.set('pcs_checklist_reminders', next);
+      return next;
+    });
+    firedRef.current[key] = false;
+  };
 
   const daysUntil = getDaysUntilDeparture(profile?.departingDate);
 
@@ -3726,7 +3799,37 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
               <div style={{ flex: 1 }}>
                 <span style={{ fontSize: 13, color: checked ? '#888' : taskOverdue ? '#C62828' : theme.primary, textDecoration: checked ? 'line-through' : 'none', fontWeight: checked ? 400 : 600, lineHeight: 1.4 }}>{task}</span>
                 {taskOverdue && <div style={{ fontSize: 10, color: '#E57373', fontWeight: 800, marginTop: 3 }}>PAST DUE — Complete immediately</div>}
+                {reminders[`${activePhase}-${i}`] && (
+                  <div style={{ fontSize: 10, color: '#0D3B66', fontWeight: 700, marginTop: 3 }}>
+                    ⏰ Reminder: {new Date(reminders[`${activePhase}-${i}`]).toLocaleString()}
+                  </div>
+                )}
               </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const key = `${activePhase}-${i}`;
+                  if (reminders[key]) {
+                    if (window.confirm('Clear this reminder?')) clearReminder(key);
+                    return;
+                  }
+                  // Default to tomorrow at 09:00 local time.
+                  const def = new Date(Date.now() + 86400000);
+                  def.setHours(9, 0, 0, 0);
+                  const pad = (n) => String(n).padStart(2, '0');
+                  const defStr = `${def.getFullYear()}-${pad(def.getMonth() + 1)}-${pad(def.getDate())}T${pad(def.getHours())}:${pad(def.getMinutes())}`;
+                  // eslint-disable-next-line no-alert
+                  const picked = window.prompt('Remind me on (YYYY-MM-DDTHH:MM, 24-hour):', defStr);
+                  if (picked && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(picked)) {
+                    setReminder(key, picked);
+                  }
+                }}
+                aria-label={reminders[`${activePhase}-${i}`] ? 'Clear reminder' : 'Set reminder for this task'}
+                title={reminders[`${activePhase}-${i}`] ? 'Clear reminder' : 'Set reminder'}
+                style={{ background: 'transparent', border: 'none', color: reminders[`${activePhase}-${i}`] ? '#0D3B66' : 'rgba(0,0,0,0.35)', fontSize: 16, cursor: 'pointer', padding: 4, flexShrink: 0, marginTop: 1 }}
+              >
+                ⏰
+              </button>
             </div>
           );
         })}
@@ -8888,6 +8991,7 @@ function App() {
   return (
     <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: `${UI_PALETTE.pagePattern}, radial-gradient(circle at top left, ${theme.accent}22, transparent 50%), radial-gradient(circle at bottom right, ${theme.primary}22, transparent 50%), ${UI_PALETTE.page}`, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
       <a href="#pcs-main-content" className="pcs-skip-link">Skip to main content</a>
+      <PlatformBanners />
       <PrivacyShield />
       <SaveStatusIndicator theme={theme} />
       {showResetWarning && (
