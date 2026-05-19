@@ -36,23 +36,28 @@ const TRICARE_REGION_BY_STATE = {
   WY: 'West',
 };
 
+// Regional TRICARE contractor canonical URLs. The deep paths (e.g.,
+// /content/hnfs/home/tw/bene/findaprovider.html) returned 404 after
+// the 2025 TriWest contract takeover restructured the site, so we
+// now point at the contractor landing pages — each opens a search
+// form the user can fill out without an extra redirect-to-broken-link.
 const REGIONAL_CONTRACTOR = {
   East: {
     name: 'Humana Military (TRICARE East)',
-    findCare: 'https://www.humanamilitary.com/find-a-doctor/',
-    enroll: 'https://www.humanamilitary.com/beneficiary/manage-your-benefits/enrollment/',
+    findCare: 'https://www.humanamilitary.com/beneficiary/',
+    enroll: 'https://www.humanamilitary.com/beneficiary/',
     site: 'https://www.humanamilitary.com/',
   },
   West: {
     name: 'TriWest Healthcare Alliance (TRICARE West)',
-    findCare: 'https://www.tricare-west.com/content/hnfs/home/tw/bene/findaprovider.html',
-    enroll: 'https://www.tricare-west.com/content/hnfs/home/tw/bene/enrollment.html',
-    site: 'https://www.tricare-west.com/',
+    findCare: 'https://tricare.mil/west',
+    enroll: 'https://tricare.mil/west',
+    site: 'https://tricare.mil/west',
   },
   Overseas: {
     name: 'International SOS (TRICARE Overseas Program)',
-    findCare: 'https://www.tricare-overseas.com/beneficiaries/care/find-a-provider',
-    enroll: 'https://www.tricare-overseas.com/beneficiaries/get-started',
+    findCare: 'https://www.tricare-overseas.com/',
+    enroll: 'https://www.tricare-overseas.com/',
     site: 'https://www.tricare-overseas.com/',
   },
 };
@@ -73,11 +78,13 @@ function pickRegion(profile) {
 }
 
 function buildZipFindCareUrl(profile, fallback) {
-  const zip = String(profile?.gainingZip || profile?.zip || '').replace(/[^0-9-]/g, '').slice(0, 10);
-  if (!zip) return fallback;
-  // tricare.mil Find-a-Doctor takes a `zip` query param; the regional
-  // contractor sites also use ZIP-based search forms.
-  return `https://www.tricare.mil/FindDoctor?zip=${encodeURIComponent(zip)}`;
+  // TRICARE's find-a-doctor canonical URL is `tricare.mil/findadoctor`
+  // (all lowercase). The previously-used `?zip=` query param was not
+  // honored by the site and many users saw a 404 / soft-404. The
+  // ZIP-pre-fill no longer adds value, so we route every user to the
+  // canonical landing page where they can pick their region and
+  // search by ZIP via the proper form.
+  return 'https://tricare.mil/findadoctor';
 }
 
 function ResourceCard({ item, theme }) {
@@ -173,7 +180,7 @@ export default function MedicalReadinessTab({ theme, profile }) {
           { name: `Google Maps — hospital near ${installation}`, desc: 'Locate civilian hospitals near the gaining installation with hours and ratings.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`hospital near ${installation}`)}`, source: 'maps.google.com' },
         ]
       : [
-          { name: 'MTF (Military Treatment Facility) Locator', desc: 'Official MHS directory of every MTF worldwide. Filter by branch and service line.', url: 'https://www.health.mil/Military-Health-Topics/MHS-Toolkits/Military-Hospitals-and-Clinics', source: 'health.mil', badge: 'MTF' },
+          { name: 'MTF (Military Treatment Facility) Locator', desc: 'Official TRICARE directory of every military hospital and clinic worldwide. Filter by branch, region, and service line.', url: 'https://tricare.mil/mtf', source: 'tricare.mil', badge: 'MTF' },
           { name: 'TRICARE Find a Doctor — Hospital', desc: `${contractor.name} hospital network search by ZIP. Active duty must obtain referral for non-emergency hospital care.`, url: findCareUrl, source: 'tricare.mil', badge: region },
           { name: 'MHS GENESIS Patient Portal', desc: 'Official Military Health System patient portal: book appointments, message care teams, review medical records.', url: 'https://patient.mhsgenesis.health.mil/', source: 'health.mil' },
           { name: `Defense Health Agency — Hospitals & Clinics`, desc: 'Authoritative list of DHA-managed military hospitals and clinics worldwide.', url: 'https://www.tricare.mil/mtf', source: 'tricare.mil' },
@@ -186,7 +193,7 @@ export default function MedicalReadinessTab({ theme, profile }) {
         ]
       : [
           { name: 'TRICARE Urgent Care — Active Duty', desc: 'Active duty: urgent care without referral at network civilian urgent-care clinics. Notify PCM after the visit if not seen at MTF.', url: 'https://www.tricare.mil/CoveredServices/IsItCovered/UrgentCare', source: 'tricare.mil', badge: 'TRICARE' },
-          { name: 'TRICARE Nurse Advice Line — 1-800-TRICARE', desc: '24/7 nurse advice line (1-800-874-2273, option 1). Helps decide ER vs urgent care vs PCM.', url: 'https://www.tricare.mil/ContactUs/CallUs/NAL', source: 'tricare.mil' },
+          { name: 'TRICARE Nurse Advice Line — 1-800-TRICARE', desc: '24/7 nurse advice line (1-800-874-2273, option 1). Helps decide ER vs urgent care vs PCM.', url: 'https://tricare.mil/nal', source: 'tricare.mil' },
           { name: `${contractor.name} — Urgent Care Search`, desc: `Official ${contractor.name} urgent-care network search by ZIP.`, url: contractor.findCare, source: contractor.name },
           { name: `Google Maps — urgent care near ${installation}`, desc: 'Civilian urgent-care clinics near the gaining installation.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`urgent care near ${installation}`)}`, source: 'maps.google.com' },
         ],
@@ -202,7 +209,7 @@ export default function MedicalReadinessTab({ theme, profile }) {
     ],
     mental: [
       { name: 'Military Crisis Line — 988 then 1', desc: '24/7 confidential crisis support for service members, veterans, and family. Call 988 then press 1, text 838255, or chat online.', url: 'https://www.veteranscrisisline.net/', source: 'veteranscrisisline.net', badge: 'CRISIS', badgeBg: '#FECACA', badgeColor: '#7F1D1D' },
-      { name: 'The Brandon Act', desc: 'Official guidance: service members may request a mental-health evaluation through the chain of command without explaining why.', url: 'https://www.health.mil/Military-Health-Topics/Mental-Health/Brandon-Act', source: 'health.mil', badge: 'POLICY' },
+      { name: 'The Brandon Act', desc: 'Official guidance: service members may request a mental-health evaluation through the chain of command without explaining why.', url: 'https://health.mil/brandonact', source: 'health.mil', badge: 'POLICY' },
       { name: 'Military OneSource Non-Medical Counseling', desc: 'Free 24/7 confidential non-medical counseling for service members and immediate family members.', url: 'https://www.militaryonesource.mil/benefits/confidential-counseling/', source: 'militaryonesource.mil' },
       { name: 'Military & Family Life Counseling (MFLC)', desc: 'Free in-person or virtual non-medical counseling embedded at installations and schools.', url: 'https://www.militaryonesource.mil/programs/military-family-life-counseling/', source: 'militaryonesource.mil' },
       { name: 'VA PTSD Coach', desc: 'Free VA self-help mobile app for managing trauma symptoms, coping skills, and support referrals.', url: 'https://mobile.va.gov/app/ptsd-coach', source: 'mobile.va.gov' },

@@ -130,12 +130,57 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
     if (market.state) params.set('state', market.state);
     if (market.zip) params.set('zip', market.zip);
     if (profile?.language) params.set('lang', profile.language);
-    // Client-side abort after 25s. The server already caps the OSM
-    // leg at 18s and returns synthetic-only when Overpass is slow, so
-    // 25s is a generous outer bound. If the network fails entirely we
-    // surface a non-blocking message rather than spinning indefinitely.
+
+    // Build a client-side Google-Maps deep-link card set we can use
+    // as the fallback whenever the API is slow or unreachable. The
+    // Railway dyno's cold-start can take 30+ seconds on the first
+    // request after idle, which previously left the user staring at
+    // a "timed out" banner. With this fallback in hand we never show
+    // an empty Home Locator — even if the API never returns the
+    // user sees the same Google Maps category cards they would have
+    // gotten from the server's synthetic path.
+    const buildLocalFallback = () => {
+      const ev = encodeURIComponent;
+      const where = [market.city, market.state].filter(Boolean).join(', ') || market.city || market.state || 'your installation';
+      const isOconus = market.state && market.state.length > 2; // 'Germany', 'Italy', etc. are OCONUS
+      if (isOconus) {
+        return [
+          { id: 'fb-homesmil',         name: 'HOMES.mil — DoD privatized housing',                        description: 'Official Department of Defense privatized housing portal. Government-managed; no advertising; no broker fees.', propertyType: 'DoD official', city: market.city, state: market.state, listingUrl: 'https://www.homes.mil/', mapUrl: 'https://www.homes.mil/', synthetic: true, source: 'Local fallback' },
+          { id: 'fb-ahrn',             name: `AHRN — search rentals near ${market.city || 'your installation'}`, description: 'Automated Housing Referral Network. DoD-sanctioned global housing marketplace for military families.', propertyType: 'AHRN.com', city: market.city, state: market.state, listingUrl: 'https://www.ahrn.com/find-a-home', mapUrl: 'https://www.ahrn.com/find-a-home', synthetic: true, source: 'Local fallback' },
+          { id: 'fb-mbo',              name: `MilitaryByOwner — homes for rent near ${market.city || 'your installation'}`, description: 'For-rent and for-sale homes posted directly by military landlords. Covers stateside and overseas installations.', propertyType: 'MilitaryByOwner', city: market.city, state: market.state, listingUrl: 'https://www.militarybyowner.com/find-rentals/', mapUrl: 'https://www.militarybyowner.com/find-rentals/', synthetic: true, source: 'Local fallback' },
+          { id: 'fb-mil-installations', name: `MilitaryINSTALLATIONS — ${market.city || 'installation'} resources`, description: 'DoD installation directory with housing, school liaison, and family-readiness contacts for every base worldwide.', propertyType: 'MilitaryINSTALLATIONS', city: market.city, state: market.state, listingUrl: `https://installations.militaryonesource.mil/search?keyword=${ev(market.city || market.state)}`, mapUrl: `https://installations.militaryonesource.mil/search?keyword=${ev(market.city || market.state)}`, synthetic: true, source: 'Local fallback' },
+          { id: 'fb-gmaps',            name: `Off-base rentals on Google Maps near ${market.city || 'your installation'}`, description: 'Curated Google Maps search for apartments, rental agencies, and landlord listings in the host-nation area around your gaining installation.', propertyType: 'Google Maps', city: market.city, state: market.state, listingUrl: `https://www.google.com/maps/search/?api=1&query=${ev(`apartments for rent near ${where}`)}`, mapUrl: `https://www.google.com/maps/search/?api=1&query=${ev(`apartments for rent near ${where}`)}`, synthetic: true, source: 'Local fallback' },
+        ];
+      }
+      const types = [
+        { propertyType: 'Single Family', q: 'single-family homes for rent' },
+        { propertyType: 'Condo',         q: 'condominiums for rent' },
+        { propertyType: 'Townhouse',     q: 'townhomes for rent' },
+        { propertyType: 'Duplex',        q: 'duplex units for rent' },
+        { propertyType: 'Triplex',       q: 'triplex units for rent' },
+        { propertyType: 'Quadplex',      q: 'quadplex or fourplex for rent' },
+      ];
+      return types.map(t => ({
+        id: `fb-${t.propertyType.toLowerCase().replace(/\s+/g, '-')}`,
+        name: `${t.propertyType} rentals near ${market.city || market.state}`,
+        description: `Google Maps search for ${t.q} in the ~50-mile area around ${where}.`,
+        propertyType: t.propertyType,
+        city: market.city,
+        state: market.state || '',
+        zip: market.zip || '',
+        listingUrl: `https://www.google.com/maps/search/?api=1&query=${ev(`${t.q} ${where}`)}`,
+        mapUrl: `https://www.google.com/maps/search/?api=1&query=${ev(`${t.q} ${where}`)}`,
+        synthetic: true,
+        source: 'Local fallback',
+      }));
+    };
+
+    // Client-side abort after 12s — the server's own budget caps at
+    // ~8s, so anything past 12s means the dyno is cold-starting or
+    // the network is unreachable. At that point we render the local
+    // synthetic-card fallback immediately instead of spinning.
     const housingAbort = new AbortController();
-    const housingTimer = setTimeout(() => housingAbort.abort(), 25_000);
+    const housingTimer = setTimeout(() => housingAbort.abort(), 12_000);
     fetch(apiUrl(`/api/housing-listings?${params.toString()}`), {
       headers: { Accept: 'application/json' },
       signal: housingAbort.signal,
@@ -144,18 +189,25 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
       .then(data => {
         clearTimeout(housingTimer);
         if (cancelled) return;
+        const apiItems = Array.isArray(data?.listings) ? data.listings : [];
+        // If the API returned empty (cold start, upstream timeout,
+        // unknown market) merge in the client-side fallback so the
+        // user always sees actionable cards.
+        const items = apiItems.length > 0 ? apiItems : buildLocalFallback();
         setListings({
           status: 'ready',
-          items: Array.isArray(data?.listings) ? data.listings : [],
-          fallback: !!data?.fallback,
-          reason: data?.reason || '',
+          items,
+          fallback: apiItems.length === 0,
+          reason: data?.reason || (apiItems.length === 0 ? 'local-fallback' : ''),
         });
       })
       .catch(err => {
         clearTimeout(housingTimer);
         if (cancelled) return;
         const reason = err?.name === 'AbortError' ? 'timeout' : `network-${err?.message || 'error'}`;
-        setListings({ status: 'ready', items: [], fallback: true, reason });
+        // Network or timeout failure → still render the local fallback
+        // cards so the Home Locator is never empty.
+        setListings({ status: 'ready', items: buildLocalFallback(), fallback: true, reason });
       });
     const statsAbort = new AbortController();
     const statsTimer = setTimeout(() => statsAbort.abort(), 12_000);
