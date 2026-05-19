@@ -1085,9 +1085,15 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
     return res.status(200).json({ listings: cached.listings, fallback: cached.listings.length === 0, source: 'cache', fetchedAt: cached.fetchedAt })
   }
 
-  // Run RapidAPI rentals (priced) and OSM apartment complexes in
-  // parallel. RapidAPI is optional - skipped when no key. OSM works
-  // always.
+  // RapidAPI rentals — optional, paid, slow. We race it against an
+  // 8s wall-clock budget. If RapidAPI doesn't return in time, we drop
+  // it entirely and return only the synthetic Google-Maps search-
+  // portal cards (which require no API call and resolve in <50ms).
+  // The frontend's 25s outer timeout was firing because RapidAPI's
+  // own 15s timeout meant cold-start scenarios saw a 20+ second
+  // response. 8s here makes the endpoint feel snappy and the
+  // synthetic cards alone are already actionable for every market.
+  const RAPIDAPI_BUDGET_MS = 8_000
   const rapidApiPromise = (async () => {
     if (!RAPIDAPI_KEY) return []
     try {
@@ -1098,7 +1104,7 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
       params.set('limit', '20')
       params.set('status', 'Active')
       const url = `https://${RAPIDAPI_HOST}${RAPIDAPI_PATH}?${params.toString()}`
-      const signal = AbortSignal.timeout(15000)
+      const signal = AbortSignal.timeout(RAPIDAPI_BUDGET_MS - 500)
       const r = await fetch(url, {
         headers: {
           Accept: 'application/json',
@@ -1117,7 +1123,14 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
     }
   })()
 
-  const rapidApiResults = await rapidApiPromise
+  // Hard wall-clock cap — synthetic cards alone are always actionable.
+  const rapidApiResults = await Promise.race([
+    rapidApiPromise,
+    new Promise(resolve => setTimeout(() => {
+      console.error('[housing-listings] rapidapi budget exceeded; returning synthetic-only')
+      resolve([])
+    }, RAPIDAPI_BUDGET_MS)),
+  ])
   // Result ordering, top to bottom:
   //   1. RapidAPI priced rentals — real addresses with bed/bath/sqft
   //      (only when RAPIDAPI_KEY is configured).

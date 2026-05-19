@@ -5194,16 +5194,45 @@ function EducationBenefitsTab({ theme, profile }) {
               })}
             </>
           ) : (
-            <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 6 }}>Official college sources for {getInstallationSearchLocation(resolvedInstall)}</div>
-              <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 12 }}>PCS Express has not stored local college cards for this installation yet, so it provides official public education search paths instead of a no-data message.</div>
-              {officialCollegeCards(resolvedInstall).map(card => (
-                <a key={card.name} href={card.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '10px', borderRadius: 10, background: '#F8FAFC', border: '1px solid #E0E6EE', color: '#0D1821', textDecoration: 'none', fontWeight: 700, fontSize: 12, marginBottom: 8 }}>
-                  <span style={{ display: 'block' }}>{card.name}</span>
-                  <span style={{ display: 'block', fontSize: 10, color: '#56697C', fontWeight: 500, lineHeight: 1.45, marginTop: 3 }}>{card.desc}</span>
-                </a>
-              ))}
-            </div>
+            <>
+              {/* Google Maps deep-link discovery cards. The curated
+                  INSTALLATION_COLLEGES list keys off CONUS US installation
+                  names; OCONUS bases (USAG Humphreys, Ramstein, Yokota,
+                  etc.) get no curated rows and the prior empty state
+                  showed only generic SBA-style sources. These category
+                  cards open Google Maps with the gaining-installation
+                  locality pre-filled so users see real local colleges
+                  and DoD-partner programs that accept TA. */}
+              <div data-dynamic-card="google" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginBottom: 12 }}>
+                {[
+                  { label: 'Colleges & universities',               q: `colleges and universities near ${resolvedInstall}` },
+                  { label: 'Community colleges',                     q: `community colleges near ${resolvedInstall}` },
+                  { label: 'DoD voluntary education partners',       q: `DoD voluntary education partner near ${resolvedInstall}` },
+                  { label: 'Online programs accepting Military TA',  q: `online university accepting military tuition assistance` },
+                ].map((cat, idx) => (
+                  <a key={idx}
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cat.q)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'block', textDecoration: 'none', color: 'inherit', background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.accent}`, borderRadius: 12, padding: 12 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 4 }}>{cat.label} near {resolvedInstall}</div>
+                    <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 8 }}>
+                      Curated Google Maps search restricted to the area around your gaining installation. Opens with real local schools, ratings, contact info, and TA acceptance details so you can compare and apply.
+                    </div>
+                    <span className="card-cta" style={{ '--cta-color': theme.primary }}>Open map view</span>
+                  </a>
+                ))}
+              </div>
+              <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 6 }}>Official college sources for {getInstallationSearchLocation(resolvedInstall)}</div>
+                <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 12 }}>PCS Express has not stored local college cards for this installation yet. The Google Maps cards above surface real local schools, and the official public search paths below cover NCES, DoDEA, DANTES voluntary education, and branch-specific TA portals.</div>
+                {officialCollegeCards(resolvedInstall).map(card => (
+                  <a key={card.name} href={card.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '10px', borderRadius: 10, background: '#F8FAFC', border: '1px solid #E0E6EE', color: '#0D1821', textDecoration: 'none', fontWeight: 700, fontSize: 12, marginBottom: 8 }}>
+                    <span style={{ display: 'block' }}>{card.name}</span>
+                    <span style={{ display: 'block', fontSize: 10, color: '#56697C', fontWeight: 500, lineHeight: 1.45, marginTop: 3 }}>{card.desc}</span>
+                  </a>
+                ))}
+              </div>
+            </>
           )}
         </div>
       )}

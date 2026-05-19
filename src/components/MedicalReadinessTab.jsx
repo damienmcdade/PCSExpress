@@ -260,8 +260,18 @@ export default function MedicalReadinessTab({ theme, profile }) {
         ],
   };
 
-  // Sub-tab content
-  const items = RESOURCES[tab] || [];
+  // Sub-tab content. Hoist Google-Maps facility-locator entries to
+  // the top of the list with a distinct "FACILITY LOCATOR" badge so
+  // users see the "where can I go for this care" answer FIRST,
+  // before the policy / reference / contractor cards.
+  const rawItems = RESOURCES[tab] || [];
+  const items = (() => {
+    const locators = rawItems
+      .filter(i => i.source === 'maps.google.com')
+      .map(i => ({ ...i, badge: 'FACILITY LOCATOR', badgeBg: '#E3F2FD', badgeColor: '#0D3B66' }));
+    const others = rawItems.filter(i => i.source !== 'maps.google.com');
+    return [...locators, ...others];
+  })();
   const showEmergencyBanner = tab === 'emergency';
   const showCrisisBanner = tab === 'mental' || tab === 'behavioral';
 
