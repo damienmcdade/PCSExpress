@@ -290,6 +290,58 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
         </div>
       </div>
 
+      {/* On-base facility quick-links — each card opens a Google Maps
+          search for that facility type AT the gaining installation.
+          Google Maps returns the facility's location, photos, hours,
+          phone, and driving directions when the place has a public
+          listing. For installations whose internal facility map is
+          restricted, the search lands on adjacent civilian
+          equivalents users can route to. */}
+      {installation && (
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, gap: 8, flexWrap: 'wrap' }}>
+            <h4 style={{ margin: 0, color: colors.primary, fontSize: 16 }}>
+              Facilities at {installation}
+            </h4>
+            <span style={{ fontSize: 11, color: colors.muted }}>
+              Tap a facility to open its Google Maps location with photos, hours, and directions.
+            </span>
+          </div>
+          <div data-dynamic-card="google" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8 }}>
+            {[
+              { icon: '🏥', label: 'Medical (MTF) / Hospital',     q: `medical treatment facility hospital ${installation}` },
+              { icon: '🏠', label: 'Housing Office',                q: `housing office ${installation}` },
+              { icon: '🛒', label: 'Commissary',                    q: `commissary ${installation}` },
+              { icon: '🛍️', label: 'Exchange (PX / BX / NEX / MCX)', q: `exchange PX BX NEX ${installation}` },
+              { icon: '🧒', label: 'Child Development Center',      q: `child development center CDC ${installation}` },
+              { icon: '👨‍👩‍👧', label: 'ACS / Family Support',     q: `army community service family support center ${installation}` },
+              { icon: '💰', label: 'Finance Office',                q: `finance office DFAS ${installation}` },
+              { icon: '✦',  label: 'Chapel',                        q: `chapel ${installation}` },
+              { icon: '🏋️', label: 'Gym / Fitness Center',          q: `gym fitness center ${installation}` },
+              { icon: '📚', label: 'Library',                        q: `library ${installation}` },
+              { icon: '📮', label: 'Post Office',                    q: `post office ${installation}` },
+              { icon: '🔧', label: 'Auto Hobby Shop',                q: `auto hobby shop ${installation}` },
+              { icon: '⚖️', label: 'JAG / Legal Office',            q: `JAG legal office ${installation}` },
+              { icon: '🚓', label: 'Provost Marshal / Security',    q: `provost marshal security forces ${installation}` },
+              { icon: '🚌', label: 'Transportation (TMO)',          q: `transportation motor pool TMO ${installation}` },
+              { icon: '🎓', label: 'Education Center',              q: `education center voluntary education ${installation}` },
+            ].map((f) => (
+              <a
+                key={f.label}
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(f.q)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Open ${f.label} at ${installation} on Google Maps`}
+                style={{ background: colors.soft, border: `1px solid ${colors.border}`, borderRadius: 10, padding: '10px 12px', textDecoration: 'none', color: colors.text, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+              >
+                <span style={{ fontSize: 20, flexShrink: 0 }} aria-hidden="true">{f.icon}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.25 }}>{f.label}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
         {cards.map((card) => (
           <a
