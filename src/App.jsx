@@ -4579,6 +4579,154 @@ const INSTALLATION_COLLEGES = {
   ],
 };
 
+// DoD Voluntary Education partner schools that operate on-installation at
+// OCONUS bases. Drawn from the public DoDEA / DANTES / installation MWR
+// education-center program lists. Same shape as INSTALLATION_COLLEGES so
+// the OCONUS college tab renders the curated CONUS-style card layout.
+const OCONUS_PARTNER_SCHOOLS = {
+  UMGC:     { name: 'University of Maryland Global Campus', type: 'Public',  degree: '4-Year University', rating: 4.0, desc: 'DoD-partnered worldwide university. On-base classrooms and online courses. Accepts TA and GI Bill. Designed for service members and dependents.', applyUrl: 'https://www.umgc.edu/admissions',                  siteUrl: 'https://www.umgc.edu' },
+  CTC:      { name: 'Central Texas College',                 type: 'Public',  degree: '2-Year College',     rating: 4.1, desc: 'DoD voluntary-education partner. Worldwide on-installation associate degrees and certificates. TA accepted. Strong military student services.',           applyUrl: 'https://www.ctcd.edu/prospective-students/apply/', siteUrl: 'https://www.ctcd.edu' },
+  ERAU:     { name: 'Embry-Riddle Aeronautical University',  type: 'Private', degree: '4-Year University', rating: 4.2, desc: 'Aeronautical and aerospace-focused worldwide campus. Aviation, engineering, security, and management programs. On-base resident centers and online.',     applyUrl: 'https://worldwide.erau.edu/admissions',          siteUrl: 'https://worldwide.erau.edu' },
+  Park:     { name: 'Park University',                       type: 'Private', degree: '4-Year University', rating: 3.9, desc: 'Long-standing DoD partner. Associate, bachelor, and master degrees through resident centers on more than 40 military installations worldwide.',        applyUrl: 'https://www.park.edu/admissions/',                siteUrl: 'https://www.park.edu' },
+  Coastline:{ name: 'Coastline Community College',           type: 'Public',  degree: '2-Year College',     rating: 3.8, desc: 'California community college serving military worldwide. Online associate degrees and certificates designed around deployments and PCS moves.',        applyUrl: 'https://www.coastline.edu/admissions/',          siteUrl: 'https://www.coastline.edu' },
+  CCAF:     { name: 'Community College of the Air Force',    type: 'Public',  degree: '2-Year College',     rating: 4.3, desc: 'Federally chartered, regionally accredited associate-degree program for enlisted Airmen and Guardians. Credit awarded for technical training.',        applyUrl: 'https://www.airuniversity.af.edu/Barnes/CCAF/',    siteUrl: 'https://www.airuniversity.af.edu/Barnes/CCAF/' },
+  TUI:      { name: 'Trident University International',      type: 'Private', degree: '4-Year University', rating: 3.7, desc: '100% online university with strong military enrollment. Bachelor, master, and doctoral degrees in business, IT, health sciences, and education.',      applyUrl: 'https://www.trident.edu/admissions/',             siteUrl: 'https://www.trident.edu' },
+  CityChicago: { name: 'City Colleges of Chicago',           type: 'Public',  degree: '2-Year College',     rating: 3.8, desc: 'DoD partner serving Navy worldwide through online associate-degree programs. TA accepted. Strong general-education and IT pathways.',                applyUrl: 'https://www.ccc.edu/admissions/Pages/default.aspx', siteUrl: 'https://www.ccc.edu' },
+};
+
+// Bundles below are reused across installation aliases to keep the data table
+// compact while ensuring every OCONUS canonical name in INSTALLATION_MARKETS
+// (and the most-common spellings users actually type) hits the same curated
+// set of DoD voluntary-education partner schools.
+const OCONUS_BUNDLE_KOREA_ARMY  = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CTC, OCONUS_PARTNER_SCHOOLS.ERAU, OCONUS_PARTNER_SCHOOLS.Park, OCONUS_PARTNER_SCHOOLS.CCAF];
+const OCONUS_BUNDLE_KOREA_AF    = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.ERAU, OCONUS_PARTNER_SCHOOLS.CCAF, OCONUS_PARTNER_SCHOOLS.Park];
+const OCONUS_BUNDLE_JAPAN_AF    = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CCAF, OCONUS_PARTNER_SCHOOLS.ERAU, OCONUS_PARTNER_SCHOOLS.Park];
+const OCONUS_BUNDLE_OKINAWA     = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CCAF, OCONUS_PARTNER_SCHOOLS.ERAU, OCONUS_PARTNER_SCHOOLS.Park, OCONUS_PARTNER_SCHOOLS.CTC];
+const OCONUS_BUNDLE_USMC_OKI    = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.Park, OCONUS_PARTNER_SCHOOLS.CTC, OCONUS_PARTNER_SCHOOLS.Coastline];
+const OCONUS_BUNDLE_NAVY_JAPAN  = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CityChicago, OCONUS_PARTNER_SCHOOLS.Park, OCONUS_PARTNER_SCHOOLS.CCAF];
+const OCONUS_BUNDLE_GERMANY     = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CTC, OCONUS_PARTNER_SCHOOLS.ERAU, OCONUS_PARTNER_SCHOOLS.Park];
+const OCONUS_BUNDLE_GERMANY_AF  = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CCAF, OCONUS_PARTNER_SCHOOLS.ERAU, OCONUS_PARTNER_SCHOOLS.Park, OCONUS_PARTNER_SCHOOLS.CTC];
+const OCONUS_BUNDLE_ITALY_ARMY  = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CTC, OCONUS_PARTNER_SCHOOLS.Park];
+const OCONUS_BUNDLE_ITALY_NAVY  = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CityChicago, OCONUS_PARTNER_SCHOOLS.Park];
+const OCONUS_BUNDLE_ITALY_AF    = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CCAF, OCONUS_PARTNER_SCHOOLS.ERAU, OCONUS_PARTNER_SCHOOLS.Park];
+const OCONUS_BUNDLE_UK_AF       = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CCAF, OCONUS_PARTNER_SCHOOLS.ERAU, OCONUS_PARTNER_SCHOOLS.Park];
+const OCONUS_BUNDLE_SPAIN_NAVY  = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CityChicago, OCONUS_PARTNER_SCHOOLS.Park];
+const OCONUS_BUNDLE_GREECE      = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CityChicago];
+const OCONUS_BUNDLE_TURKEY      = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CCAF];
+const OCONUS_BUNDLE_MIDDLE_EAST = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CCAF, OCONUS_PARTNER_SCHOOLS.CityChicago, OCONUS_PARTNER_SCHOOLS.Park];
+const OCONUS_BUNDLE_GUAM        = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CCAF, OCONUS_PARTNER_SCHOOLS.CityChicago, OCONUS_PARTNER_SCHOOLS.ERAU];
+const OCONUS_BUNDLE_HAWAII      = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CCAF, OCONUS_PARTNER_SCHOOLS.CityChicago, OCONUS_PARTNER_SCHOOLS.ERAU];
+const OCONUS_BUNDLE_ALASKA      = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CCAF, OCONUS_PARTNER_SCHOOLS.CTC, OCONUS_PARTNER_SCHOOLS.ERAU];
+const OCONUS_BUNDLE_GREENLAND   = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CCAF];
+const OCONUS_BUNDLE_BELGIUM     = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CTC, OCONUS_PARTNER_SCHOOLS.Park];
+const OCONUS_BUNDLE_POLAND      = [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CTC, OCONUS_PARTNER_SCHOOLS.Park];
+
+const OCONUS_COLLEGES = {
+  // ── ARMY · KOREA ─────────────────────────────────────────────────────────
+  'USAG Humphreys':                     OCONUS_BUNDLE_KOREA_ARMY,
+  'Camp Humphreys':                     OCONUS_BUNDLE_KOREA_ARMY,
+  'USAG Daegu':                         OCONUS_BUNDLE_KOREA_ARMY,
+  'USAG Yongsan-Casey':                 OCONUS_BUNDLE_KOREA_ARMY,
+  'Camp Walker':                        OCONUS_BUNDLE_KOREA_ARMY,
+  'Camp Henry':                         OCONUS_BUNDLE_KOREA_ARMY,
+  'Camp Carroll':                       OCONUS_BUNDLE_KOREA_ARMY,
+  'Pier 8 Busan':                       OCONUS_BUNDLE_KOREA_ARMY,
+  'Camp Casey':                         OCONUS_BUNDLE_KOREA_ARMY,
+  'Camp Hovey':                         OCONUS_BUNDLE_KOREA_ARMY,
+  'Camp Red Cloud':                     OCONUS_BUNDLE_KOREA_ARMY,
+  // ── ARMY · JAPAN ─────────────────────────────────────────────────────────
+  'USAG Japan (Camp Zama)':             [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CityChicago, OCONUS_PARTNER_SCHOOLS.Park],
+  'Sagami Depot':                       [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CityChicago, OCONUS_PARTNER_SCHOOLS.Park],
+  'Yokohama North Dock':                [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CityChicago],
+  'Torii Station (USAG Okinawa)':       OCONUS_BUNDLE_OKINAWA,
+  // ── ARMY · GERMANY ───────────────────────────────────────────────────────
+  'USAG Stuttgart':                     OCONUS_BUNDLE_GERMANY,
+  'USAG Wiesbaden':                     OCONUS_BUNDLE_GERMANY,
+  'USAG Bavaria (Grafenwöhr)':          OCONUS_BUNDLE_GERMANY,
+  'Grafenwöhr Training Area':           OCONUS_BUNDLE_GERMANY,
+  'Rose Barracks Vilseck':              OCONUS_BUNDLE_GERMANY,
+  'Hohenfels Training Area':            OCONUS_BUNDLE_GERMANY,
+  'Garmisch Resort':                    OCONUS_BUNDLE_GERMANY,
+  'USAG Ansbach':                       OCONUS_BUNDLE_GERMANY,
+  'USAG Rheinland-Pfalz (Kaiserslautern)': OCONUS_BUNDLE_GERMANY,
+  'Kaiserslautern Military Community':  OCONUS_BUNDLE_GERMANY,
+  'Landstuhl Regional Medical Center':  OCONUS_BUNDLE_GERMANY,
+  'Sembach Kaserne':                    OCONUS_BUNDLE_GERMANY,
+  'Pulaski Barracks':                   OCONUS_BUNDLE_GERMANY,
+  'Panzer Kaserne':                     OCONUS_BUNDLE_GERMANY,
+  'Vogelweh Military Complex':          OCONUS_BUNDLE_GERMANY,
+  'USAG Baumholder':                    OCONUS_BUNDLE_GERMANY,
+  'USAG Hohenfels':                     OCONUS_BUNDLE_GERMANY,
+  'USAG Garmisch':                      OCONUS_BUNDLE_GERMANY,
+  // ── ARMY · BELGIUM / NL / POLAND / KOSOVO ────────────────────────────────
+  'USAG Belgium (SHAPE)':               OCONUS_BUNDLE_BELGIUM,
+  'Chievres Air Base':                  OCONUS_BUNDLE_BELGIUM,
+  'Daumerie Caserne':                   OCONUS_BUNDLE_BELGIUM,
+  'USAG BENELUX-Brussels':              OCONUS_BUNDLE_BELGIUM,
+  'USAG BENELUX Brunssum':              OCONUS_BUNDLE_BELGIUM,
+  'USAG Poland':                        OCONUS_BUNDLE_POLAND,
+  'Camp Kosciuszko Poznan':             OCONUS_BUNDLE_POLAND,
+  'Powidz Air Base':                    OCONUS_BUNDLE_POLAND,
+  'Camp Bondsteel':                     [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CTC],
+  // ── ARMY · ITALY ─────────────────────────────────────────────────────────
+  'USAG Italy (Vicenza)':               OCONUS_BUNDLE_ITALY_ARMY,
+  'Caserma Ederle':                     OCONUS_BUNDLE_ITALY_ARMY,
+  'Caserma Del Din':                    OCONUS_BUNDLE_ITALY_ARMY,
+  'USAG Italy (Livorno)':               OCONUS_BUNDLE_ITALY_ARMY,
+  'Camp Darby':                         OCONUS_BUNDLE_ITALY_ARMY,
+  // ── NAVY · OCONUS ────────────────────────────────────────────────────────
+  'Naval Support Activity Bahrain':     OCONUS_BUNDLE_MIDDLE_EAST,
+  'NSA Bahrain':                        OCONUS_BUNDLE_MIDDLE_EAST,
+  'Navy Support Facility Diego Garcia': [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CityChicago],
+  'Naval Station Guantanamo Bay':       [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CityChicago, OCONUS_PARTNER_SCHOOLS.Park],
+  'Naval Support Activity Souda Bay':   OCONUS_BUNDLE_GREECE,
+  'Naval Base Guam':                    OCONUS_BUNDLE_GUAM,
+  'Commander Fleet Activities Yokosuka': OCONUS_BUNDLE_NAVY_JAPAN,
+  'Commander Fleet Activities Sasebo':  OCONUS_BUNDLE_NAVY_JAPAN,
+  'Naval Air Facility Atsugi':          OCONUS_BUNDLE_NAVY_JAPAN,
+  'Naval Air Station Sigonella':        OCONUS_BUNDLE_ITALY_NAVY,
+  'Naval Support Activity Naples':      OCONUS_BUNDLE_ITALY_NAVY,
+  'Naval Support Activity Singapore':   [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CityChicago, OCONUS_PARTNER_SCHOOLS.Park],
+  'Naval Station Rota':                 OCONUS_BUNDLE_SPAIN_NAVY,
+  'Naval Support Activity Stavanger':   [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CityChicago],
+  'Commander Fleet Activities Chinhae': [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CityChicago, OCONUS_PARTNER_SCHOOLS.Park],
+  'Joint Base Pearl Harbor-Hickam':     OCONUS_BUNDLE_HAWAII,
+  // ── MARINE CORPS · OCONUS ────────────────────────────────────────────────
+  'Camp Butler (Okinawa)':              OCONUS_BUNDLE_USMC_OKI,
+  'Camp Foster':                        OCONUS_BUNDLE_USMC_OKI,
+  'Camp Kinser':                        OCONUS_BUNDLE_USMC_OKI,
+  'Camp Courtney':                      OCONUS_BUNDLE_USMC_OKI,
+  'Camp Hansen':                        OCONUS_BUNDLE_USMC_OKI,
+  'Camp Schwab':                        OCONUS_BUNDLE_USMC_OKI,
+  'MCAS Futenma':                       OCONUS_BUNDLE_USMC_OKI,
+  'MCAS Iwakuni':                       [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.Coastline, OCONUS_PARTNER_SCHOOLS.Park, OCONUS_PARTNER_SCHOOLS.CityChicago],
+  // ── AIR FORCE · OCONUS ───────────────────────────────────────────────────
+  'Ramstein AB':                        OCONUS_BUNDLE_GERMANY_AF,
+  'Spangdahlem AB':                     OCONUS_BUNDLE_GERMANY_AF,
+  'Aviano AB':                          OCONUS_BUNDLE_ITALY_AF,
+  'Incirlik AB':                        OCONUS_BUNDLE_TURKEY,
+  'Kadena AB':                          OCONUS_BUNDLE_OKINAWA,
+  'Misawa AB':                          OCONUS_BUNDLE_JAPAN_AF,
+  'Yokota AB':                          OCONUS_BUNDLE_JAPAN_AF,
+  'Osan AB':                            OCONUS_BUNDLE_KOREA_AF,
+  'Kunsan AB':                          OCONUS_BUNDLE_KOREA_AF,
+  'RAF Lakenheath':                     OCONUS_BUNDLE_UK_AF,
+  'RAF Mildenhall':                     OCONUS_BUNDLE_UK_AF,
+  'RAF Alconbury':                      OCONUS_BUNDLE_UK_AF,
+  'RAF Croughton':                      OCONUS_BUNDLE_UK_AF,
+  'Andersen AFB (Guam)':                OCONUS_BUNDLE_GUAM,
+  'Morón AB':                           [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CCAF, OCONUS_PARTNER_SCHOOLS.ERAU],
+  'Geilenkirchen NATO Air Base':        OCONUS_BUNDLE_GERMANY_AF,
+  'Lajes Field':                        [OCONUS_PARTNER_SCHOOLS.UMGC, OCONUS_PARTNER_SCHOOLS.CCAF, OCONUS_PARTNER_SCHOOLS.ERAU],
+  // ── SPACE FORCE · OCONUS ─────────────────────────────────────────────────
+  'Thule Air Base / Pituffik Space Base': OCONUS_BUNDLE_GREENLAND,
+  // ── ALASKA (treated as OCONUS for college fallback) ──────────────────────
+  'Fort Wainwright':                    OCONUS_BUNDLE_ALASKA,
+  'Fort Greely':                        OCONUS_BUNDLE_ALASKA,
+  'Eielson AFB':                        OCONUS_BUNDLE_ALASKA,
+  'Clear Space Force Station':          OCONUS_BUNDLE_ALASKA,
+};
+
 
 const COLLEGE_ENROLLMENT_LINKS = {
   'Abilene Christian University': { applyUrl: 'https://www.acu.edu/admissions/', siteUrl: 'https://www.acu.edu' },
@@ -4931,7 +5079,14 @@ function EducationBenefitsTab({ theme, profile }) {
   const installName = (profile?.gainingInstallation || '').split(',')[0].trim();
   const COLLEGE_ALIASES = { 'Fort Hood': 'Fort Cavazos', 'Fort Bragg': 'Fort Liberty', 'Fort Rucker': 'Fort Novosel', 'Fort Benning': 'Fort Moore', 'Fort Gordon': 'Fort Eisenhower', 'Fort Lee': 'Fort Gregg-Adams' };
   const resolvedInstall = COLLEGE_ALIASES[installName] || installName;
-  const nearbyColleges = INSTALLATION_COLLEGES[resolvedInstall] || INSTALLATION_COLLEGES[installName] || [];
+  // Curated CONUS list first, then OCONUS DoD-partner schools so OCONUS
+  // bases (Camp Humphreys, Ramstein, Yokota, Vicenza, etc.) render the
+  // same card layout as CONUS bases instead of the generic empty state.
+  const nearbyColleges = INSTALLATION_COLLEGES[resolvedInstall]
+    || INSTALLATION_COLLEGES[installName]
+    || OCONUS_COLLEGES[resolvedInstall]
+    || OCONUS_COLLEGES[installName]
+    || [];
 
   const GI_BILL_CHAPTERS = [
     {
