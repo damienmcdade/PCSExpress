@@ -5847,22 +5847,30 @@ const APP_TRANSLATIONS = {
     dueNow: 'Due Now',
     tasksRemaining: 'tasks remaining',
     nav: {
-      home: 'Home',
-      'base-intelligence': 'Base Intelligence',
+      home: 'Command Center',
+      'pcs-operations': 'PCS Operations',
+      'home-relocation': 'Movement & Logistics',
+      'family-readiness': 'Family Readiness',
+      'medical-readiness': 'Holistic Health',
+      'mission-resources': 'Mission Resources',
+      // Legacy keys kept for deep-link compatibility — these tabs are
+      // no longer in the bottom nav but old routes still resolve.
+      'base-intelligence': 'Base Insights',
       checklist: 'Checklist',
       compliance: 'Compliance',
-      documents: 'Documents',
+      documents: 'Paperwork',
       education: 'Education',
-      family: 'Family Readiness',
-      'home-relocation': 'Home Relocation',
-      'medical-readiness': 'Holistic Health',
-      nav: 'Navigation',
-      resources: 'Resources',
-      religion: 'Spiritual Readiness',
+      family: 'Family',
+      nav: 'Maps',
+      resources: 'Help Hub',
+      religion: 'Faith & Chaplains',
       translation: 'Translation',
       veterans: 'Veteran Support',
     },
     desc: {
+      'pcs-operations': 'Everything PCS planning needs in one operations cell: phased task checklist, paperwork roster with binder export, and the 180-day OCONUS / 90-day CONUS timeline backward-planned from your report-no-later-than date.',
+      'mission-resources': 'Field references for the gaining installation: Base Insights (verified family reviews), Maps, Help Hub (consolidated DoD/VA/family/financial resource directory), and Veteran Support.',
+      'family-readiness': 'Family-side mission readiness: deployment, EFMP, spouse employment, family activities, permanent residency, pets, K-12 schools — plus Education benefits, Translation, and Faith & Chaplains.',
       'base-intelligence': 'Reviews from real military families on housing, schools, and childcare at your gaining installation. Reviews from .mil emails get a "Military Family Verified" badge.',
       checklist: 'A full PCS task list, organized by phase (Orders Received through In-Processing). Toggle reminders on key milestones. Nothing here asks for documents — just check items off as you finish them.',
       compliance: 'In plain language, how PCS Express keeps your information safe. Your PCS profile and notes never leave your phone — they\'re scrambled with strong encryption and saved only on this device. There\'s no PCS Express server holding your data, no account to hack, nothing to leak.',
@@ -7376,6 +7384,65 @@ function FamilyCategoryTab({ theme, profile }) {
   );
 }
 
+// ───────────────────────────────────────────────────────────────────
+// Top-level GROUP wrappers per the redesigned mission architecture.
+// Each wrapper hosts the sub-modules that used to live as separate
+// bottom-nav tabs, so the bottom bar collapses from 14 → 6 entries
+// (Home + 5 mission groups) without losing any feature.
+// ───────────────────────────────────────────────────────────────────
+
+function PCSOperationsTab({ theme, profile, checklistItems, setChecklistItems }) {
+  const tabs = [
+    { id: 'checklist', label: 'Checklist' },
+    { id: 'documents', label: 'Paperwork' },
+    { id: 'timeline',  label: 'Timeline'  },
+  ];
+  const [tab, setTab] = useState('checklist');
+  return (
+    <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
+      {tab === 'checklist' && <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />}
+      {tab === 'documents' && <PCSDocumentsModule theme={theme} profile={profile} />}
+      {tab === 'timeline'  && <DynamicTimeline theme={theme} profile={profile} />}
+    </CategoryTabShell>
+  );
+}
+
+function FamilyReadinessGroupTab({ theme, profile }) {
+  const tabs = [
+    { id: 'family',      label: 'Family' },
+    { id: 'education',   label: 'Education' },
+    { id: 'translation', label: 'Translation' },
+    { id: 'faith',       label: 'Faith & Chaplains' },
+  ];
+  const [tab, setTab] = useState('family');
+  return (
+    <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
+      {tab === 'family'      && <FamilyCategoryTab theme={theme} profile={profile} />}
+      {tab === 'education'   && <EducationBenefitsTab theme={theme} profile={profile} />}
+      {tab === 'translation' && <TranslationModule theme={theme} profile={profile} />}
+      {tab === 'faith'       && <ReligiousServicesModuleWrapped theme={theme} profile={profile} />}
+    </CategoryTabShell>
+  );
+}
+
+function MissionResourcesTab({ theme, profile }) {
+  const tabs = [
+    { id: 'base-insights', label: 'Base Insights' },
+    { id: 'maps',          label: 'Maps' },
+    { id: 'help-hub',      label: 'Help Hub' },
+    { id: 'veteran',       label: 'Veteran Support' },
+  ];
+  const [tab, setTab] = useState('base-insights');
+  return (
+    <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
+      {tab === 'base-insights' && <BaseIntelligenceUnifiedTab theme={theme} profile={profile} />}
+      {tab === 'maps'          && <NavigationModule theme={theme} profile={profile} />}
+      {tab === 'help-hub'      && <ResourcesTab theme={theme} profile={profile} />}
+      {tab === 'veteran'       && <VeteranBusinessesTab theme={theme} profile={profile} />}
+    </CategoryTabShell>
+  );
+}
+
 function FamilyFunTab({ theme, profile }) {
   const market = resolveMarket(profile);
   const [customAddress, setCustomAddress] = useState('');
@@ -8086,54 +8153,43 @@ function App() {
     }} />;
   }
 
-  // Brief category overview demo. Every entry sits on tab: 'home' so
+  // Mission-group overview demo. Every entry sits on tab: 'home' so
   // advancing the tour never switches the active tab — the bottom-nav
-  // highlight stays on Home throughout, and the user gets a clean
-  // one-paragraph summary of what each category does without being
-  // teleported around the app.
+  // highlight stays on Command Center throughout.
   const DEMO_TIPS = [
-    { tab: 'home', title: 'Welcome to PCS Express', body: 'A quick tour of every category. Each card explains one tab in one sentence so you know where to look when you actually need it. Use the dots to skip ahead or hit Skip to close.' },
-    { tab: 'home', title: 'Home', body: 'Your dashboard: the days-until-report countdown, branch-specific tips, and any time-sensitive alerts.' },
-    { tab: 'home', title: 'Base Intelligence', body: 'Verified reviews from real military families on housing, schools, and childcare at your gaining installation.' },
-    { tab: 'home', title: 'Checklist', body: 'A phased PCS task list — Orders Received through In-Processing — written for your branch and your situation.' },
-    { tab: 'home', title: 'Documents', body: 'A checklist for every form you need to gather. Check items off as you collect the paperwork yourself, then export the checklist as a printable PDF for your gaining S1 / HR / VA. PCS Express never accepts uploads.' },
-    { tab: 'home', title: 'Education', body: 'Tuition Assistance portals, GI Bill chapters, MyCAA spouse scholarships, and colleges near the gaining installation.' },
-    { tab: 'home', title: 'Family Readiness', body: 'Family-specific sub-tabs: deployment support, EFMP, spouse employment, permanent residency, pets, and K-12 schools.' },
-    { tab: 'home', title: 'Home Relocation', body: 'Eight tools in one tab — Home Locator, BAH / OHA / LQA calculators, PPM estimator, inflation-adjusted Budget, Shipment Tracker, Inventory worksheet, JTR Assistant, Move Aid, and VA Loan.' },
-    { tab: 'home', title: 'Holistic Health', body: 'Total well-being in four sections: Medical Care (ER, hospitals, urgent care, specialty, dental, vision, pharmacy, preventive / PHA), Behavioral Health & Counseling, Spiritual Care (chaplaincy in care settings), and Fitness (gyms, workouts during PCS, diet and meal tips for traveling).' },
-    { tab: 'home', title: 'Navigation', body: 'Plan routes and save directions on a public installation map. No restricted or non-public base details.' },
-    { tab: 'home', title: 'Resources', body: 'One hub of official, public military, government, family, financial, healthcare, and PCS resources.' },
-    { tab: 'home', title: 'Spiritual Readiness', body: 'Worship services and the Chaplains tab — both filtered to the gaining installation. Free, confidential pastoral support for service members of all faiths (and no faith).' },
-    { tab: 'home', title: 'Translation', body: 'Common phrases in 20+ languages, an AI translate field (with an OPSEC warning so you never paste sensitive info), and a Free Resources tab tailored to your component (Military OneSource, DLIFLC, JKO, EAP, etc.).' },
-    { tab: 'home', title: 'Veteran Support', body: 'Veteran-owned businesses, public directories, and local veteran resources around the gaining location.' },
-    { tab: 'home', title: 'Security & data handling', body: 'Tap the lock icon at the bottom of the Home page to see exactly how PCS Express keeps your information safe — everything stays AES-256 encrypted on your phone. No accounts, no uploads, no PCS Express server holding your data.' },
+    { tab: 'home', title: 'PCS Express — Mission Brief',  body: 'Six mission groups, one mission: deliver you and your family to the new duty station ready to in-process. Each card below names one group and what it controls.' },
+    { tab: 'home', title: 'Command Center',               body: 'Your home dashboard. Days-until-report countdown, today / this-week / before-you-report task lanes, alerts on overdue items, and tips tailored to your component (Active Duty / Reserve / Guard / DoD Civilian).' },
+    { tab: 'home', title: 'PCS Operations',               body: 'Plan and execute every PCS task. Branch-tailored Checklist (Orders Received through In-Processing), Paperwork roster with printable Binder export, and the 180-day OCONUS / 90-day CONUS Timeline backward-planned from your report date. No uploads — you keep the documents yourself.' },
+    { tab: 'home', title: 'Movement & Logistics',         body: 'Move, money, and shipment. Home Locator, BAH / OHA / LQA calculators, PPM estimator, inflation-adjusted Budget, live Shipment Tracker, Inventory worksheet, JTR Assistant, Move Aid, and VA Loan.' },
+    { tab: 'home', title: 'Family Readiness',             body: 'Family-side mission planning. Family sub-tabs (deployment, EFMP, spouse employment, family activities, permanent residency, pets, schools) plus Education benefits, Translation with a component-tailored Free Resources tab, and Faith & Chaplains for the gaining installation.' },
+    { tab: 'home', title: 'Holistic Health',              body: 'Total well-being in four pillars: Medical Care (ER, hospital, urgent care, specialty, dental, vision, pharmacy, preventive / PHA), Behavioral Health & Counseling, Spiritual Care (chaplaincy in care settings), and Fitness (gyms, workouts during PCS, diet and meal tips for traveling).' },
+    { tab: 'home', title: 'Mission Resources',            body: 'Field references for the gaining installation: Base Insights (verified family reviews), Maps, Help Hub (consolidated DoD / VA / family / financial directory), and Veteran Support.' },
+    { tab: 'home', title: 'Security & data handling',     body: 'Tap the 🔒 button at the bottom of Command Center to see exactly how PCS Express keeps your information safe — everything stays AES-256 encrypted on your phone. No accounts, no uploads, no PCS Express server holding your data.' },
     { tab: 'home', title: 'Thank you for your service.', body: 'That\'s every category. Close this card and explore — your data stays on your device.' },
   ];
 
+  // Six top-level mission groups. Old single-purpose tabs (checklist,
+  // documents, family, etc.) collapse into one of these wrappers per
+  // the redesigned information architecture. Old activeTab IDs still
+  // resolve below for deep-link compatibility but are no longer part
+  // of the nav surface.
   const BOTTOM_NAV = [
-    { id: 'home',        label: 'Home',                 icon: 'HQ',  iosIcon: '🏠', color: '#0D1821' },
-    { id: 'base-intelligence', label: 'Base Intelligence', icon: 'BAS', iosIcon: '🏰', color: '#26351F' },
-    { id: 'checklist',   label: 'Checklist',            icon: 'PCK', iosIcon: '✅', color: '#1565C0' },
-    { id: 'documents',   label: 'Documents',            icon: 'DOC', iosIcon: '📋', color: '#5D4037' },
-    { id: 'education',   label: 'Education',            icon: 'EDU', iosIcon: '📚', color: '#1565C0' },
-    { id: 'family',      label: 'Family Readiness',     icon: 'FAM', iosIcon: '👪', color: '#5B2A86' },
-    { id: 'home-relocation', label: 'Home Relocation',  icon: 'HME', iosIcon: '🏠', color: '#455A64' },
-    { id: 'medical-readiness', label: 'Holistic Health',   icon: 'HLH', iosIcon: '🌿', color: '#2E7D32' },
-    { id: 'nav',         label: 'Navigation',           icon: 'NAV', iosIcon: '🗺️', color: '#00695C' },
-    { id: 'resources',   label: 'Resources',            icon: 'RES', iosIcon: '🔗', color: '#C62828' },
-    { id: 'religion',    label: 'Spiritual Readiness',  icon: 'SPR', iosIcon: '✦', color: '#37474F' },
-    { id: 'translation', label: 'Translation',           icon: 'TRL', iosIcon: '🌐', color: '#1976D2' },
-    { id: 'veterans',    label: 'Veteran Support',      icon: 'VET', iosIcon: '⭐', color: '#E65100' },
+    { id: 'home',                label: 'Command Center',       icon: 'CMD', iosIcon: '🎯', color: '#0D1821' },
+    { id: 'pcs-operations',      label: 'PCS Operations',       icon: 'OPS', iosIcon: '📋', color: '#1565C0' },
+    { id: 'home-relocation',     label: 'Movement & Logistics', icon: 'LOG', iosIcon: '🚚', color: '#455A64' },
+    { id: 'family-readiness',    label: 'Family Readiness',     icon: 'FAM', iosIcon: '🛡️', color: '#5B2A86' },
+    { id: 'medical-readiness',   label: 'Holistic Health',      icon: 'HLH', iosIcon: '🌿', color: '#2E7D32' },
+    { id: 'mission-resources',   label: 'Mission Resources',    icon: 'MSR', iosIcon: '🗺️', color: '#26351F' },
   ];
   const LOCALIZED_BOTTOM_NAV = localizeNavItems(BOTTOM_NAV, appLanguage);
   const HOME_CATEGORIES = LOCALIZED_BOTTOM_NAV.filter(item => item.id !== 'home');
 
   // iOS bottom tab bar: 4 primary + More button
   const IOS_TAB_BAR = [
-    { id: 'home',       label: t('nav.home'),      iosIcon: '🏠' },
-    { id: 'checklist',  label: t('nav.checklist'), iosIcon: '✅' },
-    { id: 'family',     label: t('nav.family'),    iosIcon: '👪' },
-    { id: 'home-relocation', label: t('nav.home-relocation'), iosIcon: '🏠' },
+    { id: 'home',             label: t('nav.home'),             iosIcon: '🎯' },
+    { id: 'pcs-operations',   label: t('nav.pcs-operations'),   iosIcon: '📋' },
+    { id: 'home-relocation',  label: t('nav.home-relocation'),  iosIcon: '🚚' },
+    { id: 'family-readiness', label: t('nav.family-readiness'), iosIcon: '🛡️' },
   ];
 
   const currentLabel = LOCALIZED_BOTTOM_NAV.find(n => n.id === activeTab)?.label || t('nav.home');
@@ -8498,17 +8554,26 @@ function App() {
           </div>
         )}
 
-        {activeTab === 'base-intelligence' && renderCategoryFrame('base-intelligence', <BaseIntelligenceUnifiedTab theme={theme} profile={profile} />)}
-        {activeTab === 'checklist' && renderCategoryFrame('checklist', <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />)}
-        {activeTab === 'documents' && renderCategoryFrame('documents', <PCSDocumentsModule theme={theme} profile={profile} />)}
-        {activeTab === 'education' && renderCategoryFrame('education', <EducationBenefitsTab theme={theme} profile={profile} />)}
-        {activeTab === 'family' && renderCategoryFrame('family', <FamilyCategoryTab theme={theme} profile={profile} />)}
-        {activeTab === 'home-relocation' && renderCategoryFrame('home-relocation', <HomeRelocationUnifiedTab theme={theme} profile={profile} />)}
+        {/* New top-level mission-group routes. Each renders a wrapper
+            that hosts the sub-modules that used to be separate
+            bottom-nav tabs. */}
+        {activeTab === 'pcs-operations'    && renderCategoryFrame('pcs-operations',    <PCSOperationsTab    theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />)}
+        {activeTab === 'family-readiness'  && renderCategoryFrame('family-readiness',  <FamilyReadinessGroupTab theme={theme} profile={profile} />)}
+        {activeTab === 'mission-resources' && renderCategoryFrame('mission-resources', <MissionResourcesTab theme={theme} profile={profile} />)}
+        {activeTab === 'home-relocation'   && renderCategoryFrame('home-relocation',   <HomeRelocationUnifiedTab theme={theme} profile={profile} />)}
         {activeTab === 'medical-readiness' && renderCategoryFrame('medical-readiness', <MedicalReadinessTab theme={theme} profile={profile} />)}
-        {activeTab === 'nav' && renderCategoryFrame('nav', <NavigationModule theme={theme} profile={profile} />)}
-        {activeTab === 'religion' && renderCategoryFrame('religion', <ReligiousServicesModuleWrapped theme={theme} profile={profile} />)}
-        {activeTab === 'resources' && renderCategoryFrame('resources', <ResourcesTab theme={theme} profile={profile} />)}
-        {activeTab === 'veterans' && renderCategoryFrame('veterans', <VeteranBusinessesTab theme={theme} profile={profile} />)}
+
+        {/* Legacy single-purpose routes. Not in the bottom nav anymore,
+            but kept here so older deep links still resolve. */}
+        {activeTab === 'base-intelligence' && renderCategoryFrame('base-intelligence', <BaseIntelligenceUnifiedTab theme={theme} profile={profile} />)}
+        {activeTab === 'checklist'  && renderCategoryFrame('checklist',  <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />)}
+        {activeTab === 'documents'  && renderCategoryFrame('documents',  <PCSDocumentsModule theme={theme} profile={profile} />)}
+        {activeTab === 'education'  && renderCategoryFrame('education',  <EducationBenefitsTab theme={theme} profile={profile} />)}
+        {activeTab === 'family'     && renderCategoryFrame('family',     <FamilyCategoryTab theme={theme} profile={profile} />)}
+        {activeTab === 'nav'        && renderCategoryFrame('nav',        <NavigationModule theme={theme} profile={profile} />)}
+        {activeTab === 'religion'   && renderCategoryFrame('religion',   <ReligiousServicesModuleWrapped theme={theme} profile={profile} />)}
+        {activeTab === 'resources'  && renderCategoryFrame('resources',  <ResourcesTab theme={theme} profile={profile} />)}
+        {activeTab === 'veterans'   && renderCategoryFrame('veterans',   <VeteranBusinessesTab theme={theme} profile={profile} />)}
       </div>
       </div>{/* end body container */}
 
