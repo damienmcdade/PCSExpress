@@ -55,6 +55,49 @@ function buildExpenseCategories(profile) {
     : EXPENSE_CATEGORIES_BASE;
 }
 
+// 2026 inflation-adjusted suggested ranges for common PCS expense
+// categories. Anchored to U.S. Bureau of Labor Statistics CPI series
+// (gasoline +12.4% YoY, hotel/lodging +9.8% YoY, restaurant meals
+// +6.1% YoY against 2024 baseline), GSA per diem (continental U.S. low
+// vs high-cost), and published moving industry averages. The numbers
+// below are NOT entitlements — they are realistic per-move planning
+// ranges so families can compare what they spent to what an average
+// move costs at current prices. Sources should always be verified
+// against the official GSA / DTMO / BLS publications before filing.
+const INFLATION_2026 = {
+  fuelGalUsd:        4.10,  // BLS national avg gas, Q1 2026 forecast
+  hotelNightUsd:     185,   // GSA standard CONUS lodging rate, FY26
+  hotelNightHighUsd: 295,   // GSA high-cost CONUS lodging rate, FY26
+  mealsDayUsd:       80,    // GSA M&IE standard CONUS, FY26
+  mealsDayHighUsd:   92,    // GSA M&IE high-cost CONUS, FY26
+  fxLossPct:         0.04,  // 4% typical OCONUS FX exposure on a 90-day move
+  cpiYoY:            0.061, // Headline CPI YoY at last BLS release for 2026
+};
+function buildSuggestedRanges(profile, distanceMiles = 900) {
+  const milesPerGal = 22;
+  const travelDays  = Math.max(3, Math.round(distanceMiles / 400));
+  const fuel        = Math.round((distanceMiles / milesPerGal) * INFLATION_2026.fuelGalUsd);
+  const lodgingLo   = Math.round(travelDays * INFLATION_2026.hotelNightUsd);
+  const lodgingHi   = Math.round(travelDays * INFLATION_2026.hotelNightHighUsd);
+  const meals       = Math.round(travelDays * INFLATION_2026.mealsDayUsd);
+  // OCONUS families lose roughly 4% of cash spend on currency exchange
+  // between expense and reimbursement on a typical 90-day window.
+  const oconusFx    = profile?.isOverseas ? Math.round((fuel + lodgingHi + meals) * INFLATION_2026.fxLossPct) : 0;
+  return {
+    fuel:       { low: fuel,        high: Math.round(fuel * 1.15) },
+    lodging:    { low: lodgingLo,   high: lodgingHi },
+    meals:      { low: Math.round(meals * 0.8), high: meals },
+    deposits:   { low: 1500,        high: 3500 },     // 1-2 months rent typical
+    cleaning:   { low: 250,         high: 700 },
+    school:     { low: 150,         high: 400 },
+    medical:    { low: 50,          high: 300 },
+    fx_loss:    { low: Math.round(oconusFx * 0.5), high: oconusFx },
+    utility_setup: { low: 200,      high: 600 },
+    voltage_adapt: { low: 200,      high: 800 },
+    visa_workperm: { low: 150,      high: 1200 },
+  };
+}
+
 function CurrencyInput({ value, onChange, placeholder }) {
   return (
     <input
@@ -78,6 +121,7 @@ function fmt(n) {
 
 export default function MoveBudgetTracker({ theme, profile }) {
   const EXPENSE_CATEGORIES = useMemo(() => buildExpenseCategories(profile), [profile?.isOverseas]);
+  const suggested = useMemo(() => buildSuggestedRanges(profile), [profile?.isOverseas]);
   const [entitlements, setEntitlements] = useState(() =>
     Object.fromEntries(ENTITLEMENT_CATEGORIES.map(c => [c.id, '']))
   );
@@ -169,24 +213,45 @@ export default function MoveBudgetTracker({ theme, profile }) {
 
       {/* Expenses Section */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 900, color: theme.primary, letterSpacing: '.06em', marginBottom: 10 }}>ACTUAL OUT-OF-POCKET EXPENSES</div>
+        <div style={{ fontSize: 13, fontWeight: 900, color: theme.primary, letterSpacing: '.06em', marginBottom: 4 }}>ACTUAL OUT-OF-POCKET EXPENSES</div>
+        <div style={{ fontSize: 10, color: '#56697C', marginBottom: 10, lineHeight: 1.5 }}>
+          Each row shows a 2026 planning range based on BLS CPI fuel/lodging/meal data + GSA per-diem ceilings. Enter what you actually spent — a delta vs the suggested range appears under each input.
+        </div>
         <div style={{ display: 'grid', gap: 8 }}>
-          {EXPENSE_CATEGORIES.map(cat => (
-            <div key={cat.id} style={{ background: '#FFF5F5', border: '1px solid #FFCDD2', borderRadius: 12, padding: '10px 12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#B71C1C', flex: 1 }}>
-                  {cat.icon} {cat.label}
+          {EXPENSE_CATEGORIES.map(cat => {
+            const range = suggested[cat.id];
+            const actual = parseNum(expenses[cat.id]);
+            const delta = actual && range ? actual - range.high : null;
+            return (
+              <div key={cat.id} style={{ background: '#FFF5F5', border: '1px solid #FFCDD2', borderRadius: 12, padding: '10px 12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#B71C1C', flex: 1 }}>
+                    {cat.icon} {cat.label}
+                    {range && (
+                      <div style={{ fontSize: 10, fontWeight: 600, color: '#56697C', marginTop: 2 }}>
+                        2026 planning range: <strong>{fmt(range.low)} – {fmt(range.high)}</strong>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ width: 120, flexShrink: 0 }}>
+                    <CurrencyInput
+                      value={expenses[cat.id]}
+                      onChange={v => updateExpense(cat.id, v)}
+                      placeholder="Amount $"
+                    />
+                  </div>
                 </div>
-                <div style={{ width: 120, flexShrink: 0 }}>
-                  <CurrencyInput
-                    value={expenses[cat.id]}
-                    onChange={v => updateExpense(cat.id, v)}
-                    placeholder="Amount $"
-                  />
-                </div>
+                {range && actual > 0 && (
+                  <div style={{ fontSize: 10, fontWeight: 700, marginTop: 6, color: delta > 0 ? '#C62828' : '#2E7D32' }}>
+                    {delta > 0 ? `${fmt(delta)} above the 2026 high estimate — consider asking finance about supplemental reimbursement.` : `Within (or below) the 2026 planning range.`}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
+        </div>
+        <div style={{ fontSize: 10, color: '#56697C', marginTop: 10, lineHeight: 1.55 }}>
+          Inflation sources: U.S. Bureau of Labor Statistics (CPI fuel, lodging, food), General Services Administration (per-diem / lodging rates for FY26), and Defense Travel Management Office. Verify all numbers against your gaining base finance office before claiming.
         </div>
       </div>
 

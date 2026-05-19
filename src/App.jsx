@@ -13,6 +13,10 @@ import TranslationModule from './components/TranslationModule'
 import ReligiousServicesModule from './components/ReligiousServicesModule'
 import SpouseDeploymentGuide from './components/SpouseDeploymentGuide'
 import PCSDocumentsModule from './components/PCSDocumentsModule'
+import ShipmentTrackerModule from './components/ShipmentTrackerModule'
+import ComplianceAttestationModule from './components/ComplianceAttestationModule'
+import InventoryVaultModule from './components/InventoryVaultModule'
+import JTRAssistantModule from './components/JTRAssistantModule'
 import ImmigrationModule from './components/ImmigrationModule'
 import MovingFinancialAssistanceTab from './components/MovingFinancialAssistanceTab'
 import PetRelocationChecklistTab from './components/PetRelocationChecklistTab'
@@ -7664,6 +7668,7 @@ function HomeRelocationUnifiedTab({ theme, profile }) {
     { id: 'bah-calculator', label: housingLabel },
     { id: 'ppm-estimator', label: 'PPM Estimator' },
     { id: 'budget-tracker', label: 'Budget Tracker' },
+    { id: 'shipment-tracker', label: 'Shipment Tracker' },
     { id: 'inventory-claims', label: 'Inventory & Claims' },
     { id: 'move-aid', label: 'Move Aid' },
     // VA Loan is veteran-status, not active-civilian. We still show it
@@ -7685,7 +7690,8 @@ function HomeRelocationUnifiedTab({ theme, profile }) {
       )}
       {tab === 'ppm-estimator' && <PPMFinancialEstimator theme={theme} profile={profile} />}
       {tab === 'budget-tracker' && <MoveBudgetTracker theme={theme} profile={profile} />}
-      {tab === 'inventory-claims' && <HomeRelocationTab theme={theme} profile={profile} />}
+      {tab === 'shipment-tracker' && <ShipmentTrackerModule theme={theme} profile={profile} />}
+      {tab === 'inventory-claims' && <InventoryVaultModule theme={theme} profile={profile} />}
       {tab === 'move-aid' && <MovingFinancialAssistanceTab theme={theme} profile={profile} />}
       {tab === 'va-loan' && <VAHomeLoanPanel theme={theme} profile={profile} />}
     </CategoryTabShell>
@@ -8107,12 +8113,14 @@ function App() {
     { id: 'education',   label: 'Education',            icon: 'EDU', iosIcon: '📚', color: '#1565C0' },
     { id: 'family',      label: 'Family Readiness',     icon: 'FAM', iosIcon: '👪', color: '#5B2A86' },
     { id: 'home-relocation', label: 'Home Relocation',  icon: 'HME', iosIcon: '🏠', color: '#455A64' },
+    { id: 'jtr-assistant', label: 'JTR Assistant',      icon: 'JTR', iosIcon: '📖', color: '#1A237E' },
     { id: 'medical-readiness', label: 'Medical Readiness', icon: 'MED', iosIcon: '🏥', color: '#7F1D1D' },
     { id: 'nav',         label: 'Navigation',           icon: 'NAV', iosIcon: '🗺️', color: '#00695C' },
     { id: 'resources',   label: 'Resources',            icon: 'RES', iosIcon: '🔗', color: '#C62828' },
     { id: 'religion',    label: 'Spiritual Readiness',  icon: 'SPR', iosIcon: '✦', color: '#37474F' },
     { id: 'translation', label: 'Translation',           icon: 'TRL', iosIcon: '🌐', color: '#1976D2' },
     { id: 'veterans',    label: 'Veterans',             icon: 'VET', iosIcon: '⭐', color: '#E65100' },
+    { id: 'compliance',  label: 'Compliance',           icon: 'CMP', iosIcon: '🛡️', color: '#263238' },
   ];
   const LOCALIZED_BOTTOM_NAV = localizeNavItems(BOTTOM_NAV, appLanguage);
   const HOME_CATEGORIES = LOCALIZED_BOTTOM_NAV.filter(item => item.id !== 'home');
@@ -8486,6 +8494,8 @@ function App() {
         {activeTab === 'religion' && renderCategoryFrame('religion', <ReligiousServicesModuleWrapped theme={theme} profile={profile} />)}
         {activeTab === 'resources' && renderCategoryFrame('resources', <ResourcesTab theme={theme} profile={profile} />)}
         {activeTab === 'veterans' && renderCategoryFrame('veterans', <VeteranBusinessesTab theme={theme} profile={profile} />)}
+        {activeTab === 'jtr-assistant' && renderCategoryFrame('jtr-assistant', <JTRAssistantModule theme={theme} profile={profile} />)}
+        {activeTab === 'compliance' && renderCategoryFrame('compliance', <ComplianceAttestationModule theme={theme} profile={profile} />)}
       </div>
       </div>{/* end body container */}
 

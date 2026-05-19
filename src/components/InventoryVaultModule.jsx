@@ -1,0 +1,308 @@
+/*
+ * Digital Inventory & Claims Vault.
+ *
+ * Replaces paper DD 1840 / 1840R workflow with a photo-first
+ * inventory recorded per room. Each item carries: name, room,
+ * declared value, condition, photo (optional, stored encrypted as a
+ * data URL), and a captured-at timestamp. The vault supports a
+ * pre-packout pass (loading day) and a post-delivery pass (arrival)
+ * so the user can compare before vs after.
+ *
+ * Storage: every persistence call goes through secureLocalStore which
+ * encrypts the JSON payload with AES-256-GCM via cryptoStore. Photos
+ * are inline data URLs (kept compact — see MAX_PHOTO_PX) and are
+ * subject to the same encryption envelope. There is no upload path
+ * anywhere in this module: the inventory never leaves the device.
+ *
+ * Export: the "Export claim PDF" button assembles a printable HTML
+ * document, opens it in a new window, and triggers the browser's
+ * print dialog (no third-party PDF library). The user prints to PDF
+ * and attaches it to a DPS damage claim or DD 1840R supplement.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
+
+const STORAGE_KEY = 'pcs_inventory_vault';
+
+// Compress photos to keep the encrypted localStorage payload under
+// the per-key safety budget. 720px is plenty for damage documentation.
+const MAX_PHOTO_PX = 720;
+const PHOTO_QUALITY = 0.72;
+
+const ROOMS = ['Master Bedroom','Bedroom 2','Bedroom 3','Living Room','Family Room','Kitchen','Dining Room','Bathroom','Garage','Office','Storage / Attic','Outdoor / Patio','Other'];
+const CONDITION = ['New','Excellent','Good','Fair','Poor','Damaged'];
+const PHASES = [
+  { id: 'pre-packout', label: 'Pre-packout (loading day)' },
+  { id: 'post-delivery', label: 'Post-delivery (arrival)' },
+];
+
+function todayIso() { return new Date().toISOString().slice(0, 10); }
+
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, MAX_PHOTO_PX / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        try {
+          const dataUrl = canvas.toDataURL('image/jpeg', PHOTO_QUALITY);
+          resolve(dataUrl);
+        } catch (err) {
+          reject(err);
+        }
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function defaultState() {
+  return { items: [], phase: 'pre-packout', meta: { gbl: '', tsp: '', deliveredOn: '' } };
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function buildClaimHtml(state, profile) {
+  const itemsByRoom = state.items.reduce((acc, it) => {
+    (acc[it.room] = acc[it.room] || []).push(it);
+    return acc;
+  }, {});
+  const totalDeclared = state.items.reduce((s, it) => s + (parseFloat(it.value) || 0), 0);
+  const damaged = state.items.filter(it => it.condition === 'Damaged' || it.condition === 'Poor');
+  const fmt = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
+  const rows = (list) => list.map(it => `
+    <tr>
+      <td>${escapeHtml(it.name)}</td>
+      <td>${escapeHtml(it.condition)}</td>
+      <td style="text-align:right">${fmt(parseFloat(it.value) || 0)}</td>
+      <td>${escapeHtml(it.notes || '')}</td>
+      <td>${it.photo ? `<img src="${it.photo}" alt="" style="max-width:120px;max-height:90px;" />` : ''}</td>
+    </tr>
+  `).join('');
+  return `<!doctype html><html><head><meta charset="utf-8" />
+<title>PCS Express — HHG Inventory & Claim Worksheet</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #0D1821; padding: 24px; }
+  h1 { margin: 0 0 6px; font-size: 22px; }
+  h2 { margin: 18px 0 6px; font-size: 16px; border-bottom: 1px solid #E0E6EE; padding-bottom: 4px; }
+  .meta { color: #56697C; font-size: 12px; margin-bottom: 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 16px; }
+  th, td { border: 1px solid #E0E6EE; padding: 6px 8px; vertical-align: top; }
+  th { background: #F4F7F7; text-align: left; }
+  .totals { font-size: 13px; font-weight: 700; margin: 6px 0 14px; }
+  .stamp { margin-top: 28px; padding-top: 12px; border-top: 1px solid #E0E6EE; font-size: 11px; color: #56697C; }
+</style>
+</head><body>
+  <h1>HHG Inventory & DD 1840R Supplement Worksheet</h1>
+  <div class="meta">
+    Generated: ${escapeHtml(new Date().toISOString())}<br />
+    Sponsor: ${escapeHtml(profile?.firstName || '')} ${escapeHtml(profile?.lastName || '')}<br />
+    Gaining installation: ${escapeHtml(profile?.gainingInstallation || '')}<br />
+    GBL / TCN: ${escapeHtml(state.meta?.gbl || '')}<br />
+    TSP: ${escapeHtml(state.meta?.tsp || '')}<br />
+    Delivered: ${escapeHtml(state.meta?.deliveredOn || '')}<br />
+    Inventory phase: ${escapeHtml(state.phase)}
+  </div>
+  <div class="totals">Total declared value: ${fmt(totalDeclared)} · Items: ${state.items.length} · Damaged or poor condition: ${damaged.length}</div>
+
+  ${Object.keys(itemsByRoom).sort().map(room => `
+    <h2>${escapeHtml(room)} (${itemsByRoom[room].length})</h2>
+    <table>
+      <thead>
+        <tr><th>Item</th><th>Condition</th><th>Declared value</th><th>Notes</th><th>Photo</th></tr>
+      </thead>
+      <tbody>${rows(itemsByRoom[room])}</tbody>
+    </table>
+  `).join('')}
+
+  <div class="stamp">
+    Generated by PCS Express. Submit alongside DD 1840R via the DPS damage-claim portal (dps.move.mil) within 75 days of delivery for the most favorable claim outcome (hard deadline 9 months).
+  </div>
+</body></html>`;
+}
+
+function exportToPrintWindow(html) {
+  const w = window.open('', '_blank');
+  if (!w) {
+    alert('Pop-up blocked. Allow pop-ups for PCS Express to export the claim PDF.');
+    return;
+  }
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => {
+    try { w.focus(); w.print(); } catch {}
+  }, 300);
+}
+
+const inputSt = { width: '100%', border: '1px solid #D8DEE7', borderRadius: 8, padding: '8px 10px', fontSize: 13, color: '#111827', background: '#FFFFFF', boxSizing: 'border-box' };
+
+export default function InventoryVaultModule({ theme, profile }) {
+  const [state, setState] = useState(defaultState());
+  const [draft, setDraft] = useState({ name: '', room: ROOMS[0], value: '', condition: 'Good', notes: '', photo: '' });
+  const fileRef = useRef(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    secureLocalStore.get(STORAGE_KEY, defaultState()).then(saved => {
+      if (mounted) setState(saved || defaultState());
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  const persist = async (next) => {
+    setState(next);
+    await secureLocalStore.set(STORAGE_KEY, next);
+    AuditLogger.record('inventory_vault_change', { itemCount: next.items.length, phase: next.phase });
+  };
+
+  const totalDeclared = useMemo(() => state.items.reduce((s, it) => s + (parseFloat(it.value) || 0), 0), [state.items]);
+  const damagedCount = useMemo(() => state.items.filter(it => it.condition === 'Damaged' || it.condition === 'Poor').length, [state.items]);
+
+  const onAttachPhoto = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBusy(true);
+    try {
+      const dataUrl = await compressImage(file);
+      setDraft(d => ({ ...d, photo: dataUrl }));
+    } catch {
+      alert('Could not read this image. Try a different photo.');
+    } finally {
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const addItem = async () => {
+    if (!draft.name.trim()) return;
+    const item = {
+      id: `it-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      capturedAt: todayIso(),
+      ...draft,
+    };
+    await persist({ ...state, items: [item, ...state.items] });
+    setDraft({ name: '', room: draft.room, value: '', condition: 'Good', notes: '', photo: '' });
+  };
+
+  const removeItem = (id) => persist({ ...state, items: state.items.filter(it => it.id !== id) });
+  const updItem = (id, patch) => persist({ ...state, items: state.items.map(it => it.id === id ? { ...it, ...patch } : it) });
+  const updMeta = (k, v) => persist({ ...state, meta: { ...state.meta, [k]: v } });
+  const setPhase = (p) => persist({ ...state, phase: p });
+
+  return (
+    <div style={{ padding: 16 }}>
+      <div style={{ background: theme.secondary, borderRadius: 18, padding: 16, marginBottom: 14, color: '#FFF', border: `1px solid ${theme.accent}55` }}>
+        <div style={{ fontSize: 10, fontWeight: 950, color: theme.accent, letterSpacing: '.16em', marginBottom: 6 }}>INVENTORY & CLAIMS VAULT</div>
+        <div style={{ fontSize: 17, fontWeight: 950, marginBottom: 6 }}>Photo-first HHG inventory & DD 1840R worksheet</div>
+        <div style={{ fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,0.82)' }}>
+          Capture every room before pack-out and again at delivery. Photos and notes stay on the device (AES-256-GCM encrypted) until you export a printable claim worksheet for DPS / DD 1840R.
+        </div>
+      </div>
+
+      <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 14, padding: 14, marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 900, color: theme.primary, letterSpacing: '.06em', marginBottom: 10 }}>SHIPMENT METADATA</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <label style={{ display: 'block' }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', marginBottom: 4 }}>GBL / TCN</div>
+            <input value={state.meta?.gbl || ''} onChange={e => updMeta('gbl', e.target.value)} style={inputSt} placeholder="Shipment number" />
+          </label>
+          <label style={{ display: 'block' }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', marginBottom: 4 }}>TSP</div>
+            <input value={state.meta?.tsp || ''} onChange={e => updMeta('tsp', e.target.value)} style={inputSt} placeholder="Transportation Service Provider" />
+          </label>
+          <label style={{ display: 'block' }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', marginBottom: 4 }}>Delivered on</div>
+            <input type="date" value={state.meta?.deliveredOn || ''} onChange={e => updMeta('deliveredOn', e.target.value)} style={inputSt} />
+          </label>
+          <label style={{ display: 'block' }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', marginBottom: 4 }}>Inventory phase</div>
+            <select value={state.phase} onChange={e => setPhase(e.target.value)} style={inputSt}>
+              {PHASES.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 14, padding: 14, marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 900, color: theme.primary, letterSpacing: '.06em', marginBottom: 10 }}>ADD AN ITEM</div>
+        <div style={{ display: 'grid', gap: 8 }}>
+          <input value={draft.name} onChange={e => setDraft(d => ({ ...d, name: e.target.value }))} placeholder="Item description (e.g. 65-inch TV, dining table)" style={inputSt} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <select value={draft.room} onChange={e => setDraft(d => ({ ...d, room: e.target.value }))} style={inputSt}>
+              {ROOMS.map(r => <option key={r}>{r}</option>)}
+            </select>
+            <select value={draft.condition} onChange={e => setDraft(d => ({ ...d, condition: e.target.value }))} style={inputSt}>
+              {CONDITION.map(c => <option key={c}>{c}</option>)}
+            </select>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <input inputMode="decimal" value={draft.value} onChange={e => setDraft(d => ({ ...d, value: e.target.value }))} placeholder="Declared replacement value ($)" style={inputSt} />
+            <input value={draft.notes} onChange={e => setDraft(d => ({ ...d, notes: e.target.value }))} placeholder="Notes (serial #, damage)" style={inputSt} />
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={onAttachPhoto} style={{ flex: 1 }} />
+            {draft.photo && <img src={draft.photo} alt="" style={{ width: 56, height: 42, objectFit: 'cover', borderRadius: 6, border: '1px solid #D8DEE7' }} />}
+            <button onClick={addItem} disabled={busy || !draft.name.trim()} style={{ padding: '10px 14px', background: theme.primary, color: '#FFF', border: 'none', borderRadius: 10, fontWeight: 800, fontSize: 12, cursor: busy ? 'wait' : (draft.name.trim() ? 'pointer' : 'not-allowed'), opacity: draft.name.trim() ? 1 : 0.6 }}>
+              Add item
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 14, padding: 14, marginBottom: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 900, color: theme.primary, letterSpacing: '.06em' }}>INVENTORY · {state.items.length} item{state.items.length === 1 ? '' : 's'}</div>
+          <div style={{ fontSize: 11, color: '#56697C' }}>Declared total: <strong>${totalDeclared.toLocaleString()}</strong> · Damaged: <strong>{damagedCount}</strong></div>
+        </div>
+        {state.items.length === 0 ? (
+          <div style={{ fontSize: 12, color: '#56697C', textAlign: 'center', padding: 20 }}>
+            No items yet. Walk the house room by room and add anything you’d miss.
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: 8 }}>
+            {state.items.map(it => (
+              <div key={it.id} style={{ background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: 10, padding: 10 }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  {it.photo && <img src={it.photo} alt="" style={{ width: 72, height: 54, objectFit: 'cover', borderRadius: 6, border: '1px solid #D8DEE7', flexShrink: 0 }} />}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821' }}>{it.name}</div>
+                    <div style={{ fontSize: 11, color: '#56697C', marginTop: 2 }}>{it.room} · {it.condition} · ${(parseFloat(it.value) || 0).toLocaleString()}</div>
+                    {it.notes && <div style={{ fontSize: 11, color: '#56697C', marginTop: 4 }}>{it.notes}</div>}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
+                    <select value={it.condition} onChange={e => updItem(it.id, { condition: e.target.value })} style={{ ...inputSt, padding: '4px 6px', fontSize: 11, width: 100 }}>
+                      {CONDITION.map(c => <option key={c}>{c}</option>)}
+                    </select>
+                    <button onClick={() => removeItem(it.id)} style={{ padding: '4px 8px', fontSize: 10, fontWeight: 700, color: '#C62828', background: '#FFFFFF', border: '1px solid #FFCDD2', borderRadius: 6, cursor: 'pointer' }}>Remove</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: 'grid', gap: 8 }}>
+        <button onClick={() => exportToPrintWindow(buildClaimHtml(state, profile))} disabled={state.items.length === 0} className="card-cta card-cta--block" style={{ '--cta-color': theme.primary, background: state.items.length ? theme.primary : '#BDBDBD', color: '#FFF', border: 'none', cursor: state.items.length ? 'pointer' : 'not-allowed' }}>
+          Export DD 1840R-ready claim worksheet (PDF)
+        </button>
+        <a href="https://dps.move.mil" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">Open DPS — file damage claim</a>
+        <a href="https://www.move.mil/customer/login" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">Move.mil customer portal</a>
+      </div>
+    </div>
+  );
+}

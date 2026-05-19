@@ -2580,6 +2580,51 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
   })
 })
 
+// === JTR REGULATORY ASSISTANT (FREE-TEXT GATEWAY) ===
+// The curated Q&A KB lives on the frontend in JTRAssistantModule and
+// covers the great majority of common JTR/FTR/DSSR questions. This
+// optional endpoint exists so an operator can later wire in a vetted
+// LLM gateway (Anthropic / OpenAI / a private deployment) for the
+// rare free-text fallback. When no JTR_ASSISTANT_PROVIDER env var is
+// set we explicitly return 501 so the frontend shows the "not
+// configured" fallback message and steers the user to the gaining
+// finance office instead. This deployment never proxies queries to an
+// AI provider that isn't intentionally configured.
+const _jtrHits = new Map()
+registerRateLimitMap(_jtrHits, 60_000)
+function jtrAssistantRateLimit(req, res, next) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const now = Date.now()
+  const entry = _jtrHits.get(ip)
+  if (!entry || now - entry.start > 60_000) {
+    _jtrHits.set(ip, { start: now, count: 1 })
+    return next()
+  }
+  if (entry.count >= 10) return res.status(429).json({ error: 'rate-limited' })
+  entry.count += 1
+  next()
+}
+app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
+  const provider = String(process.env.JTR_ASSISTANT_PROVIDER || '').trim().toLowerCase()
+  const q = String(req.body?.q || '').trim().slice(0, 1000)
+  if (!q) return res.status(400).json({ error: 'q is required' })
+  if (!provider) {
+    return res.status(501).json({
+      error: 'not-configured',
+      answer: 'Free-text JTR Q&A is not configured in this deployment. Use the curated knowledge base on the JTR Assistant tab and escalate to your gaining finance office for cases not covered there.',
+      source: 'not-configured',
+    })
+  }
+  // Provider plumbing intentionally left for the operator to wire in
+  // when an API key is available. We return a structured 501 until
+  // then rather than silently no-op.
+  return res.status(501).json({
+    error: 'provider-not-implemented',
+    answer: `JTR_ASSISTANT_PROVIDER=${provider} is set but no upstream call is wired yet. See server/index.js /api/jtr-assistant for the integration point.`,
+    source: provider,
+  })
+})
+
 // === FRONTEND SERVING (AFTER ALL API ROUTES) ===
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath))
