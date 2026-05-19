@@ -342,53 +342,13 @@ function cleanupLegacyFiles() {
   } catch {}
 }
 
-// PCS Binder attachment support. Photos / scans / PDFs that the user
-// captures from a phone are compressed (images) or rejected (PDFs >
-// MAX_ATTACH_BYTES) and stored inside the per-doc state object. The
-// surrounding secureLocalStore.set() call AES-256-GCM encrypts the
-// payload before it hits localStorage, so attachments inherit the
-// same at-rest protection as the rest of the PCS state.
-const MAX_ATTACH_PX = 720;
-const ATTACH_QUALITY = 0.72;
-const MAX_ATTACH_BYTES = 800_000;   // per attachment, before base64
-
-function compressOrPassthrough(file) {
-  return new Promise((resolve, reject) => {
-    if (!file) return reject(new Error('no file'));
-    const isImage = String(file.type || '').startsWith('image/');
-    if (!isImage) {
-      if (file.size > MAX_ATTACH_BYTES) {
-        return reject(new Error('File is too large. Keep attachments under 800 KB.'));
-      }
-      const reader = new FileReader();
-      reader.onload = () => resolve({ name: file.name, type: file.type || 'application/octet-stream', dataUrl: reader.result });
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const scale = Math.min(1, MAX_ATTACH_PX / Math.max(img.width, img.height));
-        const w = Math.round(img.width * scale);
-        const h = Math.round(img.height * scale);
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        try {
-          const dataUrl = canvas.toDataURL('image/jpeg', ATTACH_QUALITY);
-          resolve({ name: (file.name || 'photo.jpg').replace(/\.(heic|heif|png|webp)$/i, '.jpg'), type: 'image/jpeg', dataUrl });
-        } catch (err) { reject(err); }
-      };
-      img.onerror = reject;
-      img.src = reader.result;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
+// PCS Binder — checklist-only export. The app intentionally has NO
+// file input or photo-capture surface anywhere (verifiable:
+// `grep -r 'type="file"' src/` returns zero). The binder PDF lists
+// each document name, form number, required flag, and gathered
+// status so the user can hand the printout to the gaining S1 /
+// civilian HR / VA along with the physical paperwork they assembled
+// themselves. We never accept, store, or render uploaded user files.
 function escapeHtml(s) {
   return String(s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
@@ -399,29 +359,21 @@ function buildBinderHtml(profile, allDocs, states, branch, isOconus) {
     const docs = allDocs[cat.id] || [];
     if (!docs.length) continue;
     rows.push(`<h2>${escapeHtml(cat.label)}</h2>`);
-    rows.push('<table><thead><tr><th style="width:32px">✓</th><th>Document</th><th>Form #</th><th>Required</th><th>Attachments</th></tr></thead><tbody>');
+    rows.push('<table><thead><tr><th style="width:32px">✓</th><th>Document</th><th>Form #</th><th>Required</th></tr></thead><tbody>');
     for (const d of docs) {
       const st = states[d.id] || {};
-      const attaches = Array.isArray(st.attachments) ? st.attachments : [];
-      const attachHtml = attaches.length === 0
-        ? '<em style="color:#999">none</em>'
-        : attaches.map(a => a.type?.startsWith('image/')
-            ? `<div style="margin-bottom:6px"><img src="${a.dataUrl}" alt="${escapeHtml(a.name)}" style="max-width:220px;max-height:160px;border:1px solid #E0E6EE;border-radius:4px"/><div style="font-size:10px;color:#56697C">${escapeHtml(a.name)}</div></div>`
-            : `<div style="margin-bottom:4px"><strong>${escapeHtml(a.name)}</strong> <em style="color:#999">(${escapeHtml(a.type || 'file')})</em></div>`
-          ).join('');
       rows.push(`
         <tr>
           <td style="text-align:center;font-weight:900;color:${st.obtained ? '#1B5E20' : '#C62828'}">${st.obtained ? '✓' : '–'}</td>
           <td><strong>${escapeHtml(d.name)}</strong><div style="font-size:11px;color:#56697C;margin-top:2px">${escapeHtml(d.desc || '')}</div></td>
           <td style="font-family:monospace;font-size:11px">${escapeHtml(d.form || '')}</td>
           <td style="text-align:center">${d.required ? 'Yes' : 'No'}</td>
-          <td>${attachHtml}</td>
         </tr>
       `);
     }
     rows.push('</tbody></table>');
   }
-  return `<!doctype html><html><head><meta charset="utf-8" /><title>PCS Binder — ${escapeHtml(profile?.firstName || '')} ${escapeHtml(profile?.lastName || '')}</title>
+  return `<!doctype html><html><head><meta charset="utf-8" /><title>PCS Binder Checklist — ${escapeHtml(profile?.firstName || '')} ${escapeHtml(profile?.lastName || '')}</title>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #0D1821; padding: 24px; }
   h1 { margin: 0 0 6px; font-size: 22px; }
@@ -432,7 +384,7 @@ function buildBinderHtml(profile, allDocs, states, branch, isOconus) {
   th { background: #F4F7F7; }
   .stamp { margin-top: 28px; padding-top: 12px; border-top: 1px solid #E0E6EE; font-size: 11px; color: #56697C; }
 </style></head><body>
-  <h1>PCS Binder</h1>
+  <h1>PCS Binder Checklist</h1>
   <div class="meta">
     Sponsor: ${escapeHtml(profile?.firstName || '')} ${escapeHtml(profile?.lastName || '')}<br />
     Branch: ${escapeHtml(branch)} · ${isOconus ? 'OCONUS' : 'CONUS'} assignment<br />
@@ -440,13 +392,13 @@ function buildBinderHtml(profile, allDocs, states, branch, isOconus) {
     Generated: ${escapeHtml(new Date().toISOString())}
   </div>
   ${rows.join('\n')}
-  <div class="stamp">Generated by PCS Express. Hand-deliver to your gaining S1 / civilian HR / VA contact. All attachments are sourced from the user’s local encrypted vault — no cloud copies exist.</div>
+  <div class="stamp">Generated by PCS Express. This is a CHECKLIST only — PCS Express does not store, accept, or transmit any of the underlying documents. Hand-deliver this checklist with your physical paperwork to the gaining S1 / civilian HR / VA.</div>
 </body></html>`;
 }
 
 function exportPrintWindow(html) {
   const w = window.open('', '_blank');
-  if (!w) { alert('Pop-up blocked. Allow pop-ups for PCS Express to export the binder.'); return; }
+  if (!w) { alert('Pop-up blocked. Allow pop-ups for PCS Express to export the checklist.'); return; }
   w.document.write(html);
   w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch {} }, 300);
@@ -516,33 +468,10 @@ export default function PCSDocumentsModule({ theme, profile }) {
   const toggleObtained = (docId) => {
     setStates(prev => {
       const cur = prev[docId] || {};
-      const next = { ...prev, [docId]: { ...cur, obtained: !cur.obtained } };
-      saveStates(next);
-      return next;
-    });
-  };
-
-  const attachToDoc = async (docId, file) => {
-    try {
-      const att = await compressOrPassthrough(file);
-      setStates(prev => {
-        const cur = prev[docId] || {};
-        const list = Array.isArray(cur.attachments) ? cur.attachments : [];
-        const next = { ...prev, [docId]: { ...cur, obtained: cur.obtained ?? true, attachments: [...list, { ...att, id: `att-${Date.now()}` }] } };
-        saveStates(next);
-        return next;
-      });
-      showToast('Attached to binder');
-    } catch (err) {
-      showToast(err?.message || 'Could not attach file', false);
-    }
-  };
-
-  const removeAttachment = (docId, attId) => {
-    setStates(prev => {
-      const cur = prev[docId] || {};
-      const list = (Array.isArray(cur.attachments) ? cur.attachments : []).filter(a => a.id !== attId);
-      const next = { ...prev, [docId]: { ...cur, attachments: list } };
+      // Per the Zero-Upload security baseline, doc state stores only
+      // the boolean "obtained" flag. No file attachments, no photos,
+      // no uploads anywhere in the module.
+      const next = { ...prev, [docId]: { obtained: !cur.obtained } };
       saveStates(next);
       return next;
     });
@@ -659,41 +588,22 @@ export default function PCSDocumentsModule({ theme, profile }) {
                   <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{doc.desc}</div>
                 </div>
               </div>
-              <div style={{ borderTop: `1px solid ${obtained ? `${cat?.color}20` : '#F1F5F9'}`, padding: '8px 14px', background: obtained ? `${cat?.color}06` : '#FAFAFA' }}>
-                {Array.isArray(st.attachments) && st.attachments.length > 0 && (
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-                    {st.attachments.map(a => (
-                      <div key={a.id} style={{ background: '#FFFFFF', border: '1px solid #D8DEE7', borderRadius: 6, padding: 4, display: 'flex', gap: 6, alignItems: 'center', fontSize: 10 }}>
-                        {a.type?.startsWith('image/')
-                          ? <img src={a.dataUrl} alt="" style={{ width: 36, height: 28, objectFit: 'cover', borderRadius: 4 }} />
-                          : <span style={{ fontSize: 16 }}>📎</span>}
-                        <span style={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</span>
-                        <button onClick={() => removeAttachment(doc.id, a.id)} aria-label="Remove attachment" style={{ background: 'none', border: 'none', color: '#C62828', fontSize: 12, cursor: 'pointer', padding: 0 }}>✕</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <label style={{ fontSize: 10, fontWeight: 700, color: cat?.color, cursor: 'pointer', padding: '6px 10px', border: `1px dashed ${cat?.color}80`, borderRadius: 8 }}>
-                    📎 Attach photo / scan
-                    <input type="file" accept="image/*,application/pdf" capture="environment" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) attachToDoc(doc.id, f); e.target.value = ''; }} />
-                  </label>
-                  <button onClick={() => { toggleObtained(doc.id); showToast(obtained ? 'Marked not gathered' : 'Marked gathered'); }} className="card-cta" style={{ '--cta-color': cat?.color, marginLeft: 'auto' }}>
-                    {obtained ? 'Mark Not Gathered' : 'Mark Gathered'}
-                  </button>
-                </div>
+              <div style={{ borderTop: `1px solid ${obtained ? `${cat?.color}20` : '#F1F5F9'}`, padding: '8px 14px', display: 'flex', gap: 8, flexWrap: 'wrap', background: obtained ? `${cat?.color}06` : '#FAFAFA' }}>
+                <button onClick={() => { toggleObtained(doc.id); showToast(obtained ? 'Marked not gathered' : 'Marked gathered'); }} className="card-cta" style={{ '--cta-color': cat?.color, marginLeft: 'auto' }}>
+                  {obtained ? 'Mark Not Gathered' : 'Mark Gathered'}
+                </button>
               </div>
             </div>
           );
         })}
 
         <div style={{ marginTop: 20, padding: 14, background: '#FFFFFF', border: `1.5px solid ${theme.primary}`, borderRadius: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 900, color: theme.primary, marginBottom: 4 }}>EXPORT PCS BINDER</div>
+          <div style={{ fontSize: 12, fontWeight: 900, color: theme.primary, marginBottom: 4 }}>EXPORT PCS BINDER CHECKLIST</div>
           <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 10 }}>
-            Generate a printable PDF that bundles every document, every attached photo/scan, and the gathered status — ready to hand to your gaining S1 / civilian HR / VA contact. Nothing leaves your device; the PDF is generated locally in your browser.
+            Generate a printable PDF of your checklist (document names, form numbers, gathered status) to hand to the gaining S1 / civilian HR / VA along with the physical paperwork you assembled yourself. PCS Express never stores, transmits, or accepts copies of the actual documents.
           </div>
           <button onClick={exportBinder} className="card-cta card-cta--block" style={{ '--cta-color': theme.primary, background: theme.primary, color: '#FFF', border: 'none', cursor: 'pointer' }}>
-            Export PCS Binder as printable PDF
+            Export PCS Binder Checklist (PDF)
           </button>
         </div>
       </div>
