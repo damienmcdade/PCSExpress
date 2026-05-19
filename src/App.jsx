@@ -5865,10 +5865,11 @@ const APP_TRANSLATIONS = {
     desc: {
       'base-intelligence': 'Compare housing, schools, and childcare reviews with Military Family Verified badges while avoiding raw PII in community review data.',
       checklist: 'Track PCS requirements by phase, use the 90-day timeline, toggle milestone reminders, and tap square controls to save progress without uploading documents.',
-      documents: 'Use checklist-only record tracking for PCS documents users need to gather, verify, or carry. File upload and attachment capability has been removed.',
+      compliance: 'See exactly how PCS Express keeps your information safe. Your PCS profile, photos, and notes never leave your phone — they\'re scrambled with strong encryption (AES-256) and saved only on this device. There\'s no PCS Express server that stores your data, no account to hack, nothing to leak. Tap in to see what we protect and how, written in plain language.',
+      documents: 'Use checklist-only record tracking for PCS documents users need to gather, verify, or carry, plus the new PCS Binder: capture phone-camera photos of each document, then export everything to one printable PDF for the gaining S1 / HR / VA. Photos are AES-256 encrypted on the device — nothing uploads.',
       education: 'Review colleges, GI Bill chapters, MyCAA, and branch-specific Tuition Assistance guidance.',
       family: 'Plan family-impact PCS needs across Deployment, EFMP, Employment, Permanent Resident, Pets, and Schools in one organized category.',
-      'home-relocation': 'Find official housing resources, move aid, PPM financial estimates, VA loan guidance, inventory tracking, claims deadlines, and replacement value planning.',
+      'home-relocation': 'Eight sub-tabs in one stack: Home Locator, BAH / OHA / LQA calculators, PPM estimator with OCONUS JTR §050302 warning, inflation-adjusted budget tracker (BLS CPI + GSA per diem), live HHG shipment tracker with JTR SLA flags, digital inventory & claims vault with DD 1840R PDF export, JTR Assistant with 14 cited Q&A, Move Aid, and OCONUS-aware VA Loan guidance.',
       'medical-readiness': 'Find emergency rooms, hospitals, urgent care, behavioral & mental health, dental, vision, pharmacy, and PHA / readiness resources — tailored to your branch, component, and TRICARE region (or FEHB for DoD Civilians).',
       nav: 'Plan routes, save directions, and view public installation map information without restricted or non-public base details.',
       resources: 'Use one organized hub for official public military, government, family, financial, healthcare, PCS, education, and career resources.',
@@ -8099,18 +8100,23 @@ function App() {
     { tab: 'education', title: t('nav.education'), body: t('desc.education') },
     { tab: 'family', title: t('nav.family'), body: t('desc.family') },
     { tab: 'home-relocation', title: t('nav.home-relocation'), body: t('desc.home-relocation') },
+    { tab: 'home-relocation', title: 'NEW · HHG Shipment Tracker', body: '10-stage DPS milestone ladder with JTR service-level alerts: counseling → TSP assigned → pre-move survey → packing → loaded → in transit → arrival call → delivered → claim filed → claim settled. Overdue stages flash amber. Optional browser-push alerts. All shipment metadata AES-256 encrypted on the device.' },
+    { tab: 'home-relocation', title: 'NEW · Digital Inventory & Claims Vault', body: 'Replaces paper DD 1840 / 1840R. Photo-first walk-through, per-room declared value + condition + notes, pre-packout and post-delivery phases, one-tap export to a DD 1840R-ready printable PDF for DPS damage claims. Photos compressed to 720px and stored encrypted on the device.' },
+    { tab: 'home-relocation', title: 'NEW · JTR Assistant', body: 'Curated Q&A over the Joint Travel Regulations, Federal Travel Regulation, and DSSR — 14 cited answers covering PPM payout, TLE/TLA, DLA, POV ship, OCONUS OHA/MIHA/LQA, pet allowance, civilian HHT, real-estate reimbursement, CZTE, FEIE, weight allowance, MALT, claim window. Optional AI gateway when an operator configures a provider.' },
+    { tab: 'home-relocation', title: 'NEW · Inflation-Adjusted Budget', body: 'Every expense category now shows a 2026 planning range built from BLS CPI (gasoline +12.4% YoY, lodging +9.8%, food +6.1%) and GSA per-diem ceilings. Entering an actual cost over the high estimate flags a red callout suggesting supplemental reimbursement coordination with finance.' },
     { tab: 'medical-readiness', title: t('nav.medical-readiness'), body: t('desc.medical-readiness') },
     { tab: 'nav', title: t('nav.nav'), body: t('desc.nav') },
     { tab: 'resources', title: t('nav.resources'), body: t('desc.resources') },
     { tab: 'religion', title: t('nav.religion'), body: t('desc.religion') },
     { tab: 'translation', title: t('nav.translation'), body: t('desc.translation') },
     { tab: 'veterans', title: t('nav.veterans'), body: t('desc.veterans') },
+    { tab: 'compliance', title: t('nav.compliance'), body: t('desc.compliance') },
     { tab: 'home', title: t('demo.completeTitle'), body: t('demo.completeBody') },
   ];
 
   const BOTTOM_NAV = [
     { id: 'home',        label: 'Home',                 icon: 'HQ',  iosIcon: '🏠', color: '#0D1821' },
-    { id: 'base-intelligence', label: 'Base Intelligence', icon: 'BAS', iosIcon: '🛡️', color: '#26351F' },
+    { id: 'base-intelligence', label: 'Base Intelligence', icon: 'BAS', iosIcon: '🏰', color: '#26351F' },
     { id: 'checklist',   label: 'Checklist',            icon: 'PCK', iosIcon: '✅', color: '#1565C0' },
     { id: 'documents',   label: 'Documents',            icon: 'DOC', iosIcon: '📋', color: '#5D4037' },
     { id: 'education',   label: 'Education',            icon: 'EDU', iosIcon: '📚', color: '#1565C0' },
@@ -8122,7 +8128,7 @@ function App() {
     { id: 'religion',    label: 'Spiritual Readiness',  icon: 'SPR', iosIcon: '✦', color: '#37474F' },
     { id: 'translation', label: 'Translation',           icon: 'TRL', iosIcon: '🌐', color: '#1976D2' },
     { id: 'veterans',    label: 'Veterans',             icon: 'VET', iosIcon: '⭐', color: '#E65100' },
-    { id: 'compliance',  label: 'Compliance',           icon: 'CMP', iosIcon: '🛡️', color: '#263238' },
+    { id: 'compliance',  label: 'Compliance',           icon: 'CMP', iosIcon: '🔒', color: '#263238' },
   ];
   const LOCALIZED_BOTTOM_NAV = localizeNavItems(BOTTOM_NAV, appLanguage);
   const HOME_CATEGORIES = LOCALIZED_BOTTOM_NAV.filter(item => item.id !== 'home');
