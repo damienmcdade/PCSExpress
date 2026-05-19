@@ -198,6 +198,7 @@ export default function MedicalReadinessTab({ theme, profile }) {
       { name: 'Vet Center Locator', desc: 'Community-based counseling for combat veterans, family bereavement, and military sexual trauma. Confidential, no medical record.', url: 'https://www.va.gov/find-locations/?facilityType=vet_center', source: 'va.gov' },
       { name: 'inTransition Coaching', desc: 'Free confidential mental-health transition coaching for service members between providers, locations, or active/reserve status.', url: 'https://www.health.mil/Military-Health-Topics/Mental-Health/inTransition', source: 'health.mil' },
       { name: `${branch} Behavioral Health Resources`, desc: `Branch-specific behavioral health pointer for ${branch} members and dependents.`, url: 'https://www.health.mil/Military-Health-Topics/Mental-Health', source: 'health.mil' },
+      { name: `Google Maps — therapists & counselors near ${installation}`, desc: 'Real local therapists, psychiatrists, and counseling clinics around your gaining installation with photos, hours, ratings, and directions.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`therapist counseling psychiatrist near ${installation}`)}`, source: 'maps.google.com' },
     ],
     mental: [
       { name: 'Military Crisis Line — 988 then 1', desc: '24/7 confidential crisis support for service members, veterans, and family. Call 988 then press 1, text 838255, or chat online.', url: 'https://www.veteranscrisisline.net/', source: 'veteranscrisisline.net', badge: 'CRISIS', badgeBg: '#FECACA', badgeColor: '#7F1D1D' },
@@ -207,25 +208,30 @@ export default function MedicalReadinessTab({ theme, profile }) {
       { name: 'VA PTSD Coach', desc: 'Free VA self-help mobile app for managing trauma symptoms, coping skills, and support referrals.', url: 'https://mobile.va.gov/app/ptsd-coach', source: 'mobile.va.gov' },
       { name: 'VA Mindfulness Coach', desc: 'Free VA app teaching mindfulness for daily stress and resilience.', url: 'https://mobile.va.gov/app/mindfulness-coach', source: 'mobile.va.gov' },
       { name: 'Moving Forward', desc: 'Free VA problem-solving and resilience training, especially for transitions and PCS stress.', url: 'https://www.veterantraining.va.gov/movingforward/', source: 'veterantraining.va.gov' },
+      { name: `Google Maps — mental health support near ${installation}`, desc: 'Local mental-health support groups, drop-in counseling centers, and community mental-health clinics around the gaining installation.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`mental health support clinic near ${installation}`)}`, source: 'maps.google.com' },
     ],
     dental: isCivilian
       ? [
           { name: 'FEDVIP Dental Plans', desc: 'Federal Employees Dental and Vision Insurance Program — official OPM enrollment portal for civilians and family.', url: 'https://www.benefeds.gov/', source: 'benefeds.gov', badge: 'FEDVIP' },
           { name: 'FEDVIP Plan Comparison', desc: 'Compare FEDVIP dental plans on benefits, premiums, and provider networks.', url: 'https://www.opm.gov/healthcare-insurance/dental-vision/', source: 'OPM.gov' },
+          { name: `Google Maps — dentists near ${installation}`, desc: 'Real local dental offices around your gaining installation with photos, hours, ratings, and directions.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`dentist near ${installation}`)}`, source: 'maps.google.com' },
         ]
       : [
           { name: 'Active Duty Dental Program (ADDP)', desc: 'United Concordia administers ADDP for active duty members. Network civilian dentists for non-MTF care.', url: 'https://addp-ucci.com/', source: 'addp-ucci.com', badge: 'ADDP' },
           { name: 'TRICARE Dental Program (TDP)', desc: 'TRICARE family dental coverage administered by United Concordia for family members of active duty and select Reserve/Guard.', url: 'https://www.tricare.mil/CoveredServices/Dental/TDP', source: 'tricare.mil', badge: 'TDP' },
           { name: 'FEDVIP — Retirees and select cohorts', desc: 'FEDVIP dental for retirees and select active eligibility groups; administered through BENEFEDS.', url: 'https://www.benefeds.gov/', source: 'benefeds.gov' },
+          { name: `Google Maps — dentists near ${installation}`, desc: 'Real local dental offices around your gaining installation with photos, hours, ratings, and directions.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`dentist near ${installation}`)}`, source: 'maps.google.com' },
         ],
     vision: isCivilian
       ? [
           { name: 'FEDVIP Vision Plans', desc: 'Official OPM/BENEFEDS portal for federal civilian vision coverage and provider directories.', url: 'https://www.benefeds.gov/', source: 'benefeds.gov', badge: 'FEDVIP' },
           { name: 'FEHB Plan Vision Benefits', desc: 'Some FEHB plans include vision coverage in addition to FEDVIP. Check your plan brochure.', url: 'https://www.opm.gov/healthcare-insurance/healthcare/plan-information/plans/', source: 'OPM.gov' },
+          { name: `Google Maps — optometrists near ${installation}`, desc: 'Real local optometrists, ophthalmologists, and eyewear shops around your gaining installation.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`optometrist eye doctor near ${installation}`)}`, source: 'maps.google.com' },
         ]
       : [
           { name: 'TRICARE Vision Care', desc: 'Official TRICARE coverage rules for routine and medically-necessary vision care.', url: 'https://www.tricare.mil/CoveredServices/IsItCovered/Vision', source: 'tricare.mil', badge: 'TRICARE' },
           { name: 'FEDVIP Vision — Retirees and select cohorts', desc: 'FEDVIP vision plans for retirees and eligible groups not covered by TRICARE routine vision.', url: 'https://www.benefeds.gov/', source: 'benefeds.gov' },
+          { name: `Google Maps — optometrists near ${installation}`, desc: 'Real local optometrists, ophthalmologists, and eyewear shops around your gaining installation.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`optometrist eye doctor near ${installation}`)}`, source: 'maps.google.com' },
         ],
     pharmacy: isCivilian
       ? [
@@ -243,12 +249,14 @@ export default function MedicalReadinessTab({ theme, profile }) {
           { name: 'OPM Wellness Programs', desc: 'Worksite wellness, biometric screenings, and Federal Occupational Health resources for civilian employees.', url: 'https://www.opm.gov/policy-data-oversight/worklife/wellness/', source: 'OPM.gov', badge: 'CIVILIAN' },
           { name: 'Federal Occupational Health (FOH)', desc: 'Pre-employment exams, fit-for-duty assessments, and occupational medical exams for federal civilians.', url: 'https://foh.psc.gov/', source: 'foh.psc.gov' },
           { name: 'CDC Travel Vaccinations', desc: 'Authoritative CDC guidance on travel vaccines and pre-trip preparation for OCONUS PCS.', url: 'https://wwwnc.cdc.gov/travel', source: 'cdc.gov' },
+          { name: `Google Maps — travel clinics near ${installation}`, desc: 'Local travel-medicine clinics and immunization providers around your gaining installation. Useful for yellow fever, typhoid, and other pre-departure vaccinations not stocked at the MTF.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`travel clinic immunization near ${installation}`)}`, source: 'maps.google.com' },
         ]
       : [
           { name: 'Periodic Health Assessment (PHA)', desc: 'Annual readiness physical exam. Required for active duty and most Reserve/Guard. Documented in MHS GENESIS.', url: 'https://www.health.mil/Military-Health-Topics/Health-Readiness/Periodic-Health-Assessment', source: 'health.mil', badge: 'PHA' },
           { name: 'Individual Medical Readiness (IMR)', desc: 'Authoritative DHA medical-readiness program. Tracks dental class, immunizations, lab work, deployment-limiting conditions.', url: 'https://www.health.mil/Military-Health-Topics/Health-Readiness', source: 'health.mil' },
           { name: 'Travel Vaccinations & Anthrax', desc: 'Service-required immunizations including yellow fever, typhoid, smallpox, and anthrax for designated AOR deployments.', url: 'https://www.health.mil/Military-Health-Topics/Health-Readiness/Immunization-Healthcare', source: 'health.mil' },
           { name: 'Reserve / Guard Health Readiness', desc: 'Specific Reserve/Guard medical-readiness rules including TRICARE Reserve Select access and pre-mobilization health screening.', url: 'https://www.health.mil/Military-Health-Topics/Health-Readiness/Reserve-Health-Readiness-Program', source: 'health.mil', badge: 'RESERVE/NG' },
+          { name: `Google Maps — travel clinics near ${installation}`, desc: 'Local travel-medicine clinics for vaccines not stocked at the MTF (yellow fever, typhoid, Japanese encephalitis, etc.).', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`travel clinic immunization near ${installation}`)}`, source: 'maps.google.com' },
         ],
   };
 
