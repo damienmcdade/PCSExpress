@@ -306,18 +306,76 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en' }) 
 
     try {
       abortRef.current = new AbortController();
-      const timer = setTimeout(() => abortRef.current?.abort(), 20_000);
+      const timer = setTimeout(() => abortRef.current?.abort(), 30_000);
       // Multi-turn memory: send the full conversation history (capped
       // at the last 12 messages) so a configured LLM provider can
       // reason about context. The backend may ignore `history` until
       // the operator wires in a real provider that supports it.
       const history = nextHistory.slice(-12).map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', text: m.text }));
+      // Request streaming first. If the backend can't / won't stream
+      // (curated-KB fallback or non-Anthropic providers) it returns a
+      // standard JSON response and we fall through to the existing
+      // non-streaming code path.
       const r = await fetch(apiUrl('/api/jtr-assistant'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ q, history, language }),
+        headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
+        body: JSON.stringify({ q, history, language, stream: true }),
         signal: abortRef.current.signal,
       });
+      const contentType = r.headers.get('content-type') || '';
+      // Streaming SSE path. Anthropic emits content_block_delta events
+      // whose `delta.text` carries the next text fragment. We append
+      // each fragment to a placeholder assistant message so the UI
+      // shows a live "typing" effect without re-rendering the entire
+      // chat for every chunk.
+      if (r.ok && contentType.includes('text/event-stream') && r.body) {
+        const source = r.headers.get('x-source') || 'anthropic';
+        // Reserve the assistant slot.
+        setMessages(prev => [...prev, { role: 'assistant', text: '', source }]);
+        const decoder = new TextDecoder('utf-8');
+        const reader = r.body.getReader();
+        let buffer = '';
+        let acc = '';
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          // SSE frames are separated by a blank line. Each frame may
+          // contain one or more `data: {...}` lines.
+          let nlIdx;
+          while ((nlIdx = buffer.indexOf('\n\n')) !== -1) {
+            const frame = buffer.slice(0, nlIdx);
+            buffer = buffer.slice(nlIdx + 2);
+            for (const line of frame.split('\n')) {
+              if (!line.startsWith('data:')) continue;
+              const payload = line.slice(5).trim();
+              if (!payload || payload === '[DONE]') continue;
+              try {
+                const obj = JSON.parse(payload);
+                // Anthropic event flavors of interest:
+                //   content_block_delta → delta.text fragments
+                //   message_delta       → final stop_reason etc.
+                if (obj?.type === 'content_block_delta' && obj?.delta?.text) {
+                  acc += obj.delta.text;
+                  setMessages(prev => {
+                    const copy = prev.slice();
+                    const last = copy[copy.length - 1];
+                    if (last && last.role === 'assistant') {
+                      copy[copy.length - 1] = { ...last, text: acc };
+                    }
+                    return copy;
+                  });
+                }
+              } catch {
+                // Ignore non-JSON keepalive / comment frames.
+              }
+            }
+          }
+        }
+        clearTimeout(timer);
+        return;
+      }
       clearTimeout(timer);
 
       if (r.status === 501) {

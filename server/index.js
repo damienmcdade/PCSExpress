@@ -2661,6 +2661,7 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
   const q = String(req.body?.q || '').trim().slice(0, 1000)
   const rawHistory = Array.isArray(req.body?.history) ? req.body.history : []
   const language = String(req.body?.language || 'en').trim().slice(0, 8).toLowerCase().replace(/[^a-z-]/g, '')
+  const wantStream = !!req.body?.stream
   if (!q) return res.status(400).json({ error: 'q is required' })
 
   if (!provider) {
@@ -2705,6 +2706,50 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
       const langLine = language && language !== 'en'
         ? `\n\nThe user's preferred app language is ${language}. Respond in that language unless the user explicitly asks for another.`
         : '';
+      const anthropicBody = {
+        model: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
+        max_tokens: 800,
+        system: AI_ASSISTANT_SYSTEM_PROMPT + langLine,
+        messages,
+        ...(wantStream ? { stream: true } : {}),
+      };
+      // Streaming branch — proxy Anthropic's SSE to the client. The
+      // client can read chunks via fetch + ReadableStream and append
+      // deltas to the active message for a typing-feel response.
+      if (wantStream) {
+        const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+            'accept': 'text/event-stream',
+          },
+          body: JSON.stringify(anthropicBody),
+          signal: AbortSignal.timeout(30_000),
+        });
+        if (!upstream.ok || !upstream.body) {
+          const detail = await upstream.text().catch(() => '');
+          console.error(`[jtr-assistant] anthropic stream ${upstream.status} ${detail.slice(0, 200)}`);
+          return res.status(502).json({ error: 'upstream', source: 'anthropic' });
+        }
+        res.status(200);
+        res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-cache, no-transform');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('X-Source', `anthropic / ${process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5'}`);
+        // Pipe the upstream SSE bytes through verbatim. The Anthropic
+        // stream is already a well-formed SSE protocol; the client
+        // parses `data: {...}` events directly.
+        try {
+          for await (const chunk of upstream.body) {
+            res.write(chunk);
+          }
+        } catch (err) {
+          console.error(`[jtr-assistant] anthropic stream pipe ${err.message}`);
+        }
+        return res.end();
+      }
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -2712,12 +2757,7 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
           'anthropic-version': '2023-06-01',
           'content-type': 'application/json',
         },
-        body: JSON.stringify({
-          model: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
-          max_tokens: 800,
-          system: AI_ASSISTANT_SYSTEM_PROMPT + langLine,
-          messages,
-        }),
+        body: JSON.stringify(anthropicBody),
         signal: AbortSignal.timeout(20_000),
       })
       if (!r.ok) {

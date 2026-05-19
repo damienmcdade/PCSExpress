@@ -8376,6 +8376,48 @@ function App() {
     return () => window.removeEventListener('open-ai-assistant', handler);
   }, []);
 
+  // Overdue Mission Lanes notification. Fires once per session when
+  // the app loads with one or more checklist tasks in the user's
+  // current phase that have passed the PHASE_WINDOWS overdueAt
+  // threshold. Respects Notification permission; silently skips if
+  // the user hasn't granted access.
+  useEffect(() => {
+    if (typeof Notification === 'undefined') return;
+    if (Notification.permission !== 'granted') return;
+    // De-dupe per browser session.
+    try { if (sessionStorage.getItem('pcs_overdue_notified') === '1') return; } catch {}
+    const target = profile?.reportNLTDate || profile?.departingDate;
+    if (!target) return;
+    const targetDate = new Date(target);
+    if (isNaN(targetDate.getTime())) return;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const daysUntil = Math.floor((targetDate - today) / 86400000);
+    const currentPhase = resolveCurrentPhase(daysUntil);
+    const tailored = getTailoredChecklist(profile?.branch || 'Army', {
+      component: profile?.component || 'Active Duty',
+      ordersType: profile?.ordersType || '',
+      hasDependents: !!profile?.hasDependents,
+      hasChildren: !!profile?.hasChildren,
+      hasPets: !!profile?.hasPets,
+      moveType: profile?.moveType || 'HHG',
+      isOverseas: !!profile?.isOverseas,
+    });
+    const items = tailored[currentPhase] || [];
+    const open = items.filter((_, i) => !(checklistItems || {})[`${currentPhase}-${i}`]);
+    const win = PHASE_WINDOWS[currentPhase];
+    const isOverdue = win && daysUntil < win.overdueAt;
+    if (open.length === 0 || !isOverdue) return;
+    try {
+      const n = new Notification('PCS Express — overdue tasks', {
+        body: `${open.length} task${open.length === 1 ? '' : 's'} in the "${currentPhase}" phase are past due. Open the Checklist to clear them.`,
+        tag: 'pcs-overdue',
+        silent: false,
+      });
+      n.onclick = () => { try { window.focus(); } catch {} setActiveTab('pcs-operations'); };
+      try { sessionStorage.setItem('pcs_overdue_notified', '1'); } catch {}
+    } catch {}
+  }, [profile, checklistItems]);
+
   // Single source-of-truth for executing the destructive Reset action.
   // Wipes everything via eraseAllUserData(), then force a hard reload so
   // any in-memory React state (profile, checklist, demo session, etc.)

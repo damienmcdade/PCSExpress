@@ -12,6 +12,53 @@
 
 import { useEffect, useState } from 'react';
 import { encryptionAvailable } from '../security/cryptoStore';
+import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
+
+// Personal data export. Builds a JSON blob of every secureLocalStore
+// key the user has touched and offers it as a download. The user can
+// keep it as a personal backup outside the app, or hand it to a
+// device-replacement tech. There is NO IMPORT counterpart — that
+// would require a file input and break the Zero-Upload guarantee.
+const EXPORT_KEYS = [
+  'pcs_profile',
+  'pcs_checklist_checks',
+  'pcs_doc_states',
+  'pcs_inventory_vault',
+  'pcs_shipment_tracker',
+  'pcs_pet_relocation_checks',
+  'pcs_audit_log',
+  'translations_saved',
+];
+
+async function exportPersonalDataAsFile(profile) {
+  const collected = {};
+  for (const k of EXPORT_KEYS) {
+    try {
+      const v = await secureLocalStore.get(k, null);
+      if (v != null) collected[k] = v;
+    } catch (err) {
+      console.error(`[compliance-export] ${k} ${err.message || err}`);
+    }
+  }
+  const payload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    note: 'PCS Express personal-data export. This file is your only copy outside the device. The PCS Express server never had it. Re-importing is not supported (PCS Express has no upload surface) — keep this file as a personal backup or printable record.',
+    profile: profile || null,
+    storage: collected,
+  };
+  AuditLogger.record('personal_data_export', { keyCount: Object.keys(collected).length });
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  a.href = url;
+  a.download = `pcs-express-export-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 const SECTIONS = [
   {
@@ -118,7 +165,7 @@ const SECTIONS = [
   },
 ];
 
-export default function ComplianceAttestationModule({ theme }) {
+export default function ComplianceAttestationModule({ theme, profile }) {
   const [cryptoOk, setCryptoOk] = useState(null);
   useEffect(() => { setCryptoOk(encryptionAvailable()); }, []);
   return (
@@ -157,6 +204,21 @@ export default function ComplianceAttestationModule({ theme }) {
           </div>
         </section>
       ))}
+
+      <section style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 14, padding: 14, marginBottom: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821', marginBottom: 6, letterSpacing: '.03em' }}>Personal data export</div>
+        <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.55, marginBottom: 10 }}>
+          Download a JSON copy of everything PCS Express has stored on this device — your profile, checklist progress, inventory worksheet, shipment-tracker fields, pet checklist, audit log, and saved translations. Nothing leaves your device until you save the file. PCS Express does not support re-importing the file (there is no upload surface in the app); keep it as a personal backup or printable record.
+        </div>
+        <button
+          type="button"
+          onClick={() => exportPersonalDataAsFile(profile)}
+          className="card-cta card-cta--block"
+          style={{ '--cta-color': theme.primary, background: theme.primary, color: '#FFF', border: 'none', cursor: 'pointer' }}
+        >
+          💾 Download personal data as JSON
+        </button>
+      </section>
 
       <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
         <a href="https://github.com/damienmcdade/PCSExpress/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>Read full SECURITY.md on GitHub</a>
