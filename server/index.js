@@ -2660,6 +2660,7 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
     || (process.env.OPENAI_API_KEY ? 'openai' : '')
   const q = String(req.body?.q || '').trim().slice(0, 1000)
   const rawHistory = Array.isArray(req.body?.history) ? req.body.history : []
+  const language = String(req.body?.language || 'en').trim().slice(0, 8).toLowerCase().replace(/[^a-z-]/g, '')
   if (!q) return res.status(400).json({ error: 'q is required' })
 
   if (!provider) {
@@ -2697,6 +2698,13 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
       messages.push({ role: 'user', content: q })
     }
     try {
+      // Per-request system prompt — base + user language. Anthropic
+      // already detects the language naturally, but pinning it
+      // explicitly keeps replies consistent for users who type a
+      // mixed-language question.
+      const langLine = language && language !== 'en'
+        ? `\n\nThe user's preferred app language is ${language}. Respond in that language unless the user explicitly asks for another.`
+        : '';
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -2707,7 +2715,7 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
         body: JSON.stringify({
           model: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
           max_tokens: 800,
-          system: AI_ASSISTANT_SYSTEM_PROMPT,
+          system: AI_ASSISTANT_SYSTEM_PROMPT + langLine,
           messages,
         }),
         signal: AbortSignal.timeout(20_000),

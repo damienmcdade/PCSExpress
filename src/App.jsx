@@ -3558,6 +3558,40 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
         })}
       </div>
 
+      {/* "Explain this phase" — opens the AI Assistant with a
+          phase-specific question pre-filled so the user doesn't have
+          to type. Routes through the open-ai-assistant CustomEvent
+          so this stays decoupled from App-level modal state. */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+        <button
+          type="button"
+          onClick={() => {
+            const q = `Explain what I need to do in the "${activePhase}" phase of my PCS as a ${profile?.branch || 'service member'} ${profile?.component || ''} ${profile?.isOverseas ? 'with an OCONUS PCS' : ''}. Reference JTR / FTR sections where they apply.`;
+            window.dispatchEvent(new CustomEvent('open-ai-assistant', { detail: { question: q } }));
+            // App.jsx listens for the same event and toggles the
+            // modal open; the modal listens for the event and
+            // pre-fills the input with `detail.question`. Single
+            // dispatch handles both sides.
+          }}
+          aria-label={`Ask AI to explain the ${activePhase} phase`}
+          style={{
+            background: 'transparent',
+            border: `1px solid ${theme.primary}40`,
+            color: theme.primary,
+            fontSize: 11,
+            fontWeight: 700,
+            padding: '6px 10px',
+            borderRadius: 999,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <span aria-hidden="true">🤖</span> Ask AI about "{activePhase}"
+        </button>
+      </div>
+
       {/* Tasks */}
       <div>
         {(branchChecklist[activePhase] || []).map((task, i) => {
@@ -7673,13 +7707,27 @@ function FamilyCategoryTab({ theme, profile }) {
 // (Home + 5 mission groups) without losing any feature.
 // ───────────────────────────────────────────────────────────────────
 
+// Module-level one-shot for deep-link sub-tabs. The deep-link parser
+// reads `?go=pcs-operations/timeline` and stores 'timeline' here so
+// the next mount of the corresponding wrapper picks it up as the
+// initial sub-tab. Consumed exactly once and cleared.
+let _PENDING_SUBTAB = null;
+function consumePendingSubTab(defaultId, allowed) {
+  if (_PENDING_SUBTAB && allowed.includes(_PENDING_SUBTAB)) {
+    const t = _PENDING_SUBTAB;
+    _PENDING_SUBTAB = null;
+    return t;
+  }
+  return defaultId;
+}
+
 function PCSOperationsTab({ theme, profile, checklistItems, setChecklistItems }) {
   const tabs = [
     { id: 'checklist', label: 'Checklist' },
     { id: 'documents', label: 'Paperwork' },
     { id: 'timeline',  label: 'Timeline'  },
   ];
-  const [tab, setTab] = useState('checklist');
+  const [tab, setTab] = useState(() => consumePendingSubTab('checklist', tabs.map(t => t.id)));
   return (
     <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
       {tab === 'checklist' && <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />}
@@ -7696,7 +7744,7 @@ function FamilyReadinessGroupTab({ theme, profile }) {
     { id: 'translation', label: 'Translation' },
     { id: 'faith',       label: 'Faith & Chaplains' },
   ];
-  const [tab, setTab] = useState('family');
+  const [tab, setTab] = useState(() => consumePendingSubTab('family', tabs.map(t => t.id)));
   return (
     <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
       {tab === 'family'      && <FamilyCategoryTab theme={theme} profile={profile} />}
@@ -7714,7 +7762,7 @@ function MissionResourcesTab({ theme, profile }) {
     { id: 'help-hub',      label: 'Help Hub' },
     { id: 'veteran',       label: 'Veteran Support' },
   ];
-  const [tab, setTab] = useState('base-insights');
+  const [tab, setTab] = useState(() => consumePendingSubTab('base-insights', tabs.map(t => t.id)));
   return (
     <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
       {tab === 'base-insights' && <BaseIntelligenceUnifiedTab theme={theme} profile={profile} />}
@@ -8028,7 +8076,7 @@ function HomeRelocationUnifiedTab({ theme, profile }) {
     // panel itself by an eligibility note rather than being hidden.
     { id: 'va-loan', label: 'VA Loan' },
   ];
-  const [tab, setTab] = useState('home-locator');
+  const [tab, setTab] = useState(() => consumePendingSubTab('home-locator', tabs.map(t => t.id)));
   return (
     <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
       {tab === 'home-locator' && <HomeLocatorTab theme={theme} profile={profile} />}
@@ -8280,15 +8328,19 @@ function App() {
     return p;
   });
   const [activeTab, setActiveTab] = useState(() => {
-    // Deep-link entry: support URLs like /?go=movement-logistics so
-    // support emails and saved bookmarks can drop the user directly
-    // onto a specific mission group. The param is consumed once and
-    // stripped from the URL after activation so it doesn't re-fire on
-    // navigation back to Home.
+    // Deep-link entry. Supports two forms:
+    //   /?go=movement-logistics            → top-level mission group
+    //   /?go=home-relocation/shipment-tracker  → mission group + sub-tab
+    //
+    // The sub-tab half (if present) is stashed in _PENDING_SUBTAB so
+    // the corresponding wrapper component picks it up via
+    // consumePendingSubTab() on its very next mount. The param is
+    // stripped from the URL after activation.
     try {
       const params = new URLSearchParams(window.location.search);
       const target = params.get('go');
       if (target) {
+        const [top, sub] = String(target).split('/');
         const allowed = new Set([
           'home', 'pcs-operations', 'home-relocation', 'family-readiness',
           'medical-readiness', 'mission-resources',
@@ -8297,9 +8349,10 @@ function App() {
           'religion', 'base-intelligence', 'nav', 'resources', 'veterans',
           'jtr-assistant',
         ]);
-        if (allowed.has(target)) {
+        if (allowed.has(top)) {
+          if (sub) _PENDING_SUBTAB = sub;
           window.history.replaceState({}, '', window.location.pathname);
-          return target;
+          return top;
         }
       }
     } catch {}
@@ -8311,6 +8364,17 @@ function App() {
   const [showResetWarning, setShowResetWarning] = useState(false);
   const [showCompliance, setShowCompliance] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+
+  // Allow any component to open the AI Assistant by dispatching
+  // `open-ai-assistant` (optionally with detail.question). The modal
+  // itself listens for the same event to pre-fill the input; this
+  // listener handles the "show the modal" half so callers can fire
+  // a single event and rely on it.
+  useEffect(() => {
+    const handler = () => setShowAIAssistant(true);
+    window.addEventListener('open-ai-assistant', handler);
+    return () => window.removeEventListener('open-ai-assistant', handler);
+  }, []);
 
   // Single source-of-truth for executing the destructive Reset action.
   // Wipes everything via eraseAllUserData(), then force a hard reload so
@@ -8924,7 +8988,7 @@ function App() {
       {/* AI Assistant modal. Triggered from the sidebar (desktop) +
           the home-page footer (above Security & data handling) so
           it never overlaps the safety button visually. */}
-      <AIAssistantModal open={showAIAssistant} onClose={() => setShowAIAssistant(false)} isDesktop={isDesktop} />
+      <AIAssistantModal open={showAIAssistant} onClose={() => setShowAIAssistant(false)} isDesktop={isDesktop} language={profile?.language || 'en'} />
 
       {/* COMPLIANCE MODAL — opened from the Security & data-handling
           button at the bottom of the Home tab. The Compliance content

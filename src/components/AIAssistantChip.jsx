@@ -124,6 +124,58 @@ const CURATED_KB = [
     a: 'Mission Resources → Veteran Support. Veteran-owned business directories, public veteran resources, and local search around your gaining location. The Family Readiness group also surfaces VA-side benefits (GI Bill, VA Loan, Vet Center) where relevant.' },
 ];
 
+// Build a printable HTML transcript of the conversation and open it
+// in a new window with the print dialog cued. The user prints to PDF
+// the same way they export PCS Binder and Inventory worksheets.
+// No external PDF library — keeps the dependency footprint flat.
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function exportConversationAsPdf(messages, language) {
+  if (!messages || messages.length === 0) return;
+  const rows = messages.map(m => {
+    const roleLabel = m.role === 'user' ? 'You' : m.role === 'system' ? 'System' : 'AI Assistant';
+    const roleColor = m.role === 'user' ? '#0D3B66' : m.role === 'system' ? '#7A4A00' : '#1B5E20';
+    const sourceLine = m.source ? `<div style="font-size:10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#56697C;margin-top:6px">source: ${escapeHtml(m.source)}</div>` : '';
+    return `
+      <div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:900;color:${roleColor};letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">${roleLabel}</div>
+        <div style="font-size:12px;color:#0D1821;line-height:1.6;white-space:pre-wrap">${escapeHtml(m.text)}</div>
+        ${sourceLine}
+      </div>
+    `;
+  }).join('');
+  const html = `<!doctype html><html><head><meta charset="utf-8" />
+<title>PCS Express — AI Assistant transcript</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #0D1821; padding: 24px; max-width: 720px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 20px; }
+  .meta { font-size: 11px; color: #56697C; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #E0E6EE; }
+  .opsec { background: #FFF8E1; border: 1px solid #FFE082; border-radius: 6px; padding: 8px 10px; font-size: 11px; color: #7A4A00; margin-bottom: 14px; }
+  .stamp { margin-top: 22px; padding-top: 10px; border-top: 1px solid #E0E6EE; font-size: 10px; color: #56697C; }
+</style>
+</head><body>
+  <h1>AI Assistant transcript</h1>
+  <div class="meta">
+    Generated: ${escapeHtml(new Date().toISOString())}<br />
+    Language: ${escapeHtml(language || 'en')}<br />
+    Messages: ${messages.length}
+  </div>
+  <div class="opsec">
+    This transcript reflects an unclassified PCS planning conversation. Verify all dollar amounts, day counts, and weight figures against the official DTMO / GSA / IRS publication before claiming.
+  </div>
+  ${rows}
+  <div class="stamp">
+    PCS Express AI Assistant. The conversation was not stored on any PCS Express server — this transcript is the only copy.
+  </div>
+</body></html>`;
+  const w = window.open('', '_blank');
+  if (!w) { alert('Pop-up blocked. Allow pop-ups for PCS Express to export the transcript.'); return; }
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => { try { w.focus(); w.print(); } catch {} }, 300);
+}
+
 function searchKB(query) {
   const tokens = String(query || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
   if (tokens.length === 0) return null;
@@ -198,7 +250,13 @@ export function AIAssistantTrigger({ onClick, variant = 'sidebar', theme, label 
 }
 
 // ── Modal. Renders only when `open` is true. Controlled by parent.
-export function AIAssistantModal({ open, onClose, isDesktop }) {
+// `language` is forwarded to /api/jtr-assistant so the LLM responds
+// in the user's preferred app language. `initialQuestion` (or a
+// global `open-ai-assistant` CustomEvent with detail.question) pre-
+// fills the input so callers like "Explain this phase" buttons in
+// PCS Operations can drop the user into the chat with the question
+// already typed.
+export function AIAssistantModal({ open, onClose, isDesktop, language = 'en' }) {
   const [question, setQuestion] = useState('');
   const [messages, setMessages] = useState([]);
   const [busy, setBusy] = useState(false);
@@ -217,6 +275,21 @@ export function AIAssistantModal({ open, onClose, isDesktop }) {
       setTimeout(() => { try { inputRef.current?.focus(); } catch {} }, 50);
     }
   }, [open]);
+
+  // Listen for an app-wide "open-ai-assistant" event. Callers can
+  // dispatch `new CustomEvent('open-ai-assistant', { detail:
+  // { question: '...' } })` to open the modal pre-filled.
+  useEffect(() => {
+    const handler = (e) => {
+      const q = e?.detail?.question;
+      if (typeof q === 'string' && q.trim()) {
+        setQuestion(q.trim().slice(0, 1000));
+        setTimeout(() => { try { inputRef.current?.focus(); } catch {} }, 50);
+      }
+    };
+    window.addEventListener('open-ai-assistant', handler);
+    return () => window.removeEventListener('open-ai-assistant', handler);
+  }, []);
 
   useEffect(() => () => { try { abortRef.current?.abort(); } catch {} }, []);
   useEffect(() => {
@@ -242,7 +315,7 @@ export function AIAssistantModal({ open, onClose, isDesktop }) {
       const r = await fetch(apiUrl('/api/jtr-assistant'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ q, history }),
+        body: JSON.stringify({ q, history, language }),
         signal: abortRef.current.signal,
       });
       clearTimeout(timer);
@@ -325,15 +398,36 @@ export function AIAssistantModal({ open, onClose, isDesktop }) {
           boxShadow: '0 -8px 40px rgba(0,0,0,0.4)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid #E0E6EE' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid #E0E6EE', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
             <span aria-hidden="true" style={{ fontSize: 18 }}>🤖</span>
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 900, color: '#0D1821' }}>AI Assistant</div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#56697C', letterSpacing: '.06em', textTransform: 'uppercase' }}>PCS Express helper · JTR · FTR · DSSR</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#56697C', letterSpacing: '.06em', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>PCS Express helper · JTR · FTR · DSSR</div>
             </div>
           </div>
-          <button onClick={onClose} aria-label="Close AI Assistant" style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.08)', color: '#56697C', fontSize: 13, cursor: 'pointer', padding: '4px 10px', borderRadius: 8, fontWeight: 700 }}>✕</button>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            <button
+              onClick={() => exportConversationAsPdf(messages, language)}
+              disabled={messages.length === 0}
+              aria-label="Save conversation as printable PDF"
+              title="Save conversation as PDF"
+              style={{
+                background: messages.length === 0 ? 'rgba(0,0,0,0.06)' : '#0D3B66',
+                border: '1px solid ' + (messages.length === 0 ? 'rgba(0,0,0,0.08)' : '#0D3B66'),
+                color: messages.length === 0 ? '#56697C' : '#FFFFFF',
+                fontSize: 11,
+                cursor: messages.length === 0 ? 'not-allowed' : 'pointer',
+                padding: '4px 10px',
+                borderRadius: 8,
+                fontWeight: 800,
+                opacity: messages.length === 0 ? 0.6 : 1,
+              }}
+            >
+              💾 PDF
+            </button>
+            <button onClick={onClose} aria-label="Close AI Assistant" style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.08)', color: '#56697C', fontSize: 13, cursor: 'pointer', padding: '4px 10px', borderRadius: 8, fontWeight: 700 }}>✕</button>
+          </div>
         </div>
 
         {/* Crisis-line safety header — preserved on every AI session.
