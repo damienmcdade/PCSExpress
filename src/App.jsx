@@ -565,6 +565,56 @@ function TMinusDashboard({ theme, profile }) {
 const PHASE_ORDER = ['Orders Received', '90 Days Out', '60 Days Out', '30 Days Out', 'Move Week', 'In-Processing'];
 
 // ───────────────────────────────────────────────────────────────────
+// QuickActionsRow — chip-button row pinned right under Mission Brief.
+//
+// Five chips: open Checklist, open Movement & Logistics, open AI
+// Assistant, jump to Holistic Health, open Compliance modal. Designed
+// to handle the "I just opened the app, what now?" use case in a single
+// tap. Horizontally scrollable on narrow viewports.
+// ───────────────────────────────────────────────────────────────────
+function QuickActionsRow({ theme, onJumpTo, onOpenAI, onOpenCompliance }) {
+  const actions = [
+    { id: 'checklist',  icon: '📋', label: 'Open Checklist',     onClick: () => onJumpTo('pcs-operations') },
+    { id: 'shipment',   icon: '🚚', label: 'Track shipment',     onClick: () => onJumpTo('home-relocation') },
+    { id: 'ai',         icon: '🤖', label: 'Ask AI Assistant',   onClick: onOpenAI },
+    { id: 'health',     icon: '🌿', label: 'Holistic Health',    onClick: () => onJumpTo('medical-readiness') },
+    { id: 'security',   icon: '🔒', label: 'Security & data',    onClick: onOpenCompliance },
+  ];
+  return (
+    <div role="region" aria-label="Quick actions" style={{ display: 'flex', gap: 8, overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginBottom: 14, paddingBottom: 4, scrollbarWidth: 'thin' }}>
+      {actions.map(a => (
+        <button
+          key={a.id}
+          type="button"
+          onClick={a.onClick}
+          aria-label={a.label}
+          className="pcs-quick-action"
+          style={{
+            flexShrink: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 14px',
+            borderRadius: 999,
+            border: `1px solid ${theme.primary}25`,
+            background: UI_PALETTE.surface,
+            color: theme.primary,
+            fontSize: 12,
+            fontWeight: 800,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            boxShadow: '0 4px 12px rgba(38,53,31,0.06)',
+          }}
+        >
+          <span aria-hidden="true" style={{ fontSize: 14 }}>{a.icon}</span>
+          {a.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────
 // ChangeLogCard — "What changed this week" card on Command Center.
 //
 // Reads the AuditLogger metadata stream (already encrypted at rest)
@@ -731,7 +781,7 @@ function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
     : `T+${Math.abs(daysUntil)} · ${currentPhase || 'In-Processing'} phase`;
 
   return (
-    <div style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
+    <div role="region" aria-label="Mission lanes" aria-live="polite" style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
         <div style={{ fontSize: 11, fontWeight: 950, color: theme.primary, letterSpacing: '.12em' }}>MISSION LANES</div>
         <button onClick={onJumpToOps} style={{ fontSize: 10, fontWeight: 800, color: theme.primary, background: 'transparent', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '.06em' }}>
@@ -8411,19 +8461,20 @@ function App() {
     }} />;
   }
 
-  // Mission-group overview demo. Every entry sits on tab: 'home' so
-  // advancing the tour never switches the active tab — the bottom-nav
-  // highlight stays on Command Center throughout.
+  // Mission-group walkthrough demo. Each entry routes to the actual
+  // category as the user advances, so they SEE the destination while
+  // reading the description — matches the original demo behavior.
   const DEMO_TIPS = [
-    { tab: 'home', title: 'PCS Express — Mission Brief',  body: 'Six mission groups, one mission: deliver you and your family to the new duty station ready to in-process. Each card below names one group and what it controls.' },
-    { tab: 'home', title: 'Command Center',               body: 'Your home dashboard. Days-until-report countdown, today / this-week / before-you-report task lanes, alerts on overdue items, and tips tailored to your component (Active Duty / Reserve / Guard / DoD Civilian).' },
-    { tab: 'home', title: 'PCS Operations',               body: 'Plan and execute every PCS task. Branch-tailored Checklist (Orders Received through In-Processing), Paperwork roster with printable Binder export, and the 180-day OCONUS / 90-day CONUS Timeline backward-planned from your report date. No uploads — you keep the documents yourself.' },
-    { tab: 'home', title: 'Movement & Logistics',         body: 'Move, money, and shipment. Home Locator, BAH / OHA / LQA calculators, PPM estimator, inflation-adjusted Budget, live Shipment Tracker, Inventory worksheet, JTR Assistant, Move Aid, and VA Loan.' },
-    { tab: 'home', title: 'Family Readiness',             body: 'Family-side mission planning. Family sub-tabs (deployment, EFMP, spouse employment, family activities, permanent residency, pets, schools) plus Education benefits, Translation with a component-tailored Free Resources tab, and Faith & Chaplains for the gaining installation.' },
-    { tab: 'home', title: 'Holistic Health',              body: 'Total well-being in four pillars: Medical Care (ER, hospital, urgent care, specialty, dental, vision, pharmacy, preventive / PHA), Behavioral Health & Counseling, Spiritual Care (chaplaincy in care settings), and Fitness (gyms, workouts during PCS, diet and meal tips for traveling).' },
-    { tab: 'home', title: 'Mission Resources',            body: 'Field references for the gaining installation: Base Insights (verified family reviews), Maps, Help Hub (consolidated DoD / VA / family / financial directory), and Veteran Support.' },
-    { tab: 'home', title: 'Security & data handling',     body: 'Tap the 🔒 button at the bottom of Command Center to see exactly how PCS Express keeps your information safe — everything stays AES-256 encrypted on your phone. No accounts, no uploads, no PCS Express server holding your data.' },
-    { tab: 'home', title: 'Thank you for your service.', body: 'That\'s every category. Close this card and explore — your data stays on your device.' },
+    { tab: 'home',                title: 'PCS Express — Mission Brief',  body: 'Six mission groups, one mission: deliver you and your family to the new duty station ready to in-process. The tour will walk you into each group as you advance.' },
+    { tab: 'home',                title: 'Command Center',               body: 'Your home dashboard. Days-until-report countdown, Quick Actions row, today / this-week / before-you-report task lanes, "what changed this week" change-log, and tips tailored to your component.' },
+    { tab: 'pcs-operations',      title: 'PCS Operations',               body: 'Plan and execute every PCS task. Branch-tailored Checklist (Orders Received through In-Processing), Paperwork roster with printable Binder export, and the 180-day OCONUS / 90-day CONUS Timeline backward-planned from your report date. No uploads — you keep the documents yourself.' },
+    { tab: 'home-relocation',     title: 'Movement & Logistics',         body: 'Move, money, and shipment. Home Locator, BAH / OHA / LQA calculators, PPM estimator, inflation-adjusted Budget, live Shipment Tracker, Inventory worksheet, JTR Assistant, Move Aid, and VA Loan.' },
+    { tab: 'family-readiness',    title: 'Family Readiness',             body: 'Family-side mission planning. Family (deployment, EFMP, spouse employment, activities, permanent residency, pets, schools) plus Education benefits, Translation with a component-tailored Free Resources tab, and Faith & Chaplains for the gaining installation.' },
+    { tab: 'medical-readiness',   title: 'Holistic Health',              body: 'Total well-being in four pillars: Medical Care (ER, hospital, urgent care, specialty, dental, vision, pharmacy, preventive / PHA), Behavioral Health & Counseling, Spiritual Care, and Fitness (gyms, workouts during PCS, diet and meal tips for traveling).' },
+    { tab: 'mission-resources',   title: 'Mission Resources',            body: 'Field references for the gaining installation: Base Insights (verified family reviews), Maps, Help Hub (consolidated DoD / VA / family / financial directory), and Veteran Support.' },
+    { tab: 'home',                title: 'AI Assistant',                 body: 'Tap the 🤖 button (sidebar footer on desktop, home-page footer on mobile) for live PCS / JTR / FTR / DSSR Q&A. Falls back to a curated knowledge base when the live AI is unavailable. The crisis line (988 then 1) and Military OneSource stay pinned at the top of every conversation.' },
+    { tab: 'home',                title: 'Security & data handling',     body: 'Tap the 🔒 button at the bottom of Command Center to see exactly how PCS Express keeps your information safe — everything stays AES-256 encrypted on your phone. No accounts, no uploads, no PCS Express server holding your data.' },
+    { tab: 'home',                title: 'Thank you for your service.',  body: 'That\'s the full architecture. Close this card and start working through the mission groups in order — your data stays on your device.' },
   ];
 
   // Six top-level mission groups. Old single-purpose tabs (checklist,
@@ -8568,15 +8619,15 @@ function App() {
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: 14 }}>{DEMO_TIPS[demoTip].body}</div>
               <div style={{ display: 'flex', gap: 4, marginBottom: 12, justifyContent: 'center' }}>
                 {DEMO_TIPS.map((_, i) => (
-                  <div key={i} onClick={() => setDemoTip(i)} style={{ width: i === demoTip ? 20 : 6, height: 6, borderRadius: 3, background: i <= demoTip ? theme.accent : 'rgba(255,255,255,0.2)', cursor: 'pointer', transition: 'all .2s' }} />
+                  <div key={i} onClick={() => { setDemoTip(i); goTo(DEMO_TIPS[i].tab); }} style={{ width: i === demoTip ? 20 : 6, height: 6, borderRadius: 3, background: i <= demoTip ? theme.accent : 'rgba(255,255,255,0.2)', cursor: 'pointer', transition: 'all .2s' }} />
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {demoTip > 0 && (
-                  <button onClick={() => setDemoTip(demoTip - 1)} style={{ flex: 1, padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>← {t('back')}</button>
+                  <button onClick={() => { const prev = demoTip - 1; setDemoTip(prev); goTo(DEMO_TIPS[prev].tab); }} style={{ flex: 1, padding: '10px', borderRadius: 10, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>← {t('back')}</button>
                 )}
                 {demoTip < DEMO_TIPS.length - 1 ? (
-                  <button onClick={() => setDemoTip(demoTip + 1)} style={{ flex: 2, padding: '10px', borderRadius: 10, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
+                  <button onClick={() => { const next = demoTip + 1; setDemoTip(next); goTo(DEMO_TIPS[next].tab); }} style={{ flex: 2, padding: '10px', borderRadius: 10, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
                     {t('next')}: {DEMO_TIPS[demoTip + 1].title.split('!')[0]} →
                   </button>
                 ) : (
@@ -8594,6 +8645,7 @@ function App() {
 
   return (
     <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: `${UI_PALETTE.pagePattern}, radial-gradient(circle at top left, ${theme.accent}22, transparent 50%), radial-gradient(circle at bottom right, ${theme.primary}22, transparent 50%), ${UI_PALETTE.page}`, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
+      <a href="#pcs-main-content" className="pcs-skip-link">Skip to main content</a>
       <PrivacyShield />
       <SaveStatusIndicator theme={theme} />
       {showResetWarning && (
@@ -8629,7 +8681,7 @@ function App() {
           <button onClick={() => setShowResetWarning(true)} style={{ width: '100%', padding: '9px', background: 'rgba(255,0,0,0.08)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,100,100,0.85)', fontSize: 10, cursor: 'pointer', fontWeight: 700 }}>{t('reset')}</button>
         </aside>
       )}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div id="pcs-main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       {/* HEADER — paddingTop uses env(safe-area-inset-top) for notch/Dynamic Island.
           Requires viewport-fit=cover in the HTML meta and contentInsetAdjustmentBehavior=never
           in capacitor.config.json to receive non-zero values from the OS. */}
@@ -8783,6 +8835,10 @@ function App() {
 
             {/* T-Minus dashboard — derived from Report-NLT date per redesign brief */}
             <TMinusDashboard theme={theme} profile={profile} />
+
+            {/* Quick Actions — one-tap entry points for the most-common
+                "I just opened the app, what now?" tasks. */}
+            <QuickActionsRow theme={theme} onJumpTo={goTo} onOpenAI={() => setShowAIAssistant(true)} onOpenCompliance={() => setShowCompliance(true)} />
 
             {/* Mission Lanes — Today / This Week / Before You Report.
                 Pulls live unchecked items from the user's tailored

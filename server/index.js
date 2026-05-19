@@ -2604,23 +2604,150 @@ function jtrAssistantRateLimit(req, res, next) {
   entry.count += 1
   next()
 }
+// System prompt for the AI Assistant. Establishes scope, citation
+// expectations, OPSEC refusal posture, and the in-app navigation
+// vocabulary so the model can answer "where do I find X?" questions
+// using the PCS Express category names.
+const AI_ASSISTANT_SYSTEM_PROMPT = `You are the PCS Express AI Assistant. You answer questions for
+U.S. service members, Reserve / Guard members, and DoD civilians
+moving through a Permanent Change of Station (PCS). You also know
+PCS Express's own information architecture and can point users to
+the right tab.
+
+Scope you answer:
+- Joint Travel Regulations (JTR), Federal Travel Regulation (FTR),
+  Department of State Standardized Regulations (DSSR).
+- IRS guidance relevant to military / civilian PCS (CZTE under
+  IRC §112, Form 2555 FEIE for OCONUS civilians, IRS Pub 3).
+- TRICARE / TRICARE Overseas Program (TOP) basics.
+- PCS Express app navigation. Mission groups are: Command Center
+  (home dashboard), PCS Operations (Checklist · Paperwork · Timeline),
+  Movement & Logistics (Home Locator · BAH/OHA/LQA · PPM Estimator ·
+  Budget · Shipment Tracker · Inventory & Claims · JTR Assistant ·
+  Move Aid · VA Loan), Family Readiness (Family · Education ·
+  Translation · Faith & Chaplains), Holistic Health (Medical Care ·
+  Behavioral Health · Spiritual Care · Fitness), and Mission Resources
+  (Base Insights · Maps · Help Hub · Veteran Support). Compliance
+  opens from the 🔒 button at the bottom of Command Center.
+
+Rules:
+1. Cite a JTR/FTR/DSSR/IRS section for every regulation answer.
+   Cite the in-app surface (e.g., "Movement & Logistics → Shipment
+   Tracker") for every app-navigation answer.
+2. Refuse anything outside scope (politics, medical advice,
+   classified topics, current-news questions, anything not PCS-
+   or travel-regulation-adjacent). Suggest the appropriate official
+   resource instead.
+3. Treat the conversation as UNCLASSIFIED. If the user pastes what
+   looks like CUI, FOUO, GBL numbers, exact unit IDs, or specific
+   operational dates, refuse to use it in the answer and remind
+   them this channel is unclassified.
+4. Never ask for or store personal information.
+5. When you give dollar figures, weights, or day counts that come
+   from a regulation, note that DTMO/GSA publish the current rates
+   and the user should verify the live number on the official site.
+6. Be concise. Two-to-six sentences for most answers. Bullet lists
+   when there's a sequence of steps.`;
+
 app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
-  const provider = String(process.env.JTR_ASSISTANT_PROVIDER || '').trim().toLowerCase()
+  // Auto-detect provider. If ANTHROPIC_API_KEY is set we use
+  // Anthropic; if OPENAI_API_KEY is set we use OpenAI. An explicit
+  // JTR_ASSISTANT_PROVIDER env var takes precedence so operators
+  // can force a specific provider during testing.
+  const explicit = String(process.env.JTR_ASSISTANT_PROVIDER || '').trim().toLowerCase()
+  const provider = explicit
+    || (process.env.ANTHROPIC_API_KEY ? 'anthropic' : '')
+    || (process.env.OPENAI_API_KEY ? 'openai' : '')
   const q = String(req.body?.q || '').trim().slice(0, 1000)
+  const rawHistory = Array.isArray(req.body?.history) ? req.body.history : []
   if (!q) return res.status(400).json({ error: 'q is required' })
+
   if (!provider) {
     return res.status(501).json({
       error: 'not-configured',
-      answer: 'Free-text JTR Q&A is not configured in this deployment. Use the curated knowledge base on the JTR Assistant tab and escalate to your gaining finance office for cases not covered there.',
+      answer: 'The live AI Assistant is not configured on this deployment yet. The PCS Express app falls back to a curated JTR/FTR/DSSR knowledge base — your question may still get a citation-backed answer there. For anything outside that scope, escalate to your gaining installation Finance Office or open the JTR Assistant tab inside Movement & Logistics.',
       source: 'not-configured',
     })
   }
-  // Provider plumbing intentionally left for the operator to wire in
-  // when an API key is available. We return a structured 501 until
-  // then rather than silently no-op.
+
+  // ANTHROPIC branch — claude-haiku is the default model; operators
+  // can override via ANTHROPIC_MODEL. History is capped at the last
+  // 10 turns, with content trimmed to 1500 chars per message so we
+  // stay inside reasonable token budgets.
+  if (provider === 'anthropic') {
+    const apiKey = process.env.ANTHROPIC_API_KEY
+    if (!apiKey) {
+      return res.status(501).json({
+        error: 'anthropic-no-key',
+        answer: 'JTR_ASSISTANT_PROVIDER is set to anthropic but ANTHROPIC_API_KEY is missing on this deployment.',
+        source: 'anthropic-no-key',
+      })
+    }
+    const messages = rawHistory
+      .slice(-10)
+      .map(m => ({
+        role: m?.role === 'assistant' ? 'assistant' : 'user',
+        content: String(m?.text || '').slice(0, 1500),
+      }))
+      .filter(m => m.content.length > 0)
+    // Append the current question if it isn't already the last user
+    // message in the trimmed history.
+    const lastMsg = messages[messages.length - 1]
+    if (!lastMsg || lastMsg.role !== 'user' || lastMsg.content !== q) {
+      messages.push({ role: 'user', content: q })
+    }
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
+          max_tokens: 800,
+          system: AI_ASSISTANT_SYSTEM_PROMPT,
+          messages,
+        }),
+        signal: AbortSignal.timeout(20_000),
+      })
+      if (!r.ok) {
+        const detail = await r.text().catch(() => '')
+        console.error(`[jtr-assistant] anthropic ${r.status} ${detail.slice(0, 200)}`)
+        return res.status(502).json({ error: 'upstream', source: 'anthropic' })
+      }
+      const data = await r.json()
+      const answer = (Array.isArray(data?.content) ? data.content : [])
+        .map(c => c?.text || '')
+        .join('')
+        .trim()
+      return res.status(200).json({
+        answer: answer || 'No answer returned.',
+        source: `anthropic / ${process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5'}`,
+      })
+    } catch (err) {
+      if (err?.name === 'AbortError') {
+        return res.status(504).json({ error: 'timeout', source: 'anthropic' })
+      }
+      console.error(`[jtr-assistant] anthropic ${err.message}`)
+      return res.status(502).json({ error: 'upstream', source: 'anthropic' })
+    }
+  }
+
+  // OPENAI branch — left as a ready-to-flip stub. Operators can wire
+  // a similar /chat/completions call when needed.
+  if (provider === 'openai') {
+    return res.status(501).json({
+      error: 'openai-not-wired',
+      answer: 'OPENAI provider is recognized but the upstream call has not been wired in. See server/index.js or set JTR_ASSISTANT_PROVIDER=anthropic.',
+      source: 'openai',
+    })
+  }
+
   return res.status(501).json({
-    error: 'provider-not-implemented',
-    answer: `JTR_ASSISTANT_PROVIDER=${provider} is set but no upstream call is wired yet. See server/index.js /api/jtr-assistant for the integration point.`,
+    error: 'provider-unknown',
+    answer: `Unknown JTR_ASSISTANT_PROVIDER=${provider}. Supported: anthropic, openai.`,
     source: provider,
   })
 })

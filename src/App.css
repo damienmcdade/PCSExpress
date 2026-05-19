@@ -1938,6 +1938,63 @@ input, select, textarea {
   }
 }
 
+/* Accessibility catch-all: any interactive element without its own
+   focus styling falls back to a visible 2px branch-color outline.
+   Keyboard users always know where focus is. */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Skip-to-main-content link — visually hidden until focused, then
+   pinned to the top-left. Standard keyboard accessibility pattern. */
+.pcs-skip-link {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 9999;
+  background: #0D1821;
+  color: #FFFFFF;
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 12px;
+  transform: translateY(-200%);
+  transition: transform 180ms ease;
+}
+.pcs-skip-link:focus,
+.pcs-skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* Quick action chips: hover lift + active press matching the
+   sidebar / home-tile family. */
+.pcs-quick-action {
+  transition:
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 200ms ease,
+    background 200ms ease;
+}
+@media (hover: hover) {
+  .pcs-quick-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(38, 53, 31, 0.10);
+  }
+}
+.pcs-quick-action:active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pcs-quick-action {
+    transition: none;
+  }
+}
+
 /* iOS bottom tab bar — small scale on press + accent wash behind the
    icon when hovered (desktop / iPad with mouse). */
 .pcs-bottom-tab {
