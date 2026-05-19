@@ -76,6 +76,52 @@ const CURATED_KB = [
   { tags: ['claim','damage','dps','tsp','dd 1840','frv','window'], citation: 'JTR §054305 / DTR Part IV Chapter 401',
     q: 'How long do I have to file a damage claim against the TSP?',
     a: 'Soft target: 75 days from delivery to file via DPS for full Best Replacement Value (FRV) coverage. Hard deadline: 9 months from delivery (TSP only owes Depreciated Replacement Value after that). Annotate damage on DD 1840R at delivery, supplement via DPS within the window.' },
+  // ── App-feature entries — answer "where do I find X in the app"
+  // style questions. Citations point to the in-app surface, not
+  // to a regulation. Keeps the AI Assistant useful for product
+  // navigation, not just travel-reg lookup.
+  { tags: ['ship','shipment','tracker','track','hhg','gbl','dps','movement','logistics'], citation: 'In-app: Movement & Logistics → Shipment Tracker',
+    q: 'Where do I track my HHG shipment in the app?',
+    a: 'Movement & Logistics → Shipment Tracker. The 10-stage milestone ladder mirrors the JTR DPS lifecycle (counseling → TSP assigned → pre-move survey → packing → loaded → in transit → arrival call → delivered → claim filed → claim settled). Enter your GBL/TCN, TSP, and spread windows. Overdue stages flash amber. Optional browser-push alerts.' },
+  { tags: ['inventory','worksheet','dd 1840','claim','items','rooms','add item'], citation: 'In-app: Movement & Logistics → Inventory & Claims',
+    q: 'How do I record an HHG inventory in the app?',
+    a: 'Movement & Logistics → Inventory & Claims. Walk every room before pack-out, add each item (name, room, declared value, condition, notes). Switch to "post-delivery" phase at arrival and re-walk. Export the DD 1840R-ready PDF for DPS damage claims. Text-only — PCS Express does not accept uploads.' },
+  { tags: ['binder','paperwork','documents','export','pdf','checklist'], citation: 'In-app: PCS Operations → Paperwork',
+    q: 'How do I export the PCS Binder?',
+    a: 'PCS Operations → Paperwork. Check each document off as you collect the physical paperwork yourself. Tap "Export PCS Binder Checklist (PDF)" to generate a printable list for your gaining S1 / HR / VA. PCS Express never accepts, stores, or transmits document uploads.' },
+  { tags: ['budget','inflation','cost','expense','tracker','money','fuel','lodging'], citation: 'In-app: Movement & Logistics → Budget',
+    q: 'Where is the inflation-adjusted PCS budget?',
+    a: 'Movement & Logistics → Budget. Each expense row shows a 2026 planning range built from BLS CPI (gasoline, lodging, food) and GSA per-diem ceilings. Enter your actual cost; if it exceeds the high estimate, a callout suggests coordinating supplemental reimbursement with finance.' },
+  { tags: ['chaplain','spiritual','faith','worship','installation chaplain'], citation: 'In-app: Family Readiness → Faith & Chaplains',
+    q: 'Where do I find the chaplain at my gaining installation?',
+    a: 'Family Readiness → Faith & Chaplains. Lists every on-base chapel office at the gaining installation with denomination, address, service times, and a tap-to-call number. Branch Chaplain Corps reference card sits below in case the installation isn\'t curated yet.' },
+  { tags: ['oha','rate','overseas housing','lookup','dtmo'], citation: 'In-app: Movement & Logistics → BAH / OHA Calculator',
+    q: 'How do I look up the OHA rate for my OCONUS base?',
+    a: 'Movement & Logistics → BAH / OHA Calculator. If your profile is OCONUS the calculator switches to OHA mode and surfaces DTMO/OHA rate lookup, MIHA, COLA, DSSR §130 LQA, DSSR §240 TQSA, HOMES.mil, and AHRN as a single resource grid.' },
+  { tags: ['translation','language','interpreter','free','onesource','dlfilc','jko'], citation: 'In-app: Family Readiness → Translation → Free Resources',
+    q: 'Where do I find free translation help for OCONUS?',
+    a: 'Family Readiness → Translation → Free Resources tab. Lists DoD-funded translation resources gated to your component: Military OneSource interpreter referrals, DLIFLC public modules, JKO language courses, JLU, Rosetta Stone via branch portal, Yellow Ribbon (Reserve/Guard), Federal EAP (Civilians), DSSR §240 language reimbursement (OCONUS Civilians), TRICARE/TOP/FEHB interpreter lines.' },
+  { tags: ['mission lanes','today','this week','before you report','tasks'], citation: 'In-app: Command Center → Mission Lanes',
+    q: 'What are the Mission Lanes on the Command Center?',
+    a: 'The Today / This Week / Before You Report card on the home dashboard pulls UNCHECKED items from your tailored PCS checklist and buckets them by current phase / next phase / future phases. Checking an item in PCS Operations → Checklist removes it from the lanes automatically.' },
+  { tags: ['compliance','security','encryption','data','privacy','aes','lock'], citation: 'In-app: Command Center → 🔒 Security & data handling',
+    q: 'How do I open the Compliance / Security page?',
+    a: 'Tap the 🔒 "Security & data handling" button at the bottom of Command Center (or in the desktop sidebar footer). The modal shows where your data lives (on your phone), how it\'s protected (AES-256), what we never collect, and the public-standard alignments (NIST, DISA, OWASP).' },
+  { tags: ['ai','assistant','jtr assistant','help','chat','question'], citation: 'In-app: AI Assistant button',
+    q: 'How does the AI Assistant work?',
+    a: 'Tap the 🤖 AI Assistant button (above Security in the sidebar or home footer). Ask any PCS, JTR/FTR/DSSR, or PCS Express navigation question. If the live AI provider isn\'t configured, the assistant falls back to a curated knowledge base. The crisis line (988 then 1) and Military OneSource (1-800-342-9647) stay pinned at the top of every conversation.' },
+  { tags: ['pcs operations','checklist','phases','tasks'], citation: 'In-app: PCS Operations',
+    q: 'Where is the PCS Checklist?',
+    a: 'PCS Operations is the mission group that hosts Checklist, Paperwork, and the Dynamic Timeline. The phased Checklist runs Orders Received → 90 Days Out → 60 Days Out → 30 Days Out → Move Week → In-Processing. It\'s tailored to your branch, component, orders type, and family situation, so unrelated tasks are hidden automatically.' },
+  { tags: ['fitness','gym','workout','diet','meal','holistic'], citation: 'In-app: Holistic Health → Fitness',
+    q: 'Where do I find gym + PCS-fitness tips in the app?',
+    a: 'Holistic Health → Fitness tab. Three sections: On-Base Gym & Fitness (MWR / H2F / Fit-to-Fight), Staying Fit During PCS Travel (hotel-room workouts + drive-day movement basics), and Diet & Meal Tips for Traveling (Performance Triad nutrition, MyPlate, TRICARE nutrition counseling, cooler-pack meal planning).' },
+  { tags: ['pet','quarantine','japan','germany','rabies','aphis','country'], citation: 'In-app: Family Readiness → Pets',
+    q: 'Where do I see country-specific pet import rules?',
+    a: 'Family Readiness → Family → Pets. The country-rules banner surfaces automatically when your gaining installation is OCONUS — covers Germany (TRACES), Japan (180-day FAVN), Hawaii (Direct Airport Release), Korea (AQIS), UK GB AHC, and 12 other countries with realistic lead times and USDA APHIS links.' },
+  { tags: ['veteran','va','support','vet'], citation: 'In-app: Mission Resources → Veteran Support',
+    q: 'Where do I find veteran resources in the app?',
+    a: 'Mission Resources → Veteran Support. Veteran-owned business directories, public veteran resources, and local search around your gaining location. The Family Readiness group also surfaces VA-side benefits (GI Bill, VA Loan, Vet Center) where relevant.' },
 ];
 
 function searchKB(query) {
@@ -284,7 +330,7 @@ export function AIAssistantModal({ open, onClose, isDesktop }) {
             <span aria-hidden="true" style={{ fontSize: 18 }}>🤖</span>
             <div>
               <div style={{ fontSize: 14, fontWeight: 900, color: '#0D1821' }}>AI Assistant</div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#56697C', letterSpacing: '.06em', textTransform: 'uppercase' }}>JTR / FTR / DSSR helper</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#56697C', letterSpacing: '.06em', textTransform: 'uppercase' }}>PCS Express helper · JTR · FTR · DSSR</div>
             </div>
           </div>
           <button onClick={onClose} aria-label="Close AI Assistant" style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.08)', color: '#56697C', fontSize: 13, cursor: 'pointer', padding: '4px 10px', borderRadius: 8, fontWeight: 700 }}>✕</button>
@@ -305,12 +351,14 @@ export function AIAssistantModal({ open, onClose, isDesktop }) {
         <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: 14, background: '#F8FAFC' }}>
           {messages.length === 0 && (
             <div style={{ color: '#56697C', fontSize: 12, lineHeight: 1.6 }}>
-              <p style={{ marginTop: 0 }}>Ask anything about the PCS process. I draw on the Joint Travel Regulations (JTR), the Federal Travel Regulation (FTR), and the Department of State Standardized Regulations (DSSR) — and I'll cite the section every time.</p>
+              <p style={{ marginTop: 0 }}>Ask anything about PCS Express — every mission group, every tool, and the travel regulations behind them (JTR / FTR / DSSR). Every answer cites where it came from.</p>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#0D1821', marginTop: 8, marginBottom: 4 }}>Try:</div>
               <ul style={{ margin: 0, paddingLeft: 16 }}>
+                <li>Where do I track my HHG shipment in the app?</li>
+                <li>How do I export the PCS Binder?</li>
+                <li>How do I look up the OHA rate for my OCONUS base?</li>
+                <li>Where do I find free translation help?</li>
                 <li>How do I maximize my PPM payout?</li>
-                <li>What pet shipment allowance can I claim for an OCONUS PCS?</li>
-                <li>What's the TLE cap for a CONUS move?</li>
                 <li>Do I get BAH overseas?</li>
               </ul>
             </div>
@@ -349,7 +397,7 @@ export function AIAssistantModal({ open, onClose, isDesktop }) {
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={onKeyDown}
-              placeholder="Ask a JTR / FTR / DSSR question…"
+              placeholder="Ask anything — app features, JTR/FTR/DSSR, OCONUS…"
               aria-label="Type your question to the AI Assistant"
               rows={2}
               maxLength={1000}

@@ -1905,6 +1905,39 @@ input, select, textarea {
   transform: scale(0.96);
 }
 
+/* Hover movement indicator: a "→" chevron slides in from the left
+   when the cursor is over a sidebar item that ISN'T the active
+   route. Tells the user the row is a navigation target and which
+   way the transition goes. Disabled on touch devices (no hover)
+   and when reduced-motion is requested. */
+.pcs-side-link::after {
+  content: '→';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translate(8px, -50%);
+  opacity: 0;
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--side-accent, #C99A3D);
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 180ms ease;
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .pcs-side-link:not(.is-active):hover::after,
+  .pcs-side-link:not(.is-active):focus-visible::after {
+    transform: translate(0, -50%);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pcs-side-link::after {
+    transition: none;
+  }
+}
+
 /* iOS bottom tab bar — small scale on press + accent wash behind the
    icon when hovered (desktop / iPad with mouse). */
 .pcs-bottom-tab {

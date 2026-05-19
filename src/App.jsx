@@ -8681,13 +8681,16 @@ function App() {
         );
       })()}
 
-      {/* SLIDE-DOWN NAV DRAWER — web mobile only (iOS native uses bottom tab bar instead) */}
+      {/* SLIDE-DOWN NAV DRAWER — web mobile only (iOS native uses bottom tab bar instead).
+          Renders the same icon-rich item shape as the desktop sidebar:
+          emoji glyph + label + 3-letter abbr badge. */}
       {!isDesktop && !isNative && navOpen && (
         <div style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: 0, right: 0, maxWidth: 480, margin: '0 auto', zIndex: 200, background: theme.secondary, borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0 }}>
             {LOCALIZED_BOTTOM_NAV.map(item => (
-              <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-side-link ${activeTab === item.id ? 'is-active' : ''}`} style={{ padding: '12px 4px', background: activeTab === item.id ? `${theme.accent}25` : 'transparent', border: 'none', borderBottom: `1px solid rgba(255,255,255,0.07)`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.75)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, fontSize: 9, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', '--side-accent': theme.accent }}>
-                <div className="pcs-side-link__icon" style={{ width: 38, height: 28, borderRadius: 6, background: activeTab === item.id ? `${theme.accent}30` : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 900, letterSpacing: '.08em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.6)', border: activeTab === item.id ? `1px solid ${theme.accent}60` : '1px solid rgba(255,255,255,0.1)', transition: 'background 200ms ease, color 200ms ease' }}>{item.icon}</div>
+              <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-side-link ${activeTab === item.id ? 'is-active' : ''}`} style={{ padding: '12px 4px', background: activeTab === item.id ? `${theme.accent}25` : 'transparent', border: 'none', borderBottom: `1px solid rgba(255,255,255,0.07)`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.75)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontSize: 9, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', '--side-accent': theme.accent }}>
+                <span aria-hidden="true" style={{ fontSize: 22, lineHeight: 1, filter: activeTab === item.id ? 'none' : 'grayscale(30%) opacity(0.8)' }}>{item.iosIcon}</span>
+                <span style={{ minWidth: 38, height: 14, padding: '0 4px', borderRadius: 6, background: activeTab === item.id ? `${theme.accent}30` : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 900, letterSpacing: '.08em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.6)', border: activeTab === item.id ? `1px solid ${theme.accent}60` : '1px solid rgba(255,255,255,0.1)' }}>{item.icon}</span>
                 {item.label}
               </button>
             ))}
@@ -8802,36 +8805,14 @@ function App() {
               </div>
             )}
 
-            {/* Mission-group tiles — mobile only. On desktop the
-                persistent left sidebar is the canonical category
-                selector with the same six routes, so rendering this
-                grid there would duplicate the navigation surface. */}
-            {!isDesktop && (
-            <div className="home-cat-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {HOME_CATEGORIES.map((item, idx) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => goTo(item.id)}
-                  className="home-cat-tile"
-                  style={{
-                    '--cat-color': theme.primary,
-                    '--cat-delay': `${idx * 35}ms`,
-                    minHeight: 104,
-                    padding: '15px 10px',
-                  }}
-                  aria-label={item.label}
-                >
-                  <span className="home-cat-tile__sheen" aria-hidden="true" />
-                  <span className="home-cat-tile__icon" style={{ background: `${theme.accent}1C`, borderColor: `${theme.primary}30` }} aria-hidden="true">
-                    <span className="home-cat-tile__glyph">{item.iosIcon}</span>
-                    <span className="home-cat-tile__abbr" style={{ color: theme.primary }}>{item.icon}</span>
-                  </span>
-                  <span className="home-cat-tile__label">{item.label}</span>
-                </button>
-              ))}
-            </div>
-            )}
+            {/* Category-tile grid intentionally NOT rendered here.
+                Every platform has its own canonical icon-rich
+                category selector — desktop sidebar (left), iOS
+                bottom tab bar + More sheet, mobile-web burger
+                drawer — so rendering a tile grid on the home page
+                duplicated the selector and confused users. The
+                sidebar / tab bar / drawer is now the single source
+                of category navigation across every platform. */}
 
             {/* Quick profile summary */}
             <div style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderRadius: 14, padding: 14, marginTop: 16, color: UI_PALETTE.text, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
