@@ -171,9 +171,92 @@ export default function TranslationModule({ theme, profile }) {
   }, [inputText, selectedLang, saved]);
 
   const SUB_TABS = [
-    { id: 'phrases',   label: 'Common Phrases', icon: '💬' },
-    { id: 'saved',     label: `Saved (${saved.length})`, icon: '💾' },
-    { id: 'translate', label: 'Translate', icon: '🌐' },
+    { id: 'phrases',   label: 'Common Phrases',         icon: '💬' },
+    { id: 'free',      label: 'Free Resources',         icon: '🎖️' },
+    { id: 'saved',     label: `Saved (${saved.length})`,icon: '💾' },
+    { id: 'translate', label: 'Translate',              icon: '🌐' },
+  ];
+
+  // Free translation resources offered by the DoD and federal benefit
+  // programs. Each resource is gated by component so users only see
+  // what their status actually qualifies them for.
+  const component = profile?.component || 'Active Duty';
+  const isAD       = component === 'Active Duty';
+  const isReserve  = component === 'Reserve';
+  const isGuard    = component === 'National Guard';
+  const isCivilian = component === 'DoD Civilian';
+  const isUniformed = isAD || isReserve || isGuard;
+  const FREE_RESOURCES = [
+    {
+      visible: true,
+      name: 'Military OneSource — Interpreters & Translation Help',
+      audience: isCivilian ? 'DoD Civilians (limited)' : 'Service members + families',
+      desc: isCivilian
+        ? 'DoD civilians have limited Military OneSource access but can request interpreter referrals for OCONUS PCS assignments. Call 1-800-342-9647.'
+        : 'Free interpreter referrals, document-translation help, and language-line connections for service members and family members. Call 1-800-342-9647 (worldwide, 24/7) and ask for a Military OneSource consultant.',
+      url: 'https://www.militaryonesource.mil/resources/tools/language-translation-services/',
+      phone: '1-800-342-9647',
+    },
+    {
+      visible: isUniformed,
+      name: 'DoD Foreign Language Center (DLIFLC) — public modules',
+      audience: 'Service members',
+      desc: 'Defense Language Institute Foreign Language Center publishes free self-study survival language modules and culture briefings for service members. No tuition; available worldwide.',
+      url: 'https://www.dliflc.edu/resources/products-and-tools/',
+    },
+    {
+      visible: isUniformed,
+      name: 'GoMilLife / Joint Knowledge Online (JKO) Language Courses',
+      audience: 'Service members',
+      desc: 'Joint Knowledge Online catalog offers free language and cross-cultural courses. Log in with CAC / DoD ID and search for the host-nation course before PCS.',
+      url: 'https://jkodirect.jten.mil/',
+    },
+    {
+      visible: isUniformed,
+      name: 'Joint Language University (JLU)',
+      audience: 'Service members',
+      desc: 'JLU.usu.edu — free DoD-sponsored online university for foreign-language learning. Coursework is recognized for DLPT preparation.',
+      url: 'https://jlu.wbtrain.com/',
+    },
+    {
+      visible: isUniformed,
+      name: 'Rosetta Stone via your branch portal',
+      audience: 'Service members (branch-funded)',
+      desc: isAD ? 'Active-duty members can request a free Rosetta Stone license through Army IgnitED, Navy COOL, AF Portal, or USMC LifelongLearning before OCONUS PCS.'
+        : isReserve ? 'Reserve members may request a free Rosetta Stone license through your service\'s lifelong-learning portal; check eligibility with your readiness NCO before assuming coverage.'
+        : 'Guard members may request a free Rosetta Stone license through your state Guard education office; coverage varies by state.',
+      url: 'https://www.militaryonesource.mil/education-employment/for-service-members/voluntary-education/',
+    },
+    {
+      visible: isReserve || isGuard,
+      name: 'Yellow Ribbon Reintegration — language briefings',
+      audience: 'Reserve / Guard + families',
+      desc: 'YRRP events sometimes include host-nation language and cultural briefings for upcoming deployments / mobilizations. Free for the service member, spouse, and adult dependents.',
+      url: 'https://www.yellowribbon.mil/',
+    },
+    {
+      visible: isCivilian,
+      name: 'Federal Employee EAP — Language Support',
+      audience: 'DoD Civilians + family',
+      desc: 'Federal Employee Assistance Program (EAP) typically offers free interpreter and translation referrals for civilians and household members. Contact your agency EAP coordinator or your gaining HR office.',
+      url: 'https://www.opm.gov/policy-data-oversight/worklife/employee-assistance-programs/',
+    },
+    {
+      visible: isCivilian,
+      name: 'DSSR-related host-nation language assistance',
+      audience: 'DoD Civilians (OCONUS)',
+      desc: 'OCONUS DoD civilians can request reimbursement for language training under DSSR §240 (TQSA) settling-in expenses. Coordinate with your servicing HR / DCPAS office before paying out-of-pocket.',
+      url: 'https://aoprals.state.gov/content.asp?content_id=204&menu_id=92',
+    },
+    {
+      visible: true,
+      name: 'TRICARE / TOP Language Interpreter Line',
+      audience: isCivilian ? 'FEHB participants' : 'TRICARE beneficiaries',
+      desc: isCivilian
+        ? 'Your FEHB carrier provides a free phone interpreter for medical visits. The number is on the back of your insurance card.'
+        : 'TRICARE provides a free phone interpreter for medical visits. TRICARE Overseas Program (TOP) routes through International SOS at +1-877-678-1207.',
+      url: isCivilian ? 'https://www.opm.gov/healthcare-insurance/' : 'https://www.tricare-overseas.com',
+    },
   ];
 
   const currentPhrases = PHRASE_CATEGORIES.find(c => c.id === phraseCategory);
@@ -289,6 +372,38 @@ export default function TranslationModule({ theme, profile }) {
                     <button onClick={() => { try { navigator.clipboard.writeText(p[l.code]); } catch {} }} style={{ padding: '2px 8px', borderRadius: 6, background: `${theme.primary}12`, border: 'none', color: theme.primary, fontSize: 9, cursor: 'pointer', fontWeight: 700, flexShrink: 0 }}>Copy</button>
                   </div>
                 ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Free Resources Tab ── */}
+      {/* DoD- and federal-benefit-funded translation help that is FREE
+          for the user. Cards are gated by component so a DoD Civilian
+          doesn't see "request a Rosetta Stone license through Army
+          IgnitED" and a National Guard member doesn't see active-duty
+          OCONUS-specific entries that don't apply. The list is
+          intentionally compact — these are the genuinely free, fully
+          public resources, not a sales catalog. */}
+      {subTab === 'free' && (
+        <div>
+          <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 11, color: '#7A4A00', lineHeight: 1.5 }}>
+            <strong>Tailored to your onboarding:</strong> {component}. Only resources you actually qualify for are shown.
+          </div>
+          {FREE_RESOURCES.filter(r => r.visible).map((r, idx) => (
+            <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 12, padding: 12, marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821' }}>{r.name}</div>
+                <span style={{ fontSize: 9, fontWeight: 900, background: `${theme.primary}15`, color: theme.primary, padding: '2px 6px', borderRadius: 8, whiteSpace: 'nowrap' }}>FREE</span>
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#56697C', marginBottom: 6 }}>{r.audience}</div>
+              <div style={{ fontSize: 11, color: '#34495E', lineHeight: 1.55, marginBottom: 8 }}>{r.desc}</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, minWidth: 140, padding: '8px 10px', borderRadius: 8, background: theme.primary, color: '#FFF', textDecoration: 'none', fontSize: 11, fontWeight: 700, textAlign: 'center' }}>Open resource</a>
+                {r.phone && (
+                  <a href={`tel:${r.phone}`} style={{ flex: 1, minWidth: 140, padding: '8px 10px', borderRadius: 8, background: '#E3F2FD', color: '#0D3B66', textDecoration: 'none', fontSize: 11, fontWeight: 700, textAlign: 'center' }}>📞 {r.phone}</a>
+                )}
               </div>
             </div>
           ))}

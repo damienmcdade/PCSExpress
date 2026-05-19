@@ -5855,27 +5855,27 @@ const APP_TRANSLATIONS = {
       education: 'Education',
       family: 'Family Readiness',
       'home-relocation': 'Home Relocation',
-      'medical-readiness': 'Medical Readiness',
+      'medical-readiness': 'Holistic Health',
       nav: 'Navigation',
       resources: 'Resources',
       religion: 'Spiritual Readiness',
       translation: 'Translation',
-      veterans: 'Veterans',
+      veterans: 'Veteran Support',
     },
     desc: {
-      'base-intelligence': 'Compare housing, schools, and childcare reviews with Military Family Verified badges while avoiding raw PII in community review data.',
-      checklist: 'Track PCS requirements by phase, use the 90-day timeline, toggle milestone reminders, and tap square controls to save progress without uploading documents.',
-      compliance: 'See exactly how PCS Express keeps your information safe. Your PCS profile, photos, and notes never leave your phone — they\'re scrambled with strong encryption (AES-256) and saved only on this device. There\'s no PCS Express server that stores your data, no account to hack, nothing to leak. Tap in to see what we protect and how, written in plain language.',
-      documents: 'Checklist-only tracking for the PCS documents you need to gather, verify, or carry. PCS Express never accepts, stores, or transmits document uploads — you keep your physical paperwork yourself. Export your gathered checklist as a printable PDF to hand to the gaining S1 / civilian HR / VA along with the paperwork.',
-      education: 'Review colleges, GI Bill chapters, MyCAA, and branch-specific Tuition Assistance guidance.',
-      family: 'Plan family-impact PCS needs across Deployment, EFMP, Employment, Permanent Resident, Pets, and Schools in one organized category.',
-      'home-relocation': 'Eight sub-tabs in one stack: Home Locator, BAH / OHA / LQA calculators, PPM estimator with OCONUS JTR §050302 warning, inflation-adjusted budget tracker (BLS CPI + GSA per diem), live HHG shipment tracker with JTR SLA flags, digital inventory & claims vault with DD 1840R PDF export, JTR Assistant with 14 cited Q&A, Move Aid, and OCONUS-aware VA Loan guidance.',
-      'medical-readiness': 'Find emergency rooms, hospitals, urgent care, behavioral & mental health, dental, vision, pharmacy, and PHA / readiness resources — tailored to your branch, component, and TRICARE region (or FEHB for DoD Civilians).',
-      nav: 'Plan routes, save directions, and view public installation map information without restricted or non-public base details.',
-      resources: 'Use one organized hub for official public military, government, family, financial, healthcare, PCS, education, and career resources.',
-      religion: 'Locate chaplain, counseling, worship, and community support resources tied to the user’s optional spiritual preference.',
-      translation: 'Translate common PCS, housing, medical, school, transportation, and daily-life phrases for CONUS or OCONUS moves.',
-      veterans: 'Find veteran-owned business resources, public directories, and local search paths near the gaining location.',
+      'base-intelligence': 'Reviews from real military families on housing, schools, and childcare at your gaining installation. Reviews from .mil emails get a "Military Family Verified" badge.',
+      checklist: 'A full PCS task list, organized by phase (Orders Received through In-Processing). Toggle reminders on key milestones. Nothing here asks for documents — just check items off as you finish them.',
+      compliance: 'In plain language, how PCS Express keeps your information safe. Your PCS profile and notes never leave your phone — they\'re scrambled with strong encryption and saved only on this device. There\'s no PCS Express server holding your data, no account to hack, nothing to leak.',
+      documents: 'A checklist for every PCS form you need to gather. Check items off as you collect the actual paperwork yourself. Export the checklist as a printable PDF for the gaining S1 / HR / VA. PCS Express never accepts, stores, or transmits uploads.',
+      education: 'Tuition Assistance portals, GI Bill chapters, MyCAA spouse scholarships, and a curated list of colleges near the gaining installation.',
+      family: 'Family-specific PCS planning: deployment support, EFMP, spouse employment, permanent residency for immigrant spouses, pets, and K-12 schools — all in one tab.',
+      'home-relocation': 'Eight tools in one tab — Home Locator, BAH / OHA / LQA calculators, PPM estimator, inflation-adjusted Budget, Shipment Tracker, Inventory worksheet, JTR Assistant, Move Aid, and VA Loan.',
+      'medical-readiness': 'Total well-being in four sections: Medical Care (ER, hospitals, urgent care, specialty, dental, vision, pharmacy, preventive / PHA), Behavioral Health & Counseling, Spiritual Care, and Fitness (gyms, workouts during PCS, diet and meal tips for traveling). Tailored to your component, branch, and TRICARE region (or FEHB for DoD Civilians).',
+      nav: 'Plan routes and save directions on a public installation map. No restricted or non-public base details.',
+      resources: 'One hub of official, public military, government, family, financial, healthcare, and PCS resources.',
+      religion: 'Worship services and the Chaplains tab — both filtered to your gaining installation. Free, confidential pastoral support for service members of all faiths (and no faith).',
+      translation: 'Common phrases in 20+ languages, an AI translate box (with an OPSEC warning so you never paste sensitive info), and a Free Resources tab tailored to your component.',
+      veterans: 'Veteran-owned businesses, public directories, and local veteran resources around your gaining location.',
     },
     demo: {
       securityTitle: 'Your data stays on your phone',
@@ -7935,6 +7935,7 @@ function App() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
   const [showResetWarning, setShowResetWarning] = useState(false);
+  const [showCompliance, setShowCompliance] = useState(false);
 
   // Single source-of-truth for executing the destructive Reset action.
   // Wipes everything via eraseAllUserData(), then force a hard reload so
@@ -8095,17 +8096,17 @@ function App() {
     { tab: 'home', title: 'Home', body: 'Your dashboard: the days-until-report countdown, branch-specific tips, and any time-sensitive alerts.' },
     { tab: 'home', title: 'Base Intelligence', body: 'Verified reviews from real military families on housing, schools, and childcare at your gaining installation.' },
     { tab: 'home', title: 'Checklist', body: 'A phased PCS task list — Orders Received through In-Processing — written for your branch and your situation.' },
-    { tab: 'home', title: 'Documents', body: 'A checklist for every form you need to gather. Check items off as you collect them, then export the checklist as a printable PDF for your gaining S1 / HR / VA. PCS Express never accepts uploads — you keep the paperwork.' },
-    { tab: 'home', title: 'Education', body: 'Tuition Assistance portals, GI Bill chapters, MyCAA spouse benefits, and colleges near the gaining installation.' },
-    { tab: 'home', title: 'Family Readiness', body: 'Sub-tabs for Deployment, EFMP, Spouse Employment, Permanent Resident, Pets, and Schools.' },
-    { tab: 'home', title: 'Home Relocation', body: 'BAH/OHA/LQA calculators, PPM estimator, inflation-adjusted budget, live shipment tracker, digital inventory vault, JTR Assistant, Move Aid, and VA Loan.' },
-    { tab: 'home', title: 'Medical Readiness', body: 'Emergency rooms, hospitals, urgent care, behavioral health, dental, vision, and pharmacy resources around the gaining base.' },
-    { tab: 'home', title: 'Navigation', body: 'Plan routes and save directions on a public installation map — no restricted base details.' },
-    { tab: 'home', title: 'Resources', body: 'One hub of official military, government, family, financial, healthcare, and PCS resources.' },
-    { tab: 'home', title: 'Spiritual Readiness', body: 'Chaplain, counseling, worship, and community support resources tied to your optional spiritual preference.' },
-    { tab: 'home', title: 'Translation', body: 'Translate common PCS, housing, medical, school, and daily-life phrases between 20+ supported languages.' },
-    { tab: 'home', title: 'Veterans', body: 'Veteran-owned businesses, public directories, and local search around the gaining location.' },
-    { tab: 'home', title: 'Compliance', body: 'A plain-language page showing exactly how PCS Express keeps your information safe — everything stays AES-256 encrypted on your phone.' },
+    { tab: 'home', title: 'Documents', body: 'A checklist for every form you need to gather. Check items off as you collect the paperwork yourself, then export the checklist as a printable PDF for your gaining S1 / HR / VA. PCS Express never accepts uploads.' },
+    { tab: 'home', title: 'Education', body: 'Tuition Assistance portals, GI Bill chapters, MyCAA spouse scholarships, and colleges near the gaining installation.' },
+    { tab: 'home', title: 'Family Readiness', body: 'Family-specific sub-tabs: deployment support, EFMP, spouse employment, permanent residency, pets, and K-12 schools.' },
+    { tab: 'home', title: 'Home Relocation', body: 'Eight tools in one tab — Home Locator, BAH / OHA / LQA calculators, PPM estimator, inflation-adjusted Budget, Shipment Tracker, Inventory worksheet, JTR Assistant, Move Aid, and VA Loan.' },
+    { tab: 'home', title: 'Holistic Health', body: 'Total well-being in four sections: Medical Care (ER, hospitals, urgent care, specialty, dental, vision, pharmacy, preventive / PHA), Behavioral Health & Counseling, Spiritual Care (chaplaincy in care settings), and Fitness (gyms, workouts during PCS, diet and meal tips for traveling).' },
+    { tab: 'home', title: 'Navigation', body: 'Plan routes and save directions on a public installation map. No restricted or non-public base details.' },
+    { tab: 'home', title: 'Resources', body: 'One hub of official, public military, government, family, financial, healthcare, and PCS resources.' },
+    { tab: 'home', title: 'Spiritual Readiness', body: 'Worship services and the Chaplains tab — both filtered to the gaining installation. Free, confidential pastoral support for service members of all faiths (and no faith).' },
+    { tab: 'home', title: 'Translation', body: 'Common phrases in 20+ languages, an AI translate field (with an OPSEC warning so you never paste sensitive info), and a Free Resources tab tailored to your component (Military OneSource, DLIFLC, JKO, EAP, etc.).' },
+    { tab: 'home', title: 'Veteran Support', body: 'Veteran-owned businesses, public directories, and local veteran resources around the gaining location.' },
+    { tab: 'home', title: 'Security & data handling', body: 'Tap the lock icon at the bottom of the Home page to see exactly how PCS Express keeps your information safe — everything stays AES-256 encrypted on your phone. No accounts, no uploads, no PCS Express server holding your data.' },
     { tab: 'home', title: 'Thank you for your service.', body: 'That\'s every category. Close this card and explore — your data stays on your device.' },
   ];
 
@@ -8117,13 +8118,12 @@ function App() {
     { id: 'education',   label: 'Education',            icon: 'EDU', iosIcon: '📚', color: '#1565C0' },
     { id: 'family',      label: 'Family Readiness',     icon: 'FAM', iosIcon: '👪', color: '#5B2A86' },
     { id: 'home-relocation', label: 'Home Relocation',  icon: 'HME', iosIcon: '🏠', color: '#455A64' },
-    { id: 'medical-readiness', label: 'Medical Readiness', icon: 'MED', iosIcon: '🏥', color: '#7F1D1D' },
+    { id: 'medical-readiness', label: 'Holistic Health',   icon: 'HLH', iosIcon: '🌿', color: '#2E7D32' },
     { id: 'nav',         label: 'Navigation',           icon: 'NAV', iosIcon: '🗺️', color: '#00695C' },
     { id: 'resources',   label: 'Resources',            icon: 'RES', iosIcon: '🔗', color: '#C62828' },
     { id: 'religion',    label: 'Spiritual Readiness',  icon: 'SPR', iosIcon: '✦', color: '#37474F' },
     { id: 'translation', label: 'Translation',           icon: 'TRL', iosIcon: '🌐', color: '#1976D2' },
-    { id: 'veterans',    label: 'Veterans',             icon: 'VET', iosIcon: '⭐', color: '#E65100' },
-    { id: 'compliance',  label: 'Compliance',           icon: 'CMP', iosIcon: '🔒', color: '#263238' },
+    { id: 'veterans',    label: 'Veteran Support',      icon: 'VET', iosIcon: '⭐', color: '#E65100' },
   ];
   const LOCALIZED_BOTTOM_NAV = localizeNavItems(BOTTOM_NAV, appLanguage);
   const HOME_CATEGORIES = LOCALIZED_BOTTOM_NAV.filter(item => item.id !== 'home');
@@ -8482,6 +8482,18 @@ function App() {
               </div>
             </div>
             <HomeLegalBanners theme={theme} />
+
+            {/* Security / Compliance footer button. Compliance used to
+                live in the bottom-nav; it now opens here as a modal so
+                the bottom nav stays focused on PCS-task categories.
+                The 🔒 metaphor matches the rest of the security copy:
+                everything stays locked on the device. */}
+            <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+              <button onClick={() => setShowCompliance(true)} aria-label="Open security and data-handling information" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 999, border: `1px solid ${UI_PALETTE.line}`, background: UI_PALETTE.surface, color: theme.primary, fontSize: 11, fontWeight: 800, cursor: 'pointer', boxShadow: '0 6px 16px rgba(38,53,31,0.08)' }}>
+                <span aria-hidden="true" style={{ fontSize: 14 }}>🔒</span>
+                Security &amp; data handling
+              </button>
+            </div>
             </div>
           </div>
         )}
@@ -8497,9 +8509,27 @@ function App() {
         {activeTab === 'religion' && renderCategoryFrame('religion', <ReligiousServicesModuleWrapped theme={theme} profile={profile} />)}
         {activeTab === 'resources' && renderCategoryFrame('resources', <ResourcesTab theme={theme} profile={profile} />)}
         {activeTab === 'veterans' && renderCategoryFrame('veterans', <VeteranBusinessesTab theme={theme} profile={profile} />)}
-        {activeTab === 'compliance' && renderCategoryFrame('compliance', <ComplianceAttestationModule theme={theme} profile={profile} />)}
       </div>
       </div>{/* end body container */}
+
+      {/* COMPLIANCE MODAL — opened from the Security & data-handling
+          button at the bottom of the Home tab. The Compliance content
+          used to live in the bottom nav; moved to a modal so it stays
+          one tap away without crowding the PCS-task category bar. */}
+      {showCompliance && (
+        <div role="dialog" aria-modal="true" aria-label="Security and data handling" onClick={() => setShowCompliance(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(13, 24, 33, 0.65)', zIndex: 400, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: isDesktop ? 32 : 0 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: UI_PALETTE.page, width: '100%', maxWidth: isDesktop ? 720 : 480, maxHeight: isDesktop ? '85vh' : '92vh', overflowY: 'auto', borderRadius: isDesktop ? 18 : '18px 18px 0 0', boxShadow: '0 -8px 40px rgba(0,0,0,0.4)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: `1px solid ${UI_PALETTE.line}`, position: 'sticky', top: 0, background: UI_PALETTE.page, zIndex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span aria-hidden="true" style={{ fontSize: 18 }}>🔒</span>
+                <div style={{ fontSize: 14, fontWeight: 900, color: theme.primary }}>Security &amp; data handling</div>
+              </div>
+              <button onClick={() => setShowCompliance(false)} aria-label="Close" style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.08)', color: UI_PALETTE.muted, fontSize: 13, cursor: 'pointer', padding: '4px 10px', borderRadius: 8, fontWeight: 700 }}>✕</button>
+            </div>
+            <ComplianceAttestationModule theme={theme} profile={profile} />
+          </div>
+        </div>
+      )}
 
       {/* INTERACTIVE DEMO TOUR OVERLAY */}
       {demoTip >= 0 && demoTip < DEMO_TIPS.length && (

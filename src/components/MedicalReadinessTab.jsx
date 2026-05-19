@@ -1,9 +1,10 @@
 /*
- * Medical Readiness — unified medical category for PCS Express.
+ * Holistic Health — unified well-being category for PCS Express.
  *
- * Consolidates Emergency Room locator, Hospital / MTF locator, Urgent
- * Care, Behavioral Health, Dental, Vision, Pharmacy, and the existing
- * Mental Readiness experience into a single category.
+ * Four pillars: Medical Care (primary / urgent / specialty / hospitals /
+ * preventive / dental / vision / pharmacy), Behavioral Health &
+ * Counseling, Spiritual Care, and Fitness (gym + on-the-road habits +
+ * diet/meal tips while traveling).
  *
  * Every resource link points to an OFFICIAL .mil / .gov / TRICARE
  * regional contractor / FEHB plan source. No third-party POI scrapes,
@@ -131,7 +132,7 @@ function CrisisBanner({ theme }) {
 }
 
 export default function MedicalReadinessTab({ theme, profile }) {
-  const [tab, setTab] = useState('emergency');
+  const [tab, setTab] = useState('medical');
   const colors = {
     primary: theme.primary || '#244247',
     accent: theme.accent || '#C99A3D',
@@ -144,21 +145,18 @@ export default function MedicalReadinessTab({ theme, profile }) {
   const findCareUrl = useMemo(() => buildZipFindCareUrl(profile, contractor.findCare), [profile, contractor]);
 
   const subTabs = [
-    { id: 'emergency', label: 'Emergency Room' },
-    { id: 'hospital',  label: 'Hospital / MTF' },
-    { id: 'urgent',    label: 'Urgent Care' },
+    { id: 'medical',    label: 'Medical Care' },
     { id: 'behavioral', label: 'Behavioral Health' },
-    { id: 'mental',    label: 'Mental Readiness' },
-    { id: 'dental',    label: 'Dental' },
-    { id: 'vision',    label: 'Vision' },
-    { id: 'pharmacy',  label: 'Pharmacy' },
-    { id: 'readiness', label: 'Readiness & PHA' },
+    { id: 'spiritual',  label: 'Spiritual Care' },
+    { id: 'fitness',    label: 'Fitness' },
   ];
 
-  // Build resource lists per sub-tab. Civilians get FEHB / OPM links
-  // in place of TRICARE; uniformed members get TRICARE + MTF + regional
-  // contractor. OCONUS swaps in International SOS and TRICARE Overseas.
-  const RESOURCES = {
+  // ───── EMERGENCY / HOSPITAL / URGENT / DENTAL / VISION / PHARMACY /
+  // READINESS resource bundles. These were 7 separate sub-tabs before
+  // the Holistic Health redesign collapsed them into one Medical Care
+  // section with internal headers. Keeping them as named arrays makes
+  // the render below easier to follow.
+  const RES_BUNDLE = {
     emergency: isCivilian
       ? [
           { name: 'Find an ER on FEHB plan provider directory', desc: 'Search your enrolled FEHB plan\'s provider list for nearest in-network emergency departments.', url: 'https://www.opm.gov/healthcare-insurance/healthcare/plan-information/plans/', source: 'OPM.gov', badge: 'CIVILIAN' },
@@ -197,24 +195,25 @@ export default function MedicalReadinessTab({ theme, profile }) {
           { name: `${contractor.name} — Urgent Care Search`, desc: `Official ${contractor.name} urgent-care network search by ZIP.`, url: contractor.findCare, source: contractor.name },
           { name: `Google Maps — urgent care near ${installation}`, desc: 'Civilian urgent-care clinics near the gaining installation.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`urgent care near ${installation}`)}`, source: 'maps.google.com' },
         ],
+    // Behavioral Health absorbs the former "Mental Readiness" tab.
+    // Crisis line first, then policy + non-medical counseling, then
+    // covered medical care, then peer / self-help resources, then
+    // local discovery.
     behavioral: [
-      { name: 'TRICARE Mental Health Care', desc: 'Authoritative TRICARE information on covered mental-health services, including therapy, psychiatry, and substance-use treatment.', url: 'https://www.tricare.mil/mentalhealth', source: 'tricare.mil', badge: isCivilian ? 'REFERENCE' : 'TRICARE' },
-      ...(isCivilian
-        ? [{ name: 'Federal EAP — Counseling and Crisis Support', desc: 'Free confidential short-term counseling for civilians and household members; available 24/7.', url: 'https://www.opm.gov/policy-data-oversight/worklife/employee-assistance-programs/', source: 'OPM.gov', badge: 'CIVILIAN' }]
-        : [{ name: 'Military OneSource Non-Medical Counseling', desc: 'Free, confidential, short-term non-medical counseling. Does NOT enter the medical record.', url: 'https://www.militaryonesource.mil/benefits/confidential-counseling/', source: 'militaryonesource.mil', badge: 'CONFIDENTIAL' }]),
-      { name: 'Vet Center Locator', desc: 'Community-based counseling for combat veterans, family bereavement, and military sexual trauma. Confidential, no medical record.', url: 'https://www.va.gov/find-locations/?facilityType=vet_center', source: 'va.gov' },
-      { name: 'inTransition Coaching', desc: 'Free confidential mental-health transition coaching for service members between providers, locations, or active/reserve status.', url: 'https://www.health.mil/Military-Health-Topics/Mental-Health/inTransition', source: 'health.mil' },
-      { name: `${branch} Behavioral Health Resources`, desc: `Branch-specific behavioral health pointer for ${branch} members and dependents.`, url: 'https://www.health.mil/Military-Health-Topics/Mental-Health', source: 'health.mil' },
-      { name: `Google Maps — therapists & counselors near ${installation}`, desc: 'Real local therapists, psychiatrists, and counseling clinics around your gaining installation with photos, hours, ratings, and directions.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`therapist counseling psychiatrist near ${installation}`)}`, source: 'maps.google.com' },
-    ],
-    mental: [
       { name: 'Military Crisis Line — 988 then 1', desc: '24/7 confidential crisis support for service members, veterans, and family. Call 988 then press 1, text 838255, or chat online.', url: 'https://www.veteranscrisisline.net/', source: 'veteranscrisisline.net', badge: 'CRISIS', badgeBg: '#FECACA', badgeColor: '#7F1D1D' },
       { name: 'The Brandon Act', desc: 'Official guidance: service members may request a mental-health evaluation through the chain of command without explaining why.', url: 'https://health.mil/brandonact', source: 'health.mil', badge: 'POLICY' },
-      { name: 'Military OneSource Non-Medical Counseling', desc: 'Free 24/7 confidential non-medical counseling for service members and immediate family members.', url: 'https://www.militaryonesource.mil/benefits/confidential-counseling/', source: 'militaryonesource.mil' },
+      ...(isCivilian
+        ? [{ name: 'Federal EAP — Counseling and Crisis Support', desc: 'Free confidential short-term counseling for civilians and household members; available 24/7.', url: 'https://www.opm.gov/policy-data-oversight/worklife/employee-assistance-programs/', source: 'OPM.gov', badge: 'CIVILIAN' }]
+        : [{ name: 'Military OneSource Non-Medical Counseling', desc: 'Free, confidential, short-term non-medical counseling for service members and immediate family. Does NOT enter the medical record.', url: 'https://www.militaryonesource.mil/benefits/confidential-counseling/', source: 'militaryonesource.mil', badge: 'CONFIDENTIAL' }]),
       { name: 'Military & Family Life Counseling (MFLC)', desc: 'Free in-person or virtual non-medical counseling embedded at installations and schools.', url: 'https://www.militaryonesource.mil/programs/military-family-life-counseling/', source: 'militaryonesource.mil' },
+      { name: 'TRICARE Mental Health Care', desc: 'Authoritative TRICARE information on covered mental-health services, including therapy, psychiatry, and substance-use treatment.', url: 'https://www.tricare.mil/mentalhealth', source: 'tricare.mil', badge: isCivilian ? 'REFERENCE' : 'TRICARE' },
+      { name: 'Vet Center Locator', desc: 'Community-based counseling for combat veterans, family bereavement, and military sexual trauma. Confidential, no medical record.', url: 'https://www.va.gov/find-locations/?facilityType=vet_center', source: 'va.gov' },
+      { name: 'inTransition Coaching', desc: 'Free confidential mental-health transition coaching for service members between providers, locations, or active/reserve status.', url: 'https://www.health.mil/Military-Health-Topics/Mental-Health/inTransition', source: 'health.mil' },
       { name: 'VA PTSD Coach', desc: 'Free VA self-help mobile app for managing trauma symptoms, coping skills, and support referrals.', url: 'https://mobile.va.gov/app/ptsd-coach', source: 'mobile.va.gov' },
       { name: 'VA Mindfulness Coach', desc: 'Free VA app teaching mindfulness for daily stress and resilience.', url: 'https://mobile.va.gov/app/mindfulness-coach', source: 'mobile.va.gov' },
       { name: 'Moving Forward', desc: 'Free VA problem-solving and resilience training, especially for transitions and PCS stress.', url: 'https://www.veterantraining.va.gov/movingforward/', source: 'veterantraining.va.gov' },
+      { name: `${branch} Behavioral Health Resources`, desc: `Branch-specific behavioral health pointer for ${branch} members and dependents.`, url: 'https://www.health.mil/Military-Health-Topics/Mental-Health', source: 'health.mil' },
+      { name: `Google Maps — therapists & counselors near ${installation}`, desc: 'Real local therapists, psychiatrists, and counseling clinics around your gaining installation with photos, hours, ratings, and directions.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`therapist counseling psychiatrist near ${installation}`)}`, source: 'maps.google.com' },
       { name: `Google Maps — mental health support near ${installation}`, desc: 'Local mental-health support groups, drop-in counseling centers, and community mental-health clinics around the gaining installation.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`mental health support clinic near ${installation}`)}`, source: 'maps.google.com' },
     ],
     dental: isCivilian
@@ -267,20 +266,78 @@ export default function MedicalReadinessTab({ theme, profile }) {
         ],
   };
 
-  // Sub-tab content. Hoist Google-Maps facility-locator entries to
-  // the top of the list with a distinct "FACILITY LOCATOR" badge so
-  // users see the "where can I go for this care" answer FIRST,
-  // before the policy / reference / contractor cards.
-  const rawItems = RESOURCES[tab] || [];
-  const items = (() => {
-    const locators = rawItems
+  // Holistic Health sections. Medical Care concatenates the seven
+  // legacy bundles with section headers; Behavioral Health is a flat
+  // list of crisis + policy + counseling + therapy + reference links;
+  // Spiritual Care lists chaplaincy / pastoral care available in
+  // medical settings; Fitness has its own three-section layout.
+  const RESOURCES = {
+    medical: [
+      { _section: 'Emergency Care',          items: RES_BUNDLE.emergency },
+      { _section: 'Hospital / MTF',          items: RES_BUNDLE.hospital  },
+      { _section: 'Urgent Care',             items: RES_BUNDLE.urgent    },
+      { _section: 'Dental',                  items: RES_BUNDLE.dental    },
+      { _section: 'Vision',                  items: RES_BUNDLE.vision    },
+      { _section: 'Pharmacy',                items: RES_BUNDLE.pharmacy  },
+      { _section: 'Preventive Care & Readiness', items: RES_BUNDLE.readiness },
+    ],
+    behavioral: [
+      { _section: 'Behavioral Health & Counseling', items: RES_BUNDLE.behavioral },
+    ],
+    spiritual: [
+      { _section: 'Chaplaincy & Pastoral Care', items: [
+        { name: `Contact the ${installation} Installation Chaplain`, desc: 'Reach the duty chaplain at your gaining installation 24/7. Chaplains visit MTF inpatients, support family in critical-care settings, and provide free, confidential pastoral counseling for service members and dependents of all faith backgrounds (or none).', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`installation chaplain office near ${installation}`)}`, source: 'maps.google.com', badge: 'INSTALLATION' },
+        { name: 'MTF Pastoral Care', desc: 'Most military treatment facilities have a Pastoral Care office that coordinates chaplain visits for inpatients, surgery candidates, and family members during critical or end-of-life care. Ask the MTF charge nurse to contact Pastoral Care.', url: 'https://www.health.mil/Military-Health-Topics/Mental-Health/Chaplaincy', source: 'health.mil', badge: 'MTF' },
+        { name: 'Army Chaplain Corps', desc: 'Official U.S. Army Chaplain Corps directory and worldwide-locator information.', url: 'https://www.army.mil/chaplaincorps/', source: 'army.mil' },
+        { name: 'Navy Chaplain Corps', desc: 'Official U.S. Navy Chaplain Corps reference — also serves Marine Corps and Coast Guard.', url: 'https://www.navy.mil/Resources/Navy-Chaplain-Corps/', source: 'navy.mil' },
+        { name: 'Air Force Chaplain Corps', desc: 'Official U.S. Air Force Chaplain Corps reference — also serves Space Force.', url: 'https://www.af.mil/About-Us/Fact-Sheets/Display/Article/104584/chaplain-corps/', source: 'af.mil' },
+      ]},
+      { _section: 'Faith-Based Counseling & Support', items: [
+        { name: 'Military Chaplaincy — Confidential Counseling', desc: 'Conversations with a military chaplain are privileged. Chaplains do not document or report what you share — useful when seeking spiritual support around grief, marriage, deployment, or moral injury without it entering your medical record.', url: 'https://www.health.mil/Military-Health-Topics/Mental-Health/Chaplaincy', source: 'health.mil', badge: 'CONFIDENTIAL' },
+        { name: 'VA Chaplain Service', desc: 'For veterans and family members receiving VA care, the VA Chaplain Service provides pastoral support at VA medical centers and hospice settings.', url: 'https://www.patientcare.va.gov/chaplain/', source: 'va.gov', badge: 'VETERAN' },
+        { name: 'Stephen Ministries / parish-based grief care', desc: 'Many local congregations near military communities offer trained lay grief, marriage, and chronic-illness pastoral companions. The installation chaplain office can refer you to vetted local options.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`parish pastoral grief support near ${installation}`)}`, source: 'maps.google.com' },
+      ]},
+    ],
+    fitness: [
+      { _section: 'On-Base Gym & Fitness Facilities', items: [
+        { name: `MWR Fitness Center at ${installation}`, desc: 'Free access for service members, retirees, and accompanying family at the installation MWR / Force Fitness Instructor / Air Force Personnel Center fitness centers. Hours vary by base — call ahead or check the installation MWR site.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`MWR fitness center gym ${installation}`)}`, source: 'maps.google.com', badge: 'INSTALLATION' },
+        { name: 'Air Force / Space Force Fit-to-Fight Gyms', desc: 'AFI 36-2905 / AFFMP — every AF base offers a fitness assessment cell and 24/7 gym access. Look for the Fitness Assessment Cell at the main FAC.', url: 'https://www.afpc.af.mil/Career-Management/Fitness-Program/', source: 'af.mil' },
+        { name: 'Army H2F (Holistic Health & Fitness) Centers', desc: 'Army Holistic Health and Fitness facilities at brigade combat teams — strength, conditioning, nutrition coaching, performance physical therapy.', url: 'https://www.army.mil/h2f/', source: 'army.mil' },
+        { name: `Off-base gyms near ${installation}`, desc: 'Civilian fitness chains and CrossFit boxes near the gaining installation — often offer military discount memberships.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`gym fitness near ${installation}`)}`, source: 'maps.google.com' },
+      ]},
+      { _section: 'Staying Fit During PCS Travel', items: [
+        { name: 'Military OneSource — Fitness & Health', desc: 'Official Military OneSource health and fitness toolkit. Includes packable workout routines, mental-health connection between exercise and resilience, and travel-day fitness tips.', url: 'https://www.militaryonesource.mil/health-wellness/fitness-and-nutrition/', source: 'militaryonesource.mil', badge: 'FREE' },
+        { name: 'Operation Supplement Safety (OPSS)', desc: 'Official DoD database of supplement safety for service members. Useful before adding any caffeine / energy / pre-workout supplement during a high-stress move.', url: 'https://www.opss.org/', source: 'opss.org' },
+        { name: 'Hotel-room workout routines', desc: 'Bodyweight circuits you can do in a 6 ft × 6 ft space: 100 burpees, 5×20 push-ups, 5×30-second planks, walking lunges, hip bridges. No equipment, 20–30 minutes. Maintains baseline conditioning through a 10–14-day TLE / TLA stay.', url: 'https://www.armyfit.com/', source: 'armyfit.com' },
+        { name: 'PCS travel days — movement basics', desc: 'Get up every 90 minutes on long drives or flights to walk, stretch hips and calves, and hydrate. Sleep deprivation + sitting + dehydration on a PCS week is the most common combination behind soft-tissue injuries during in-processing PT.', url: 'https://www.health.mil/Military-Health-Topics/Total-Force-Fitness', source: 'health.mil' },
+      ]},
+      { _section: 'Diet & Meal Tips for Traveling', items: [
+        { name: 'Performance Triad — Nutrition', desc: 'Army Performance Triad (Sleep • Activity • Nutrition) — free official guide to fueling during high-stress periods including PCS. Sample meal plans for active duty and family members.', url: 'https://armyhealth.com/performance-triad/', source: 'armyhealth.com', badge: 'FREE' },
+        { name: 'MyPlate.gov — federal nutrition basics', desc: 'USDA MyPlate — simple plate-portion model that works at hotel breakfast bars, gas-station stops, and base DFAC chow lines.', url: 'https://www.myplate.gov/', source: 'myplate.gov' },
+        { name: 'TRICARE Nutrition Counseling', desc: 'TRICARE-covered medical nutrition therapy with a Registered Dietitian, available before, during, and after the PCS for diabetes, weight management, and high cholesterol.', url: 'https://www.tricare.mil/CoveredServices/IsItCovered/NutritionCounseling', source: 'tricare.mil', badge: isCivilian ? 'REFERENCE' : 'TRICARE' },
+        { name: 'Cooler & cold-pack meal planning for the drive', desc: 'Pre-pack hard-boiled eggs, nut butter sandwiches, fruit, carrots, hummus, and refillable water bottles for the first 24–48 hours of POV travel. Avoids the gas-station calorie spiral that derails fitness scores in the weeks after PCS.', url: 'https://www.militaryonesource.mil/health-wellness/fitness-and-nutrition/healthy-eating/', source: 'militaryonesource.mil' },
+        { name: `Grocery stores & farmers markets near ${installation}`, desc: 'Stock up at the commissary or local grocery within the first 48 hours of arrival to reset away from travel food and restart cooking at home.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`grocery commissary farmers market near ${installation}`)}`, source: 'maps.google.com' },
+      ]},
+    ],
+  };
+
+  // Each tab's data is now an array of `{_section, items}` blocks. We
+  // still hoist Google-Maps "FACILITY LOCATOR" entries to the top of
+  // each section's item list so users see the "where can I go" answer
+  // first, then policy / reference / contractor cards.
+  const sections = RESOURCES[tab] || [];
+  const decorate = (raw) => {
+    const locators = raw
       .filter(i => i.source === 'maps.google.com')
-      .map(i => ({ ...i, badge: 'FACILITY LOCATOR', badgeBg: '#E3F2FD', badgeColor: '#0D3B66' }));
-    const others = rawItems.filter(i => i.source !== 'maps.google.com');
+      .map(i => ({ ...i, badge: i.badge || 'FACILITY LOCATOR', badgeBg: i.badgeBg || '#E3F2FD', badgeColor: i.badgeColor || '#0D3B66' }));
+    const others = raw.filter(i => i.source !== 'maps.google.com');
     return [...locators, ...others];
-  })();
-  const showEmergencyBanner = tab === 'emergency';
-  const showCrisisBanner = tab === 'mental' || tab === 'behavioral';
+  };
+  // The Emergency banner now lives on the Medical tab (since ER care
+  // is the highest-acuity item in that pillar). The Crisis banner
+  // lives on Behavioral Health.
+  const showEmergencyBanner = tab === 'medical';
+  const showCrisisBanner = tab === 'behavioral';
 
   return (
     <div>
@@ -301,7 +358,7 @@ export default function MedicalReadinessTab({ theme, profile }) {
 
         {/* Header context */}
         <div style={{ background: theme.secondary || '#1A3A5C', borderRadius: 12, padding: 14, marginBottom: 14, borderLeft: `3px solid ${colors.accent}` }}>
-          <div style={{ fontSize: 10, fontWeight: 900, color: colors.accent, letterSpacing: '.14em', marginBottom: 4 }}>MEDICAL READINESS</div>
+          <div style={{ fontSize: 10, fontWeight: 900, color: colors.accent, letterSpacing: '.14em', marginBottom: 4 }}>HOLISTIC HEALTH</div>
           <div style={{ fontSize: 13, fontWeight: 900, color: '#FFF', marginBottom: 5 }}>
             {subTabs.find(s => s.id === tab)?.label} — {isCivilian ? 'DoD Civilian (FEHB)' : `${branch} ${region === 'Overseas' ? 'OCONUS' : 'CONUS'}`}
           </div>
@@ -312,8 +369,20 @@ export default function MedicalReadinessTab({ theme, profile }) {
           </div>
         </div>
 
-        {/* Resource cards */}
-        {items.map(item => <ResourceCard key={item.name} item={item} theme={theme} />)}
+        {/* Sectioned resource cards. Each section gets a clear header
+            so the Medical Care pillar (7 sub-categories) and the
+            Fitness pillar (3 sub-categories) stay scannable in a
+            single tab. */}
+        {sections.map((sec, sIdx) => (
+          <section key={sec._section || sIdx} aria-label={sec._section} style={{ marginBottom: 16 }}>
+            {sec._section && (
+              <div style={{ fontSize: 11, fontWeight: 900, color: colors.primary, letterSpacing: '.10em', marginBottom: 8, paddingBottom: 4, borderBottom: `1px solid ${colors.primary}30` }}>
+                {String(sec._section).toUpperCase()}
+              </div>
+            )}
+            {decorate(sec.items || []).map(item => <ResourceCard key={item.name} item={item} theme={theme} />)}
+          </section>
+        ))}
 
         {/* Regional contractor footer */}
         {!isCivilian && (

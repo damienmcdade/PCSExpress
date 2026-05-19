@@ -312,7 +312,7 @@ const ONLINE_RESOURCES = [
 ]
 
 function ReligiousServicesModule({ theme, profile }) {
-  const [activeTab, setActiveTab] = useState('counseling')
+  const [activeTab, setActiveTab] = useState('chaplains')
 
   // Live places of worship from OSM Overpass (no API key required).
   // Falls through to the curated/static lists below when empty.
@@ -424,7 +424,7 @@ function ReligiousServicesModule({ theme, profile }) {
   const instName = (profile?.gainingInstallation || '').split(',')[0].trim() || 'your installation'
 
   const TABS = [
-    { id: 'counseling', label: 'Counseling', icon: '🤝' },
+    { id: 'chaplains', label: 'Chaplains', icon: '🤝' },
     { id: 'services', label: 'Services', icon: '⛪' },
   ]
 
@@ -718,201 +718,78 @@ function ReligiousServicesModule({ theme, profile }) {
         </div>
       )}
 
-      {/* ── COUNSELING TAB ── */}
-      {activeTab === 'counseling' && (
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 10, letterSpacing: 0.5 }}>
-            YOUR BRANCH SUPPORT CENTER
-          </div>
-          <div style={{ ...card(), borderLeft: `4px solid ${theme.primary}` }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>
-              {branchSupport.name}
+      {/* ── CHAPLAINS TAB ── */}
+      {/* Installation-scoped only. Lists the on-base chaplain offices at
+          the gaining installation (from RELIGIOUS_SERVICES) plus the
+          branch Chaplain Corps reference. Generic non-medical counseling
+          resources (MFLC, OneSource counseling, civilian providers)
+          live on the Medical Readiness → Behavioral Health tab to avoid
+          duplication. */}
+      {activeTab === 'chaplains' && (() => {
+        const onBaseChaplains = services.filter(s => s.onBase)
+        return (
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 10, letterSpacing: 0.5 }}>
+              CHAPLAINS AT {instName.toUpperCase()}
             </div>
-            <div style={{
-              display: 'inline-block',
-              background: `${theme.primary}15`,
-              color: theme.primary,
-              fontSize: 10,
-              fontWeight: 700,
-              padding: '2px 8px',
-              borderRadius: 10,
-              marginBottom: 8,
-            }}>
-              {branchSupport.branch}
-            </div>
-            <div style={{ fontSize: 11, color: '#34495E', marginBottom: 10, lineHeight: 1.6 }}>
-              {branchSupport.description}
-            </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <a
-                href={branchSupport.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  flex: 1,
-                  padding: '9px',
-                  borderRadius: 8,
-                  background: theme.primary,
-                  color: '#FFFFFF',
-                  textDecoration: 'none',
-                  fontWeight: 700,
-                  fontSize: 11,
-                  textAlign: 'center',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                Visit Website
-              </a>
-              {branchSupport.phone && (
-                <button
-                  onClick={() => window.open(`tel:${branchSupport.phone}`)}
-                  style={{
-                    flex: 1,
-                    padding: '9px',
-                    borderRadius: 8,
-                    background: '#E3F2FD',
-                    color: '#1565C0',
-                    border: 'none',
-                    fontWeight: 700,
-                    fontSize: 11,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span style={{ marginRight: 4 }}>📞</span>Call
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 10, marginTop: 4, letterSpacing: 0.5 }}>
-            CONFIDENTIAL COUNSELING
-          </div>
-          <div style={{ ...card(), borderLeft: '4px solid #4CAF50', background: '#F1F8E9' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#1B5E20', marginBottom: 4 }}>
-              Military Family Life Counseling (MFLC)
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-              {['Free', 'Confidential', 'Non-Reportable', 'No Referral Needed'].map((tag) => (
-                <div key={tag} style={{
-                  background: '#C8E6C9',
-                  color: '#1B5E20',
-                  fontSize: 9,
-                  fontWeight: 700,
-                  padding: '2px 8px',
-                  borderRadius: 10,
-                  letterSpacing: 0.3,
-                }}>
-                  {tag.toUpperCase()}
+            {onBaseChaplains.length === 0 ? (
+              <div style={{ ...card(), background: '#F5F5F5', borderLeft: `3px solid ${theme.primary}` }}>
+                <div style={{ fontSize: 12, color: '#56697C', lineHeight: 1.6 }}>
+                  No on-base chapel directory is stored for {instName} yet. Contact your branch Chaplain Corps below or your gaining unit's Unit Ministry Team for current chaplain coverage at the installation.
                 </div>
-              ))}
-            </div>
-            <div style={{ fontSize: 11, color: '#34495E', marginBottom: 10, lineHeight: 1.6 }}>
-              Short-term, solution-focused counseling for service members and families. Addresses stress, relationships, deployment, grief, and personal challenges. No documentation in military records.
-            </div>
-            <button
-              onClick={() => window.open('tel:800-342-9647')}
-              style={{
-                width: '100%',
-                padding: '10px',
-                borderRadius: 8,
-                background: '#4CAF50',
-                color: '#FFFFFF',
-                border: 'none',
-                fontWeight: 700,
-                fontSize: 12,
-                cursor: 'pointer',
-              }}
-            >
-              <span style={{ marginRight: 6 }}>📞</span>Call MFLC: 800-342-9647
-            </button>
-          </div>
-
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 10, marginTop: 4, letterSpacing: 0.5 }}>
-            ADDITIONAL RESOURCES
-          </div>
-
-          {[
-            {
-              name: 'Military Chaplain Services',
-              description: 'Free, confidential spiritual counseling for all service members and their families. Chaplains serve all faiths and no-faith service members.',
-              availability: '24/7 Emergency available',
-              phone: '(800) 273-8255',
-              accent: theme.primary,
-            },
-            {
-              name: 'Military OneSource',
-              description: 'Free counseling sessions (up to 12 non-medical), financial counseling, legal referrals, and specialty consultations for service members and families.',
-              availability: '24/7',
-              phone: '(800) 342-9647',
-              accent: theme.secondary || theme.primary,
-            },
-            {
-              name: 'Faith & Family Support',
-              description: 'Spiritual counseling for military families during PCS, deployment, and reintegration. Available at most installations.',
-              availability: 'Mon–Fri 8:00 AM – 5:00 PM',
-              phone: '(910) 396-5000',
-              accent: '#7B1FA2',
-            },
-          ].map((resource, idx) => (
-            <div key={idx} style={{ ...card(), borderLeft: `3px solid ${resource.accent}` }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 6 }}>
-                {resource.name}
               </div>
-              <div style={{ fontSize: 11, color: '#34495E', marginBottom: 8, lineHeight: 1.5 }}>
-                {resource.description}
+            ) : onBaseChaplains.map((c) => (
+              <div key={c.id} style={{ ...card(), borderLeft: `4px solid ${theme.primary}` }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>
+                  {c.name}
+                </div>
+                <div style={{ display: 'inline-block', background: `${theme.primary}15`, color: theme.primary, fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, marginBottom: 8 }}>
+                  {c.denomination}
+                </div>
+                <div style={{ fontSize: 11, color: '#34495E', marginBottom: 8, lineHeight: 1.6 }}>
+                  {c.address}
+                </div>
+                {Array.isArray(c.mass) && c.mass.length > 0 && (
+                  <div style={{ background: '#F5F5F5', padding: '8px 10px', borderRadius: 6, marginBottom: 10, fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>
+                    <div style={{ fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>Service / prayer schedule</div>
+                    {c.mass.map((m, i) => <div key={i}>· {m}</div>)}
+                  </div>
+                )}
+                {c.phone && (
+                  <button onClick={() => window.open(`tel:${c.phone}`)} style={{ width: '100%', padding: '10px', borderRadius: 8, background: theme.primary, color: '#FFFFFF', border: 'none', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                    <span style={{ marginRight: 6 }}>📞</span>Call chaplain office: {c.phone}
+                  </button>
+                )}
               </div>
-              <div style={{
-                background: '#F5F5F5',
-                padding: '7px 10px',
-                borderRadius: 6,
-                marginBottom: 10,
-                fontSize: 10,
-                color: '#56697C',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-              }}>
-                <span>🕐</span>
-                {resource.availability}
-              </div>
-              <button
-                onClick={() => window.open(`tel:${resource.phone}`)}
-                style={{
-                  width: '100%',
-                  padding: '9px',
-                  borderRadius: 8,
-                  background: resource.accent,
-                  color: '#FFFFFF',
-                  border: 'none',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  fontSize: 11,
-                }}
-              >
-                <span style={{ marginRight: 6 }}>📞</span>Call: {resource.phone}
-              </button>
-            </div>
-          ))}
+            ))}
 
-          <div style={{
-            background: `${theme.primary}10`,
-            border: `1px solid ${theme.primary}30`,
-            borderRadius: 12,
-            padding: '14px',
-            marginTop: 8,
-            fontSize: 11,
-            color: theme.primary,
-            lineHeight: 1.8,
-          }}>
-            <strong>All services are:</strong>
-            <div style={{ marginTop: 6 }}>
-              Confidential · Non-judgmental · Free for all service members and families · Available 24/7 for emergencies
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 10, marginTop: 16, letterSpacing: 0.5 }}>
+              BRANCH CHAPLAIN CORPS REFERENCE
+            </div>
+            <div style={{ ...card(), borderLeft: `4px solid ${theme.primary}` }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#0D1821', marginBottom: 4 }}>
+                {branchSupport.name}
+              </div>
+              <div style={{ display: 'inline-block', background: `${theme.primary}15`, color: theme.primary, fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, marginBottom: 8 }}>
+                {branchSupport.branch}
+              </div>
+              <div style={{ fontSize: 11, color: '#34495E', marginBottom: 10, lineHeight: 1.6 }}>
+                {branchSupport.description}
+              </div>
+              <a href={branchSupport.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '9px', borderRadius: 8, background: theme.primary, color: '#FFFFFF', textDecoration: 'none', fontWeight: 700, fontSize: 11, textAlign: 'center' }}>
+                Visit Chaplain Corps website
+              </a>
+            </div>
+
+            <div style={{ background: `${theme.primary}10`, border: `1px solid ${theme.primary}30`, borderRadius: 12, padding: '14px', marginTop: 8, fontSize: 11, color: theme.primary, lineHeight: 1.7 }}>
+              <strong>Chaplain confidentiality:</strong>
+              <div style={{ marginTop: 6 }}>
+                Conversations with a military chaplain are protected — chaplains do not document or report what you share. Available 24/7 through the installation chaplain duty line. For non-spiritual counseling (stress, family, financial), see Medical Readiness → Behavioral Health.
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
     </div>
   )
 }
