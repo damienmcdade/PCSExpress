@@ -213,11 +213,29 @@ export default function BAHCalculatorTab({ theme, profile }) {
 
       {dutyStation && oconus && (
         <div style={{ background: '#FFF3E0', border: '1.5px solid #FFB74D', borderRadius: 14, padding: 16, marginBottom: 14 }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: '#E65100', marginBottom: 4 }}>OCONUS Assignment — OHA Applies</div>
-          <div style={{ fontSize: 12, color: '#6D4C00', lineHeight: 1.6 }}>
-            Members assigned to OCONUS installations receive <strong>Overseas Housing Allowance (OHA)</strong>, not BAH. OHA rates are set by duty country and pay grade via DTMO. Contact your gaining unit's housing office for your specific OHA rate and Foreign Currency Allowance.
+          <div style={{ fontSize: 13, fontWeight: 800, color: '#E65100', marginBottom: 4 }}>OCONUS Assignment — OHA Applies (not BAH)</div>
+          <div style={{ fontSize: 12, color: '#6D4C00', lineHeight: 1.6, marginBottom: 12 }}>
+            <strong>{dutyStation}</strong> is overseas. Members assigned OCONUS receive <strong>Overseas Housing Allowance (OHA)</strong>, <strong>Move-In Housing Allowance (MIHA)</strong>, and a <strong>Utility / Recurring Maintenance Allowance</strong> — not BAH. Civilians receive <strong>Living Quarters Allowance (LQA)</strong> under DSSR §130. Rates depend on the specific city/locality, pay grade, and dependency status; look them up at DTMO and confirm with the gaining housing office.
           </div>
-          <a href="https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 10, fontSize: 12, color: theme.primary, fontWeight: 700 }}>View OHA rates at DTMO →</a>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+            {[
+              { name: 'DTMO — OHA rate lookup',                  url: 'https://www.defensetravel.dod.mil/site/oha.cfm',                          who: 'Military', desc: 'Look up the current OHA rent ceiling and utility/recurring maintenance allowance for your specific overseas locality.' },
+              { name: 'DTMO — MIHA overview',                    url: 'https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/',       who: 'Military', desc: 'Move-In Housing Allowance components: MIHA-Rent, MIHA-Security, MIHA-Miscellaneous — one-time payments for OCONUS move-in.' },
+              { name: 'DTMO — COLA lookup',                      url: 'https://www.travel.dod.mil/Allowances/Cost-of-Living-Allowance/',         who: 'Military', desc: 'Cost-of-Living Allowance (COLA) for high-cost OCONUS localities. Paid in addition to OHA/MIHA. Adjusted twice per month.' },
+              { name: 'DSSR §130 — Living Quarters Allowance',   url: 'https://aoprals.state.gov/content.asp?content_id=171&menu_id=92',         who: 'DoD Civilian', desc: 'Department of State Standardized Regulations §130 — LQA eligibility, rate tables, and computation rules for U.S. government civilians overseas.' },
+              { name: 'DSSR §240 — TQSA',                        url: 'https://aoprals.state.gov/content.asp?content_id=204&menu_id=92',         who: 'DoD Civilian', desc: 'Temporary Quarters Subsistence Allowance — up to 90 days of overseas temporary lodging while you search for permanent quarters.' },
+              { name: 'HOMES.mil — Gaining Housing Office',      url: 'https://www.homes.mil',                                                   who: 'All',          desc: 'DoD Housing Office portal — start here to confirm on-base wait time and OHA-eligible off-base options at your gaining installation.' },
+              { name: 'AHRN.com — Off-base rentals',              url: 'https://www.ahrn.com',                                                    who: 'All',          desc: 'DoD-sponsored Automated Housing Referral Network — pre-screened off-base rentals with military-friendly lease language.' },
+            ].map(r => (
+              <a key={r.name} href={r.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', color: 'inherit', background: '#FFFFFF', border: '1px solid #FFE0B2', borderRadius: 10, padding: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: '#0D1821' }}>{r.name}</div>
+                  <span style={{ fontSize: 9, fontWeight: 900, background: '#FFE0B2', color: '#6D4C00', padding: '2px 6px', borderRadius: 8, whiteSpace: 'nowrap' }}>{r.who}</span>
+                </div>
+                <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5 }}>{r.desc}</div>
+              </a>
+            ))}
+          </div>
         </div>
       )}
 
