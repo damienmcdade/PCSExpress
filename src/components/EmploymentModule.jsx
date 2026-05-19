@@ -435,6 +435,23 @@ function cityFor(profile) {
   return BASE_CITY[installation] || installation
 }
 
+// Keyword-based OCONUS check that matches the same install names used
+// by the rest of the app. DOL American Job Centers do not exist outside
+// the U.S., so we use this to filter out CONUS-only employment cards
+// and substitute overseas-appropriate guidance.
+const OCONUS_INSTALL_KEYWORDS = ['korea','germany','japan','italy','guam','okinawa','cuba','bahrain','kuwait','qatar','djibouti',
+  'humphreys','daegu','yongsan','ramstein','kaiserslautern','spangdahlem','wiesbaden','grafenwoehr','grafenwöhr',
+  'vilseck','baumholder','ansbach','stuttgart','torii','kadena','misawa','camp zama','yokosuka',
+  'sasebo','naples','vicenza','aviano','sigonella','rota','moron','morón','incirlik','lemonier','osan',
+  'yokota','atsugi','iwakuni','futenma','foster','butler','courtney','hansen','schwab','andersen',
+  'lakenheath','mildenhall','souda','souda bay','singapore','stavanger','poland','belgium','netherlands',
+  'kosovo','greenland','pituffik','thule','diego garcia','guantanamo']
+function isOconusProfile(profile) {
+  const raw = String(profile?.gainingInstallation || profile?.gaining || '').toLowerCase()
+  if (!raw) return false
+  return OCONUS_INSTALL_KEYWORDS.some(kw => raw.includes(kw))
+}
+
 function encoded(value) {
   return encodeURIComponent(String(value || '').trim())
 }
@@ -492,6 +509,36 @@ function EmploymentModule({ theme, profile }) {
   const copy = useCopy(profile)
   const installation = installLabel(profile)
   const searchCity = cityFor(profile)
+  const oconus = isOconusProfile(profile)
+
+  // American Job Centers are DOL services that exist only inside the
+  // U.S. and territories. For OCONUS markets we drop those cards and
+  // substitute NATO civilian / DoDCIVS / host-nation labor agency
+  // resources that actually apply where the spouse lives.
+  const OCONUS_EMPLOYMENT_SUPPLEMENT = useMemo(() => ([
+    { name: 'DoD Civilian Personnel (DCPAS) Overseas Hiring', badgeKey: 'federal', url: 'https://www.dcpas.osd.mil/career-resources/overseas-employment', desc: 'Official DoD guide to civilian employment overseas, including family-member preference (FMP), eligibility, and PCS-linked hiring paths.', official: true, color: '#1F4E79' },
+    { name: 'USAJOBS Overseas Filter', badgeKey: 'federal', url: 'https://www.usajobs.gov/Search/Results?l=&p=Outside%20the%20United%20States', desc: 'Federal job listings restricted to positions located outside the United States — includes DoD civilian, State Department, and other agency overseas roles.', official: true, color: '#2C6E49' },
+    { name: 'NATO International Civilian Jobs', badgeKey: 'external', url: 'https://www.nato.int/cps/en/natohq/employment.htm', desc: 'NATO HQ civilian employment portal. Open to citizens of NATO member nations including the U.S. Useful for spouses near Brussels, Mons (SHAPE), and Naples.', official: false, color: '#0A66C2' },
+    { name: 'Defense Civilian Intelligence Personnel System (DCIPS) Overseas', badgeKey: 'federal', url: 'https://www.dcips.mil/', desc: 'Federal civilian intelligence community careers, including overseas mission-essential positions.', official: true, color: '#5B3E8A' },
+    { name: 'Military Spouse Preference (PPP-S) Overseas', badgeKey: 'spouse', url: 'https://www.dcpas.osd.mil/career-resources/military-spouse-preference', desc: 'Official DoD military-spouse preference program for relocating spouses competing for federal civilian positions, including overseas vacancies.', official: true, color: '#176B6B' },
+    { name: 'Local national / host-nation job boards', badgeKey: 'external', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`labor ministry job center near ${installation}`)}`, desc: 'Quick Google Maps deep-link to find the official host-nation labor ministry office near your gaining installation (e.g., Germany Arbeitsagentur, Italy Centro per l’Impiego, Japan Hello Work, Korea Worknet).', official: false, color: '#334155' },
+  ]), [installation])
+
+  const workshopsResources = useMemo(() => {
+    if (!oconus) return RESOURCE_SETS.workshops
+    return [
+      ...RESOURCE_SETS.workshops.filter(r => !/american job center/i.test(r.name)),
+      ...OCONUS_EMPLOYMENT_SUPPLEMENT.slice(0, 3),
+    ]
+  }, [oconus, OCONUS_EMPLOYMENT_SUPPLEMENT])
+
+  const connectionsResources = useMemo(() => {
+    if (!oconus) return RESOURCE_SETS.connections
+    return [
+      ...RESOURCE_SETS.connections.filter(r => !/american job center/i.test(r.name)),
+      ...OCONUS_EMPLOYMENT_SUPPLEMENT.slice(2),
+    ]
+  }, [oconus, OCONUS_EMPLOYMENT_SUPPLEMENT])
 
   // Live job listings from /api/job-listings (RemoteOK + USAJOBS).
   // Empty + fallback=true => keep the existing static portal search
@@ -699,7 +746,7 @@ function EmploymentModule({ theme, profile }) {
       {activeTab === 'workshops' && (
         <div>
           <SectionIntro title={copy.text('tabWorkshops')} lead={copy.text('leadWorkshops')} />
-          {renderCards(RESOURCE_SETS.workshops)}
+          {renderCards(workshopsResources)}
         </div>
       )}
 
@@ -727,7 +774,7 @@ function EmploymentModule({ theme, profile }) {
       {activeTab === 'connections' && (
         <div>
           <SectionIntro title={copy.text('tabConnections')} lead={copy.text('leadConnections')} />
-          {renderCards(RESOURCE_SETS.connections)}
+          {renderCards(connectionsResources)}
         </div>
       )}
 

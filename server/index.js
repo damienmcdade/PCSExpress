@@ -1302,7 +1302,7 @@ app.get('/api/market-stats', marketStatsRateLimit, async (req, res) => {
   const cacheKey = `${city}|${state}|${zip}`
   const cached = MARKET_STATS_CACHE.get(cacheKey)
   if (cached && Date.now() - cached.fetchedAt < MARKET_STATS_TTL_MS) {
-    return res.status(200).json({ stats: cached.stats, fallback: false, source: 'cache', fetchedAt: cached.fetchedAt })
+    return res.status(200).json({ stats: cached.stats, oconusHousing: cached.oconusHousing || null, fallback: false, source: 'cache', fetchedAt: cached.fetchedAt })
   }
 
   const [mortgageRate, medianHomePrice, homePriceIndex, fairMarketRent] = await Promise.all([
@@ -1318,12 +1318,30 @@ app.get('/api/market-stats', marketStatsRateLimit, async (req, res) => {
     homePriceIndex,                  // S&P/Case-Shiller (Jan 2000 = 100)
     fairMarketRent,                  // by bedroom count (HUD, CONUS only)
   }
-  const hasAnyData = Object.values(stats).some(v => v && (v.value != null || v.areaName))
+  // OCONUS housing affordability is governed by Overseas Housing
+  // Allowance (OHA) for military and Living Quarters Allowance (LQA)
+  // for civilians, not HUD Fair Market Rent. We surface a small set of
+  // canonical DoD/DSSR resources so the OCONUS user sees actionable
+  // guidance instead of an empty FMR card.
+  const oconusHousing = isOconusMarket(state) ? {
+    title: `OCONUS housing allowances apply at ${city ? `${city}, ${state}` : state}`,
+    body:  'HUD Fair Market Rent only covers U.S. localities. Overseas housing affordability is determined by your component’s OCONUS allowance:',
+    resources: [
+      { name: 'DoD Overseas Housing Allowance (OHA) rates',                url: 'https://www.defensetravel.dod.mil/site/oha.cfm',                          who: 'Military',                description: 'Official DTMO lookup for OHA rate, utility/recurring maintenance, and MIHA-Miscellaneous components at the gaining overseas locality.' },
+      { name: 'DoD Move-In Housing Allowance (MIHA) overview',             url: 'https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/',       who: 'Military',                description: 'MIHA-Rent, MIHA-Security, and MIHA-Miscellaneous one-time payments to help cover overseas move-in costs.' },
+      { name: 'DSSR §130 — Living Quarters Allowance (LQA)',               url: 'https://aoprals.state.gov/content.asp?content_id=171&menu_id=92',         who: 'DoD Civilian',            description: 'Department of State Standardized Regulations Section 130 — the LQA rules and rate tables for U.S. government civilians stationed overseas.' },
+      { name: 'DSSR §240 — Temporary Quarters Subsistence Allowance (TQSA)', url: 'https://aoprals.state.gov/content.asp?content_id=204&menu_id=92',       who: 'DoD Civilian',            description: 'DSSR Section 240 — TQSA covers up to 90 days of overseas temporary lodging while you search for permanent quarters.' },
+      { name: 'HOMES.mil — Gaining installation Housing Office',           url: 'https://www.homes.mil',                                                   who: 'All',                     description: 'DoD Housing Office portal — start here for current on-base wait times and approved off-base rental coordination.' },
+      { name: 'AHRN.com — Automated Housing Referral Network',             url: 'https://www.ahrn.com',                                                    who: 'All',                     description: 'DoD-sponsored off-base rental search and listing service. Pre-screened landlords, military-friendly lease language, in-country at most OCONUS bases.' },
+    ],
+  } : null
+  const hasAnyData = Object.values(stats).some(v => v && (v.value != null || v.areaName)) || !!oconusHousing
   if (hasAnyData) {
-    MARKET_STATS_CACHE.set(cacheKey, { stats, fetchedAt: Date.now() })
+    MARKET_STATS_CACHE.set(cacheKey, { stats, oconusHousing, fetchedAt: Date.now() })
   }
   res.status(200).json({
     stats,
+    oconusHousing,
     fallback: !hasAnyData,
     sources: {
       fred: FRED_API_KEY ? (mortgageRate ? 'ok' : 'error') : 'no-api-key',
@@ -1579,16 +1597,37 @@ app.get('/api/job-listings', jobsRateLimit, async (req, res) => {
   })
 
   const listings = deduped.slice(0, 40)
+
+  // OCONUS supplement. Live boards (USAJOBS, The Muse, RemoteOK) bias
+  // toward U.S. positions; OCONUS spouses near Ramstein/Camp Humphreys/
+  // Yokota benefit more from NATO civilian, DoDCIVS overseas hiring,
+  // and host-nation labor-agency portals. These appear as additional
+  // listing cards alongside whatever the live boards returned.
+  let oconusSupplement = []
+  if (isOconusMarket(state)) {
+    const where = city ? `${city}, ${state}` : state
+    oconusSupplement = [
+      { source: 'OCONUS Resource', title: 'USAJOBS — Overseas filter',                            url: 'https://www.usajobs.gov/Search/Results?l=&p=Outside%20the%20United%20States', company: 'OPM / USAJOBS',                       location: 'Outside the United States',         description: 'Federal job listings restricted to positions located outside the United States — includes DoD civilian, State Department, and other agency overseas roles. Use this filter for the most up-to-date overseas openings.', postedAt: '' },
+      { source: 'OCONUS Resource', title: 'DCPAS — DoD Civilian Overseas Employment',             url: 'https://www.dcpas.osd.mil/career-resources/overseas-employment',              company: 'DoD Civilian Personnel Advisory Service', location: 'Worldwide (DoD)',                   description: 'Official DoD guide to civilian employment overseas — Family Member Preference (FMP) eligibility, Priority Placement Program (PPP-S) for spouses, and PCS-linked hiring paths.',                                       postedAt: '' },
+      { source: 'OCONUS Resource', title: 'Military Spouse Preference (PPP-S)',                   url: 'https://www.dcpas.osd.mil/career-resources/military-spouse-preference',       company: 'DCPAS / DoD',                         location: 'Worldwide (military spouse)',       description: 'Apply your DoD military-spouse preference when competing for federal civilian positions at the gaining overseas installation. Required step for many OCONUS spouse hires.',                                          postedAt: '' },
+      { source: 'OCONUS Resource', title: 'NATO International Civilian Jobs',                     url: 'https://www.nato.int/cps/en/natohq/employment.htm',                           company: 'NATO Headquarters',                   location: 'Brussels / Mons (SHAPE) / Naples',  description: 'NATO HQ civilian employment portal — open to citizens of all NATO member nations. Useful for spouses near Brussels, SHAPE/Mons, and JFC Naples.',                                                                       postedAt: '' },
+      { source: 'OCONUS Resource', title: `Host-nation labor office near ${where}`,               url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`labor ministry job center near ${where}`)}`, company: 'Host nation labor ministry', location: where,                              description: 'Quick Google Maps deep-link to the official host-nation labor ministry office (e.g., Germany Arbeitsagentur, Italy Centro per l’Impiego, Japan Hello Work, Korea Worknet) near your gaining installation.',           postedAt: '' },
+    ]
+  }
+  const finalListings = oconusSupplement.length
+    ? [...oconusSupplement, ...listings].slice(0, 50)
+    : listings
+
   // Skip caching empty results so transient upstream failures (e.g.,
   // RemoteOK 403 from datacenter IPs) do not poison the cache.
-  if (listings.length > 0) {
-    JOBS_CACHE.set(cacheKey, { listings, sources, fetchedAt: Date.now() })
+  if (finalListings.length > 0) {
+    JOBS_CACHE.set(cacheKey, { listings: finalListings, sources, fetchedAt: Date.now() })
   }
 
   res.status(200).json({
-    listings,
+    listings: finalListings,
     sources,
-    fallback: listings.length === 0,
+    fallback: finalListings.length === 0,
     fetchedAt: Date.now(),
   })
 })

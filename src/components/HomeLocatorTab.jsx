@@ -115,16 +115,16 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
   // median home price, Case-Shiller HPI) + HUD User (Fair Market Rents
   // by bedroom count). Optional context above the listings grid;
   // hidden entirely when neither API key is configured.
-  const [marketStats, setMarketStats] = useState({ status: 'idle', stats: null });
+  const [marketStats, setMarketStats] = useState({ status: 'idle', stats: null, oconusHousing: null });
   useEffect(() => {
     if (!market.matched || (!market.city && !market.zip)) {
       setListings({ status: 'no-market', items: [], fallback: true, reason: 'unknown-installation' });
-      setMarketStats({ status: 'no-market', stats: null });
+      setMarketStats({ status: 'no-market', stats: null, oconusHousing: null });
       return;
     }
     let cancelled = false;
     setListings(s => ({ ...s, status: 'loading' }));
-    setMarketStats({ status: 'loading', stats: null });
+    setMarketStats({ status: 'loading', stats: null, oconusHousing: null });
     const params = new URLSearchParams();
     if (market.city) params.set('city', market.city);
     if (market.state) params.set('state', market.state);
@@ -215,16 +215,16 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
       headers: { Accept: 'application/json' },
       signal: statsAbort.signal,
     })
-      .then(r => r.ok ? r.json() : { stats: null, fallback: true })
+      .then(r => r.ok ? r.json() : { stats: null, oconusHousing: null, fallback: true })
       .then(data => {
         clearTimeout(statsTimer);
         if (cancelled) return;
-        setMarketStats({ status: 'ready', stats: data?.stats || null });
+        setMarketStats({ status: 'ready', stats: data?.stats || null, oconusHousing: data?.oconusHousing || null });
       })
       .catch(() => {
         clearTimeout(statsTimer);
         if (cancelled) return;
-        setMarketStats({ status: 'ready', stats: null });
+        setMarketStats({ status: 'ready', stats: null, oconusHousing: null });
       });
     return () => {
       cancelled = true;
@@ -340,6 +340,28 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
                 </div>
               </div>
             )}
+          </section>
+        );
+      })()}
+
+      {marketStats.status === 'ready' && marketStats.oconusHousing && (() => {
+        const oh = marketStats.oconusHousing;
+        return (
+          <section style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${colors.accent}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
+            <div style={{ fontSize: 10, fontWeight: 900, color: colors.accent, letterSpacing: '.08em', marginBottom: 4 }}>OVERSEAS HOUSING ALLOWANCE</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: colors.text, marginBottom: 4 }}>{oh.title}</div>
+            <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.55, marginBottom: 10 }}>{oh.body}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+              {oh.resources.map((r, idx) => (
+                <a key={idx} href={r.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', color: 'inherit', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 10, padding: 10 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: colors.text }}>{r.name}</div>
+                    <span style={{ fontSize: 9, fontWeight: 900, background: '#E3F2FD', color: '#0D3B66', padding: '2px 6px', borderRadius: 8, whiteSpace: 'nowrap' }}>{r.who}</span>
+                  </div>
+                  <div style={{ fontSize: 10, color: '#56697C', lineHeight: 1.5 }}>{r.description}</div>
+                </a>
+              ))}
+            </div>
           </section>
         );
       })()}

@@ -2016,6 +2016,7 @@ const BRANCH_PCS_CHECKLISTS = {
       "Arrange pet transport — obtain health certificates from vet (required 10 days before travel)",
       "Complete IPPS-A records update at current S1",
       "Spouse: enroll in SECO and MyCAA if eligible; verify state license reciprocity at gaining state",
+      "Spouse (OCONUS): enroll in SECO and MyCAA if eligible; research host-nation professional credential recognition (some U.S. licenses are honored on-base via DoD agreements but not in the local economy — verify with SECO before pursuing local employment)",
       "Schedule final dental Class 1/2 exam to clear deployable status",
       "Request copy of OMPF / iPERMS for personal records",
       "Update Wills, POAs, and Advance Medical Directives at base Legal Assistance Office",
@@ -2131,6 +2132,7 @@ const BRANCH_PCS_CHECKLISTS = {
       "Connect with gaining command Ombudsman or Family Support Group",
       "Arrange pet transport if needed",
       "Spouse: enroll in SECO / MyCAA; verify license reciprocity at gaining state",
+      "Spouse (OCONUS): enroll in SECO / MyCAA; research host-nation professional credential recognition — some U.S. licenses are honored on-base via DoD agreements but not in the local economy. Verify with SECO before pursuing local employment.",
       "Schedule final dental Class 1/2 exam to clear deployable status",
       "Request a complete OMPF / Electronic Service Record print for personal records",
       "Update Wills, POAs, and Advance Medical Directives at Legal Assistance",
@@ -2247,6 +2249,7 @@ const BRANCH_PCS_CHECKLISTS = {
       "Arrange pet transport if needed",
       "Research MCCS employment resources at gaining station",
       "Spouse: enroll in SECO / MyCAA; verify license reciprocity at gaining state",
+      "Spouse (OCONUS): enroll in SECO / MyCAA; research host-nation professional credential recognition — some U.S. licenses are honored on-base via DoD agreements but not in the local economy. Verify with SECO before pursuing local employment.",
       "Schedule final dental Class 1/2 exam to clear deployable status",
       "Update Wills, POAs, Advance Medical Directives at Legal Assistance",
       "Notify children's pediatrician of move — request 90-day prescription supply",
@@ -2363,6 +2366,7 @@ const BRANCH_PCS_CHECKLISTS = {
       "Arrange pet transport if needed",
       "Research AFAS (Air Force Aid Society) at gaining installation",
       "Spouse: enroll in SECO / MyCAA; verify license reciprocity at gaining state",
+      "Spouse (OCONUS): enroll in SECO / MyCAA; research host-nation professional credential recognition — some U.S. licenses are honored on-base via DoD agreements but not in the local economy. Verify with SECO before pursuing local employment.",
       "Schedule final dental Class 1/2 exam to clear deployable status",
       "Update Wills, POAs, Advance Medical Directives at Legal Assistance",
       "Notify children's pediatrician of move — request 90-day prescription supply",
@@ -2478,6 +2482,7 @@ const BRANCH_PCS_CHECKLISTS = {
       "Connect with gaining unit Guardian family support resources",
       "Arrange pet transport if needed",
       "Spouse: enroll in SECO / MyCAA; verify license reciprocity at gaining state",
+      "Spouse (OCONUS): enroll in SECO / MyCAA; research host-nation professional credential recognition — some U.S. licenses are honored on-base via DoD agreements but not in the local economy. Verify with SECO before pursuing local employment.",
       "Schedule final dental Class 1/2 exam to clear deployable status",
       "Update Wills, POAs, Advance Medical Directives at Legal Assistance",
       "Notify children's pediatrician of move — request 90-day prescription supply",
@@ -2595,6 +2600,7 @@ const BRANCH_PCS_CHECKLISTS = {
       "Arrange pet transport if needed",
       "Contact CGMAHQ (Coast Guard Mutual Assistance) for transition support",
       "Spouse: enroll in SECO / MyCAA; verify license reciprocity at gaining state",
+      "Spouse (OCONUS): enroll in SECO / MyCAA; research host-nation professional credential recognition — some U.S. licenses are honored on-base via DoD agreements but not in the local economy. Verify with SECO before pursuing local employment.",
       "Schedule final dental Class 1/2 exam to clear deployable status",
       "Update Wills, POAs, Advance Medical Directives at Legal Assistance",
       "Notify children's pediatrician of move — request 90-day prescription supply",
@@ -2700,6 +2706,7 @@ const DOD_CIVILIAN_CHECKLIST = {
     "Decide HHG vs PPM — civilian PPM is reimbursed at 95% of constructed government cost (different from military rates)",
     "Calculate Temporary Quarters Subsistence Expense (TQSE) entitlement under FTR §302-6 — up to 60 days CONUS, 90 days OCONUS",
     "Request a House Hunting Trip authorization (CONUS only, FTR §302-5) — round-trip travel for self and spouse",
+    "OCONUS housing reconnaissance: contact the gaining installation Housing Office (HOMES.mil) before HHG pack-out and pre-screen off-base rentals via AHRN.com or MilitaryByOwner — civilians overseas typically do not receive a House Hunting Trip authorization.",
   ],
   "60 Days Out": [
     "Schedule all medical and dental appointments under FEHB — get records before departure",
@@ -2796,6 +2803,20 @@ const CHECKLIST_FILTERS = [
     keep: (p) => p.moveType === 'PPM' },
   { pattern: /\boconus\b|no-fee passport|overseas screening|\bsofa\b|country clearance|host nation|host-nation|\bvisa\b/i,
     keep: (p) => p.isOverseas },
+  // House Hunting Trip (HHT) under FTR §302-5 is a CONUS-only DoD
+  // civilian benefit. Hide it on OCONUS so the OCONUS replacement task
+  // (housing-office + AHRN reconnaissance) reads as the canonical
+  // guidance instead of sitting next to a CONUS-only step the civilian
+  // cannot use.
+  { pattern: /house hunting trip/i,
+    keep: (p) => !p.isOverseas },
+  // State license reciprocity is a CONUS concept. OCONUS spouses need
+  // host-nation credential recognition guidance instead. Hide the
+  // CONUS line on OCONUS PCS; hide the OCONUS line on CONUS PCS.
+  { pattern: /license reciprocity at gaining state/i,
+    keep: (p) => !p.isOverseas },
+  { pattern: /host-nation professional credential recognition/i,
+    keep: (p) =>  p.isOverseas },
   // Reserve / National Guard orders-type gating. Tasks that depend on
   // PCS-tier entitlements (BAH, HHG, DLA, TLE/TQSE, on-post housing
   // application) are hidden when the user's orders type does not
@@ -7478,25 +7499,49 @@ function FamilyFunTab({ theme, profile }) {
 }
 
 function VAHomeLoanPanel({ theme, profile }) {
-  const steps = [
+  // VA-backed mortgages secure liens on U.S. real property; they are not
+  // available for purchases overseas. OCONUS veterans get a different
+  // checklist (off-base / on-base housing options) and resources pointing
+  // at AHRN, MilitaryByOwner, and the host-installation housing office.
+  const oconus = isOCONUSInstallation(profile?.gainingInstallation || profile?.gaining || '');
+  const conusSteps = [
     'Confirm VA loan eligibility through VA.gov or a VA-approved lender.',
     'Request a Certificate of Eligibility before making an offer when possible.',
     'Compare VA funding fee, interest rate, closing cost, and lender credit estimates.',
     'Ask each lender how they support PCS timelines, remote closings, and military income.',
     'Keep inspection, appraisal, and final closing dates aligned with report date and household goods delivery.',
   ];
-  const lenders = [
-    { name: 'VA Home Loan Overview', url: 'https://www.va.gov/housing-assistance/home-loans/', note: 'Official VA overview for VA-backed and VA direct home loan benefits.' },
-    { name: 'VA Home Buying Process', url: 'https://www.va.gov/housing-assistance/home-loans/home-buying-process', note: 'Step-by-step VA guidance for using a VA-backed loan to buy a home.' },
-    { name: 'VA Lender Resources', url: 'https://www.benefits.va.gov/homeloans/lenders.asp', note: 'Official VA lender resources and program information. This is guidance, not a private lender endorsement.' },
-    { name: 'CFPB Home Loan Toolkit', url: 'https://www.consumerfinance.gov/owning-a-home/', note: 'Official Consumer Financial Protection Bureau tools for comparing mortgage offers.' },
+  const oconusSteps = [
+    'VA-backed mortgages are not available for property purchased overseas. Plan for either on-base government housing or a rental/lease in the local economy.',
+    'Contact the gaining installation Housing Office before household goods (HHG) shipment to learn current on-base wait times and off-base lease standards.',
+    'OCONUS service members typically receive Overseas Housing Allowance (OHA), Utility/Recurring Maintenance Allowance, and a Move-In Housing Allowance (MIHA) instead of BAH — confirm rates with the housing office.',
+    'Use AHRN.com and MilitaryByOwner to find pre-screened off-base rentals near the installation. Many landlords accept the standard OCONUS lease addendum.',
+    'If you plan to keep or buy a CONUS property (e.g., a retirement home) while OCONUS, you can still use your VA loan benefit — it just cannot fund the overseas housing.',
   ];
+  const conusResources = [
+    { name: 'VA Home Loan Overview',     url: 'https://www.va.gov/housing-assistance/home-loans/',                 note: 'Official VA overview for VA-backed and VA direct home loan benefits.' },
+    { name: 'VA Home Buying Process',    url: 'https://www.va.gov/housing-assistance/home-loans/home-buying-process', note: 'Step-by-step VA guidance for using a VA-backed loan to buy a home.' },
+    { name: 'VA Lender Resources',       url: 'https://www.benefits.va.gov/homeloans/lenders.asp',                  note: 'Official VA lender resources and program information. This is guidance, not a private lender endorsement.' },
+    { name: 'CFPB Home Loan Toolkit',    url: 'https://www.consumerfinance.gov/owning-a-home/',                     note: 'Official Consumer Financial Protection Bureau tools for comparing mortgage offers.' },
+  ];
+  const oconusResources = [
+    { name: 'HOMES.mil (Gov’t On/Off-Base Housing)',      url: 'https://www.homes.mil',                                                   note: 'Official DoD Housing Office portal for on-base and approved off-base housing referrals at the gaining installation.' },
+    { name: 'AHRN.com (Automated Housing Referral Network)',   url: 'https://www.ahrn.com',                                                    note: 'DoD-sponsored off-base rental network used at most OCONUS installations. Pre-screened listings, military-friendly lease language.' },
+    { name: 'MilitaryByOwner (OCONUS rentals)',                url: 'https://www.militarybyowner.com/',                                        note: 'Off-base rental and sale listings worldwide, including OCONUS installations.' },
+    { name: 'DoD Overseas Housing Allowance (OHA) Rates',      url: 'https://www.defensetravel.dod.mil/site/oha.cfm',                          note: 'Official DTMO OHA rate lookup for the gaining overseas locality. Includes utility and MIHA components.' },
+    { name: 'DoD Per Diem, Travel and Transportation Allowance Committee', url: 'https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/', note: 'Background on OCONUS housing allowances, MIHA-Miscellaneous, MIHA-Rent, and MIHA-Security.' },
+    { name: 'VA Home Loan Overview (CONUS / retirement use)',  url: 'https://www.va.gov/housing-assistance/home-loans/',                       note: 'Your VA loan benefit is preserved while OCONUS for a future CONUS purchase. Track entitlement use here.' },
+  ];
+  const steps = oconus ? oconusSteps : conusSteps;
+  const resources = oconus ? oconusResources : conusResources;
   return (
     <div>
       <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, marginBottom: 14, borderLeft: `3px solid ${theme.accent}` }}>
-        <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 4 }}>VA HOME LOAN</div>
+        <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 4 }}>{oconus ? 'OCONUS HOUSING (VA LOAN UNAVAILABLE OVERSEAS)' : 'VA HOME LOAN'}</div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.6, fontWeight: 500 }}>
-          Use this checklist to prepare for VA-backed homebuying near {profile?.gainingInstallation || 'your gaining installation'}. Verify all loan terms directly with the VA and the lender before committing.
+          {oconus
+            ? `${profile?.gainingInstallation || 'Your gaining installation'} is overseas, so VA-backed mortgages cannot be used to purchase a home there. Use the checklist and resources below to plan on-base assignment, an off-base rental, or how to keep your VA loan benefit available for a future CONUS purchase.`
+            : `Use this checklist to prepare for VA-backed homebuying near ${profile?.gainingInstallation || 'your gaining installation'}. Verify all loan terms directly with the VA and the lender before committing.`}
         </div>
       </div>
       <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
@@ -7507,10 +7552,10 @@ function VAHomeLoanPanel({ theme, profile }) {
           </label>
         ))}
       </div>
-      {lenders.map(lender => (
-        <a key={lender.name} href={lender.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 10, textDecoration: 'none' }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 4 }}>{lender.name}</div>
-          <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{lender.note}</div>
+      {resources.map(r => (
+        <a key={r.name} href={r.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 10, textDecoration: 'none' }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 4 }}>{r.name}</div>
+          <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{r.note}</div>
         </a>
       ))}
     </div>

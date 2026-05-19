@@ -207,6 +207,11 @@ const DOC_APPLICABILITY = {
   // HHG-only items
   hhg_counseling:        (p) => p.moveType === 'HHG',
   storage_auth:          (p) => p.moveType === 'HHG',
+  // House Hunting Trip authorization (FTR §302-5) is a CONUS-only DoD
+  // civilian benefit. Hide on OCONUS so the OCONUS housing-recon doc
+  // takes its place. The OCONUS recon entry is gated symmetrically.
+  civ_house_hunt:        (p) => !p.isOverseas,
+  civ_oconus_house_recon:(p) =>  p.isOverseas,
 };
 
 function applies(docId, profileAttrs) {
@@ -229,6 +234,7 @@ const CIVILIAN_DOCS = {
     { id: 'civ_travel_voucher',  name: 'Civilian Travel Voucher',           form: 'DD Form 1351-2',                 required: true,  desc: 'Civilian PCS reimbursement claim. Submit within 5 working days of arrival per FTR §302-2.18.', formUrl: 'https://www.esd.whs.mil/Portals/54/Documents/DD/forms/dd/dd1351-2.pdf' },
     { id: 'civ_tqse_request',    name: 'Temporary Quarters Subsistence Expense (TQSE) Request', form: 'TQSE Request', required: false, desc: 'Up to 60 days CONUS / 90 days OCONUS lodging and meals per FTR §302-6. Submit before incurring expenses.' },
     { id: 'civ_house_hunt',      name: 'House Hunting Trip Authorization',  form: 'HHT Authorization',              required: false, desc: 'Round-trip travel for self and spouse to search for housing at the new locality (CONUS only, FTR §302-5).' },
+    { id: 'civ_oconus_house_recon', name: 'OCONUS Housing Reconnaissance Plan', form: 'Gaining Housing Office / AHRN coordination', required: false, desc: 'Civilians do not receive an HHT authorization OCONUS. Document your contact with the gaining installation Housing Office (HOMES.mil) and any pre-screened off-base options pulled from AHRN.com or MilitaryByOwner.' },
     { id: 'civ_lodging_rcpts',   name: 'Lodging Receipts',                  form: 'Receipts',                       required: true,  desc: 'Hotel receipts for every night of PCS travel — required for voucher reimbursement.' },
     { id: 'civ_mileage_log',     name: 'Mileage / Per Diem Log',            form: 'Log / Receipts',                 required: true,  desc: 'POV mileage documentation per FTR §302-4 mileage rates, fuel and rental car receipts during PCS travel.' },
     { id: 'civ_misc_expense',    name: 'Miscellaneous Expense Allowance',   form: 'Miscellaneous Expense Claim',    required: false, desc: 'Flat-rate up to $1,300 OR itemized actuals per FTR §302-16. Covers driver licenses, vehicle re-registration, utility connection fees.' },
