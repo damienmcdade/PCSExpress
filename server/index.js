@@ -160,6 +160,42 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ ok: 1, service: 'express-api', port: PORT })
 })
 
+// === WEB PUSH READINESS ===
+// Until VAPID_PUBLIC_KEY is set in env, /api/push-config returns null
+// and the client treats push as unavailable. The operator generates
+// the keypair once (web-push generate-vapid-keys), pins the public
+// key to VAPID_PUBLIC_KEY and the private key to VAPID_PRIVATE_KEY,
+// then push subscribe / dispatch work end to end. See
+// docs/PUSH_SETUP.md.
+const VAPID_PUBLIC_KEY  = process.env.VAPID_PUBLIC_KEY  || ''
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || ''
+
+// In-memory subscription store. Per-deploy ephemeral — fine for a
+// readiness baseline; persistent storage (Redis, Postgres) is the
+// next step when push is actually wired. We deliberately don't tie
+// subscriptions to user identity so the server stays metadata-only.
+const PUSH_SUBSCRIPTIONS = new Map()
+
+app.get('/api/push-config', (req, res) => {
+  res.status(200).json({ vapidPublicKey: VAPID_PUBLIC_KEY || null })
+})
+
+app.post('/api/push-subscribe', express.json(), (req, res) => {
+  const sub = req.body
+  if (!sub || !sub.endpoint || typeof sub.endpoint !== 'string') {
+    return res.status(400).json({ error: 'invalid-subscription' })
+  }
+  PUSH_SUBSCRIPTIONS.set(sub.endpoint, sub)
+  return res.status(200).json({ ok: true, count: PUSH_SUBSCRIPTIONS.size })
+})
+
+app.post('/api/push-unsubscribe', express.json(), (req, res) => {
+  const endpoint = req.body?.endpoint
+  if (!endpoint) return res.status(400).json({ error: 'endpoint-required' })
+  PUSH_SUBSCRIPTIONS.delete(endpoint)
+  return res.status(200).json({ ok: true })
+})
+
 // Escape hatch: wipe every form of client-side storage for the origin
 // via the Clear-Site-Data response header. Used to evict the stale
 // service worker left over from an earlier deploy that has been serving
@@ -2690,6 +2726,14 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
   const rawHistory = Array.isArray(req.body?.history) ? req.body.history : []
   const language = String(req.body?.language || 'en').trim().slice(0, 8).toLowerCase().replace(/[^a-z-]/g, '')
   const wantStream = !!req.body?.stream
+  // Compact user-context blob from the client. Already filtered down
+  // to non-PII attributes (branch, rank, component, phase, day count,
+  // open-task count, top task labels). We forward it verbatim into
+  // the LLM system prompt so the model can give tailored answers like
+  // "your 3 open POV tasks need to clear in 14 days" without us
+  // teaching it a schema. Cap at 1000 chars defensively in case a
+  // future client variant sends more.
+  const userContext = String(req.body?.userContext || '').slice(0, 1000)
   if (!q) return res.status(400).json({ error: 'q is required' })
 
   if (!provider) {
@@ -2734,10 +2778,13 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
       const langLine = language && language !== 'en'
         ? `\n\nThe user's preferred app language is ${language}. Respond in that language unless the user explicitly asks for another.`
         : '';
+      const ctxLine = userContext
+        ? `\n\nThe user's current PCS context (non-PII, drawn from their on-device profile): ${userContext}. Use this to tailor answers ("you have N open tasks in the X phase") and cite the relevant tab in PCS Express when appropriate.`
+        : '';
       const anthropicBody = {
         model: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
         max_tokens: 800,
-        system: AI_ASSISTANT_SYSTEM_PROMPT + langLine,
+        system: AI_ASSISTANT_SYSTEM_PROMPT + langLine + ctxLine,
         messages,
         ...(wantStream ? { stream: true } : {}),
       };

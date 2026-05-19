@@ -3,9 +3,11 @@
  * Third-party dependencies: React, Leaflet through child map modules, Capacitor bridge when running native.
  */
 
-import { Component, Suspense, lazy, useState, useEffect, useRef } from 'react'
+import { Suspense, lazy, useState, useEffect, useRef } from 'react'
 import './App.css'
 import { apiUrl } from './config/apiConfig'
+import AppErrorBoundary from './components/AppErrorBoundary'
+import CommandPalette from './components/CommandPalette'
 import NavigationModule from './components/NavigationModule'
 import PlatformBanners from './components/PlatformBanners'
 import { AIAssistantModal, AIAssistantTrigger } from './components/AIAssistantChip'
@@ -388,75 +390,9 @@ function normalizeProfile(raw) {
   };
 }
 
-function recoverWithoutDeletingProgress() {
-  clearSessionDemoProfile();
-  window.location.reload();
-}
-
-class AppErrorBoundary extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false, errorMessage: '', errorStack: '' };
-  }
-
-  static getDerivedStateFromError(error) {
-    return {
-      hasError: true,
-      errorMessage: String(error?.message || error || 'Unknown error'),
-      errorStack: String(error?.stack || ''),
-    };
-  }
-
-  componentDidCatch(error, info) {
-    console.error('PCS Express startup error', error, info);
-  }
-
-  resetAppState = () => {
-    // Nuclear recovery — clear every PCS Express localStorage key
-    // (encrypted blobs included), every sessionStorage key, then a
-    // hard reload. Preserves the IndexedDB AES key so re-onboarding
-    // doesn't trigger a re-encryption migration.
-    try {
-      const keys = Object.keys(localStorage);
-      for (const k of keys) {
-        if (k.startsWith('pcs_') || k === 'translations_saved') {
-          try { localStorage.removeItem(k); } catch {}
-        }
-      }
-    } catch {}
-    try { sessionStorage.clear(); } catch {}
-    try { window.location.replace(window.location.pathname); } catch { window.location.reload(); }
-  };
-
-  render() {
-    if (!this.state.hasError) return this.props.children;
-    const detail = (this.state.errorMessage || '').slice(0, 500);
-    const stack = (this.state.errorStack || '').split('\n').slice(0, 6).join('\n');
-    return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: '#F0F4F8', fontFamily: 'system-ui' }}>
-        <div style={{ maxWidth: 520, width: '100%', background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 14, padding: 18, boxShadow: '0 8px 28px rgba(13,24,33,0.12)' }}>
-          <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 8 }}>PCS Express needs to reload this screen</div>
-          <div style={{ fontSize: 12, color: '#56697C', lineHeight: 1.6, marginBottom: 10 }}>
-            PCS Express hit a screen error. Try the soft reload first — it preserves your PCS profile and checklist progress. If the screen still won't load after that, use "Clear local state and reload" to wipe local storage and start fresh.
-          </div>
-          {detail && (
-            <details style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 8, padding: 10, marginBottom: 12, fontSize: 11, color: '#7A4A00' }}>
-              <summary style={{ fontWeight: 800, cursor: 'pointer' }}>Error detail</summary>
-              <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', marginTop: 6, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{detail}</div>
-              {stack && <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', marginTop: 6, opacity: 0.85, whiteSpace: 'pre-wrap', fontSize: 10 }}>{stack}</div>}
-            </details>
-          )}
-          <button onClick={recoverWithoutDeletingProgress} style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: 'none', background: '#1565C0', color: '#FFFFFF', fontSize: 13, fontWeight: 900, cursor: 'pointer', marginBottom: 8 }}>
-            Soft reload (keep progress)
-          </button>
-          <button onClick={this.resetAppState} style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #C62828', background: '#FFFFFF', color: '#C62828', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
-            Clear local state and reload
-          </button>
-        </div>
-      </div>
-    );
-  }
-}
+// AppErrorBoundary and its recovery helpers were extracted to
+// src/components/AppErrorBoundary.jsx in Phase 15.2 to shrink this
+// 9,500-line shell and make boundary changes easier to review.
 
 const BRANCH_MARK_SOURCE_NOTES = {
   Army: 'https://www.army.mil/socialmedia/operations/index.html',
@@ -9054,6 +8990,7 @@ function App() {
     <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: `${UI_PALETTE.pagePattern}, radial-gradient(circle at top left, ${theme.accent}22, transparent 50%), radial-gradient(circle at bottom right, ${theme.primary}22, transparent 50%), ${UI_PALETTE.page}`, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
       <a href="#pcs-main-content" className="pcs-skip-link">Skip to main content</a>
       <PlatformBanners />
+      <CommandPalette />
       <PrivacyShield />
       <SaveStatusIndicator theme={theme} />
       {showResetWarning && (
@@ -9352,7 +9289,44 @@ function App() {
       {/* AI Assistant modal. Triggered from the sidebar (desktop) +
           the home-page footer (above Security & data handling) so
           it never overlaps the safety button visually. */}
-      <AIAssistantModal open={showAIAssistant} onClose={() => setShowAIAssistant(false)} isDesktop={isDesktop} language={profile?.language || 'en'} />
+      <AIAssistantModal
+        open={showAIAssistant}
+        onClose={() => setShowAIAssistant(false)}
+        isDesktop={isDesktop}
+        language={profile?.language || 'en'}
+        userContext={(() => {
+          if (!profile) return null;
+          const targetDate = profile.reportNLTDate || profile.departingDate || null;
+          const daysUntil = targetDate ? getDaysUntilDeparture(targetDate) : null;
+          const currentPhase = daysUntil !== null ? resolveCurrentPhase(daysUntil) : null;
+          const tailored = currentPhase ? getTailoredChecklist(profile.branch || 'Army', {
+            component: profile.component || 'Active Duty',
+            ordersType: profile.ordersType || '',
+            hasDependents: !!profile.hasDependents,
+            hasChildren: !!profile.hasChildren,
+            hasPets: !!profile.hasPets,
+            moveType: profile.moveType || 'HHG',
+            isOverseas: !!profile.isOverseas,
+          }) : {};
+          const items = (tailored[currentPhase] || []);
+          const open = items.filter((_, i) => !(checklistItems || {})[`${currentPhase}-${i}`]);
+          return {
+            branch: profile.branch,
+            rank: profile.rank,
+            component: profile.component,
+            ordersType: profile.ordersType,
+            hasDependents: !!profile.hasDependents,
+            hasChildren: !!profile.hasChildren,
+            hasPets: !!profile.hasPets,
+            moveType: profile.moveType,
+            isOverseas: !!profile.isOverseas,
+            daysUntilTarget: daysUntil,
+            currentPhase,
+            openTaskCount: open.length,
+            openTaskLabels: open.slice(0, 8),
+          };
+        })()}
+      />
 
       {/* COMPLIANCE MODAL — opened from the Security & data-handling
           button at the bottom of the Home tab. The Compliance content

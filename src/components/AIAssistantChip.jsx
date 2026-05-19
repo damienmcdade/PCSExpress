@@ -332,7 +332,51 @@ export function AIAssistantTrigger({ onClick, variant = 'sidebar', theme, label 
 // fills the input so callers like "Explain this phase" buttons in
 // PCS Operations can drop the user into the chat with the question
 // already typed.
-export function AIAssistantModal({ open, onClose, isDesktop, language = 'en' }) {
+// Render the user's PCS context as a short JSON-shaped string the
+// backend can include in the LLM system prompt. Keeps a compact, easy
+// shape so the model can quote it back as citations without us having
+// to teach it a schema. The curated-KB fallback also reads it directly
+// to answer "what's overdue" / "what should I do this week" without
+// needing a configured LLM provider.
+function formatUserContextForPrompt(ctx) {
+  if (!ctx) return null;
+  const parts = [
+    `branch=${ctx.branch || '—'}`,
+    `rank=${ctx.rank || '—'}`,
+    `component=${ctx.component || '—'}`,
+    `ordersType=${ctx.ordersType || '—'}`,
+    `moveType=${ctx.moveType || '—'}`,
+    ctx.isOverseas ? 'OCONUS=yes' : 'CONUS=yes',
+    ctx.hasDependents ? 'dependents=yes' : null,
+    ctx.hasChildren ? 'children=yes' : null,
+    ctx.hasPets ? 'pets=yes' : null,
+    ctx.daysUntilTarget !== null ? `daysUntilReportDate=${ctx.daysUntilTarget}` : null,
+    ctx.currentPhase ? `currentPhase=${ctx.currentPhase}` : null,
+    ctx.openTaskCount > 0 ? `openTasksInPhase=${ctx.openTaskCount}` : null,
+  ].filter(Boolean).join(', ');
+  return parts;
+}
+
+// Curated answers for the highest-traffic context-aware questions.
+// Used by the KB fallback (no LLM provider configured) so the user
+// gets a tailored answer even without an API key.
+function curatedContextAnswer(question, ctx) {
+  if (!ctx) return null;
+  const q = question.toLowerCase();
+  const overdueAsk    = /overdue|past due|behind|missed/i.test(q);
+  const thisWeekAsk   = /this week|next.*step|what.*do.*now|what.*next|today/i.test(q);
+  if (overdueAsk && ctx.openTaskCount > 0 && ctx.currentPhase) {
+    const sample = (ctx.openTaskLabels || []).slice(0, 5).map(t => `• ${t}`).join('\n');
+    return `You have ${ctx.openTaskCount} open task${ctx.openTaskCount === 1 ? '' : 's'} in the "${ctx.currentPhase}" phase${ctx.daysUntilTarget !== null ? ` with ${ctx.daysUntilTarget} day${ctx.daysUntilTarget === 1 ? '' : 's'} until your report date` : ''}.\n\nTop items to clear next:\n${sample}\n\nOpen PCS Operations → Checklist to tick them off. (Citations: your profile's tailored ${ctx.branch || 'service'} checklist for the ${ctx.currentPhase} phase.)`;
+  }
+  if (thisWeekAsk && ctx.openTaskCount > 0 && ctx.currentPhase) {
+    const sample = (ctx.openTaskLabels || []).slice(0, 3).map(t => `• ${t}`).join('\n');
+    return `Focus this week (you're in the "${ctx.currentPhase}" phase):\n${sample}\n\nThese are pulled from your profile-tailored checklist. Open PCS Operations to mark them complete.`;
+  }
+  return null;
+}
+
+export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', userContext = null }) {
   const [question, setQuestion] = useState('');
   const [messages, setMessages] = useState([]);
   const [busy, setBusy] = useState(false);
@@ -388,6 +432,11 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en' }) 
       // reason about context. The backend may ignore `history` until
       // the operator wires in a real provider that supports it.
       const history = nextHistory.slice(-12).map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', text: m.text }));
+      // Short curated answer when running in KB-fallback mode without
+      // an LLM provider. Lets "what's overdue" / "what's next" feel
+      // immediate even when there's no API key configured.
+      const curated = curatedContextAnswer(q, userContext);
+      const userContextStr = formatUserContextForPrompt(userContext);
       // Request streaming first. If the backend can't / won't stream
       // (curated-KB fallback or non-Anthropic providers) it returns a
       // standard JSON response and we fall through to the existing
@@ -395,7 +444,7 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en' }) 
       const r = await fetch(apiUrl('/api/jtr-assistant'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
-        body: JSON.stringify({ q, history, language, stream: true }),
+        body: JSON.stringify({ q, history, language, stream: true, userContext: userContextStr }),
         signal: abortRef.current.signal,
       });
       const contentType = r.headers.get('content-type') || '';
@@ -455,10 +504,20 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en' }) 
       clearTimeout(timer);
 
       if (r.status === 501) {
-        // Provider not configured. Try the local curated KB before
-        // giving up. This makes the AI button useful immediately
-        // out of the box, with citations, while the operator wires
-        // up the LLM provider on their own timeline.
+        // Provider not configured. Try the context-aware curated
+        // answer first ("what's overdue?", "what's next this week?")
+        // because those questions use the user's own checklist state
+        // and are usually more valuable than a generic KB hit. Fall
+        // back to KB search for everything else.
+        if (curated) {
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            text: curated,
+            source: 'context-aware',
+          }]);
+          setBusy(false);
+          return;
+        }
         const hit = searchKB(q);
         if (hit) {
           setMessages(prev => [...prev, {

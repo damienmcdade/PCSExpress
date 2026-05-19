@@ -141,3 +141,44 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });
+
+// Push notification handler. The server can deliver a JSON payload
+// of { title, body, tab } via the Web Push protocol; we surface it
+// as a system notification. Clicking it navigates the existing tab
+// or opens a fresh one at the deep-link tab. Without a configured
+// VAPID key on the server this handler never fires — it's plumbed
+// in advance so the operator can flip push on with a single env
+// var change.
+self.addEventListener('push', (event) => {
+  let payload = {};
+  try { payload = event.data ? event.data.json() : {}; } catch {}
+  const title = payload.title || 'PCS Express';
+  const body  = payload.body  || 'You have a new PCS update.';
+  const tab   = payload.tab   || '';
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      tag: payload.tag || 'pcs-push',
+      data: { tab },
+      icon: '/icon-192.png',
+      badge: '/favicon-96.png',
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const tab = event.notification?.data?.tab || '';
+  const target = tab ? `/?go=${encodeURIComponent(tab)}` : '/';
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const w of wins) {
+      try {
+        await w.focus();
+        if (tab && 'navigate' in w) await w.navigate(target);
+        return;
+      } catch {}
+    }
+    if (self.clients.openWindow) await self.clients.openWindow(target);
+  })());
+});
