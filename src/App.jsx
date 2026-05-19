@@ -9272,13 +9272,19 @@ function App() {
             {/* Home-page footer buttons. AI Assistant pill stacks
                 directly above the Security & data handling pill so
                 the two never overlap and the safety entry stays
-                anchored at the bottom of the page. */}
+                anchored at the bottom of the page. The build stamp
+                below is purely diagnostic — it shows the git SHA and
+                build time so a stuck user can confirm which version
+                they're actually running. */}
             <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
               <AIAssistantTrigger variant="pill" onClick={() => setShowAIAssistant(true)} theme={theme} />
               <button onClick={() => setShowCompliance(true)} aria-label="Open security and data-handling information" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 999, border: `1px solid ${UI_PALETTE.line}`, background: UI_PALETTE.surface, color: theme.primary, fontSize: 11, fontWeight: 800, cursor: 'pointer', boxShadow: '0 6px 16px rgba(38,53,31,0.08)' }}>
                 <span aria-hidden="true" style={{ fontSize: 14 }}>🔒</span>
                 Security &amp; data handling
               </button>
+              <div title="Deployment version" style={{ fontSize: 9, fontWeight: 700, color: UI_PALETTE.muted, letterSpacing: '.06em', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', opacity: 0.55, userSelect: 'all' }}>
+                build · {import.meta.env.VITE_BUILD_SHA || 'unknown'} · {(import.meta.env.VITE_BUILD_TIME || '').slice(0, 16).replace('T', ' ')}
+              </div>
             </div>
             </div>
           </div>
