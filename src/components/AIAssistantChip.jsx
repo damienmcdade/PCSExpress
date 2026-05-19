@@ -124,6 +124,82 @@ const CURATED_KB = [
     a: 'Mission Resources → Veteran Support. Veteran-owned business directories, public veteran resources, and local search around your gaining location. The Family Readiness group also surfaces VA-side benefits (GI Bill, VA Loan, Vet Center) where relevant.' },
 ];
 
+// Parse an "In-app: <Group> → <Subtab>" hint out of an assistant
+// message body or source field and map it to the deep-link route IDs
+// used by the rest of the app. Returns { tab, sub, label } or null.
+const INAPP_GROUP_MAP = {
+  'command center':         { tab: 'home' },
+  'pcs operations':         { tab: 'pcs-operations' },
+  'movement & logistics':   { tab: 'home-relocation' },
+  'movement and logistics': { tab: 'home-relocation' },
+  'home relocation':        { tab: 'home-relocation' },
+  'family readiness':       { tab: 'family-readiness' },
+  'holistic health':        { tab: 'medical-readiness' },
+  'medical readiness':      { tab: 'medical-readiness' },
+  'mission resources':      { tab: 'mission-resources' },
+};
+const INAPP_SUBTAB_MAP = {
+  // Movement & Logistics
+  'home locator':       'home-locator',
+  'bah calculator':     'bah-calculator',
+  'oha calculator':     'bah-calculator',
+  'bah / oha':          'bah-calculator',
+  'bah / oha / lqa':    'bah-calculator',
+  'lqa calculator':     'bah-calculator',
+  'ppm estimator':      'ppm-estimator',
+  'budget tracker':     'budget-tracker',
+  'budget':             'budget-tracker',
+  'shipment tracker':   'shipment-tracker',
+  'inventory & claims': 'inventory-claims',
+  'inventory':          'inventory-claims',
+  'jtr assistant':      'jtr-assistant',
+  'move aid':           'move-aid',
+  'va loan':            'va-loan',
+  // PCS Operations
+  'checklist':          'checklist',
+  'paperwork':          'documents',
+  'documents':          'documents',
+  'timeline':           'timeline',
+  // Family Readiness
+  'family':             'family',
+  'education':          'education',
+  'translation':        'translation',
+  'faith & chaplains':  'faith',
+  'faith':              'faith',
+  'chaplains':          'faith',
+  // Holistic Health
+  'medical care':       'medical',
+  'behavioral health':  'behavioral',
+  'behavioral health & counseling': 'behavioral',
+  'spiritual care':     'spiritual',
+  'fitness':            'fitness',
+  // Mission Resources
+  'base insights':      'base-insights',
+  'maps':               'maps',
+  'help hub':           'help-hub',
+  'veteran support':    'veteran',
+};
+function parseInappCitation(message) {
+  if (!message) return null;
+  const candidates = [];
+  if (typeof message.source === 'string') candidates.push(message.source);
+  if (typeof message.text === 'string')   candidates.push(message.text);
+  for (const c of candidates) {
+    // Matches both en-dash and arrow separator variants we use in the
+    // curated KB ("In-app: Movement & Logistics → Shipment Tracker")
+    // and freer LLM phrasing like "In-app: Family Readiness > Family".
+    const m = c.match(/In-app:\s*([^→>\n]+?)\s*(?:→|>|->)\s*([^.\n]+?)(?:[.\n]|$)/i);
+    if (!m) continue;
+    const groupKey = String(m[1] || '').trim().toLowerCase();
+    const subKey   = String(m[2] || '').trim().toLowerCase().replace(/[.,]$/, '');
+    const group = INAPP_GROUP_MAP[groupKey];
+    if (!group) continue;
+    const sub = INAPP_SUBTAB_MAP[subKey] || null;
+    return { tab: group.tab, sub, label: `${m[1].trim()} → ${m[2].trim().replace(/[.,]$/, '')}` };
+  }
+  return null;
+}
+
 // Build a printable HTML transcript of the conversation and open it
 // in a new window with the print dialog cued. The user prints to PDF
 // the same way they export PCS Binder and Inventory worksheets.
@@ -515,26 +591,46 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en' }) 
               </ul>
             </div>
           )}
-          {messages.map((m, idx) => (
-            <div key={idx} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', marginBottom: 8 }}>
-              <div style={{
-                maxWidth: '85%',
-                background: m.role === 'user' ? '#0D3B66' : m.role === 'system' ? '#FFF8E1' : '#FFFFFF',
-                color: m.role === 'user' ? '#FFFFFF' : '#0D1821',
-                padding: '10px 12px',
-                borderRadius: 12,
-                border: m.role === 'user' ? 'none' : `1px solid ${m.role === 'system' ? '#FFE082' : '#E0E6EE'}`,
-                fontSize: 12,
-                lineHeight: 1.6,
-                whiteSpace: 'pre-wrap',
-              }}>
-                {m.text}
-                {m.source && (
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#56697C', marginTop: 6, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>source: {m.source}</div>
-                )}
+          {messages.map((m, idx) => {
+            const nav = m.role === 'assistant' ? parseInappCitation(m) : null;
+            return (
+              <div key={idx} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', marginBottom: 8 }}>
+                <div style={{
+                  maxWidth: '85%',
+                  background: m.role === 'user' ? '#0D3B66' : m.role === 'system' ? '#FFF8E1' : '#FFFFFF',
+                  color: m.role === 'user' ? '#FFFFFF' : '#0D1821',
+                  padding: '10px 12px',
+                  borderRadius: 12,
+                  border: m.role === 'user' ? 'none' : `1px solid ${m.role === 'system' ? '#FFE082' : '#E0E6EE'}`,
+                  fontSize: 12,
+                  lineHeight: 1.6,
+                  whiteSpace: 'pre-wrap',
+                }}>
+                  {m.text}
+                  {m.source && (
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#56697C', marginTop: 6, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>source: {m.source}</div>
+                  )}
+                  {nav && (
+                    <button
+                      onClick={() => {
+                        // Hand routing back to App.jsx via a custom
+                        // event. App listens for `pcs-navigate` and
+                        // handles the tab change + sub-tab one-shot
+                        // mechanism. We just close the modal once
+                        // the navigation is requested.
+                        window.dispatchEvent(new CustomEvent('pcs-navigate', { detail: { tab: nav.tab, sub: nav.sub || null } }));
+                        onClose();
+                      }}
+                      aria-label={`Open ${nav.label}`}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '6px 10px', borderRadius: 999, background: '#0D3B66', color: '#FFFFFF', border: 'none', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
+                    >
+                      <span aria-hidden="true">↗</span> Open {nav.label}
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {busy && (
             <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 8 }}>
               <div className="pcs-skeleton" style={{ background: 'linear-gradient(90deg, #F0F4F8 25%, #FAFBFC 50%, #F0F4F8 75%)', backgroundSize: '200% 100%', animation: 'pcs-skeleton-shimmer 1.4s ease-in-out infinite', borderRadius: 12, padding: '10px 12px', minWidth: 180, height: 40 }} />

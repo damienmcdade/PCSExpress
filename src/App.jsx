@@ -653,6 +653,64 @@ function fmtRelativeFromIso(iso) {
   return new Date(iso).toLocaleDateString();
 }
 
+// ───────────────────────────────────────────────────────────────────
+// WeeklyDigestCard — aggregated stats from the last 7 days.
+//
+// Reads the audit log + the current checklistItems / snooze state
+// and renders a 4-stat tile: tasks completed, tasks reopened,
+// inventory updates, AI sessions. Companion to ChangeLogCard
+// (which lists individual events).
+// ───────────────────────────────────────────────────────────────────
+function WeeklyDigestCard({ theme, checklistItems }) {
+  const [stats, setStats] = useState(null);
+  useEffect(() => {
+    let mounted = true;
+    secureLocalStore.get('pcs_audit_log', []).then(list => {
+      if (!mounted) return;
+      const sevenDaysAgo = Date.now() - 7 * 86400000;
+      const recent = (Array.isArray(list) ? list : []).filter(e => e?.timestamp && new Date(e.timestamp).getTime() >= sevenDaysAgo);
+      const completed = recent.filter(e => e.action === 'pcs_milestone_status_change' && e.details?.complete).length;
+      const reopened  = recent.filter(e => e.action === 'pcs_milestone_status_change' && !e.details?.complete).length;
+      const inv       = recent.filter(e => e.action === 'inventory_vault_change').length;
+      const aiOpens   = recent.filter(e => e.action === 'ai_assistant_opened').length;
+      const pet       = recent.filter(e => e.action === 'pet_relocation_checklist_change').length;
+      const ship      = recent.filter(e => e.action === 'shipment_tracker_change').length;
+      const totalOpen = Object.values(checklistItems || {}).filter(Boolean).length;
+      setStats({ completed, reopened, inv, aiOpens, pet, ship, totalChecked: totalOpen });
+    }).catch(() => setStats(null));
+  }, [checklistItems]);
+  if (!stats) return null;
+  const anyActivity = stats.completed + stats.reopened + stats.inv + stats.aiOpens + stats.pet + stats.ship > 0;
+  if (!anyActivity) return null;
+  const tiles = [
+    { label: 'Tasks completed',    value: stats.completed,   accent: '#2E7D32' },
+    { label: 'Tasks reopened',     value: stats.reopened,    accent: '#E65100' },
+    { label: 'Inventory updates',  value: stats.inv,         accent: theme.primary },
+    { label: 'AI sessions',        value: stats.aiOpens,     accent: '#0D3B66' },
+  ];
+  return (
+    <div role="region" aria-label="Weekly digest" style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 950, color: theme.primary, letterSpacing: '.12em' }}>WEEKLY DIGEST</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: UI_PALETTE.muted, letterSpacing: '.06em', textTransform: 'uppercase' }}>Last 7 days</div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+        {tiles.map(t => (
+          <div key={t.label} style={{ background: UI_PALETTE.surfaceSoft || '#F6F1E4', border: `1px solid ${UI_PALETTE.line}`, borderLeft: `3px solid ${t.accent}`, borderRadius: 8, padding: '10px 12px' }}>
+            <div style={{ fontSize: 24, fontWeight: 950, color: t.accent, lineHeight: 1 }}>{t.value}</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: UI_PALETTE.muted, marginTop: 4, letterSpacing: '.04em', textTransform: 'uppercase' }}>{t.label}</div>
+          </div>
+        ))}
+      </div>
+      {(stats.pet > 0 || stats.ship > 0) && (
+        <div style={{ fontSize: 11, color: UI_PALETTE.muted, marginTop: 10, lineHeight: 1.5 }}>
+          Plus {stats.pet > 0 ? `${stats.pet} pet-relocation update${stats.pet === 1 ? '' : 's'}` : ''}{stats.pet > 0 && stats.ship > 0 ? ' and ' : ''}{stats.ship > 0 ? `${stats.ship} shipment milestone${stats.ship === 1 ? '' : 's'}` : ''}.
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ChangeLogCard({ theme }) {
   const [entries, setEntries] = useState(null);
 
@@ -726,6 +784,37 @@ function resolveCurrentPhase(daysUntil) {
 }
 
 function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
+  const [snoozes, setSnoozes] = useState({});  // { 'phase-idx': 'YYYY-MM-DD' }
+  useEffect(() => {
+    let mounted = true;
+    secureLocalStore.get('pcs_mission_lane_snoozes', {}).then(saved => {
+      if (mounted) setSnoozes(saved && typeof saved === 'object' ? saved : {});
+    });
+  }, []);
+  const snoozeUntil = (taskKey, dateStr) => {
+    setSnoozes(prev => {
+      const next = { ...prev, [taskKey]: dateStr };
+      secureLocalStore.set('pcs_mission_lane_snoozes', next);
+      AuditLogger.record('mission_lane_snooze', { task: taskKey, until: dateStr });
+      return next;
+    });
+  };
+  const unsnooze = (taskKey) => {
+    setSnoozes(prev => {
+      const next = { ...prev };
+      delete next[taskKey];
+      secureLocalStore.set('pcs_mission_lane_snoozes', next);
+      return next;
+    });
+  };
+  const isSnoozedNow = (taskKey) => {
+    const u = snoozes[taskKey];
+    if (!u) return false;
+    const until = new Date(`${u}T23:59:59`);
+    if (isNaN(until.getTime())) return false;
+    return Date.now() < until.getTime();
+  };
+
   const target = profile?.reportNLTDate || profile?.departingDate;
   if (!target) return null;
   const targetDate = new Date(target);
@@ -752,10 +841,10 @@ function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
     const open = [];
     for (let i = 0; i < list.length; i += 1) {
       const key = `${phase}-${i}`;
-      if (!(checklistItems || {})[key]) {
-        open.push({ phase, idx: i, label: list[i] });
-        if (open.length >= limit) break;
-      }
+      if ((checklistItems || {})[key]) continue;
+      if (isSnoozedNow(key)) continue;
+      open.push({ phase, idx: i, label: list[i], key });
+      if (open.length >= limit) break;
     }
     return open;
   };
@@ -789,6 +878,20 @@ function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
         </button>
       </div>
       <div style={{ fontSize: 10, fontWeight: 700, color: UI_PALETTE.muted, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 10 }}>{reportContext}</div>
+      {Object.keys(snoozes).filter(k => isSnoozedNow(k)).length > 0 && (
+        <div style={{ fontSize: 10, color: UI_PALETTE.muted, marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>💤 {Object.keys(snoozes).filter(k => isSnoozedNow(k)).length} task{Object.keys(snoozes).filter(k => isSnoozedNow(k)).length === 1 ? '' : 's'} snoozed</span>
+          <button
+            onClick={() => {
+              const active = Object.keys(snoozes).filter(k => isSnoozedNow(k));
+              active.forEach(unsnooze);
+            }}
+            style={{ background: 'transparent', border: 'none', color: theme.primary, fontSize: 10, fontWeight: 700, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '.06em' }}
+          >
+            Wake all
+          </button>
+        </div>
+      )}
       {lanes.map(lane => (
         <section key={lane.id} aria-label={lane.title} style={{ marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
@@ -806,16 +909,34 @@ function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
           ) : (
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 4 }}>
               {lane.items.map(item => (
-                <li key={`${item.phase}-${item.idx}`}>
+                <li key={`${item.phase}-${item.idx}`} style={{ background: UI_PALETTE.surfaceSoft || '#F6F1E4', border: `1px solid ${UI_PALETTE.line}`, borderLeft: `3px solid ${lane.accent}`, borderRadius: 8, padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
                   <button
                     onClick={onJumpToOps}
-                    style={{ width: '100%', textAlign: 'left', background: UI_PALETTE.surfaceSoft || '#F6F1E4', border: `1px solid ${UI_PALETTE.line}`, borderLeft: `3px solid ${lane.accent}`, borderRadius: 8, padding: '8px 10px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}
+                    style={{ background: 'transparent', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flex: 1, minWidth: 0 }}
                     aria-label={`Open PCS Operations for: ${item.label}`}
                   >
                     <span style={{ fontSize: 12, fontWeight: 600, color: UI_PALETTE.text, lineHeight: 1.45, flex: 1 }}>{item.label}</span>
                     <span style={{ fontSize: 9, fontWeight: 800, color: lane.accent, whiteSpace: 'nowrap', marginTop: 2, letterSpacing: '.04em', textTransform: 'uppercase' }}>
                       {item.phase}
                     </span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Default snooze: 3 days from today. Quick-pick;
+                      // the user can choose another date via a prompt.
+                      const def = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
+                      // eslint-disable-next-line no-alert
+                      const picked = window.prompt('Snooze this task until (YYYY-MM-DD):', def);
+                      if (picked && /^\d{4}-\d{2}-\d{2}$/.test(picked)) {
+                        snoozeUntil(item.key, picked);
+                      }
+                    }}
+                    aria-label={`Snooze task: ${item.label}`}
+                    title="Snooze until a chosen date"
+                    style={{ background: 'rgba(255,255,255,0.5)', border: `1px solid ${UI_PALETTE.line}`, borderRadius: 6, color: UI_PALETTE.muted, fontSize: 11, fontWeight: 700, cursor: 'pointer', padding: '3px 7px', whiteSpace: 'nowrap', flexShrink: 0, marginTop: 1 }}
+                  >
+                    💤
                   </button>
                 </li>
               ))}
@@ -8376,6 +8497,21 @@ function App() {
     return () => window.removeEventListener('open-ai-assistant', handler);
   }, []);
 
+  // `pcs-navigate` — runtime route change with optional sub-tab. Used
+  // by the AI Assistant "Open {Group → Sub}" chip so the assistant
+  // can deep-link the user without round-tripping through the URL.
+  useEffect(() => {
+    const handler = (e) => {
+      const tab = e?.detail?.tab;
+      const sub = e?.detail?.sub;
+      if (typeof tab !== 'string' || !tab) return;
+      if (sub && typeof sub === 'string') _PENDING_SUBTAB = sub;
+      setActiveTab(tab);
+    };
+    window.addEventListener('pcs-navigate', handler);
+    return () => window.removeEventListener('pcs-navigate', handler);
+  }, []);
+
   // Overdue Mission Lanes notification. Fires once per session when
   // the app loads with one or more checklist tasks in the user's
   // current phase that have passed the PHASE_WINDOWS overdueAt
@@ -8951,6 +9087,10 @@ function App() {
                 checklist so the home dashboard reflects real progress,
                 not a static milestone array. */}
             <MissionLanes theme={theme} profile={profile} checklistItems={checklistItems} onJumpToOps={() => goTo('pcs-operations')} />
+
+            {/* Weekly Digest — aggregated stats from the last 7 days.
+                Companion to ChangeLogCard (event list). */}
+            <WeeklyDigestCard theme={theme} checklistItems={checklistItems} />
 
             {/* Change-log: most-recent user-facing actions from the
                 last 7 days. Renders nothing when there's no history,
