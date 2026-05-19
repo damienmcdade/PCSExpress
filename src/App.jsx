@@ -17,7 +17,7 @@ import ShipmentTrackerModule from './components/ShipmentTrackerModule'
 import ComplianceAttestationModule from './components/ComplianceAttestationModule'
 import InventoryVaultModule from './components/InventoryVaultModule'
 import JTRAssistantModule from './components/JTRAssistantModule'
-import AIAssistantChip from './components/AIAssistantChip'
+import { AIAssistantModal, AIAssistantTrigger } from './components/AIAssistantChip'
 import ImmigrationModule from './components/ImmigrationModule'
 import MovingFinancialAssistanceTab from './components/MovingFinancialAssistanceTab'
 import PetRelocationChecklistTab from './components/PetRelocationChecklistTab'
@@ -563,6 +563,103 @@ function TMinusDashboard({ theme, profile }) {
 // lives.
 // ───────────────────────────────────────────────────────────────────
 const PHASE_ORDER = ['Orders Received', '90 Days Out', '60 Days Out', '30 Days Out', 'Move Week', 'In-Processing'];
+
+// ───────────────────────────────────────────────────────────────────
+// ChangeLogCard — "What changed this week" card on Command Center.
+//
+// Reads the AuditLogger metadata stream (already encrypted at rest)
+// and surfaces the most-recent user-facing actions from the last
+// 7 days. Useful for stressed users who can't remember what they
+// already did. Only metadata events are stored (no PII), so this is
+// a safe surface to render.
+// ───────────────────────────────────────────────────────────────────
+const ACTION_LABELS = {
+  pcs_milestone_status_change:      (d) => `${d?.complete ? 'Completed' : 'Reopened'} checklist task (${d?.phase || '?'} #${(d?.index ?? '?') + (typeof d?.index === 'number' ? 1 : 0)})`,
+  inventory_vault_change:           (d) => `Updated inventory worksheet (${d?.itemCount || 0} items, ${d?.phase || '—'})`,
+  shipment_tracker_change:          (d) => `Updated shipment tracker (${d?.completedCount || 0} milestones cleared)`,
+  pet_relocation_checklist_change:  (d) => `${d?.complete ? 'Completed' : 'Reopened'} pet-relocation task (${d?.phase || '?'} #${(d?.index ?? 0) + 1})`,
+  ai_assistant_opened:              () => 'Opened the AI Assistant',
+  // Anything not explicitly mapped renders as a humanized action name.
+};
+
+function humanizeAction(action) {
+  return String(action || '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function fmtRelativeFromIso(iso) {
+  if (!iso) return '';
+  const t = new Date(iso).getTime();
+  if (!Number.isFinite(t)) return '';
+  const mins = Math.round((Date.now() - t) / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.round(hrs / 24);
+  if (days === 1) return 'yesterday';
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
+function ChangeLogCard({ theme }) {
+  const [entries, setEntries] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    secureLocalStore.get('pcs_audit_log', []).then(list => {
+      if (!mounted) return;
+      const sevenDaysAgo = Date.now() - 7 * 86400000;
+      const filtered = (Array.isArray(list) ? list : [])
+        .filter(e => e && e.action && e.timestamp && new Date(e.timestamp).getTime() >= sevenDaysAgo)
+        .slice(0, 5);
+      setEntries(filtered);
+    }).catch(() => setEntries([]));
+
+    // Listen for live audit updates so the card refreshes without
+    // a full page reload when the user takes an action.
+    const handler = () => {
+      secureLocalStore.get('pcs_audit_log', []).then(list => {
+        if (!mounted) return;
+        const sevenDaysAgo = Date.now() - 7 * 86400000;
+        const filtered = (Array.isArray(list) ? list : [])
+          .filter(e => e && e.action && e.timestamp && new Date(e.timestamp).getTime() >= sevenDaysAgo)
+          .slice(0, 5);
+        setEntries(filtered);
+      });
+    };
+    window.addEventListener('pcs-audit-log', handler);
+    return () => {
+      mounted = false;
+      window.removeEventListener('pcs-audit-log', handler);
+    };
+  }, []);
+
+  if (entries == null) return null;          // initial load — render nothing
+  if (entries.length === 0) return null;    // brand-new user — render nothing
+
+  return (
+    <div style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 950, color: theme.primary, letterSpacing: '.12em' }}>WHAT CHANGED THIS WEEK</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: UI_PALETTE.muted, letterSpacing: '.06em', textTransform: 'uppercase' }}>{entries.length} {entries.length === 1 ? 'event' : 'events'}</div>
+      </div>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 6 }}>
+        {entries.map(e => {
+          const labeler = ACTION_LABELS[e.action];
+          const text = labeler ? labeler(e.details || {}) : humanizeAction(e.action);
+          return (
+            <li key={e.id || `${e.action}-${e.timestamp}`} style={{ background: UI_PALETTE.surfaceSoft || '#F6F1E4', border: `1px solid ${UI_PALETTE.line}`, borderLeft: `3px solid ${theme.accent}`, borderRadius: 8, padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: UI_PALETTE.text, lineHeight: 1.45 }}>{text}</span>
+              <span style={{ fontSize: 10, fontWeight: 800, color: UI_PALETTE.muted, whiteSpace: 'nowrap', marginTop: 1 }}>{fmtRelativeFromIso(e.timestamp)}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
 
 function resolveCurrentPhase(daysUntil) {
   if (daysUntil == null) return null;
@@ -8163,6 +8260,7 @@ function App() {
   const [showNotifs, setShowNotifs] = useState(false);
   const [showResetWarning, setShowResetWarning] = useState(false);
   const [showCompliance, setShowCompliance] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
 
   // Single source-of-truth for executing the destructive Reset action.
   // Wipes everything via eraseAllUserData(), then force a hard reload so
@@ -8521,6 +8619,9 @@ function App() {
               </button>
             ))}
           </nav>
+          {/* AI Assistant trigger — stacks ABOVE the Security button
+              so it never visually obscures the safety entry point. */}
+          <AIAssistantTrigger variant="sidebar" onClick={() => setShowAIAssistant(true)} theme={theme} />
           <button onClick={() => setShowCompliance(true)} aria-label="Open security and data-handling" style={{ width: '100%', padding: '12px 16px', background: 'rgba(255,255,255,0.04)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.85)', fontSize: 11, cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
             <span aria-hidden="true" style={{ fontSize: 14 }}>🔒</span>
             Security &amp; data handling
@@ -8626,27 +8727,12 @@ function App() {
       {/* Backdrop to close nav/notifs/more sheet */}
       {(navOpen || showNotifs) && <div onClick={() => { setNavOpen(false); setShowNotifs(false); }} style={{ position: 'fixed', inset: 0, zIndex: 150, background: 'transparent' }} />}
 
-      {/* BODY: sidebar (desktop) + content */}
+      {/* BODY: content area only — the desktop persistent sidebar is
+          mounted ONCE at the root layout (line ~8507) so it persists
+          across every mission group. A previous iteration mounted a
+          second sidebar here, which created the duplicate category
+          selector users were seeing on desktop. Removed. */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* Desktop persistent sidebar */}
-        {isDesktop && (
-          <div style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', borderRight: `2px solid ${theme.accent}25`, flexShrink: 0, overflowY: 'auto' }}>
-            <div style={{ padding: '14px 16px 10px', borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginBottom: 2 }}>{getRankDisplay(profile.branch, profile.paygrade)} {profile.firstName} {profile.lastName}</div>
-              {profile.gainingInstallation && <div style={{ fontSize: 10, color: theme.accent, fontWeight: 700 }}>{profile.gainingInstallation.split(',')[0]}</div>}
-            </div>
-            <div style={{ flex: 1, padding: '6px 0' }}>
-              {LOCALIZED_BOTTOM_NAV.map(item => (
-                <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-side-link ${activeTab === item.id ? 'is-active' : ''}`} style={{ width: '100%', padding: '9px 14px', background: activeTab === item.id ? `${theme.accent}18` : 'transparent', border: 'none', borderLeft: `3px solid ${activeTab === item.id ? theme.accent : 'transparent'}`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.72)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, fontWeight: activeTab === item.id ? 800 : 500, textAlign: 'left', '--side-accent': theme.accent }}>
-                  <div className="pcs-side-link__icon" style={{ width: 30, height: 22, borderRadius: 5, background: activeTab === item.id ? `${theme.accent}28` : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 900, letterSpacing: '.05em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.55)', flexShrink: 0, transition: 'background 200ms ease, color 200ms ease' }}>{item.icon}</div>
-                  {item.label}
-                </button>
-              ))}
-            </div>
-            <button onClick={() => { setShowResetWarning(true); setMoreOpen(false); }} style={{ width: '100%', padding: '9px', background: 'rgba(255,0,0,0.08)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,100,100,0.8)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>{t('reset')}</button>
-          </div>
-        )}
-
       {/* CONTENT */}
       <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isNative && !isDesktop ? 'calc(58px + env(safe-area-inset-bottom))' : 'env(safe-area-inset-bottom)' }}>
         {activeTab === 'home' && (
@@ -8701,6 +8787,11 @@ function App() {
                 not a static milestone array. */}
             <MissionLanes theme={theme} profile={profile} checklistItems={checklistItems} onJumpToOps={() => goTo('pcs-operations')} />
 
+            {/* Change-log: most-recent user-facing actions from the
+                last 7 days. Renders nothing when there's no history,
+                so first-time users don't see an empty stub. */}
+            <ChangeLogCard theme={theme} />
+
             {/* Component-specific notes (Reserve / National Guard / AGR) */}
             {COMPONENT_NOTES[profile.component] && (
               <div style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderLeft: `4px solid ${theme.accent}`, borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
@@ -8754,12 +8845,12 @@ function App() {
             </div>
             <HomeLegalBanners theme={theme} />
 
-            {/* Security / Compliance footer button. Compliance used to
-                live in the bottom-nav; it now opens here as a modal so
-                the bottom nav stays focused on PCS-task categories.
-                The 🔒 metaphor matches the rest of the security copy:
-                everything stays locked on the device. */}
-            <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+            {/* Home-page footer buttons. AI Assistant pill stacks
+                directly above the Security & data handling pill so
+                the two never overlap and the safety entry stays
+                anchored at the bottom of the page. */}
+            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+              <AIAssistantTrigger variant="pill" onClick={() => setShowAIAssistant(true)} theme={theme} />
               <button onClick={() => setShowCompliance(true)} aria-label="Open security and data-handling information" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 999, border: `1px solid ${UI_PALETTE.line}`, background: UI_PALETTE.surface, color: theme.primary, fontSize: 11, fontWeight: 800, cursor: 'pointer', boxShadow: '0 6px 16px rgba(38,53,31,0.08)' }}>
                 <span aria-hidden="true" style={{ fontSize: 14 }}>🔒</span>
                 Security &amp; data handling
@@ -8793,11 +8884,10 @@ function App() {
       </div>{/* end body container */}
       </div>{/* end main column (header + body) — wraps sibling of desktop aside */}
 
-      {/* Persistent AI Assistant chip — opens a live chat that posts
-          to /api/jtr-assistant. The crisis-line (988 then 1) and
-          Military OneSource numbers remain pinned as a safety header
-          inside the modal, so 988 stays one tap away. */}
-      <AIAssistantChip isNative={isNative} isDesktop={isDesktop} />
+      {/* AI Assistant modal. Triggered from the sidebar (desktop) +
+          the home-page footer (above Security & data handling) so
+          it never overlaps the safety button visually. */}
+      <AIAssistantModal open={showAIAssistant} onClose={() => setShowAIAssistant(false)} isDesktop={isDesktop} />
 
       {/* COMPLIANCE MODAL — opened from the Security & data-handling
           button at the bottom of the Home tab. The Compliance content
