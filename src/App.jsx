@@ -8625,6 +8625,9 @@ function App() {
   const [showResetWarning, setShowResetWarning] = useState(false);
   const [showCompliance, setShowCompliance] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [checklistItems, setChecklistItems] = useState(() => {
+    return readLegacyJson('pcs_checklist_checks', {});
+  });
 
   // Allow any component to open the AI Assistant by dispatching
   // `open-ai-assistant` (optionally with detail.question). The modal
@@ -8710,9 +8713,6 @@ function App() {
     // the back button doesn't return to the post-reset transient view.
     try { window.location.replace(window.location.pathname); } catch { window.location.reload(); }
   };
-  const [checklistItems, setChecklistItems] = useState(() => {
-    return readLegacyJson('pcs_checklist_checks', {});
-  });
   const [demoTip, setDemoTip] = useState(() => {
     const p = normalizeProfile(getSessionDemoProfile() || store.get('pcs_profile'));
     return (p?.demoMode || (p?.firstName === 'Marcus' && p?.lastName === 'Thompson')) ? 0 : -1;
