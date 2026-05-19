@@ -501,6 +501,86 @@ app.get('/api/vet-businesses', vetBizRateLimit, async (req, res) => {
     return res.status(400).json({ error: 'city or zip is required', businesses: [], fallback: true })
   }
 
+  // OCONUS short-circuit. USASpending hardcodes country='USA' in the
+  // recipient-location filter, and SAM.gov's physicalAddress.state
+  // accepts US two-letter codes only. For an overseas gaining
+  // installation, both upstream sources return empty. Instead of
+  // surfacing zero results, return a curated card list pointing the
+  // user to:
+  //   - DoD contracting veteran-owned firms that serve OCONUS bases
+  //     via the SBA VetCert + SAM.gov national directories
+  //   - Google Maps search restricted to the host-nation locality
+  //     so on-the-ground service providers (auto repair, movers,
+  //     restaurants, etc.) appear with photos, hours, and reviews
+  if (isOconusMarket(state)) {
+    const where = [city, state].filter(Boolean).join(', ') || 'your gaining installation'
+    const ev = encodeURIComponent
+    const businesses = [
+      {
+        id: `oconus-sba-vetcert`,
+        name: `SBA VetCert — DoD-contracting veteran-owned firms serving ${where}`,
+        address: '', city: city || '', state: state || '', zip: '',
+        businessTypes: ['VOSB / SDVOSB'],
+        naicsCode: '', naicsDesc: '',
+        industry: 'all',
+        url: 'https://veterans.certify.sba.gov/',
+        phone: '',
+        contact: '',
+        samUrl: 'https://veterans.certify.sba.gov/',
+        synthetic: true,
+        description: `Official SBA portal of certified veteran-owned and service-disabled veteran-owned firms eligible for DoD set-aside contracts — many serve OCONUS installations through prime / subcontractor relationships. Filter by NAICS code or state to find firms with established overseas delivery records.`,
+      },
+      {
+        id: `oconus-sam-search`,
+        name: `SAM.gov — search veteran-owned entities by NAICS for ${where}`,
+        address: '', city: city || '', state: state || '', zip: '',
+        businessTypes: ['Federal entity registry'],
+        naicsCode: '', naicsDesc: '',
+        industry: 'all',
+        url: 'https://sam.gov/search/?index=ent',
+        phone: '',
+        contact: '',
+        samUrl: 'https://sam.gov/search/?index=ent',
+        synthetic: true,
+        description: `Official federal entity registry. Search by NAICS code, location, and business-type flags (veteran-owned, SDVOSB) to find active contractors. Use the entity-detail view to confirm physical address, points of contact, and active DoD awards.`,
+      },
+      {
+        id: `oconus-google-maps`,
+        name: `Veteran-owned businesses on Google Maps near ${where}`,
+        address: '', city: city || '', state: state || '', zip: '',
+        businessTypes: ['Local search'],
+        naicsCode: '', naicsDesc: '',
+        industry: 'all',
+        url: `https://www.google.com/maps/search/?api=1&query=${ev(`veteran-owned businesses near ${where}`)}`,
+        phone: '',
+        contact: '',
+        samUrl: `https://www.google.com/maps/search/?api=1&query=${ev(`veteran-owned businesses near ${where}`)}`,
+        synthetic: true,
+        description: `Google Maps search restricted to ${where} for businesses that self-identify as veteran-owned or veteran-operated. Surfaces on-the-ground service providers (movers, auto repair, restaurants, real estate) with photos, hours, and reviews — useful for the host-nation footprint US installations build up over time.`,
+      },
+      {
+        id: `oconus-vets-google-svc`,
+        name: `Local services on Google Maps near ${where}`,
+        address: '', city: city || '', state: state || '', zip: '',
+        businessTypes: ['Local search'],
+        naicsCode: '', naicsDesc: '',
+        industry: 'service',
+        url: `https://www.google.com/maps/search/?api=1&query=${ev(`military spouse business near ${where}`)}`,
+        phone: '',
+        contact: '',
+        samUrl: `https://www.google.com/maps/search/?api=1&query=${ev(`military spouse business near ${where}`)}`,
+        synthetic: true,
+        description: `Companion search for military-spouse-owned businesses operating near ${where}. Many OCONUS communities have a robust spouse-business ecosystem (childcare, photography, virtual assistant, tutoring) that doesn't appear in SAM.gov but is discoverable through Google Maps with photos and reviews.`,
+      },
+    ]
+    return res.status(200).json({
+      businesses,
+      fallback: false,
+      source: 'oconus-curated',
+      fetchedAt: Date.now(),
+    })
+  }
+
   // USASpending.gov fallback path: no SAM_API_KEY is required. Real
   // veteran-owned federal contractors filtered to the installation's
   // city. When SAM_API_KEY IS configured we fall through to the

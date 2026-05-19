@@ -3509,10 +3509,31 @@ function SchoolsTab({ theme, profile }) {
               </div>
             </section>
           )}
-          {daycares.length === 0 && (
-            <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12, marginBottom: 14 }}>
-              No local CDC card is stored for this installation yet. Use the official childcare and installation-directory links below to verify Child Development Center, school liaison, and family program contacts.
-            </div>
+          {daycares.length === 0 && liveDaycare.length === 0 && instName && (
+            <>
+              <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 14, textAlign: 'center', color: '#666', fontSize: 12, marginBottom: 12 }}>
+                No curated CDC card is stored for this installation yet. The Google Maps category cards below open with the locality pre-filtered so you see real childcare options around {instName}.
+              </div>
+              <div data-dynamic-card="google" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginBottom: 14 }}>
+                {[
+                  { label: 'Child Development Centers (CDCs)', query: `child development center CDC near ${instName}` },
+                  { label: 'Preschools & daycare',            query: `preschools and daycare near ${instName}` },
+                  { label: 'Family child care providers',     query: `family child care provider near ${instName}` },
+                  { label: 'After-school programs',           query: `after-school programs near ${instName}` },
+                ].map((cat, idx) => (
+                  <a key={idx}
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cat.query)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'block', textDecoration: 'none', color: 'inherit', background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.accent}`, borderRadius: 12, padding: 12 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821', marginBottom: 4 }}>{cat.label} near {instName}</div>
+                    <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginBottom: 8 }}>
+                      Curated Google Maps search restricted to the area around your gaining installation. Opens with real providers, photos, hours, and reviews so you can call ahead and confirm availability.
+                    </div>
+                    <span className="card-cta" style={{ '--cta-color': theme.primary }}>Open map view</span>
+                  </a>
+                ))}
+              </div>
+            </>
           )}
           {daycares.map((dc, idx) => (
             <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
