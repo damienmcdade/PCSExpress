@@ -7967,13 +7967,15 @@ function FamilyCategoryTab({ theme, profile }) {
 // Module-level one-shot for deep-link sub-tabs. The deep-link parser
 // reads `?go=pcs-operations/timeline` and stores 'timeline' here so
 // the next mount of the corresponding wrapper picks it up as the
-// initial sub-tab. Consumed exactly once and cleared.
-let _PENDING_SUBTAB = null;
+// initial sub-tab. Consumed exactly once and cleared. Implemented as
+// a plain object property so the minifier can't accidentally place
+// a `let` binding inside a TDZ-sensitive scope.
+const _SUBTAB_STORE = { pending: null };
 function consumePendingSubTab(defaultId, allowed) {
-  if (_PENDING_SUBTAB && allowed.includes(_PENDING_SUBTAB)) {
-    const t = _PENDING_SUBTAB;
-    _PENDING_SUBTAB = null;
-    return t;
+  const v = _SUBTAB_STORE.pending;
+  if (v && allowed.includes(v)) {
+    _SUBTAB_STORE.pending = null;
+    return v;
   }
   return defaultId;
 }
@@ -8607,7 +8609,7 @@ function App() {
           'jtr-assistant',
         ]);
         if (allowed.has(top)) {
-          if (sub) _PENDING_SUBTAB = sub;
+          if (sub) _SUBTAB_STORE.pending = sub;
           window.history.replaceState({}, '', window.location.pathname);
           return top;
         }
@@ -8641,7 +8643,7 @@ function App() {
       const tab = e?.detail?.tab;
       const sub = e?.detail?.sub;
       if (typeof tab !== 'string' || !tab) return;
-      if (sub && typeof sub === 'string') _PENDING_SUBTAB = sub;
+      if (sub && typeof sub === 'string') _SUBTAB_STORE.pending = sub;
       setActiveTab(tab);
     };
     window.addEventListener('pcs-navigate', handler);
