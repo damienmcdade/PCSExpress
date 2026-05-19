@@ -11,7 +11,17 @@
 import { useEffect } from 'react';
 
 const RTL_LANGS = new Set(['ar']);
-const SUPPORTED = new Set(['en', 'es', 'de', 'fr', 'ko', 'ja', 'tl', 'ar', 'zh', 'it', 'pt', 'vi']);
+// The 11 curated locales (es..vi) carry per-key entries throughout
+// this file. The 8 African / additional locales (sw..af) are
+// supported only via the Google Translate runtime — when the user
+// picks one of them, the in-app dictionary contributes nothing, and
+// Google Translate covers every visible string instead. Adding them
+// to SUPPORTED lets normalizeLanguage() pass them through cleanly so
+// the lang attribute and CSP relaxation all line up.
+const SUPPORTED = new Set([
+  'en', 'es', 'de', 'fr', 'ko', 'ja', 'tl', 'ar', 'zh', 'it', 'pt', 'vi',
+  'sw', 'ha', 'yo', 'am', 'zu', 'ig', 'so', 'af',
+]);
 
 const tr = (es, de, fr, ko, ja, tl, ar, zh, it, pt, vi) => ({ es, de, fr, ko, ja, tl, ar, zh, it, pt, vi });
 

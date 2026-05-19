@@ -5438,8 +5438,17 @@ function isDodCivilian(profile) {
   return String(profile?.component || '').trim() === 'DoD Civilian';
 }
 
+// Expanded language picker. The first 12 entries (English + 11 locales)
+// carry curated in-app dictionaries in APP_TRANSLATIONS. The African +
+// additional locales below ride on the Google Website Translator
+// runtime — `googleTranslateRuntime.js` activates when the user picks
+// any non-English locale, and Google translates the entire DOM. The
+// curated dictionaries cover navigation labels and demo-tour copy for
+// the 11 main locales; everything else (including all card content for
+// the African locales) is translated by Google.
 const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English',              native: 'English'    },
+  // Curated catalogs (dictionary + Google Translate)
   { code: 'es', name: 'Spanish',              native: 'Español'    },
   { code: 'de', name: 'German',               native: 'Deutsch'    },
   { code: 'fr', name: 'French',               native: 'Français'   },
@@ -5451,6 +5460,17 @@ const SUPPORTED_LANGUAGES = [
   { code: 'it', name: 'Italian',              native: 'Italiano'   },
   { code: 'pt', name: 'Portuguese',           native: 'Português'  },
   { code: 'vi', name: 'Vietnamese',           native: 'Tiếng Việt' },
+  // African languages — Google-Translate-only coverage. Ordered by
+  // approximate native-speaker count to surface the most-spoken
+  // first in the dropdown.
+  { code: 'sw', name: 'Swahili',              native: 'Kiswahili'  },
+  { code: 'ha', name: 'Hausa',                native: 'Hausa'      },
+  { code: 'yo', name: 'Yoruba',               native: 'Yorùbá'     },
+  { code: 'am', name: 'Amharic',              native: 'አማርኛ'        },
+  { code: 'zu', name: 'Zulu',                 native: 'isiZulu'    },
+  { code: 'ig', name: 'Igbo',                 native: 'Igbo'       },
+  { code: 'so', name: 'Somali',               native: 'Soomaali'   },
+  { code: 'af', name: 'Afrikaans',            native: 'Afrikaans'  },
 ];
 
 

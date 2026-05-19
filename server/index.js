@@ -85,7 +85,11 @@ function wantsTranslateRelaxedCsp(req) {
   // Match googtrans=/<source>/<target> where target is one of the
   // 11 non-English locales the runtime supports. Anything else
   // (including /auto/en) falls back to strict CSP.
-  return /(?:^|;\s*)googtrans=\/[^/]+\/(es|de|fr|ko|ja|tl|ar|zh|it|pt|vi)\b/.test(cookieHeader)
+  // Eight African locales (sw, ha, yo, am, zu, ig, so, af) ride on
+  // Google Translate alongside the curated 11. Adding them here keeps
+  // the CSP relaxation gated on the same opt-in signal regardless of
+  // which locale the user chose.
+  return /(?:^|;\s*)googtrans=\/[^/]+\/(es|de|fr|ko|ja|tl|ar|zh|it|pt|vi|sw|ha|yo|am|zu|ig|so|af)\b/.test(cookieHeader)
 }
 
 console.log('[SERVER] ════════════════════════════════════════════════════════')

@@ -22,7 +22,10 @@
  */
 
 const GOOGLE_SUPPORTED_LANGS = new Set([
+  // Curated dictionary + Google Translate fallback
   'es', 'de', 'fr', 'ko', 'ja', 'tl', 'ar', 'zh', 'it', 'pt', 'vi',
+  // African / additional locales — Google-Translate-only coverage
+  'sw', 'ha', 'yo', 'am', 'zu', 'ig', 'so', 'af',
 ]);
 
 const WIDGET_HIDE_CSS = `
@@ -223,7 +226,7 @@ export function applyGoogleTranslateLanguage(lang) {
 // already set on initial request" (CSP already relaxed, no reload).
 const _hadTranslateCookieAtBoot = (() => {
   if (typeof document === 'undefined') return false;
-  return /(?:^|;\s*)googtrans=\/[^/]+\/(es|de|fr|ko|ja|tl|ar|zh|it|pt|vi)\b/.test(document.cookie || '');
+  return /(?:^|;\s*)googtrans=\/[^/]+\/(es|de|fr|ko|ja|tl|ar|zh|it|pt|vi|sw|ha|yo|am|zu|ig|so|af)\b/.test(document.cookie || '');
 })();
 function hadTranslateCookieAtBoot() {
   return _hadTranslateCookieAtBoot;
