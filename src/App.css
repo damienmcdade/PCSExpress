@@ -1986,6 +1986,39 @@ input, select, textarea {
   }
 }
 
+/* ── Document cards ───────────────────────────────────────────────────
+   Used by PCSDocumentsModule for each record row. Cards are <div>
+   containers (not anchors) so the [data-dynamic-card] > a selector
+   doesn't reach them. This class adds the same hover-lift / press
+   feedback / focus-visible outline directly. */
+.pcs-doc-card {
+  position: relative;
+  transition:
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 200ms ease;
+  will-change: transform, box-shadow;
+}
+
+@media (hover: hover) {
+  .pcs-doc-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px -8px rgba(13, 24, 33, 0.18) !important;
+  }
+}
+
+.pcs-doc-card:focus-within {
+  outline: 2px solid #4285F4;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcs-doc-card {
+    animation: none !important;
+    transition-duration: 0ms !important;
+  }
+}
+
 /* ── Selection chips ──────────────────────────────────────────────────
    Catch-all class for "toggle" or "filter" buttons that aren't full
    sub-tabs but are still selectable (branch selector, component

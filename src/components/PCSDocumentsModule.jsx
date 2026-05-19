@@ -443,7 +443,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
             const isActive = activecat === c.id;
             const allReqDone = p.reqTotal === 0 || p.reqDone === p.reqTotal;
             return (
-              <button key={c.id} onClick={() => setActivecat(c.id)} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 20, border: `1.5px solid ${isActive ? c.color : '#CBD5E1'}`, background: isActive ? c.color : '#FFF', color: isActive ? '#FFF' : '#374151', fontSize: 11, fontWeight: isActive ? 800 : 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button key={c.id} onClick={() => setActivecat(c.id)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 20, border: `1.5px solid ${isActive ? c.color : '#CBD5E1'}`, background: isActive ? c.color : '#FFF', color: isActive ? '#FFF' : '#374151', fontSize: 11, fontWeight: isActive ? 800 : 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span>{c.icon}</span>
                 <span>{c.label}</span>
                 <span style={{ background: isActive ? 'rgba(255,255,255,0.25)' : (allReqDone ? '#D1FAE5' : '#FEE2E2'), color: isActive ? '#FFF' : (allReqDone ? '#065F46' : '#991B1B'), fontSize: 10, fontWeight: 900, padding: '1px 6px', borderRadius: 10 }}>
@@ -476,7 +476,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
           const st = states[doc.id] || {};
           const obtained = !!st.obtained;
           return (
-            <div key={doc.id} style={{ background: '#FFF', borderRadius: 14, marginBottom: 10, border: `1.5px solid ${obtained ? `${cat?.color}40` : '#E2E8F0'}`, overflow: 'hidden', boxShadow: obtained ? `0 2px 8px ${cat?.color}18` : 'none' }}>
+            <div key={doc.id} className="pcs-doc-card" style={{ background: '#FFF', borderRadius: 14, marginBottom: 10, border: `1.5px solid ${obtained ? `${cat?.color}40` : '#E2E8F0'}`, overflow: 'hidden', boxShadow: obtained ? `0 2px 8px ${cat?.color}18` : '0 1px 2px rgba(13, 24, 33, 0.04)' }}>
               <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                 <button onClick={() => toggleObtained(doc.id)} style={{ ...inputSt, flexShrink: 0, marginTop: 2 }} aria-label={obtained ? 'Mark as not gathered' : 'Mark as gathered'}>
                   <div style={{ width: 24, height: 24, borderRadius: 7, border: `2px solid ${obtained ? cat?.color : '#CBD5E1'}`, background: obtained ? cat?.color : '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .2s' }}>
@@ -498,7 +498,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
                 </div>
               </div>
               <div style={{ borderTop: `1px solid ${obtained ? `${cat?.color}20` : '#F1F5F9'}`, padding: '8px 14px', display: 'flex', gap: 8, flexWrap: 'wrap', background: obtained ? `${cat?.color}06` : '#FAFAFA' }}>
-                <button onClick={() => { toggleObtained(doc.id); showToast(obtained ? 'Marked not gathered' : 'Marked gathered'); }} style={{ marginLeft: 'auto', padding: '6px 12px', borderRadius: 8, background: `${cat?.color}15`, color: cat?.color, border: `1px solid ${cat?.color}40`, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                <button onClick={() => { toggleObtained(doc.id); showToast(obtained ? 'Marked not gathered' : 'Marked gathered'); }} className="card-cta" style={{ '--cta-color': cat?.color, marginLeft: 'auto' }}>
                   {obtained ? 'Mark Not Gathered' : 'Mark Gathered'}
                 </button>
               </div>
