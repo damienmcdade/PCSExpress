@@ -5850,6 +5850,7 @@ const APP_TRANSLATIONS = {
       home: 'Home',
       'base-intelligence': 'Base Intelligence',
       checklist: 'Checklist',
+      compliance: 'Compliance',
       documents: 'Documents',
       education: 'Education',
       family: 'Family Readiness',
@@ -7670,6 +7671,7 @@ function HomeRelocationUnifiedTab({ theme, profile }) {
     { id: 'budget-tracker', label: 'Budget Tracker' },
     { id: 'shipment-tracker', label: 'Shipment Tracker' },
     { id: 'inventory-claims', label: 'Inventory & Claims' },
+    { id: 'jtr-assistant', label: 'JTR Assistant' },
     { id: 'move-aid', label: 'Move Aid' },
     // VA Loan is veteran-status, not active-civilian. We still show it
     // because many DoD Civilians are also veterans — gated inside the
@@ -7692,6 +7694,7 @@ function HomeRelocationUnifiedTab({ theme, profile }) {
       {tab === 'budget-tracker' && <MoveBudgetTracker theme={theme} profile={profile} />}
       {tab === 'shipment-tracker' && <ShipmentTrackerModule theme={theme} profile={profile} />}
       {tab === 'inventory-claims' && <InventoryVaultModule theme={theme} profile={profile} />}
+      {tab === 'jtr-assistant' && <JTRAssistantModule theme={theme} profile={profile} />}
       {tab === 'move-aid' && <MovingFinancialAssistanceTab theme={theme} profile={profile} />}
       {tab === 'va-loan' && <VAHomeLoanPanel theme={theme} profile={profile} />}
     </CategoryTabShell>
@@ -8113,7 +8116,6 @@ function App() {
     { id: 'education',   label: 'Education',            icon: 'EDU', iosIcon: '📚', color: '#1565C0' },
     { id: 'family',      label: 'Family Readiness',     icon: 'FAM', iosIcon: '👪', color: '#5B2A86' },
     { id: 'home-relocation', label: 'Home Relocation',  icon: 'HME', iosIcon: '🏠', color: '#455A64' },
-    { id: 'jtr-assistant', label: 'JTR Assistant',      icon: 'JTR', iosIcon: '📖', color: '#1A237E' },
     { id: 'medical-readiness', label: 'Medical Readiness', icon: 'MED', iosIcon: '🏥', color: '#7F1D1D' },
     { id: 'nav',         label: 'Navigation',           icon: 'NAV', iosIcon: '🗺️', color: '#00695C' },
     { id: 'resources',   label: 'Resources',            icon: 'RES', iosIcon: '🔗', color: '#C62828' },
@@ -8494,7 +8496,6 @@ function App() {
         {activeTab === 'religion' && renderCategoryFrame('religion', <ReligiousServicesModuleWrapped theme={theme} profile={profile} />)}
         {activeTab === 'resources' && renderCategoryFrame('resources', <ResourcesTab theme={theme} profile={profile} />)}
         {activeTab === 'veterans' && renderCategoryFrame('veterans', <VeteranBusinessesTab theme={theme} profile={profile} />)}
-        {activeTab === 'jtr-assistant' && renderCategoryFrame('jtr-assistant', <JTRAssistantModule theme={theme} profile={profile} />)}
         {activeTab === 'compliance' && renderCategoryFrame('compliance', <ComplianceAttestationModule theme={theme} profile={profile} />)}
       </div>
       </div>{/* end body container */}
