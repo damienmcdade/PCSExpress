@@ -160,6 +160,34 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ ok: 1, service: 'express-api', port: PORT })
 })
 
+// Escape hatch: wipe every form of client-side storage for the origin
+// via the Clear-Site-Data response header. Used to evict the stale
+// service worker left over from an earlier deploy that has been serving
+// a broken cached bundle to returning visitors. The header takes effect
+// before the browser dispatches the response to any service-worker
+// fetch handler, so it works even when the SW is otherwise intercepting
+// every navigation request. The response auto-redirects to / so the
+// user immediately picks up the fresh bundle on a clean origin.
+//
+// NOT cleared: cookies — preserves the language-preference cookie set
+// by useAppLanguageRuntime. Anyone hitting this URL accepts losing
+// localStorage progress; surface that warning in the HTML body.
+app.get('/api/reset-site-cache', (req, res) => {
+  res.setHeader('Clear-Site-Data', '"cache", "storage"')
+  res.setHeader('Cache-Control', 'no-store')
+  res.setHeader('Content-Type', 'text/html; charset=utf-8')
+  res.status(200).send(`<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8" />
+<title>PCS Express — Resetting</title>
+<meta http-equiv="refresh" content="2;url=/" />
+<style>body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:#0A1628;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:24px;text-align:center}main{max-width:480px}h1{font-size:20px;margin:0 0 12px}p{opacity:.8;line-height:1.5}a{color:#3498db}</style>
+</head><body><main>
+<h1>Cache cleared</h1>
+<p>Service worker, Cache Storage, and local storage for this origin have been wiped. You'll be redirected to a fresh load in 2 seconds.</p>
+<p><a href="/">Continue now</a></p>
+</main></body></html>`)
+})
+
 // === API ROUTES (MUST BE BEFORE STATIC/FRONTEND) ===
 
 // === BASE REVIEWS PUBLIC METADATA ENDPOINTS ===
