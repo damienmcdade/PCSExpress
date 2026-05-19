@@ -26,6 +26,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
+import CopyableText from './CopyableText';
 
 const STORAGE_KEY = 'pcs_inventory_vault';
 
@@ -169,14 +170,20 @@ export default function InventoryVaultModule({ theme, profile }) {
       <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 14, padding: 14, marginBottom: 14 }}>
         <div style={{ fontSize: 12, fontWeight: 900, color: theme.primary, letterSpacing: '.06em', marginBottom: 10 }}>SHIPMENT METADATA</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <label style={{ display: 'block' }}>
-            <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', marginBottom: 4 }}>GBL / TCN</div>
+          <div style={{ display: 'block' }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span>GBL / TCN</span>
+              {state.meta?.gbl && <CopyableText value={state.meta.gbl} ariaLabel="Copy GBL" style={{ fontSize: 10, color: theme.primary, padding: '0 4px' }}>Copy</CopyableText>}
+            </div>
             <input value={state.meta?.gbl || ''} onChange={e => updMeta('gbl', e.target.value)} style={inputSt} placeholder="Shipment number" />
-          </label>
-          <label style={{ display: 'block' }}>
-            <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', marginBottom: 4 }}>TSP</div>
+          </div>
+          <div style={{ display: 'block' }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span>TSP</span>
+              {state.meta?.tsp && <CopyableText value={state.meta.tsp} ariaLabel="Copy TSP" style={{ fontSize: 10, color: theme.primary, padding: '0 4px' }}>Copy</CopyableText>}
+            </div>
             <input value={state.meta?.tsp || ''} onChange={e => updMeta('tsp', e.target.value)} style={inputSt} placeholder="Transportation Service Provider" />
-          </label>
+          </div>
           <label style={{ display: 'block' }}>
             <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', marginBottom: 4 }}>Delivered on</div>
             <input type="date" value={state.meta?.deliveredOn || ''} onChange={e => updMeta('deliveredOn', e.target.value)} style={inputSt} />

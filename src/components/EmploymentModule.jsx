@@ -649,9 +649,12 @@ function EmploymentModule({ theme, profile }) {
           </SectionIntro>
 
           {liveJobs.status === 'loading' && (
-            <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 12, color: '#46586B' }}>
-              Searching live job listings...
-            </div>
+            <section aria-busy="true" aria-label="Loading job listings" style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#56697C', letterSpacing: '.06em', marginBottom: 8 }}>SEARCHING LIVE JOB LISTINGS…</div>
+              {[0,1,2].map(i => (
+                <div key={i} className="pcs-skeleton" style={{ background: 'linear-gradient(90deg, #F0F4F8 25%, #FAFBFC 50%, #F0F4F8 75%)', backgroundSize: '200% 100%', animation: 'pcs-skeleton-shimmer 1.4s ease-in-out infinite', border: '1px solid #E0E6EE', borderRadius: 10, padding: 12, marginBottom: 8, height: 58 }} />
+              ))}
+            </section>
           )}
 
           {liveJobs.status === 'ready' && liveJobs.listings.length > 0 && (

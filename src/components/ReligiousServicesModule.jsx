@@ -480,9 +480,12 @@ function ReligiousServicesModule({ theme, profile }) {
           <div style={{ order: 2 }} aria-label="Live places of worship">
           {/* Live nearby places of worship */}
           {liveServices.status === 'loading' && (
-            <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 11, color: '#56697C' }}>
-              Loading Google Maps cards for nearby places of worship...
-            </div>
+            <section aria-busy="true" aria-label="Loading nearby places of worship" style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#56697C', letterSpacing: '.06em', marginBottom: 8 }}>LOADING NEARBY PLACES OF WORSHIP…</div>
+              {[0,1,2].map(i => (
+                <div key={i} className="pcs-skeleton" style={{ background: 'linear-gradient(90deg, #F0F4F8 25%, #FAFBFC 50%, #F0F4F8 75%)', backgroundSize: '200% 100%', animation: 'pcs-skeleton-shimmer 1.4s ease-in-out infinite', border: '1px solid #E0E6EE', borderRadius: 10, padding: 10, marginBottom: 6, height: 54 }} />
+              ))}
+            </section>
           )}
           {liveServices.status === 'ready' && liveServices.services.length > 0 && (
             <section style={{ marginBottom: 20 }}>

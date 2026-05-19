@@ -12,6 +12,7 @@ import {
   formatCurrencyBAH,
   INSTALLATION_MHA_MAP,
 } from '../lib/bahCalculator';
+import CopyableText from './CopyableText';
 
 const fieldStyle = {
   width: '100%',
@@ -244,7 +245,9 @@ export default function BAHCalculatorTab({ theme, profile }) {
           {/* Your Rate Highlight */}
           <div style={{ background: theme.primary, borderRadius: 18, padding: 20, marginBottom: 14, color: '#FFF', textAlign: 'center' }}>
             <div style={{ fontSize: 11, fontWeight: 900, color: theme.accent, letterSpacing: '.12em', marginBottom: 4 }}>YOUR ESTIMATED MONTHLY BAH</div>
-            <div style={{ fontSize: 42, fontWeight: 950, lineHeight: 1, letterSpacing: '-1px', marginBottom: 6 }}>{formatCurrencyBAH(userRate)}</div>
+            <CopyableText value={formatCurrencyBAH(userRate)} ariaLabel="Copy BAH rate" style={{ display: 'inline-block', color: '#FFFFFF', padding: '0 4px' }}>
+              <span style={{ fontSize: 42, fontWeight: 950, lineHeight: 1, letterSpacing: '-1px', display: 'inline-block', marginBottom: 6 }}>{formatCurrencyBAH(userRate)}</span>
+            </CopyableText>
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
               {payGrade} · {withDeps ? `${numDeps} dependent${numDeps > 1 ? 's' : ''}` : 'no dependents'} · {mha}
             </div>

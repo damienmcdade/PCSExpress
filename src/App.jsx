@@ -8087,7 +8087,32 @@ function App() {
     }
     return p;
   });
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState(() => {
+    // Deep-link entry: support URLs like /?go=movement-logistics so
+    // support emails and saved bookmarks can drop the user directly
+    // onto a specific mission group. The param is consumed once and
+    // stripped from the URL after activation so it doesn't re-fire on
+    // navigation back to Home.
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const target = params.get('go');
+      if (target) {
+        const allowed = new Set([
+          'home', 'pcs-operations', 'home-relocation', 'family-readiness',
+          'medical-readiness', 'mission-resources',
+          // Legacy deep-link IDs kept for support-link compatibility.
+          'checklist', 'documents', 'family', 'education', 'translation',
+          'religion', 'base-intelligence', 'nav', 'resources', 'veterans',
+          'jtr-assistant',
+        ]);
+        if (allowed.has(target)) {
+          window.history.replaceState({}, '', window.location.pathname);
+          return target;
+        }
+      }
+    } catch {}
+    return 'home';
+  });
   const [navOpen, setNavOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
@@ -8425,12 +8450,40 @@ function App() {
   }
 
   return (
-    <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: `${UI_PALETTE.pagePattern}, radial-gradient(circle at top left, ${theme.accent}22, transparent 50%), radial-gradient(circle at bottom right, ${theme.primary}22, transparent 50%), ${UI_PALETTE.page}`, fontFamily: 'system-ui', display: 'flex', flexDirection: 'column' }}>
+    <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: `${UI_PALETTE.pagePattern}, radial-gradient(circle at top left, ${theme.accent}22, transparent 50%), radial-gradient(circle at bottom right, ${theme.primary}22, transparent 50%), ${UI_PALETTE.page}`, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
       <PrivacyShield />
       <SaveStatusIndicator theme={theme} />
       {showResetWarning && (
         <ResetWarningModal theme={theme} onConfirm={confirmReset} onCancel={() => setShowResetWarning(false)} />
       )}
+      {/* Desktop sidebar — mirrors the 6 mission groups, branch-colored,
+          with the 🔒 Security button pinned at the bottom. Replaces
+          the burger menu on screens ≥ 900px. */}
+      {isDesktop && (
+        <aside style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', minHeight: '100dvh', borderRight: `2px solid ${theme.accent}30`, flexShrink: 0, position: 'sticky', top: 0, alignSelf: 'flex-start' }}>
+          <div style={{ padding: '20px 16px 12px', borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
+            <div style={{ fontSize: 9, letterSpacing: '.18em', color: theme.accent, fontWeight: 900, marginBottom: 2 }}>PCS EXPRESS</div>
+            <div style={{ fontSize: 16, fontWeight: 900, color: theme.accent, letterSpacing: '-1px', lineHeight: 1 }}>{theme.insignia || theme.abbr}</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>{getRankDisplay(profile.branch, profile.paygrade)} {profile.firstName}</div>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>{profile.branch}</div>
+          </div>
+          <nav aria-label="Mission groups" style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
+            {LOCALIZED_BOTTOM_NAV.map(item => (
+              <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-side-link ${activeTab === item.id ? 'is-active' : ''}`} style={{ width: '100%', padding: '11px 16px', background: activeTab === item.id ? `${theme.accent}22` : 'transparent', border: 'none', borderLeft: `3px solid ${activeTab === item.id ? theme.accent : 'transparent'}`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.78)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, fontWeight: activeTab === item.id ? 800 : 600, textAlign: 'left', '--side-accent': theme.accent }} aria-current={activeTab === item.id ? 'page' : undefined}>
+                <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }} aria-hidden="true">{item.iosIcon}</span>
+                <span style={{ flex: 1 }}>{item.label}</span>
+                <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.06em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.4)', flexShrink: 0 }}>{item.icon}</span>
+              </button>
+            ))}
+          </nav>
+          <button onClick={() => setShowCompliance(true)} aria-label="Open security and data-handling" style={{ width: '100%', padding: '12px 16px', background: 'rgba(255,255,255,0.04)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.85)', fontSize: 11, cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
+            <span aria-hidden="true" style={{ fontSize: 14 }}>🔒</span>
+            Security &amp; data handling
+          </button>
+          <button onClick={() => setShowResetWarning(true)} style={{ width: '100%', padding: '9px', background: 'rgba(255,0,0,0.08)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,100,100,0.85)', fontSize: 10, cursor: 'pointer', fontWeight: 700 }}>{t('reset')}</button>
+        </aside>
+      )}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       {/* HEADER — paddingTop uses env(safe-area-inset-top) for notch/Dynamic Island.
           Requires viewport-fit=cover in the HTML meta and contentInsetAdjustmentBehavior=never
           in capacitor.config.json to receive non-zero values from the OS. */}
@@ -8557,26 +8610,41 @@ function App() {
               {homeInsignia}
             </div>
             <div style={{ position: 'relative', zIndex: 1 }}>
-            {/* Branch Hero Banner */}
-            <div style={{ background: `linear-gradient(135deg, ${UI_PALETTE.surface} 0%, #F6F1E4 100%)`, borderRadius: 18, padding: isDesktop ? '24px 22px' : '20px 16px', marginBottom: 16, position: 'relative', overflow: 'hidden', border: `1px solid ${UI_PALETTE.line}`, boxShadow: '0 18px 42px rgba(38,53,31,0.13)' }}>
-              {/* Background branch acronym watermark */}
-              <div style={{ position: 'absolute', right: -8, bottom: -12, fontSize: 90, fontWeight: 900, opacity: 0.07, userSelect: 'none', pointerEvents: 'none', color: theme.accent, letterSpacing: '-4px', lineHeight: 1 }}>
+            {/* MISSION BRIEF — compact pinned card. Replaces the
+                verbose hero banner with a tactical dashboard line:
+                branch · rank · sponsor name · gaining installation.
+                Sticky on mobile so the user always knows which
+                profile is loaded as they scroll the task lanes. */}
+            <div style={{
+              background: `linear-gradient(135deg, ${UI_PALETTE.surface} 0%, #F6F1E4 100%)`,
+              borderRadius: 14,
+              padding: isDesktop ? '14px 18px' : '12px 14px',
+              marginBottom: 14,
+              position: 'sticky',
+              top: 0,
+              zIndex: 5,
+              overflow: 'hidden',
+              border: `1px solid ${UI_PALETTE.line}`,
+              borderLeft: `4px solid ${theme.accent}`,
+              boxShadow: '0 8px 22px rgba(38,53,31,0.10)',
+            }}>
+              <div aria-hidden="true" style={{ position: 'absolute', right: -6, bottom: -10, fontSize: 64, fontWeight: 900, opacity: 0.07, userSelect: 'none', pointerEvents: 'none', color: theme.accent, letterSpacing: '-3px', lineHeight: 1 }}>
                 {homeInsignia}
               </div>
-              {/* Branch label */}
-              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.22em', color: theme.primary, marginBottom: 4, textTransform: 'uppercase' }}>
-                {t('unitedStates')} {profile.branch.toUpperCase()}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.22em', color: theme.primary, textTransform: 'uppercase' }}>
+                  {t('unitedStates')} {profile.branch.toUpperCase()}
+                </div>
+                <div style={{ fontSize: 9, fontWeight: 800, color: UI_PALETTE.muted, letterSpacing: '.10em', textTransform: 'uppercase' }}>
+                  MISSION BRIEF
+                </div>
               </div>
-              <div style={{ fontSize: 10, color: UI_PALETTE.muted, fontStyle: 'italic', marginBottom: 12 }}>{theme.tagline}</div>
-              {/* Soldier info */}
-              <div style={{ fontSize: 13, fontWeight: 800, color: UI_PALETTE.text }}>
+              <div style={{ fontSize: isDesktop ? 15 : 13, fontWeight: 900, color: UI_PALETTE.text, lineHeight: 1.25 }}>
                 {getRankDisplay(profile.branch, profile.paygrade)} {profile.firstName} {profile.lastName}
               </div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 2 }}>
-                {profile.gainingInstallation ? `${t('reportingTo')}: ${profile.gainingInstallation}` : t('setGaining')}
+              <div style={{ fontSize: 11, color: UI_PALETTE.muted, marginTop: 4, lineHeight: 1.4 }}>
+                {profile.gainingInstallation ? `→ ${profile.gainingInstallation}` : t('setGaining')}
               </div>
-              {/* Accent bar */}
-              <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: theme.accent, borderRadius: '16px 0 0 16px' }} />
             </div>
 
             {/* T-Minus dashboard — derived from Report-NLT date per redesign brief */}
@@ -8675,6 +8743,7 @@ function App() {
         {activeTab === 'veterans'   && renderCategoryFrame('veterans',   <VeteranBusinessesTab theme={theme} profile={profile} />)}
       </div>
       </div>{/* end body container */}
+      </div>{/* end main column (header + body) — wraps sibling of desktop aside */}
 
       {/* Persistent crisis-line chip — always one tap from 988 + OneSource.
           Renders over every mission group so a stressed user never has
