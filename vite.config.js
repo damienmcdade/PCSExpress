@@ -15,6 +15,10 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: false,
+    // Source maps emitted alongside the minified bundle so production
+    // TDZ / runtime errors can be traced to the original source file
+    // and line. The map is a separate .js.map artifact; the main JS
+    // is still minified the same way.
+    sourcemap: true,
   },
 })

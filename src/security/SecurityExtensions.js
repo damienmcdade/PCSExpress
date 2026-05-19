@@ -24,7 +24,16 @@ import {
   decryptJSON,
   isSecureEnvelope,
   encryptionAvailable,
+  closeCryptoStoreDB,
 } from './cryptoStore.js';
+
+// Re-export closeCryptoStoreDB so consumers don't need a second
+// dynamic-import path against cryptoStore.js. Vite warned that the
+// mixed static + dynamic import of cryptoStore could produce
+// duplicate module evaluation; routing everything through this one
+// file resolves the warning and any minifier-introduced TDZ on
+// cryptoStore's module-level `let` bindings.
+export { closeCryptoStoreDB };
 
 const AUDIT_KEY = 'pcs_audit_log';
 export const LAST_LOCAL_SAVE_KEY = 'pcs_last_local_save_at';

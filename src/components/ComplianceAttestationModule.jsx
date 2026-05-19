@@ -11,8 +11,12 @@
  */
 
 import { useEffect, useState } from 'react';
-import { encryptionAvailable } from '../security/cryptoStore';
-import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
+// Route both encryptionAvailable AND secureLocalStore / AuditLogger
+// through SecurityExtensions. Importing cryptoStore.js directly here
+// while it's also imported via SecurityExtensions triggered a dual-
+// chunk evaluation that Vite warned about and could TDZ a
+// module-level `let` in cryptoStore under specific minifier paths.
+import { encryptionAvailable, secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
 
 // Personal data export. Builds a JSON blob of every secureLocalStore
 // key the user has touched and offers it as a download. The user can

@@ -36,7 +36,7 @@ import MoveBudgetTracker from './components/MoveBudgetTracker'
 import DutyStationDirectory from './components/DutyStationDirectory'
 import PrivacyShield from './components/PrivacyShield'
 import SyncStatusIndicator from './components/SyncStatusIndicator'
-import { AuditLogger, secureLocalStore, readLegacyJson } from './security/SecurityExtensions'
+import { AuditLogger, secureLocalStore, readLegacyJson, closeCryptoStoreDB } from './security/SecurityExtensions'
 import { ALL_BASES } from './components/BaseMapModule'
 import { resolveMarket } from './data/installationMarkets'
 import { useAppLanguageRuntime } from './i18n/useAppLanguageRuntime'
@@ -105,10 +105,12 @@ async function eraseAllUserData() {
   // 4. IndexedDB — wipe the cryptoStore so the next session generates a
   //    fresh AES-256 key. Critically: close the cached connection FIRST,
   //    otherwise deleteDatabase fires onblocked and never completes.
-  try {
-    const { closeCryptoStoreDB } = await import('./security/cryptoStore.js');
-    closeCryptoStoreDB();
-  } catch {}
+  //    closeCryptoStoreDB is re-exported by SecurityExtensions so we
+  //    don't trigger the mixed static + dynamic import path against
+  //    cryptoStore.js (the previous dynamic import here was causing
+  //    Vite to chunk cryptoStore twice and produced a minifier TDZ
+  //    path on its module-level `let` bindings).
+  try { closeCryptoStoreDB(); } catch {}
   try {
     if (window.indexedDB) {
       // Discover every database this origin holds (Chrome/Firefox/Safari
