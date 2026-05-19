@@ -7,11 +7,31 @@ import { useEffect, useMemo, useState } from 'react';
 
 const TIMELINE_STORAGE_KEY = 'pcs_dynamic_timeline_notifications';
 
-const MILESTONES = [
-  { id: 'hhg', offsetDays: 60, title: 'Schedule HHG Shipment', body: 'Confirm pickup windows in DPS and coordinate with PPPO/TMO before peak season dates fill.' },
-  { id: 'housing', offsetDays: 30, title: 'Submit Housing Intent to Vacate', body: 'Notify privatized housing, landlord, or property manager and confirm SCRA or lease requirements.' },
-  { id: 'final-out', offsetDays: 10, title: 'Final Out-Processing / Vehicle Shipping', body: 'Complete clearing appointments, ship or prepare POV, and keep travel documents accessible.' },
+// CONUS PCS milestones — 90-day backward plan from RNLTD.
+const MILESTONES_CONUS = [
+  { id: 'hhg',       offsetDays: 60, title: 'Schedule HHG Shipment',                       body: 'Confirm pickup windows in DPS and coordinate with PPPO/TMO before peak season dates fill.' },
+  { id: 'housing',   offsetDays: 30, title: 'Submit Housing Intent to Vacate',             body: 'Notify privatized housing, landlord, or property manager and confirm SCRA or lease requirements.' },
+  { id: 'final-out', offsetDays: 10, title: 'Final Out-Processing / Vehicle Shipping',     body: 'Complete clearing appointments, ship or prepare POV, and keep travel documents accessible.' },
 ];
+
+// OCONUS PCS milestones — much wider planning window because of pet
+// import lead time (Japan 7-8 months, Australia 6-9 months, Hawaii
+// FAVN window), country clearance, no-fee passports, and Patriot
+// Express booking. Anchored to the same RNLTD/report date.
+const MILESTONES_OCONUS = [
+  { id: 'pet-import',         offsetDays: 180, title: 'Pet Import Lead Time',                body: 'Country-dependent: Japan needs 180-day FAVN waiting period, Australia 180-day RNATT, UK GB Animal Health Certificate. Start microchip + rabies + titer NOW or pets stay behind.' },
+  { id: 'passports',          offsetDays: 120, title: 'No-Fee + Tourist Passports (Family)', body: 'DD 1056 endorsement from gaining command, then no-fee passports for sponsor and dependents through installation passport office. Tourist passports for off-duty travel.' },
+  { id: 'overseas-screening', offsetDays:  90, title: 'Overseas / EFMP Family Screening',    body: 'Sponsor and family medical/dental/EFMP overseas screening per branch (OPNAV 1300/16, AF 1466, DA 5888, USMC). Required before country clearance approves.' },
+  { id: 'country-clearance',  offsetDays:  60, title: 'Country Clearance + SOFA Stamping',   body: 'Host-nation country clearance through gaining unit S2/Security. Coordinate visa/SOFA stamping. Without clearance you cannot enter the country.' },
+  { id: 'hhg',                offsetDays:  45, title: 'Schedule OCONUS HHG + UAB Shipment',  body: 'Two separate DPS shipments: Unaccompanied Baggage (UAB, air-freight, ~10-14 day arrival) and the main HHG (sea-freight, 45-90 days). UAB must carry the essentials.' },
+  { id: 'pov',                offsetDays:  30, title: 'POV to Vehicle Processing Center',    body: 'Ship one POV through the OCONUS VPC under JTR. Have title, registration, EFTPS, and a 1/4-tank fuel max. Many bases restrict 2nd POV; verify with PPSO.' },
+  { id: 'flight-booking',     offsetDays:  21, title: 'Patriot Express / Commercial Booking',body: 'Book Patriot Express (AMC) or commercial flight via SATO/CTO. Pet space is limited — confirm reservation 21+ days out for summer / school-cycle moves.' },
+  { id: 'final-out',          offsetDays:  10, title: 'Final Out-Processing + Travel Pack',  body: 'Clear losing installation, confirm OHA/MIHA / LQA paperwork is queued at gaining housing office, and pack hand-carry documents (passports, orders, medical records, country clearance).' },
+];
+
+function selectMilestones(profile) {
+  return profile?.isOverseas ? MILESTONES_OCONUS : MILESTONES_CONUS;
+}
 
 function readNotificationState() {
   try {
@@ -52,11 +72,13 @@ export default function DynamicTimeline({ theme, profile }) {
 
   useEffect(() => writeNotificationState(enabled), [enabled]);
 
-  const timeline = useMemo(() => MILESTONES.map(item => {
+  const milestones = useMemo(() => selectMilestones(profile), [profile?.isOverseas]);
+  const timeline = useMemo(() => milestones.map(item => {
     const dueDate = rnltDate ? addDays(rnltDate, -item.offsetDays) : null;
     const daysUntilDue = dueDate ? daysBetween(today, dueDate) : null;
     return { ...item, dueDate, daysUntilDue };
-  }), [rnltDate, today]);
+  }), [rnltDate, today, milestones]);
+  const headerWindow = profile?.isOverseas ? 'DYNAMIC 180-DAY OCONUS TIMELINE' : 'DYNAMIC 90-DAY TIMELINE';
 
   const toggle = async (id) => {
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
@@ -70,7 +92,7 @@ export default function DynamicTimeline({ theme, profile }) {
     <div style={{ background: '#FFFFFF', border: '1px solid #DDD5C2', borderRadius: 16, padding: 14, marginBottom: 18, boxShadow: '0 10px 24px rgba(38,53,31,0.08)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', marginBottom: 10 }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 950, color: theme.primary, letterSpacing: '.12em' }}>DYNAMIC 90-DAY TIMELINE</div>
+          <div style={{ fontSize: 10, fontWeight: 950, color: theme.primary, letterSpacing: '.12em' }}>{headerWindow}</div>
           <div style={{ fontSize: 14, fontWeight: 950, color: '#0D1821', marginTop: 3 }}>Backward-planned from RNLTD</div>
           <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5, marginTop: 3 }}>
             RNLTD/report date: <strong>{formatDate(rnltDate)}</strong>

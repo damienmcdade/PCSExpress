@@ -60,7 +60,7 @@ const DEMO_STEPS = [
     id: 'documents',
     title: 'PCS Documents',
     description: "All the forms you need, sorted into 7 tabs — and only the ones that apply to you.",
-    content: 'For Marcus (Army Guard, moving overseas) you\'ll see:\n• Unit: PCS orders, leave form (DA 31), soldier record brief\n• Family & Admin: emergency data (DD 93), SGLI beneficiary, family care plan, school records\n• OCONUS: passports, no-fee passport letter (DD 1056), country clearance\n• Household Goods: weight tickets (PPM only), inventory, pro-gear list\n• Travel & Finance: travel voucher, lodging receipts, mileage log\n• Housing: BAH paperwork\n• Medical: records transfer, immunizations, TRICARE switch\n\nCheck each off as you gather it. We don\'t want copies — just a checkmark.',
+    content: 'For Marcus (Army Guard, moving overseas) you\'ll see:\n• Unit: PCS orders, leave form (DA 31), soldier record brief\n• Family & Admin: emergency data (DD 93), SGLI beneficiary, family care plan, school records\n• OCONUS: passports, no-fee passport letter (DD 1056), country clearance, International Driving Permit, POV shipment authorization\n• Household Goods: weight tickets (PPM only), inventory, pro-gear list\n• Travel & Finance: travel voucher (with foreign-currency receipts), lodging receipts, mileage log\n• Housing: OHA / MIHA authorization and Utility / Recurring Maintenance Allowance paperwork — BAH does not apply overseas, so Marcus coordinates with the gaining housing office instead.\n• Medical: records transfer, immunizations, TRICARE Overseas Program (TOP) enrollment via International SOS\n\nCheck each off as you gather it. We don\'t want copies — just a checkmark.',
     action: 'Go to Documents',
     target: 'documents',
   },

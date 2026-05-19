@@ -2023,6 +2023,7 @@ const BRANCH_PCS_CHECKLISTS = {
       "Notify children's pediatrician of move — request prescriptions in 90-day supply",
       "If OCONUS: request no-fee tourist passport(s) and family member visa screening (Form DD 1056)",
       "If OCONUS: complete Family Member Travel Screening and EFMP overseas screening",
+      "If OCONUS: confirm state of legal residence (SLR/HOR) is unchanged for state tax purposes — combat zone deployments and overseas PCS do not automatically change residency. Active-duty pay earned in a Combat Zone Tax Exclusion (CZTE) area is excluded from federal income tax under IRC §112; OCONUS civilians earning foreign-source wages may qualify for the IRS Form 2555 Foreign Earned Income Exclusion (FEIE) — verify with the gaining installation Tax Center / VITA volunteer before filing.",
     ],
     "30 Days Out": [
       "Confirm pack-out dates and weight estimates with moving company via DPS",
@@ -2144,6 +2145,7 @@ const BRANCH_PCS_CHECKLISTS = {
       "Notify children's pediatrician of move — request prescriptions in 90-day supply",
       "If OCONUS: request no-fee tourist passport(s) and submit DD 1056 for family",
       "If OCONUS: complete Overseas Screening (OPNAV 1300/16) for sponsor and family",
+      "If OCONUS: confirm state of legal residence (SLR/HOR) is unchanged for state tax purposes — combat zone deployments and overseas PCS do not automatically change residency. CZTE-area active pay is excluded from federal income tax under IRC §112; OCONUS civilians earning foreign-source wages may qualify for IRS Form 2555 Foreign Earned Income Exclusion. Verify with the gaining installation Tax Center / VITA volunteer before filing.",
       "Coordinate underway / detachment release if currently in workups or deployed",
     ],
     "30 Days Out": [
@@ -2266,6 +2268,7 @@ const BRANCH_PCS_CHECKLISTS = {
       "Request Pre-departure Family Brief at MCCS Marine & Family Programs",
       "If OCONUS: submit no-fee passport applications and DD 1056 endorsements",
       "If OCONUS: complete Family Travel Screening (OCONUS Suitability)",
+      "If OCONUS: confirm state of legal residence (SLR/HOR) is unchanged for state tax purposes. CZTE-area active pay is excluded from federal income tax under IRC §112; OCONUS civilians earning foreign-source wages may qualify for IRS Form 2555 Foreign Earned Income Exclusion. Verify with the gaining installation Tax Center / VITA volunteer before filing.",
       "Run final pay screening at Disbursing to confirm pay continuity",
     ],
     "30 Days Out": [
@@ -2388,6 +2391,7 @@ const BRANCH_PCS_CHECKLISTS = {
       "Request a complete OMPF / Personnel Records Display Application (PRDA) print",
       "If OCONUS: submit no-fee passport applications and DD 1056 family endorsements",
       "If OCONUS: complete Overseas Family Member Travel Screening (OFMTS) and EFMP overseas screening",
+      "If OCONUS: confirm state of legal residence (SLR/HOR) is unchanged for state tax purposes. CZTE-area active pay is excluded from federal income tax under IRC §112; OCONUS civilians earning foreign-source wages may qualify for IRS Form 2555 Foreign Earned Income Exclusion. Verify with the gaining installation Tax Center / VITA volunteer before filing.",
       "Run final pay screening at finance to confirm pay continuity",
     ],
     "30 Days Out": [
@@ -2509,6 +2513,7 @@ const BRANCH_PCS_CHECKLISTS = {
       "Request a complete OMPF / Personnel Records Display print",
       "If OCONUS: submit no-fee passport applications and DD 1056 family endorsements",
       "If OCONUS: complete Overseas Family Member Travel Screening (OFMTS)",
+      "If OCONUS: confirm state of legal residence (SLR/HOR) is unchanged for state tax purposes. CZTE-area active pay is excluded from federal income tax under IRC §112; OCONUS civilians earning foreign-source wages may qualify for IRS Form 2555 Foreign Earned Income Exclusion. Verify with the gaining installation Tax Center / VITA volunteer before filing.",
       "Run final pay screening at finance to confirm pay continuity",
       "Attend pre-departure family brief at Guardian & Family Readiness Center",
     ],
@@ -2632,6 +2637,7 @@ const BRANCH_PCS_CHECKLISTS = {
       "Request a complete PDR (Personnel Data Record) print from SPO",
       "If OCONUS: submit no-fee passport applications and DD 1056 family endorsements",
       "If OCONUS: complete Family Member Overseas Screening",
+      "If OCONUS: confirm state of legal residence (SLR/HOR) is unchanged for state tax purposes. CZTE-area active pay is excluded from federal income tax under IRC §112; OCONUS civilians earning foreign-source wages may qualify for IRS Form 2555 Foreign Earned Income Exclusion. Verify with the gaining installation Tax Center / VITA volunteer before filing.",
       "Run final pay screening at SPO to confirm pay continuity",
     ],
     "30 Days Out": [
@@ -2753,6 +2759,7 @@ const DOD_CIVILIAN_CHECKLIST = {
     "Update Wills, POAs, and Advance Medical Directives — civilians do not have free military legal assistance",
     "If OCONUS: complete DoD Civilian OCONUS Screening (DCPAS form) and family member travel screening",
     "If OCONUS: begin DSSR Section 130 eligibility verification (LQA, Post Allowance, Education Allowance)",
+    "If OCONUS: confirm state of legal residence (SLR/HOR) is unchanged for state tax purposes. OCONUS DoD civilians earning foreign-source wages may qualify for IRS Form 2555 Foreign Earned Income Exclusion (FEIE) when also satisfying the bona fide residence or physical presence test. Consult the gaining installation Tax Center / VITA volunteer before filing — FEIE has interaction effects with LQA, FTC, and the Bona Fide Residence test.",
   ],
   "30 Days Out": [
     "Confirm pack-out dates and weight estimates with moving company via DPS",

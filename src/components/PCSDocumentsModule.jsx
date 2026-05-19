@@ -47,6 +47,7 @@ const BASE_DOCS = {
   ],
   housing: [
     { id: 'bah_auth',            name: 'BAH Authorization',               form: 'Branch-Specific',         required: true,  desc: 'Basic Allowance for Housing — ensure rate is set for gaining installation zip code', formUrl: 'https://www.travel.dod.mil/Allowances/Basic-Allowance-for-Housing/BAH-Rate-Lookup/' },
+    { id: 'oha_miha_auth',       name: 'OHA / MIHA Authorization',        form: 'Branch-Specific',         required: true,  desc: 'Overseas Housing Allowance, Move-In Housing Allowance, and Utility/Recurring Maintenance Allowance — start/stop/change paperwork submitted through the gaining housing office. Replaces BAH overseas.', formUrl: 'https://www.defensetravel.dod.mil/site/oha.cfm' },
     { id: 'housing_application', name: 'On-Post Housing Application',     form: 'Installation Form',       required: false, desc: 'Application for government-owned or privatized quarters at gaining installation' },
     { id: 'lease_termination',   name: 'Lease Termination Notice (SCRA)', form: 'SCRA Letter',             required: false, desc: 'PCS lease break letter — protected under Servicemembers Civil Relief Act (30-day notice)', formUrl: '' },
     { id: 'new_lease',           name: 'New Rental / Lease Agreement',    form: 'Lease Agreement',         required: false, desc: 'Signed lease or rental agreement at or near gaining installation' },
@@ -194,9 +195,20 @@ const DOC_APPLICABILITY = {
   usmc_fcp:              (p) => p.hasDependents || p.hasChildren,
   cg_fcp:                (p) => p.hasDependents || p.hasChildren,
   marriage_cert:         (p) => p.hasDependents,
-  da5960_bah:            (p) => p.hasDependents,
+  // BAH (CONUS) vs OHA/MIHA/LQA (OCONUS). DA 5960 starts/stops the BAH
+  // entitlement for service members with dependents; it does not apply
+  // overseas where OHA/MIHA replace BAH.
+  da5960_bah:            (p) => p.hasDependents && !p.isOverseas,
+  bah_auth:              (p) => !p.isOverseas,
   navpers_1070_602:      (p) => p.hasDependents,
   command_sponsorship:   (p) => p.hasDependents || p.hasChildren,
+  // POV shipment authorization (DD 788) and International Driving
+  // Permit are overseas-only. Civilian POV ship gated symmetrically.
+  pov_shipment:          (p) =>  p.isOverseas,
+  intl_driving:          (p) =>  p.isOverseas,
+  civ_pov_ship:          (p) =>  p.isOverseas,
+  // OHA/MIHA authorization is the OCONUS analog of BAH paperwork.
+  oha_miha_auth:         (p) =>  p.isOverseas,
   // Pets
   pet_vet_records:       (p) => p.hasPets,
   pet_import:            (p) => p.hasPets,
