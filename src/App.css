@@ -1972,6 +1972,22 @@ a:focus-visible,
   transform: translateY(0);
 }
 
+/* Global keyboard-focus indicator. :focus-visible fires only on
+   keyboard focus (not mouse clicks), so sighted-mouse users don't see
+   a ring on every tap but keyboard / screen-reader users get a
+   consistent affordance on every interactive element. Color picked
+   for WCAG AA contrast against the cream / cards we use everywhere. */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #4285F4;
+  outline-offset: 2px;
+}
+
 /* Quick action chips: hover lift + active press matching the
    sidebar / home-tile family. */
 .pcs-quick-action {

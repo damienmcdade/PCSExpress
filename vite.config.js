@@ -28,10 +28,16 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    // Source maps emitted alongside the minified bundle so production
-    // TDZ / runtime errors can be traced to the original source file
-    // and line. The map is a separate .js.map artifact; the main JS
-    // is still minified the same way.
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/scheduler/')) {
+            return 'react-vendor';
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
   },
 })

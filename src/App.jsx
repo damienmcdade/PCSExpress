@@ -3,38 +3,46 @@
  * Third-party dependencies: React, Leaflet through child map modules, Capacitor bridge when running native.
  */
 
-import { Component, useState, useEffect, useRef } from 'react'
+import { Component, Suspense, lazy, useState, useEffect, useRef } from 'react'
 import './App.css'
 import { apiUrl } from './config/apiConfig'
-import EmploymentModule from './components/EmploymentModule'
 import NavigationModule from './components/NavigationModule'
-import EducationModule from './components/EducationModule'
-import TranslationModule from './components/TranslationModule'
-import ReligiousServicesModule from './components/ReligiousServicesModule'
-import SpouseDeploymentGuide from './components/SpouseDeploymentGuide'
-import PCSDocumentsModule from './components/PCSDocumentsModule'
-import ShipmentTrackerModule from './components/ShipmentTrackerModule'
-import ComplianceAttestationModule from './components/ComplianceAttestationModule'
-import InventoryVaultModule from './components/InventoryVaultModule'
-import JTRAssistantModule from './components/JTRAssistantModule'
-import { AIAssistantModal, AIAssistantTrigger } from './components/AIAssistantChip'
 import PlatformBanners from './components/PlatformBanners'
-import ImmigrationModule from './components/ImmigrationModule'
-import MovingFinancialAssistanceTab from './components/MovingFinancialAssistanceTab'
-import PetRelocationChecklistTab from './components/PetRelocationChecklistTab'
-import EFMPTab from './components/EFMPTab'
-import HomeRelocationTab from './components/HomeRelocationTab'
-import HomeLocatorTab from './components/HomeLocatorTab'
-import BaseIntelligenceReviews from './components/BaseIntelligenceReviews'
+import { AIAssistantModal, AIAssistantTrigger } from './components/AIAssistantChip'
 import DynamicTimeline from './components/DynamicTimeline'
-import PPMFinancialEstimator from './components/PPMFinancialEstimator'
-import BAHCalculatorTab from './components/BAHCalculatorTab'
-import OHACalculatorTab from './components/OHACalculatorTab'
-import LQACalculatorTab from './components/LQACalculatorTab'
-import MedicalReadinessTab from './components/MedicalReadinessTab'
-import MoveBudgetTracker from './components/MoveBudgetTracker'
-import DutyStationDirectory from './components/DutyStationDirectory'
 import PrivacyShield from './components/PrivacyShield'
+import HomeRelocationTab from './components/HomeRelocationTab'
+
+// Tabs lazy-loaded so the initial bundle ships only the shell + the
+// pieces a typical first-visit user actually touches (Home, Mission
+// Lanes, AI Assistant). Heavy leaf tabs (DutyStationDirectory at 147KB,
+// employment, religious services, PCS docs, etc.) are split into their
+// own chunks and downloaded the first time the user navigates to them.
+// Each lazy import resolves inside the top-level <Suspense> fallback at
+// the App root.
+const EmploymentModule = lazy(() => import('./components/EmploymentModule'))
+const EducationModule = lazy(() => import('./components/EducationModule'))
+const TranslationModule = lazy(() => import('./components/TranslationModule'))
+const ReligiousServicesModule = lazy(() => import('./components/ReligiousServicesModule'))
+const SpouseDeploymentGuide = lazy(() => import('./components/SpouseDeploymentGuide'))
+const PCSDocumentsModule = lazy(() => import('./components/PCSDocumentsModule'))
+const ShipmentTrackerModule = lazy(() => import('./components/ShipmentTrackerModule'))
+const ComplianceAttestationModule = lazy(() => import('./components/ComplianceAttestationModule'))
+const InventoryVaultModule = lazy(() => import('./components/InventoryVaultModule'))
+const JTRAssistantModule = lazy(() => import('./components/JTRAssistantModule'))
+const ImmigrationModule = lazy(() => import('./components/ImmigrationModule'))
+const MovingFinancialAssistanceTab = lazy(() => import('./components/MovingFinancialAssistanceTab'))
+const PetRelocationChecklistTab = lazy(() => import('./components/PetRelocationChecklistTab'))
+const EFMPTab = lazy(() => import('./components/EFMPTab'))
+const HomeLocatorTab = lazy(() => import('./components/HomeLocatorTab'))
+const BaseIntelligenceReviews = lazy(() => import('./components/BaseIntelligenceReviews'))
+const PPMFinancialEstimator = lazy(() => import('./components/PPMFinancialEstimator'))
+const BAHCalculatorTab = lazy(() => import('./components/BAHCalculatorTab'))
+const OHACalculatorTab = lazy(() => import('./components/OHACalculatorTab'))
+const LQACalculatorTab = lazy(() => import('./components/LQACalculatorTab'))
+const MedicalReadinessTab = lazy(() => import('./components/MedicalReadinessTab'))
+const MoveBudgetTracker = lazy(() => import('./components/MoveBudgetTracker'))
+const DutyStationDirectory = lazy(() => import('./components/DutyStationDirectory'))
 import SyncStatusIndicator from './components/SyncStatusIndicator'
 import { AuditLogger, secureLocalStore, readLegacyJson, closeCryptoStoreDB } from './security/SecurityExtensions'
 import { ALL_BASES } from './components/BaseMapModule'
@@ -7833,7 +7841,7 @@ function Onboarding({ onComplete }) {
                     <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', minWidth: 60 }}>{ot('childN')} {idx + 1}</div>
                     <input type="number" min="0" max="25" value={age} onChange={e => { const a = [...p.childAges]; a[idx] = e.target.value; upd('childAges', a); }} placeholder={ot('agePlaceholder')} style={{ ...inputSt, width: 80, flexShrink: 0 }} />
                     <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{ot('yrs')}</span>
-                    <button onClick={() => upd('childAges', p.childAges.filter((_, i) => i !== idx))} style={{ marginLeft: 'auto', padding: '4px 9px', borderRadius: 7, background: 'rgba(255,80,80,0.2)', border: '1px solid rgba(255,80,80,0.35)', color: '#FF8080', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>✕</button>
+                    <button onClick={() => upd('childAges', p.childAges.filter((_, i) => i !== idx))} aria-label={`Remove child ${idx + 1}`} style={{ marginLeft: 'auto', padding: '4px 9px', borderRadius: 7, background: 'rgba(255,80,80,0.2)', border: '1px solid rgba(255,80,80,0.35)', color: '#FF8080', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}><span aria-hidden="true">✕</span></button>
                   </div>
                 ))}
               </div>
@@ -8655,6 +8663,23 @@ function App() {
     return () => window.removeEventListener('pcs-navigate', handler);
   }, []);
 
+  // Global Escape key handler. Closes the topmost open overlay so
+  // keyboard users have a predictable exit from every modal / drawer /
+  // notification panel. Order matters: most-recently-opened first.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      if (showAIAssistant) { setShowAIAssistant(false); return; }
+      if (showCompliance) { setShowCompliance(false); return; }
+      if (showResetWarning) { setShowResetWarning(false); return; }
+      if (showNotifs) { setShowNotifs(false); return; }
+      if (navOpen) { setNavOpen(false); return; }
+      if (moreOpen) { setMoreOpen(false); return; }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showAIAssistant, showCompliance, showResetWarning, showNotifs, navOpen, moreOpen]);
+
   // Overdue Mission Lanes notification. Fires once per session when
   // the app loads with one or more checklist tasks in the user's
   // current phase that have passed the PHASE_WINDOWS overdueAt
@@ -9079,16 +9104,26 @@ function App() {
           </div>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             {alertCount > 0 && (
-              <button onClick={() => { setShowNotifs(o => !o); setNavOpen(false); }} style={{ position: 'relative', background: showNotifs ? `${theme.accent}30` : overdueCount > 0 ? 'rgba(229,57,53,0.2)' : 'none', border: `1px solid ${overdueCount > 0 ? 'rgba(229,57,53,0.5)' : 'rgba(255,255,255,0.25)'}`, color: '#fff', fontSize: 15, cursor: 'pointer', padding: '6px 10px', borderRadius: 8, lineHeight: 1 }}>
-                🔔
+              <button
+                onClick={() => { setShowNotifs(o => !o); setNavOpen(false); }}
+                aria-label={overdueCount > 0 ? `Notifications, ${overdueCount} overdue` : `Notifications, ${alertCount} alert${alertCount === 1 ? '' : 's'}`}
+                aria-expanded={showNotifs}
+                aria-haspopup="dialog"
+                style={{ position: 'relative', background: showNotifs ? `${theme.accent}30` : overdueCount > 0 ? 'rgba(229,57,53,0.2)' : 'none', border: `1px solid ${overdueCount > 0 ? 'rgba(229,57,53,0.5)' : 'rgba(255,255,255,0.25)'}`, color: '#fff', fontSize: 15, cursor: 'pointer', padding: '6px 10px', borderRadius: 8, lineHeight: 1 }}>
+                <span aria-hidden="true">🔔</span>
                 <span style={{ position: 'absolute', top: -5, right: -5, background: overdueCount > 0 ? '#E53935' : theme.accent, color: overdueCount > 0 ? '#FFF' : theme.secondary, fontSize: 9, fontWeight: 900, borderRadius: '50%', width: 17, height: 17, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
                   {overdueCount > 0 ? overdueCount : alertCount}
                 </span>
               </button>
             )}
             {!isDesktop && !isNative && (
-              <button onClick={() => { setNavOpen(o => !o); setShowNotifs(false); }} style={{ background: navOpen ? `${theme.accent}30` : 'none', border: `1px solid rgba(255,255,255,0.25)`, color: '#fff', fontSize: 16, cursor: 'pointer', padding: '6px 11px', borderRadius: 8, lineHeight: 1, fontWeight: 700 }}>
-                {navOpen ? '✕' : '☰'}
+              <button
+                onClick={() => { setNavOpen(o => !o); setShowNotifs(false); }}
+                aria-label={navOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                aria-expanded={navOpen}
+                aria-controls="pcs-nav-drawer"
+                style={{ background: navOpen ? `${theme.accent}30` : 'none', border: `1px solid rgba(255,255,255,0.25)`, color: '#fff', fontSize: 16, cursor: 'pointer', padding: '6px 11px', borderRadius: 8, lineHeight: 1, fontWeight: 700 }}>
+                <span aria-hidden="true">{navOpen ? '✕' : '☰'}</span>
               </button>
             )}
           </div>
@@ -9138,12 +9173,12 @@ function App() {
 
       {/* Notification dropdown */}
       {showNotifs && pendingAlerts.length > 0 && (
-        <div style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: isDesktop ? 230 : 0, right: 0, maxWidth: isDesktop ? '100%' : 480, margin: isDesktop ? 0 : '0 auto', zIndex: 200, background: '#FFFFFF', borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+        <div role="dialog" aria-modal="true" aria-labelledby="pcs-notif-title" style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: isDesktop ? 230 : 0, right: 0, maxWidth: isDesktop ? '100%' : 480, margin: isDesktop ? 0 : '0 auto', zIndex: 200, background: '#FFFFFF', borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
           <div style={{ padding: '10px 16px', borderBottom: '1px solid #F0F0F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: '#0D1821' }}>
+            <div id="pcs-notif-title" style={{ fontSize: 13, fontWeight: 800, color: '#0D1821' }}>
               {overdueCount > 0 ? <>{overdueCount}{' '}{overdueCount !== 1 ? 'Overdue Actions' : 'Overdue Action'}</> : 'Pending Actions'}
             </div>
-            <button onClick={() => setShowNotifs(false)} style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: '#888' }}>✕</button>
+            <button onClick={() => setShowNotifs(false)} aria-label="Close notifications" style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: '#888' }}><span aria-hidden="true">✕</span></button>
           </div>
           {pendingAlerts.map((alert, i) => (
             <div key={i} onClick={() => { goTo('checklist'); }} style={{ padding: '12px 16px', borderBottom: '1px solid #F8F8F8', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: alert.overdue ? '#FFF5F5' : '#FFFDE7' }}>
@@ -9448,10 +9483,33 @@ function ReligiousServicesModuleWrapped({ theme, profile }) {
   );
 }
 
+function LazyTabFallback() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: 240,
+        padding: 24,
+        color: '#56697C',
+        fontSize: 13,
+        fontWeight: 600,
+      }}
+    >
+      Loading…
+    </div>
+  );
+}
+
 export default function AppWithRecovery() {
   return (
     <AppErrorBoundary>
-      <App />
+      <Suspense fallback={<LazyTabFallback />}>
+        <App />
+      </Suspense>
     </AppErrorBoundary>
   );
 }
