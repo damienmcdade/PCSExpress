@@ -3,6 +3,7 @@
  * Helps families track the avg $5,000 unreimbursed PCS cost gap.
  */
 import { useState, useMemo } from 'react';
+import DataFreshnessFooter from './DataFreshnessFooter';
 
 const fieldStyle = {
   border: '1px solid #D8DEE7',
@@ -271,6 +272,8 @@ export default function MoveBudgetTracker({ theme, profile }) {
         <a href="https://www.defensetravel.dod.mil/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>Defense Travel Management Office</a>
         <a href="https://dps.move.mil/cust/standard/user/home.xhtml" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">DPS / Move.mil — HHG & Claims</a>
       </div>
+
+      <DataFreshnessFooter versionKey="budget" />
     </div>
   );
 }

@@ -4,6 +4,7 @@
  */
 
 import { useMemo, useState } from 'react';
+import DataFreshnessFooter from './DataFreshnessFooter';
 import { PPM_PAYGRADES, calculatePPMEstimate, formatCurrency } from '../lib/ppmCalculator';
 
 const fieldStyle = {
@@ -152,6 +153,8 @@ export default function PPMFinancialEstimator({ theme, profile }) {
         <a href="https://www.travel.dod.mil/Policy-Regulations/Joint-Travel-Regulations/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>Open Joint Travel Regulations</a>
         <a href="https://dps.move.mil/cust/standard/user/home.xhtml" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">Open DPS / Move.mil</a>
       </div>
+
+      <DataFreshnessFooter versionKey="ppm" />
     </div>
   );
 }

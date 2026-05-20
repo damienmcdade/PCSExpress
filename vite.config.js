@@ -35,6 +35,12 @@ export default defineConfig({
           if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/scheduler/')) {
             return 'react-vendor';
           }
+          // Static data tables get their own chunk so updates to
+          // the rate tables / checklist data don't bust the main
+          // App chunk in the browser cache.
+          if (id.includes('/src/data/')) {
+            return 'app-data';
+          }
         },
       },
     },

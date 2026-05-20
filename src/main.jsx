@@ -2,6 +2,14 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import { applyGoogleTranslateLanguage } from './i18n/googleTranslateRuntime'
+import { bootstrapNative } from './native'
+
+// Native (Capacitor) bootstrap. No-op on web; on the iOS / Android
+// shell, registers native push + wires notification-click deep links.
+// Fire-and-forget so first paint isn't blocked. Biometric unlock is
+// gated on a future user opt-in — left off here until the Settings
+// toggle lands. See docs/NATIVE_SETUP.md for the plugin install.
+bootstrapNative({ requireBiometric: false }).catch(() => {})
 
 // Bootstrap step: read the user's saved language preference BEFORE
 // React renders and apply the Google Translate cookie so the widget

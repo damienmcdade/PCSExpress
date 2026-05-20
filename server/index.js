@@ -5,6 +5,11 @@ import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs'
+import {
+  sanitizeForPrompt,
+  isAllowedPushEndpoint,
+  isValidPushSubscription,
+} from './lib/security.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -204,44 +209,11 @@ function pushRateLimit(req, res, next) {
   return next()
 }
 
-// Allowlist of legitimate Web Push services. Any subscription whose
-// endpoint URL doesn't match one of these gets rejected — blocks the
-// spam vector where an attacker POSTs a subscription pointing at an
-// arbitrary HTTP endpoint, hoping the dispatcher will then make
-// authenticated requests to it.
-const PUSH_ENDPOINT_HOST_ALLOWLIST = [
-  'fcm.googleapis.com',                   // Chrome / Edge / Android (FCM v1)
-  'updates.push.services.mozilla.com',    // Firefox
-  'web.push.apple.com',                   // Safari (macOS + iOS 16.4+)
-  'wns2-bn3p.notify.windows.com',         // Edge legacy (WNS)
-]
-
-// Hard cap on stored subscriptions. Prevents a sustained spammer
-// from blowing up the in-memory Map even if their requests pass
-// the rate limit. When at cap, the oldest entry is evicted (Map
-// iteration order is insertion order in V8).
+// Push endpoint validation is in server/lib/security.js so the
+// security-critical checks are unit-testable without booting Express.
+// PUSH_SUBSCRIPTIONS_MAX stays here because it's tied to the
+// in-memory Map sized below.
 const PUSH_SUBSCRIPTIONS_MAX = 10_000
-
-function isAllowedPushEndpoint(endpoint) {
-  if (typeof endpoint !== 'string' || endpoint.length < 12 || endpoint.length > 1024) return false
-  let u
-  try { u = new URL(endpoint) } catch { return false }
-  if (u.protocol !== 'https:') return false
-  return PUSH_ENDPOINT_HOST_ALLOWLIST.some(allowed => u.hostname === allowed || u.hostname.endsWith('.' + allowed))
-}
-
-function isValidPushSubscription(sub) {
-  if (!sub || typeof sub !== 'object') return false
-  if (!isAllowedPushEndpoint(sub.endpoint)) return false
-  const keys = sub.keys
-  if (!keys || typeof keys !== 'object') return false
-  // p256dh ≈ 87 base64url chars, auth ≈ 22. Allow slack.
-  if (typeof keys.p256dh !== 'string' || keys.p256dh.length < 40 || keys.p256dh.length > 200) return false
-  if (typeof keys.auth   !== 'string' || keys.auth.length   < 10 || keys.auth.length   > 100) return false
-  if (!/^[A-Za-z0-9_-]+$/.test(keys.p256dh)) return false
-  if (!/^[A-Za-z0-9_-]+$/.test(keys.auth))   return false
-  return true
-}
 
 app.post('/api/push-subscribe', pushRateLimit, express.json({ limit: '4kb' }), (req, res) => {
   const sub = req.body
@@ -2801,17 +2773,10 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
   const provider = explicit
     || (process.env.ANTHROPIC_API_KEY ? 'anthropic' : '')
     || (process.env.OPENAI_API_KEY ? 'openai' : '')
-  // Strip ASCII control characters and collapse whitespace before any
-  // user-supplied text reaches the LLM system prompt. Defends against
-  // prompt-injection vectors that rely on smuggling newlines or null
-  // bytes into the question or context blob to escape the
-  // surrounding `${...}` template into a new instruction.
-  const sanitizeForPrompt = (s, maxLen) => String(s || '')
-    .replace(/[\x00-\x1F\x7F]+/g, ' ')   // strip control chars
-    .replace(/\s+/g, ' ')                 // collapse whitespace
-    .trim()
-    .slice(0, maxLen)
-
+  // sanitizeForPrompt is imported from ./lib/security.js — strips
+  // ASCII control chars + collapses whitespace + length-caps so a
+  // smuggled newline + "Ignore previous instructions" can't escape
+  // the surrounding template into a new directive to the LLM.
   const q = sanitizeForPrompt(req.body?.q, 1000)
   const rawHistory = Array.isArray(req.body?.history) ? req.body.history : []
   const language = String(req.body?.language || 'en').trim().slice(0, 8).toLowerCase().replace(/[^a-z-]/g, '')

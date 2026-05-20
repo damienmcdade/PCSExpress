@@ -3,6 +3,7 @@
  * Pay grade E-1 through O-10, dependency status, duty station lookup.
  */
 import { useState, useMemo } from 'react';
+import DataFreshnessFooter from './DataFreshnessFooter';
 import {
   BAH_PAY_GRADES,
   BAH_INSTALLATIONS,
@@ -328,6 +329,8 @@ export default function BAHCalculatorTab({ theme, profile }) {
       <div style={{ marginTop: 12, background: '#F3F4F6', borderRadius: 12, padding: 12, fontSize: 10, color: '#888', lineHeight: 1.6 }}>
         Planning tool only. Rates shown are 2026 DTMO published tables for selected MHAs. Verify exact entitlement with your unit S1/finance office or the official DTMO rate lookup tool before making housing decisions.
       </div>
+
+      <DataFreshnessFooter versionKey="bah" />
     </div>
   );
 }
