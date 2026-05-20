@@ -14,5 +14,7 @@
 			"launchShowDuration": 0
 		}
 	},
-	"packageClassList": []
+	"packageClassList": [
+		"HapticsPlugin"
+	]
 }

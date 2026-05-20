@@ -189,6 +189,19 @@ app.get('/api/push-config', (req, res) => {
   res.status(200).json({ vapidPublicKey: VAPID_PUBLIC_KEY || null })
 })
 
+// Rate-limit map registry — declared here (above the first
+// registerRateLimitMap call) so the const is initialized before any
+// limiter wires itself in. Every in-memory per-IP hit Map registers
+// itself so the periodic cleanup further below can prune expired
+// entries across all limiters in one pass. Without this, long-running
+// servers accumulate one Map entry per unique source IP and never
+// release the memory; the audit on 2026-05-18 flagged this as a
+// slow-leak risk.
+const _rateLimitRegistry = []; // [{ map, windowMs }]
+function registerRateLimitMap(map, windowMs) {
+  _rateLimitRegistry.push({ map, windowMs });
+}
+
 // Per-IP rate limit for /api/push-subscribe + /api/push-unsubscribe.
 // Tight budget — a legitimate client only needs to subscribe once
 // per device; anything beyond a handful per minute is automation /
@@ -303,15 +316,6 @@ app.get('/api/base-reviews/schema', (req, res) => {
   res.status(200).json(BASE_REVIEW_SCHEMA);
 });
 
-// Rate-limit map registry — every in-memory per-IP hit Map registers
-// itself here so the periodic cleanup below can prune expired entries
-// across all limiters in one pass. Without this, long-running servers
-// accumulate one Map entry per unique source IP and never release the
-// memory; the audit on 2026-05-18 flagged this as a slow-leak risk.
-const _rateLimitRegistry = []; // [{ map, windowMs }]
-function registerRateLimitMap(map, windowMs) {
-  _rateLimitRegistry.push({ map, windowMs });
-}
 // Sweep every 5 minutes — drops entries whose window expired more than
 // 2x the window duration ago (gives stragglers time to roll over).
 setInterval(() => {
