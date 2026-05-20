@@ -48,6 +48,10 @@ const MedicalReadinessTab = lazy(() => import('./components/MedicalReadinessTab'
 const MoveBudgetTracker = lazy(() => import('./components/MoveBudgetTracker'))
 const DutyStationDirectory = lazy(() => import('./components/DutyStationDirectory'))
 const AIAssistantModal = lazy(() => import('./components/AIAssistantChip').then(m => ({ default: m.AIAssistantModal })))
+// Public-facing capability statement / landing page. Lazy because it
+// is only shown on first visit (or via ?landing=1) and the
+// already-onboarded flow doesn't need it in the eager bundle.
+const LandingPage = lazy(() => import('./components/LandingPage'))
 const NavigationModule = lazy(() => import('./components/NavigationModule'))
 import { AuditLogger, secureLocalStore, readLegacyJson, closeCryptoStoreDB } from './security/SecurityExtensions'
 // ALL_BASES is exported as [] from BaseMapModule (the real lookup is in
@@ -6474,6 +6478,21 @@ function App() {
     }
     return p;
   });
+
+  // Landing-page gate. Default: show landing once for a brand-new
+  // visitor; subsequent visits skip straight to the onboarding /
+  // dashboard route. Stakeholder demos override with ?landing=1.
+  const [landingDismissed, setLandingDismissed] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('landing') === '1') return false;
+    } catch {}
+    try {
+      return localStorage.getItem('pcs_landing_dismissed') === '1';
+    } catch {
+      return false;
+    }
+  });
   const [activeTab, setActiveTab] = useState(() => {
     // Deep-link entry. Supports two forms:
     //   /?go=movement-logistics            → top-level mission group
@@ -6723,6 +6742,31 @@ function App() {
       window.dispatchEvent(new CustomEvent('pcs-language-refresh'))
     );
   };
+
+  // Landing-page gate. Shown once to first-time visitors and on demand
+  // via ?landing=1 (used when showing the platform to government /
+  // partner contacts). Bypassed for any user with an existing profile.
+  if (!profile?.branch && !landingDismissed) {
+    return (
+      <Suspense fallback={<LazyTabFallback />}>
+        <LandingPage
+          onStartPlan={() => {
+            setLandingDismissed(true);
+            try { localStorage.setItem('pcs_landing_dismissed', '1'); } catch {}
+            // Strip the force-show param so a refresh returns to the
+            // expected onboarding/dashboard route.
+            try {
+              const url = new URL(window.location.href);
+              if (url.searchParams.has('landing')) {
+                url.searchParams.delete('landing');
+                window.history.replaceState({}, '', url.pathname + (url.search || '') + url.hash);
+              }
+            } catch {}
+          }}
+        />
+      </Suspense>
+    );
+  }
 
   if (!profile?.branch) {
     return <Onboarding onComplete={(p) => {

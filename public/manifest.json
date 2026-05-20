@@ -1,7 +1,7 @@
 {
-  "name": "PCS Express - Military Family Relocation",
+  "name": "PCS Express — Military Relocation Readiness",
   "short_name": "PCS Express",
-  "description": "Your military PCS, simplified. AI-powered guidance for military families relocating to new duty stations.",
+  "description": "PCS Express helps service members and military families simplify PCS moves through guided workflows, centralized relocation tools, and military-specific resources. Built for all DoD branches, components, and military families.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0A1628",

@@ -362,6 +362,62 @@ app.post('/api/base-reviews/validate', baseReviewRateLimit, (req, res) => {
   res.status(200).json({ ok: true, message: 'Review metadata passes public-schema validation. Persist with the BaseReviews SQL schema after authenticated verification.' });
 });
 
+// ───────── DEMO / PARTNER INQUIRY ─────────
+// Tight per-IP rate limit: 5 inquiries per hour. The endpoint logs
+// the inquiry to the server's stdout so the operator can follow up
+// directly. No persistent storage, no automated email pipeline — both
+// are roadmap items (see Planned roadmap on the landing page).
+const _demoHits = new Map();
+registerRateLimitMap(_demoHits, 60 * 60_000);
+const DEMO_LIMIT = 5;
+const DEMO_WINDOW_MS = 60 * 60_000;
+function demoRateLimit(req, res, next) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+  const now = Date.now();
+  const entry = _demoHits.get(ip);
+  if (!entry || now - entry.windowStart > DEMO_WINDOW_MS) {
+    _demoHits.set(ip, { count: 1, windowStart: now });
+    return next();
+  }
+  if (entry.count >= DEMO_LIMIT) {
+    return res.status(429).json({ error: 'Too many requests from your network. Please email contact@pcsexpress.app or try again later.' });
+  }
+  entry.count += 1;
+  return next();
+}
+
+const DEMO_INTERESTS = new Set(['family', 'government', 'prime', 'veteran-org', 'investor', 'general']);
+const _trimCap = (v, max) => String(v == null ? '' : v).trim().slice(0, max);
+app.post('/api/demo-request', demoRateLimit, express.json({ limit: '8kb' }), (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  const body = req.body || {};
+  const name = _trimCap(body.name, 160);
+  const email = _trimCap(body.email, 160);
+  const organization = _trimCap(body.organization, 160);
+  const role = _trimCap(body.role, 120);
+  const interest = String(body.interest || '').trim();
+  const message = _trimCap(body.message, 1500);
+
+  if (name.length < 2) return res.status(400).json({ error: 'Name is required.' });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'A valid email is required.' });
+  if (!DEMO_INTERESTS.has(interest)) return res.status(400).json({ error: 'Interest type is invalid.' });
+  if (message.length < 10) return res.status(400).json({ error: 'Message must be at least 10 characters.' });
+
+  // Structured single-line log so a future operator can grep it.
+  // No persistence — the request is intentionally ephemeral.
+  console.log('[demo-request] ' + JSON.stringify({
+    ts: new Date().toISOString(),
+    ip: req.ip || req.headers['x-forwarded-for'] || 'unknown',
+    interest, name, email, organization, role,
+    // Truncate the message in the log to keep it grep-friendly; the
+    // operator should review the full request body in a follow-up
+    // channel if needed (since nothing is persisted).
+    messagePreview: message.slice(0, 220),
+  }));
+
+  res.status(200).json({ ok: true });
+});
+
 // In-memory per-IP rate limit for /api/ai. The nginx layer also rate-
 // limits (30/min, burst 10) so this is a defense-in-depth tier. Aligned
 // with NIST SP 800-53 SC-5 (DoS protection) and OWASP ASVS V4 (5.4).

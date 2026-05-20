@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "PCS Express — personalized PCS guidance for U.S. service members",
+  "description": "PCS Express helps service members and military families simplify PCS moves through guided workflows, centralized relocation tools, and military-specific resources. Built for all DoD branches, components, and military families.",
   "scripts": {
     "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
     "dev:client": "vite",
