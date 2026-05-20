@@ -5,10 +5,17 @@
     <!-- Favicons + PWA icons. All derived from the iOS canonical AppIcon
          source (ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png)
          so the browser tab matches the iOS simulator and Android
-         launcher icon. -->
+         launcher icon.
+         /favicon.ico and /apple-touch-icon.png are physical files (not
+         relying on the SPA fallback) so legacy clients that request the
+         default-path icons — Railway's project-card crawler, link-
+         preview bots, older browsers — receive a real image instead of
+         the SPA's index.html. -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#0A1628" />
