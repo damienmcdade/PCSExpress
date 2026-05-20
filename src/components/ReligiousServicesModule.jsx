@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiUrl } from '../config/apiConfig'
 import CopyableText from './CopyableText'
+import { usePullToRefresh } from '../hooks/usePullToRefresh'
 
 const OVERSEAS_KEYWORDS = [
   'Humphreys', 'Kadena', 'Yokota', 'Ramstein', 'Stuttgart',
@@ -318,6 +319,7 @@ function ReligiousServicesModule({ theme, profile }) {
   // Live places of worship from OSM Overpass (no API key required).
   // Falls through to the curated/static lists below when empty.
   const [liveServices, setLiveServices] = useState({ status: 'idle', services: [], reason: '' })
+  const [refreshNonce, setRefreshNonce] = useState(0)
   useEffect(() => {
     if (activeTab !== 'services') return
     const inst = (profile?.gainingInstallation || '').split(',')[0].trim()
@@ -346,9 +348,18 @@ function ReligiousServicesModule({ theme, profile }) {
     return () => { cancelled = true }
     // profile.language is read inside the request body but UI language
     // changes must not refetch the OSM payload — translation happens
-    // client-side. Narrowed dep array is intentional.
+    // client-side. refreshNonce is included so pull-to-refresh can
+    // re-trigger the OSM fetch by bumping the counter.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, profile?.gainingInstallation])
+  }, [activeTab, profile?.gainingInstallation, refreshNonce])
+
+  const { indicator } = usePullToRefresh(async () => {
+    setRefreshNonce(n => n + 1)
+    // Same UX-tested 1.2s window used in HomeLocator: long enough for
+    // a warm Railway hit, short enough that the indicator hides before
+    // the perceived "long wait" threshold.
+    await new Promise(r => setTimeout(r, 1200))
+  })
 
   // STRICT preference filter (per user direction): only surface OSM
   // places of worship that genuinely match the religiousPreference
@@ -458,6 +469,7 @@ function ReligiousServicesModule({ theme, profile }) {
 
   return (
     <div style={{ padding: '16px' }}>
+      {indicator}
       <h2 style={{ color: theme.primary, marginTop: 0, marginBottom: 16, fontSize: 18, fontWeight: 800 }}>
         Faith &amp; Spiritual Resources
       </h2>

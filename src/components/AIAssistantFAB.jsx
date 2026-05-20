@@ -20,7 +20,14 @@
  * `setShowAIAssistant(true)` setter the existing triggers use.
  */
 import { useEffect, useState } from 'react';
-import { isNative } from '../native';
+
+// Inline native check (see hooks/usePullToRefresh.jsx for the rationale
+// — keeps Vitest's transform pipeline from following src/native.js into
+// a dynamic import for a package not in this build's deps).
+function isNative() {
+  if (typeof window === 'undefined') return false;
+  return !!window.Capacitor?.isNativePlatform?.();
+}
 
 async function lightHaptic() {
   try {

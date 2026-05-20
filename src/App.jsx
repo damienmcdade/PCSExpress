@@ -14,6 +14,7 @@ import PlatformBanners from './components/PlatformBanners'
 // once the user actually opens the assistant.
 import AIAssistantTrigger from './components/AIAssistantTrigger'
 import AIAssistantFAB from './components/AIAssistantFAB'
+import { usePullToRefresh } from './hooks/usePullToRefresh'
 import DynamicTimeline from './components/DynamicTimeline'
 import PrivacyShield from './components/PrivacyShield'
 
@@ -2211,6 +2212,7 @@ function VeteranBusinessesTab({ theme, profile }) {
   // the SBA/VA static resource cards. User explicitly asked to keep
   // these split.
   const [vetTab, setVetTab] = useState('listings');
+  const [vetRefreshNonce, setVetRefreshNonce] = useState(0);
   useEffect(() => {
     if (!liveMarket.matched || (!liveMarket.city && !liveMarket.zip)) {
       setLiveBiz({ status: 'no-market', businesses: [], fallback: true, reason: 'unknown-installation' });
@@ -2238,7 +2240,14 @@ function VeteranBusinessesTab({ theme, profile }) {
         setLiveBiz({ status: 'ready', businesses: [], fallback: true, reason: `network-${err?.message || 'error'}` });
       });
     return () => { cancelled = true; };
-  }, [liveMarket.city, liveMarket.state, liveMarket.zip, liveMarket.matched]);
+    // vetRefreshNonce is bumped by pull-to-refresh; including it in
+    // the deps re-runs the existing fetch untouched.
+  }, [liveMarket.city, liveMarket.state, liveMarket.zip, liveMarket.matched, vetRefreshNonce]);
+
+  const { indicator: vetRefreshIndicator } = usePullToRefresh(async () => {
+    setVetRefreshNonce(n => n + 1);
+    await new Promise(r => setTimeout(r, 1200));
+  });
 
   const NATIONAL_DIRS = [
     { name: 'SBA Veteran-Owned Businesses', icon: 'SBA', desc: 'Official SBA veteran entrepreneurship, training, funding, and contracting guidance.', url: 'https://www.sba.gov/business-guide/grow-your-business/veteran-owned-businesses' },
@@ -2250,6 +2259,7 @@ function VeteranBusinessesTab({ theme, profile }) {
 
   return (
     <div style={{ padding: 16 }}>
+      {vetRefreshIndicator}
       <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Veteran Owned & Veteran Operated Businesses</div>
       <div style={{ fontSize: 12, color: '#56697C', marginBottom: 12 }}>
         {instName ? <>Veteran-owned business discovery near <strong>{searchLocation}</strong></> : 'Complete onboarding to tailor veteran-owned business discovery to your installation.'}

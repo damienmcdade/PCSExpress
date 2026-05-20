@@ -17,9 +17,10 @@
  * stored profile artifact (AES-256-GCM via cryptoStore).
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
 import CopyableText from './CopyableText';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 
 const STORAGE_KEY = 'pcs_shipment_tracker';
 
@@ -65,13 +66,29 @@ export default function ShipmentTrackerModule({ theme, profile: _profile }) {
   const [state, setState] = useState({ fields: {}, milestones: {}, startedOn: '', notifyOnOverdue: false });
   const [permission, setPermission] = useState(() => (typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'));
 
+  const reload = useCallback(async (isMounted = () => true) => {
+    const saved = await secureLocalStore.get(
+      STORAGE_KEY,
+      { fields: {}, milestones: {}, startedOn: '', notifyOnOverdue: false }
+    );
+    if (!isMounted()) return;
+    setState(saved || { fields: {}, milestones: {}, startedOn: '', notifyOnOverdue: false });
+  }, []);
+
   useEffect(() => {
     let mounted = true;
-    secureLocalStore.get(STORAGE_KEY, { fields: {}, milestones: {}, startedOn: '', notifyOnOverdue: false }).then(saved => {
-      if (mounted) setState(saved || { fields: {}, milestones: {}, startedOn: '', notifyOnOverdue: false });
-    });
+    reload(() => mounted).catch(() => { /* secureLocalStore handles its own errors */ });
     return () => { mounted = false; };
-  }, []);
+  }, [reload]);
+
+  // Pull-to-refresh re-reads the encrypted store. No network here — the
+  // value to the user is recovering from an out-of-sync session (e.g.
+  // the iOS keychain wasn't unlocked at first render). 600ms is enough
+  // for the AES decrypt + setState to flush.
+  const { indicator } = usePullToRefresh(async () => {
+    await reload();
+    await new Promise(r => setTimeout(r, 600));
+  });
 
   const persist = async (next) => {
     setState(next);
@@ -115,6 +132,7 @@ export default function ShipmentTrackerModule({ theme, profile: _profile }) {
 
   return (
     <div style={{ padding: 16 }}>
+      {indicator}
       <div style={{ background: theme.secondary, borderRadius: 18, padding: 16, marginBottom: 14, color: '#FFF', border: `1px solid ${theme.accent}55` }}>
         <div style={{ fontSize: 10, fontWeight: 950, color: theme.accent, letterSpacing: '.16em', marginBottom: 6 }}>HHG SHIPMENT TRACKER</div>
         <div style={{ fontSize: 17, fontWeight: 950, marginBottom: 6 }}>Real-time DPS milestone visibility</div>

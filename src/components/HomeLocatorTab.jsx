@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { resolveMarket } from '../data/installationMarkets';
 import { apiUrl } from '../config/apiConfig';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 
 // Intentionally retained for the future reference-banner; see the
 // disclaimer-link path below. Underscore-prefix to keep the
@@ -123,6 +124,9 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
   // by bedroom count). Optional context above the listings grid;
   // hidden entirely when neither API key is configured.
   const [marketStats, setMarketStats] = useState({ status: 'idle', stats: null, oconusHousing: null });
+  // Bumped by pull-to-refresh; included in the fetch effect's deps so
+  // the existing fetch logic re-runs untouched.
+  const [refreshNonce, setRefreshNonce] = useState(0);
   useEffect(() => {
     if (!market.matched || (!market.city && !market.zip)) {
       setListings({ status: 'no-market', items: [], fallback: true, reason: 'unknown-installation' });
@@ -243,11 +247,25 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
     // profile.language is part of the request body but the effect must
     // not refetch when the user changes UI language; changing language
     // re-translates the UI in place rather than re-loading listings.
+    // refreshNonce included so pull-to-refresh can re-trigger the
+    // fetch by bumping the counter.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [market.city, market.state, market.zip, market.matched]);
+  }, [market.city, market.state, market.zip, market.matched, refreshNonce]);
+
+  const { indicator } = usePullToRefresh(async () => {
+    setRefreshNonce(n => n + 1);
+    // Keep the indicator visible long enough for the fetches above
+    // to settle in the typical case (Railway warm hit ~400-900ms,
+    // cold start ~6s). 1.2s is a UX-tested compromise: the indicator
+    // hides before the perceived "long wait" threshold, and the
+    // skeleton state inside the cards continues to communicate the
+    // ongoing load if the fetch is still in flight.
+    await new Promise(r => setTimeout(r, 1200));
+  });
 
   return (
     <div style={{ padding: 16 }}>
+      {indicator}
       <div style={{ background: colors.secondary, borderRadius: 12, padding: 14, marginBottom: 14, borderLeft: `3px solid ${colors.accent}` }}>
         <div style={{ fontSize: 10, fontWeight: 900, color: colors.accent, letterSpacing: '.08em', marginBottom: 4 }}>HOME LOCATOR</div>
         <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 5 }}>{market.label}</div>
