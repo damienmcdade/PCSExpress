@@ -1142,11 +1142,11 @@ export function resolveInstallation(profileName, availableKeys) {
 
   // 6. Significant word overlap — share 2+ meaningful words
   const stopWords = new Set(['the','and','of','at','in','on','for','joint','base','station','air','force','army','naval','marine','corps','camp','fort','nas','nsa','ns','mcb','mcas','usag','afb','sfb']);
-  const profileWords = lower.split(/[\s,\-\/()]+/).filter(w => w.length > 2 && !stopWords.has(w));
+  const profileWords = lower.split(/[\s,\-/()]+/).filter(w => w.length > 2 && !stopWords.has(w));
   let bestKey = '';
   let bestScore = 1; // require at least 2 shared words
   for (const k of availableKeys) {
-    const keyWords = k.toLowerCase().split(/[\s,\-\/()]+/).filter(w => w.length > 2 && !stopWords.has(w));
+    const keyWords = k.toLowerCase().split(/[\s,\-/()]+/).filter(w => w.length > 2 && !stopWords.has(w));
     const shared = profileWords.filter(w => keyWords.includes(w)).length;
     if (shared > bestScore) { bestScore = shared; bestKey = k; }
   }

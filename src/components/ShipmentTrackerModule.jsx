@@ -61,7 +61,7 @@ function daysBetween(isoA, isoB) {
   return Math.round((b - a) / 86400000);
 }
 
-export default function ShipmentTrackerModule({ theme, profile }) {
+export default function ShipmentTrackerModule({ theme, profile: _profile }) {
   const [state, setState] = useState({ fields: {}, milestones: {}, startedOn: '', notifyOnOverdue: false });
   const [permission, setPermission] = useState(() => (typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'));
 

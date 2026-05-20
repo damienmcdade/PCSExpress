@@ -12,7 +12,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { resolveMarket } from '../data/installationMarkets';
 import { apiUrl } from '../config/apiConfig';
 
-const BRANCH_HOUSING_SOURCES = {
+// Intentionally retained for the future reference-banner; see the
+// disclaimer-link path below. Underscore-prefix to keep the
+// regulator-friendly documentation without tripping the unused-vars
+// rule.
+const _BRANCH_HOUSING_SOURCES = {
   Army: {
     name: 'Army Housing Directory',
     url: 'https://home.army.mil/imcom/customers/housing-directory',
@@ -51,7 +55,10 @@ function googleSearchUrl(query) {
   return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 }
 
-function buildOfficialLinks(market, branchSource) {
+// Retained as documentation for the reference-banner — see comment in
+// HomeLocatorTab. Underscore-prefix keeps it lint-clean without
+// rewriting history.
+function _buildOfficialLinks(market, branchSource) {
   const installation = market.installation;
   const query = market.query || installation;
   const domains = branchSource.domains || 'site:installations.militaryonesource.mil';
@@ -92,7 +99,7 @@ function buildOfficialLinks(market, branchSource) {
 export default function HomeLocatorTab({ theme = {}, profile = {} }) {
   const [manual, setManual] = useState('');
   const market = useMemo(() => resolveMarket(profile, manual), [profile, manual]);
-  const branch = clean(profile?.branch) || 'Army';
+  const _branch = clean(profile?.branch) || 'Army';
   // BRANCH_HOUSING_SOURCES + buildOfficialLinks() are retained for
   // future use (e.g., a reference banner in the disclaimer) but the
   // static official-housing cards section was removed per user
@@ -233,6 +240,10 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
       housingAbort.abort();
       statsAbort.abort();
     };
+    // profile.language is part of the request body but the effect must
+    // not refetch when the user changes UI language; changing language
+    // re-translates the UI in place rather than re-loading listings.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [market.city, market.state, market.zip, market.matched]);
 
   return (

@@ -361,7 +361,6 @@ const PHRASES = {
   'Pay Grade': tr('Grado de pago', 'Besoldungsgruppe', 'Grade', '급여등급', '給与等級', 'Pay grade', 'درجة الراتب', '军衔', 'Grado retributivo', 'Graduação', 'Cấp lương'),
   'Dependents': tr('Dependientes', 'Angehörige', 'Personnes à charge', '부양가족', '扶養家族', 'Dependents', 'التابعون', '家属', 'Familiari a carico', 'Dependentes', 'Người phụ thuộc'),
   'Gaining Duty Station': tr('Estación de destino', 'Zielstandort', 'Affectation d\'arrivée', '도착 기지', '赴任先基地', 'Destinasyon', 'محطة الواجب الجديدة', '新驻地', 'Stazione di arrivo', 'Estação de destino', 'Trạm đến'),
-  'Housing': tr('Vivienda', 'Wohnen', 'Logement', '주거', '住居', 'Pabahay', 'السكن', '住房', 'Alloggio', 'Moradia', 'Nhà ở'),
   'TRICARE': tr('TRICARE', 'TRICARE', 'TRICARE', 'TRICARE', 'TRICARE', 'TRICARE', 'TRICARE', 'TRICARE', 'TRICARE', 'TRICARE', 'TRICARE'),
   'Contacts': tr('Contactos', 'Kontakte', 'Contacts', '연락처', '連絡先', 'Mga contact', 'جهات الاتصال', '联系方式', 'Contatti', 'Contatos', 'Liên hệ'),
   'Community Reviews': tr('Reseñas de la comunidad', 'Community-Bewertungen', 'Avis de la communauté', '커뮤니티 리뷰', 'コミュニティレビュー', 'Mga review ng komunidad', 'مراجعات المجتمع', '社区评价', 'Recensioni della comunità', 'Avaliações da comunidade', 'Đánh giá cộng đồng'),
@@ -694,7 +693,7 @@ function chooseFallback(original, lang, parent) {
   const lower = compact.toLowerCase();
   const bundle = GENERIC[lang] || GENERIC.es;
   const tag = parent?.tagName?.toLowerCase() || '';
-  const role = parent?.getAttribute?.('role') || '';
+  const _role = parent?.getAttribute?.('role') || '';
   const labelLikeControl = isLikelySelectorLabel(parent, compact);
 
   let translated = '';

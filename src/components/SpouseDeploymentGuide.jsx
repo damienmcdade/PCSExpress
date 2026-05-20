@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-function SpouseDeploymentGuide({ theme, profile }) {
+function SpouseDeploymentGuide({ theme, profile: _profile }) {
   const [completedTasks, setCompletedTasks] = useState({})
 
   const SPOUSE_GUIDE_SECTIONS = [

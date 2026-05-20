@@ -78,7 +78,7 @@ function pickRegion(profile) {
   return TRICARE_REGION_BY_STATE[st] || 'East';
 }
 
-function buildZipFindCareUrl(profile, fallback) {
+function buildZipFindCareUrl(_profile, _fallback) {
   // TRICARE's find-a-doctor canonical URL is `tricare.mil/findadoctor`
   // (all lowercase). The previously-used `?zip=` query param was not
   // honored by the site and many users saw a 404 / soft-404. The
@@ -107,7 +107,7 @@ function ResourceCard({ item, theme }) {
   );
 }
 
-function EmergencyBanner({ theme }) {
+function EmergencyBanner({ theme: _theme }) {
   return (
     <div style={{ background: '#7F1D1D', borderRadius: 12, padding: 14, marginBottom: 14, color: '#FFF', borderLeft: `4px solid #FECACA` }}>
       <div style={{ fontSize: 10, fontWeight: 900, color: '#FECACA', letterSpacing: '.14em', marginBottom: 4 }}>LIFE-THREATENING EMERGENCY</div>

@@ -235,7 +235,7 @@ export const calculateReadinessScore = (tasks, completedTasks) => {
   return Math.max(0, Math.round(completionRate - overduepenalty));
 };
 
-export const identifyRisks = (tasks, completedTasks, order) => {
+export const identifyRisks = (tasks, completedTasks, _order) => {
   const risks = [];
   const now = new Date();
 

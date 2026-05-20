@@ -358,7 +358,10 @@ app.get('/api/health', (req, res) => {
 
 // ==================== ERROR HANDLING ====================
 
-app.use((err, req, res, next) => {
+// Express error middleware must keep the 4-arg signature even when
+// `next` is not invoked — that's what tells Express it's an error
+// handler. Underscore-prefix to satisfy the unused-var rule.
+app.use((err, req, res, _next) => {
   console.error(err);
   res.status(500).json({ error: 'Internal server error' });
 });

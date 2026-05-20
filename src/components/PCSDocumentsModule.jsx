@@ -4,7 +4,6 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import SyncStatusIndicator from './SyncStatusIndicator';
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions';
 
 // ─── Document categories ─────────────────────────────────────────────────────

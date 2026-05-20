@@ -8,12 +8,13 @@ import './App.css'
 import { apiUrl } from './config/apiConfig'
 import AppErrorBoundary from './components/AppErrorBoundary'
 import CommandPalette from './components/CommandPalette'
-import NavigationModule from './components/NavigationModule'
 import PlatformBanners from './components/PlatformBanners'
-import { AIAssistantModal, AIAssistantTrigger } from './components/AIAssistantChip'
+// AIAssistantTrigger stays eager (small button users see at boot).
+// AIAssistantModal is lazy — its 900-line file + curated KB only loads
+// once the user actually opens the assistant.
+import AIAssistantTrigger from './components/AIAssistantTrigger'
 import DynamicTimeline from './components/DynamicTimeline'
 import PrivacyShield from './components/PrivacyShield'
-import HomeRelocationTab from './components/HomeRelocationTab'
 
 // Tabs lazy-loaded so the initial bundle ships only the shell + the
 // pieces a typical first-visit user actually touches (Home, Mission
@@ -23,7 +24,6 @@ import HomeRelocationTab from './components/HomeRelocationTab'
 // Each lazy import resolves inside the top-level <Suspense> fallback at
 // the App root.
 const EmploymentModule = lazy(() => import('./components/EmploymentModule'))
-const EducationModule = lazy(() => import('./components/EducationModule'))
 const TranslationModule = lazy(() => import('./components/TranslationModule'))
 const ReligiousServicesModule = lazy(() => import('./components/ReligiousServicesModule'))
 const SpouseDeploymentGuide = lazy(() => import('./components/SpouseDeploymentGuide'))
@@ -45,9 +45,14 @@ const LQACalculatorTab = lazy(() => import('./components/LQACalculatorTab'))
 const MedicalReadinessTab = lazy(() => import('./components/MedicalReadinessTab'))
 const MoveBudgetTracker = lazy(() => import('./components/MoveBudgetTracker'))
 const DutyStationDirectory = lazy(() => import('./components/DutyStationDirectory'))
-import SyncStatusIndicator from './components/SyncStatusIndicator'
+const AIAssistantModal = lazy(() => import('./components/AIAssistantChip').then(m => ({ default: m.AIAssistantModal })))
+const NavigationModule = lazy(() => import('./components/NavigationModule'))
 import { AuditLogger, secureLocalStore, readLegacyJson, closeCryptoStoreDB } from './security/SecurityExtensions'
-import { ALL_BASES } from './components/BaseMapModule'
+// ALL_BASES is exported as [] from BaseMapModule (the real lookup is in
+// data/installationMarkets and data/militaryDutyStations). Inlining the
+// empty array here so the App shell no longer eager-loads the 422-line
+// BaseMapModule + Leaflet just to scan an empty list.
+const ALL_BASES = []
 import { resolveMarket } from './data/installationMarkets'
 import { BRANCH_PCS_CHECKLISTS } from './data/branchChecklists'
 import { MILITARY_DUTY_STATIONS } from './data/militaryDutyStations'
@@ -157,7 +162,7 @@ async function eraseAllUserData() {
 // Replaces the previous tiny window.confirm so the user sees clearly what
 // will be deleted before they confirm. The "Yes, Delete Everything" button
 // is intentionally far from the X / Cancel and uses a destructive red.
-function ResetWarningModal({ theme, onConfirm, onCancel }) {
+function ResetWarningModal({ theme: _theme, onConfirm, onCancel }) {
   return (
     <div data-no-language-runtime role="dialog" aria-modal="true" aria-labelledby="reset-warning-title" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ background: '#FFFFFF', borderRadius: 16, maxWidth: 480, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 30px 60px rgba(0,0,0,0.4)', borderTop: `6px solid #DC2626` }}>
@@ -484,15 +489,6 @@ function normalizeProfile(raw) {
 // src/components/AppErrorBoundary.jsx in Phase 15.2 to shrink this
 // 9,500-line shell and make boundary changes easier to review.
 
-const BRANCH_MARK_SOURCE_NOTES = {
-  Army: 'https://www.army.mil/socialmedia/operations/index.html',
-  Navy: 'https://www.navy.mil/TRADEMARKS/',
-  'Marine Corps': 'https://www.trademark.marines.mil/',
-  'Air Force': 'https://www.trademark.af.mil/Branding/Air-Force-Symbol/',
-  'Space Force': 'https://www.spaceforce.mil/About-Us/',
-  'Coast Guard': 'https://www.uscg.mil/',
-};
-
 const BRANCH_HOME_INSIGNIA = {
   Army: 'USA',
   Navy: 'USN',
@@ -541,12 +537,6 @@ const UI_PALETTE = {
 };
 
 
-// Per-branch terminology mapping per redesign brief. Use BRANCH_TERMS[branch].key
-// so the app speaks each branch's native language (a Sailor sees "Sailor" /
-// "Ship or NAS"; a Marine sees "Marine" / "MCB or MCAS"; etc.). Falls back to
-// Army terms if a branch is missing a key. Keep the keys small and focused
-// on phrases that genuinely change across branches — over-specializing makes
-// the table brittle.
 // T-Minus milestone schedule. Each milestone is an offset (negative = days
 // before Report-NLT, positive = days after report date) plus a key. The
 // dashboard sorts these against today and surfaces the upcoming three and
@@ -1005,7 +995,7 @@ function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
                       // Default snooze: 3 days from today. Quick-pick;
                       // the user can choose another date via a prompt.
                       const def = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
-                      // eslint-disable-next-line no-alert
+                       
                       const picked = window.prompt('Snooze this task until (YYYY-MM-DD):', def);
                       if (picked && /^\d{4}-\d{2}-\d{2}$/.test(picked)) {
                         snoozeUntil(item.key, picked);
@@ -1025,18 +1015,6 @@ function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
       ))}
     </div>
   );
-}
-
-const BRANCH_TERMS = {
-  Army:           { servicemember: 'Soldier',       installation: 'Post',          installationLong: 'Installation', commander: 'Commander',          personnel: 'S1',  finance: 'Finance Office',     hr: 'IPPS-A',         orders: 'PCS Orders',     leave: 'DA Form 31 (Leave)',  evaluation: 'NCOER / OER',       record: 'Soldier Record Brief (SRB)' },
-  Navy:           { servicemember: 'Sailor',        installation: 'Station',       installationLong: 'Naval Station / NAS', commander: 'Commanding Officer', personnel: 'PSD', finance: 'Disbursing',         hr: 'NSIPS / MyNavy', orders: 'NAVPERS Orders', leave: 'Special / PCS Leave', evaluation: 'EVAL / FITREP',      record: 'Electronic Service Record (ESR)' },
-  'Marine Corps': { servicemember: 'Marine',        installation: 'Base / Station',installationLong: 'MCB / MCAS',          commander: 'Commanding Officer', personnel: 'IPAC',finance: 'Disbursing',         hr: 'MOL',            orders: 'CMC Orders',     leave: 'NAVMC Leave',         evaluation: 'Fitness Report',     record: 'Service Record Book (SRB)' },
-  'Air Force':    { servicemember: 'Airman',        installation: 'Base',          installationLong: 'Air Force Base',      commander: 'Commander',          personnel: 'MPF', finance: 'Finance / FSO',      hr: 'myPers',         orders: 'AF Orders',      leave: 'AF Form 988 (Leave)', evaluation: 'EPR / OPR',          record: 'AFPC vMPF' },
-  'Space Force':  { servicemember: 'Guardian',      installation: 'Base',          installationLong: 'Space Force Base',    commander: 'Commander',          personnel: 'MPF', finance: 'Finance / FSO',      hr: 'myPers',         orders: 'SF Orders',      leave: 'AF Form 988 (Leave)', evaluation: 'Guardian Eval',      record: 'Guardian Personnel Record' },
-  'Coast Guard':  { servicemember: 'Coast Guardsman', installation: 'Base / Station', installationLong: 'CG Base / Sector / Station', commander: 'Commanding Officer', personnel: 'SPO', finance: 'Servicing Personnel Office', hr: 'Direct Access', orders: 'CG-3103 Orders', leave: 'CG-3307 Leave',       evaluation: 'Employee Review',    record: 'Personnel Data Record (PDR)' },
-};
-function getBranchTerm(branch, key) {
-  return BRANCH_TERMS[branch]?.[key] || BRANCH_TERMS.Army[key] || key;
 }
 
 // Component-specific context per redesign brief. Active Duty is the
@@ -1319,7 +1297,6 @@ function veteranBusinessDiscoveryCards(installation) {
 }
 
 
-const VETERAN_OWNED_BUSINESSES = {}; // Legacy static cards removed from rendering because several entries had no active source links.
 
 
 
@@ -1794,7 +1771,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
                   def.setHours(9, 0, 0, 0);
                   const pad = (n) => String(n).padStart(2, '0');
                   const defStr = `${def.getFullYear()}-${pad(def.getMonth() + 1)}-${pad(def.getDate())}T${pad(def.getHours())}:${pad(def.getMinutes())}`;
-                  // eslint-disable-next-line no-alert
+                   
                   const picked = window.prompt('Remind me on (YYYY-MM-DDTHH:MM, 24-hour):', defStr);
                   if (picked && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(picked)) {
                     setReminder(key, picked);
@@ -1824,7 +1801,7 @@ function SchoolsTab({ theme, profile }) {
   const instName = (profile?.gainingInstallation || '').split(',')[0].trim();
   const schools = INSTALLATION_SCHOOLS[instName] || [];
   const daycares = DAYCARE_DATA[instName] || [];
-  const searchLocation = getInstallationSearchLocation(instName);
+  const _searchLocation = getInstallationSearchLocation(instName);
   const schoolFinderCards = officialSchoolCards(instName);
 
   // Child ages resolved from the onboarding profile. Declared here
@@ -1880,6 +1857,10 @@ function SchoolsTab({ theme, profile }) {
         setLiveSchools({ status: 'ready', schools: [], fallback: true, reason: `network-${err?.message || 'error'}` });
       });
     return () => { cancelled = true; };
+    // profile.language is read inside the fetch URL builder but the
+    // effect intentionally does not re-run on language changes —
+    // changing UI language must not refetch the OSM payload.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [market.city, market.state, market.zip, market.matched, instName]);
   // Sort + tag live OSM schools so the priority order is:
   //   1. Military / DoDEA / on-installation
@@ -1931,7 +1912,7 @@ function SchoolsTab({ theme, profile }) {
   else filteredSchools = [...filteredSchools].sort((a, b) => a.name.localeCompare(b.name));
 
   const handleSearch = () => {
-    const grade = gradeForAge(parseInt(searchAge) || 10);
+    const _grade = gradeForAge(parseInt(searchAge) || 10);
     const url = searchZip
       ? `https://nces.ed.gov/ccd/schoolsearch//search/search.page?zip=${searchZip}`
       : 'https://nces.ed.gov/ccd/schoolsearch/';
@@ -3633,57 +3614,6 @@ function getCollegeEnrollmentLinks(col) {
   };
 }
 
-function MentalReadinessTab({ theme, profile }) {
-  const [tab, setTab] = useState('counseling');
-  const branch = profile?.branch || 'Army';
-  const tabs = [
-    { id: 'counseling', label: 'Counseling' },
-    { id: 'crisis-support', label: 'Crisis Support' },
-    { id: 'family-support', label: 'Family Support' },
-    { id: 'self-care-tools', label: 'Self-Care Tools' },
-  ];
-  const resources = {
-    'counseling': [
-      { name: 'Military OneSource Counseling', desc: 'Free, confidential, short-term non-medical counseling for service members and eligible family members.', url: 'https://www.militaryonesource.mil/benefits/confidential-counseling/' },
-      { name: 'Military & Family Life Counseling', desc: 'Free confidential counseling, education, and support on or off installation for service members and immediate family members.', url: 'https://www.militaryonesource.mil/programs/military-family-life-counseling/' },
-      { name: 'TRICARE Mental Health Care', desc: 'Official TRICARE information for covered mental health services and provider access.', url: 'https://www.tricare.mil/mentalhealth' },
-    ],
-    'crisis-support': [
-      { name: 'Military Crisis Line', desc: 'Call 988 and press 1, chat online, or text 838255 for 24/7 confidential crisis support.', url: 'https://www.veteranscrisisline.net/' },
-      { name: '988 Suicide & Crisis Lifeline', desc: 'Free 24/7 support for people in emotional distress or suicidal crisis.', url: 'https://988lifeline.org/' },
-      { name: 'The Brandon Act', desc: 'Official information explaining how service members can request mental health support through their chain of command.', url: 'https://www.health.mil/Military-Health-Topics/Mental-Health/Brandon-Act' },
-    ],
-    'family-support': [
-      { name: 'Military OneSource Mental Health', desc: 'Public mental health resource hub for military personnel and families.', url: 'https://www.militaryonesource.mil/health-wellness/mental-health/' },
-      { name: 'inTransition', desc: 'Free confidential coaching for service members, veterans, and retirees who need mental health care during transitions.', url: 'https://www.health.mil/Military-Health-Topics/Mental-Health/inTransition' },
-      { name: `${branch} Family Support`, desc: 'Use installation family support offices for relocation stress, parenting, deployment, and local referral help.', url: 'https://installations.militaryonesource.mil/' },
-    ],
-    'self-care-tools': [
-      { name: 'VA PTSD Coach', desc: 'Free VA mobile tool for stress, symptoms, coping skills, and support resources.', url: 'https://mobile.va.gov/app/ptsd-coach' },
-      { name: 'VA Mindfulness Coach', desc: 'Free VA mobile app that teaches mindfulness practices for daily stress management.', url: 'https://mobile.va.gov/app/mindfulness-coach' },
-      { name: 'Moving Forward', desc: 'Free VA problem-solving training tool for stress, transitions, and life challenges.', url: 'https://www.veterantraining.va.gov/movingforward/' },
-    ],
-  };
-  return (
-    <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
-      <div style={{ padding: 16 }}>
-        <div style={{ background: theme.secondary, borderRadius: 12, padding: 14, marginBottom: 14, borderLeft: `3px solid ${theme.accent}` }}>
-          <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em', marginBottom: 4 }}>FREE READINESS RESOURCES</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)', lineHeight: 1.6 }}>
-            Mental Readiness connects service members and dependents to free official resources for counseling, crisis support, transition stress, and self-care. In an emergency, call 911 or the Military Crisis Line at 988 then press 1.
-          </div>
-        </div>
-        {resources[tab].filter(item => item.url).map(item => (
-          <a key={item.name} href={item.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 10, textDecoration: 'none' }}>
-            <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>{item.name}</div>
-            <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.55 }}>{item.desc}</div>
-          </a>
-        ))}
-      </div>
-    </CategoryTabShell>
-  );
-}
-
 function EducationBenefitsTab({ theme, profile }) {
   const [activeTab, setActiveTab] = useState('colleges');
 
@@ -4193,7 +4123,6 @@ function getDaysUntilDeparture(dateStr) {
 }
 
 // ─── Onboarding constants ──────────────────────────────────────────────────
-const COMPONENT_TYPES = ['Active Duty', 'Reserve', 'National Guard', 'AGR', 'DoD Civilian', 'Dependent'];
 
 // Branch -> components offered. Filters the onboarding component
 // dropdown so users only see options that actually exist for their
@@ -5121,21 +5050,6 @@ const TRANSLATION_BANNER_TEXT = {
 };
 
 
-const GENERIC_LANGUAGE_FALLBACKS = {
-  es: { desc: 'Revise recursos oficiales y herramientas de planificacion para esta categoria.', demoTitle: 'Paso del recorrido', demoBody: 'Esta parte del recorrido explica como usar esta area de PCS Express con la informacion publica oficial disponible.' },
-  de: { desc: 'Pruefen Sie offizielle Ressourcen und Planungswerkzeuge fuer diese Kategorie.', demoTitle: 'Tour-Schritt', demoBody: 'Dieser Teil der Tour erklaert, wie Sie diesen Bereich von PCS Express mit verfuegbaren offiziellen oeffentlichen Informationen nutzen.' },
-  fr: { desc: 'Consultez les ressources officielles et les outils de planification pour cette categorie.', demoTitle: 'Etape de visite', demoBody: 'Cette partie de la visite explique comment utiliser cette zone de PCS Express avec les informations publiques officielles disponibles.' },
-  ko: { desc: '이 범주의 공식 자료와 계획 도구를 확인하십시오.', demoTitle: '둘러보기 단계', demoBody: '이 둘러보기는 사용 가능한 공식 공개 정보를 사용하여 PCS Express의 이 영역을 이용하는 방법을 설명합니다.' },
-  ja: { desc: 'このカテゴリの公式リソースと計画ツールを確認してください。', demoTitle: 'ツアー手順', demoBody: 'このツアーでは、利用可能な公式公開情報を使ってPCS Expressのこの領域を使用する方法を説明します。' },
-  tl: { desc: 'Suriin ang opisyal na resources at planning tools para sa kategoryang ito.', demoTitle: 'Hakbang sa tour', demoBody: 'Ipinapaliwanag ng bahaging ito kung paano gamitin ang area na ito ng PCS Express gamit ang opisyal na pampublikong impormasyon.' },
-  ar: { desc: 'راجع الموارد الرسمية وأدوات التخطيط لهذه الفئة.', demoTitle: 'خطوة في الجولة', demoBody: 'يشرح هذا الجزء من الجولة كيفية استخدام هذا القسم من PCS Express بالاعتماد على المعلومات العامة الرسمية المتاحة.' },
-  zh: { desc: '查看此类别的官方资源和规划工具。', demoTitle: '导览步骤', demoBody: '本导览说明如何使用可用的官方公开信息操作 PCS Express 的此区域。' },
-  it: { desc: 'Consulta le risorse ufficiali e gli strumenti di pianificazione per questa categoria.', demoTitle: 'Passaggio del tour', demoBody: 'Questa parte del tour spiega come usare questa area di PCS Express con le informazioni pubbliche ufficiali disponibili.' },
-  pt: { desc: 'Revise recursos oficiais e ferramentas de planejamento para esta categoria.', demoTitle: 'Etapa do tour', demoBody: 'Esta parte do tour explica como usar esta area do PCS Express com informacoes publicas oficiais disponiveis.' },
-  vi: { desc: 'Xem tài nguyên chính thức và công cụ lập kế hoạch cho danh mục này.', demoTitle: 'Bước hướng dẫn', demoBody: 'Phần này giải thích cách sử dụng khu vực này của PCS Express bằng thông tin công khai chính thức có sẵn.' },
-};
-
-
 const KEYED_LANGUAGE_TOPICS = {
   'base-intelligence': { es: 'Inteligencia de base', de: 'Standortinformationen', fr: 'Informations base', ko: '기지 정보', ja: '基地情報', tl: 'Base intelligence', ar: 'معلومات القاعدة', zh: '基地情报', it: 'Informazioni base', pt: 'Inteligência da base', vi: 'Thông tin căn cứ' },
   checklist: { es: 'Lista PCS', de: 'PCS-Checkliste', fr: 'Liste PCS', ko: 'PCS 체크리스트', ja: 'PCSチェックリスト', tl: 'PCS checklist', ar: 'قائمة PCS', zh: 'PCS 清单', it: 'Checklist PCS', pt: 'Checklist PCS', vi: 'Danh sách PCS' },
@@ -6031,6 +5945,9 @@ function FamilyFunTab({ theme, profile }) {
         setState({ status: 'ready', categories: [], activities: [], origin: null, fallback: true, reason: `network-${err?.message || 'error'}` });
       });
     return () => { cancelled = true; };
+    // profile.language is read inside the URL builder but the effect
+    // intentionally does not re-run on language changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [market.city, market.state, market.zip, market.matched, appliedAddress, profile?.gainingInstallation]);
 
   const filtered = filter === 'all' ? state.activities : state.activities.filter(a => a.categoryId === filter);
@@ -6305,7 +6222,7 @@ function HomeRelocationUnifiedTab({ theme, profile }) {
 // authoritative OPM / DoS / DoD sources for locality pay (CONUS) and
 // LQA/TQSA (OCONUS) instead of running a BAH calculation that does
 // not apply to them.
-function DodCivilianHousingPanel({ theme, profile, oconus }) {
+function DodCivilianHousingPanel({ theme, profile: _profile, oconus }) {
   const colors = {
     primary: theme.primary || '#244247',
     accent:  theme.accent  || '#C99A3D',
@@ -6831,7 +6748,7 @@ function App() {
     { id: 'mission-resources',   label: 'Mission Resources',    icon: 'MSR', iosIcon: '🗺️', color: '#26351F' },
   ];
   const LOCALIZED_BOTTOM_NAV = localizeNavItems(BOTTOM_NAV, appLanguage);
-  const HOME_CATEGORIES = LOCALIZED_BOTTOM_NAV.filter(item => item.id !== 'home');
+  const _HOME_CATEGORIES = LOCALIZED_BOTTOM_NAV.filter(item => item.id !== 'home');
 
   // iOS bottom tab bar: 4 primary + More button
   const IOS_TAB_BAR = [
@@ -7285,7 +7202,11 @@ function App() {
 
       {/* AI Assistant modal. Triggered from the sidebar (desktop) +
           the home-page footer (above Security & data handling) so
-          it never overlaps the safety button visually. */}
+          it never overlaps the safety button visually.
+          Lazy-loaded — Suspense fallback is null because the modal
+          itself returns null when closed, so an invisible fallback is
+          the right visual state during the chunk fetch. */}
+      <Suspense fallback={null}>
       <AIAssistantModal
         open={showAIAssistant}
         onClose={() => setShowAIAssistant(false)}
@@ -7324,6 +7245,7 @@ function App() {
           };
         })()}
       />
+      </Suspense>
 
       {/* COMPLIANCE MODAL — opened from the Security & data-handling
           button at the bottom of the Home tab. The Compliance content
@@ -7436,8 +7358,8 @@ function ReligiousServicesModuleWrapped({ theme, profile }) {
   const isCatholic = pref.includes('Catholic');
   const isJewish = pref.includes('Jewish') || pref.includes('Judaism');
   const isIslam = pref.includes('Islam') || pref.includes('Muslim') || pref === 'Islamic';
-  const isBuddhist = pref.includes('Buddhist');
-  const isHindu = pref.includes('Hindu');
+  const _isBuddhist = pref.includes('Buddhist');
+  const _isHindu = pref.includes('Hindu');
   const showAll = !pref || pref === 'Other' || pref === 'Prefer not to say';
 
   const prefLabel = showAll ? 'All Faiths' : pref;

@@ -173,7 +173,11 @@ app.get('/api/health', (req, res) => {
 // then push subscribe / dispatch work end to end. See
 // docs/PUSH_SETUP.md.
 const VAPID_PUBLIC_KEY  = process.env.VAPID_PUBLIC_KEY  || ''
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || ''
+// VAPID private key reserved for the future push-sender wiring (Phase
+// 15 shipped readiness; the signing endpoint has not landed yet).
+// Underscore-prefix so the env contract is documented without being
+// flagged as unused.
+const _VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || ''
 
 // In-memory subscription store. Per-deploy ephemeral — fine for a
 // readiness baseline; persistent storage (Redis, Postgres) is the
@@ -475,7 +479,7 @@ function sanitizeQueryParam(value, maxLen = 60) {
   // apostrophe. Forward-only validation - SAM.gov rejects most exotic
   // characters anyway, but defense-in-depth prevents accidental URL
   // injection into the upstream query.
-  return String(value || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, maxLen)
+  return String(value || '').trim().replace(/[^A-Za-z0-9 .'-]/g, '').slice(0, maxLen)
 }
 
 function isVeteranBusinessEntity(entity) {
@@ -891,151 +895,6 @@ function shapeListing(raw) {
   }
 }
 
-// OSM Overpass: ALL named residential places near the geocoded
-// installation - apartment communities, named single-family
-// communities, townhouse rows, semi-detached duplex communities,
-// plus place=neighbourhood / suburb / quarter (named neighborhoods).
-// Building type is preserved so the frontend can categorize each
-// card by housing type instead of lumping everything into
-// "Apartment community".
-// OSM building tags we query for housing. `building=house` and
-// `building=residential` are intentionally excluded - millions of
-// unnamed buildings per metro overflow Overpass timeouts even with
-// a name filter. We keep the larger named structures that map well
-// to property types and let the synthetic search-CTA cards cover
-// the missing types (Single Family / Condo / etc.) via Apartments.com
-// deep links.
-const HOUSING_BUILDING_TAGS = {
-  'building=apartments':         { type: 'Apartment community', propertyType: 'Apartment community' },
-  'building=terrace':            { type: 'Townhouse community', propertyType: 'Townhouse' },
-  'building=semidetached_house': { type: 'Duplex community',    propertyType: 'Duplex' },
-  'building=detached':           { type: 'Single-family community', propertyType: 'Single Family' },
-}
-const PLACE_TAGS = {
-  'place=neighbourhood': { type: 'Neighborhood',  propertyType: 'Neighborhood' },
-  'place=suburb':        { type: 'Suburb',        propertyType: 'Neighborhood' },
-  'place=quarter':       { type: 'District',      propertyType: 'Neighborhood' },
-}
-
-async function overpassApartmentsFetch(lat, lng, radiusMeters) {
-  // Two query batches run in PARALLEL so a slow mirror doesn't
-  // serialize building + place lookups. Each batch independently
-  // cascades through the mirror list via overpassQuery. Partial
-  // failures are tolerated — if one batch returns elements and the
-  // other doesn't, we still surface useful results.
-  // Batch A: named residential BUILDINGS (apartments / terrace /
-  // detached / etc.) with a name tag.
-  const buildingFilters = Object.keys(HOUSING_BUILDING_TAGS).map(t => {
-    const [k, v] = t.split('=')
-    return `node["${k}"="${v}"]["name"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"]["name"](around:${radiusMeters},${lat},${lng});`
-  }).join('')
-  // Batch B: named PLACES (neighborhoods / suburbs).
-  const placeFilters = Object.keys(PLACE_TAGS).map(t => {
-    const [k, v] = t.split('=')
-    return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
-  }).join('')
-
-  const runBatch = async (filters, tag) => {
-    try {
-      const data = await overpassQuery(`[out:json][timeout:8];(${filters});out center tags;`)
-      return Array.isArray(data?.elements) ? data.elements : []
-    } catch (err) {
-      console.error(`[overpass-housing] ${tag} batch failed: ${err.message}`)
-      return []
-    }
-  }
-  const [buildings, places] = await Promise.all([
-    runBatch(buildingFilters, 'buildings'),
-    runBatch(placeFilters, 'places'),
-  ])
-  return { elements: [...buildings, ...places] }
-}
-
-function shapeOsmApartmentComplex(el, originLat, originLng, originCity, originState, userLang) {
-  const tags = el.tags || {}
-  // Proper-noun resolution: prefer the user's onboarding language,
-  // then English/international names, finally the local-language
-  // `name` tag. OSM proper nouns for buildings and neighborhoods are
-  // typically the names locals and signage actually use, so falling
-  // back to them is correct UX even when the rest of the app is in
-  // another language. UI strings (descriptions, button labels) are
-  // separately translated by AppLanguageRuntime.
-  const name = pickOsmName(tags, userLang)
-  if (!isUsableOsmName(name, 'apartments')) return null
-
-  // Resolve property type from whichever recognized housing/place tag
-  // the element carries. Defaults to "Apartment community" when no
-  // explicit building tag matches.
-  let typeMeta = { type: 'Apartment community', propertyType: 'Apartment community' }
-  for (const [tag, meta] of Object.entries({ ...HOUSING_BUILDING_TAGS, ...PLACE_TAGS })) {
-    const [k, v] = tag.split('=')
-    if (tags[k] === v) { typeMeta = meta; break }
-  }
-
-  const elLat = el.lat ?? el.center?.lat
-  const elLng = el.lon ?? el.center?.lon
-  if (typeof elLat !== 'number' || typeof elLng !== 'number') return null
-  const distance = haversineMiles(originLat, originLng, elLat, elLng)
-  const street = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ')
-  const addrCity = tags['addr:city'] || originCity || ''
-  const addrState = tags['addr:state'] || originState || ''
-  const addrZip = tags['addr:postcode'] || ''
-
-  const oconus = isOconusMarket(addrState)
-  const featureBits = []
-  if (tags['building:levels']) featureBits.push(`${tags['building:levels']}-story`)
-  if (tags['units'] || tags['building:units']) featureBits.push(`${tags['units'] || tags['building:units']} units`)
-  if (tags.year_built) featureBits.push(`built ${tags.year_built}`)
-  const featureSentence = featureBits.length ? ` ${featureBits.join(' · ')}.` : ''
-  const description = `${typeMeta.type} located approximately ${distance} mi from your gaining installation.${featureSentence} Floorplans, square footage, and current rent vary by unit — verify availability with the listing source before scheduling a tour.`
-
-  // Listing-source URL. CONUS uses Google search restricted to U.S.
-  // rental aggregators (apartments.com, zillow, trulia, etc.). OCONUS
-  // uses Google search restricted to DoD-sanctioned worldwide military
-  // housing networks (AHRN, MilitaryByOwner, MilitaryHousing.us). We
-  // do NOT generate apartments.com/ahrn.com deep-link URLs because
-  // both sites are single-page applications whose routes do not
-  // accept open query parameters and either 404 or land on a homepage.
-  const ev = encodeURIComponent
-  const cityState = [addrCity, addrState].filter(Boolean).join(' ')
-  const aggregatorSites = oconus
-    ? 'site:ahrn.com OR site:militarybyowner.com OR site:homes.mil'
-    : 'site:apartments.com OR site:zillow.com OR site:trulia.com OR site:realtor.com OR site:rent.com OR site:apartmentlist.com'
-  const searchQuery = name && cityState
-    ? `"${name}" ${cityState} ${aggregatorSites}`
-    : street && cityState
-      ? `"${street}" ${cityState} apartments for rent ${aggregatorSites}`
-      : cityState
-        ? `apartments for rent ${cityState} ${aggregatorSites}`
-        : `${name} ${aggregatorSites}`
-  const apartmentsSearch = `https://www.google.com/search?q=${ev(searchQuery)}`
-
-  return {
-    id: `${el.type}/${el.id}`,
-    name,
-    address: street,
-    city: addrCity,
-    state: addrState,
-    zip: addrZip,
-    beds: null,
-    baths: null,
-    sqft: null,
-    propertyType: typeMeta.propertyType,
-    distanceMiles: distance,
-    description,
-    price: null,
-    apartmentsSearchUrl: apartmentsSearch,
-    listingUrl: apartmentsSearch,
-    directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${elLat},${elLng}`,
-    mapUrl: `https://www.openstreetmap.org/?mlat=${elLat}&mlon=${elLng}#map=17/${elLat}/${elLng}`,
-    website: tags.website || tags['contact:website'] || '',
-    phone: tags.phone || tags['contact:phone'] || '',
-    lat: elLat,
-    lng: elLng,
-    source: 'OpenStreetMap',
-  }
-}
-
 // A US state is either a 2-letter postal abbreviation, DC, or one of
 // the geographic territories (PR, GU, VI, MP, AS). Military mail
 // routing codes (AE, AP, AA) are NOT geocodable and are intentionally
@@ -1183,9 +1042,9 @@ function syntheticTypeCards(city, state, zip) {
 }
 
 app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
-  const city = String(req.query.city || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 60)
-  const state = String(req.query.state || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 16)
-  const zip = String(req.query.zip || '').trim().replace(/[^A-Za-z0-9\-]/g, '').slice(0, 10)
+  const city = String(req.query.city || '').trim().replace(/[^A-Za-z0-9 .'-]/g, '').slice(0, 60)
+  const state = String(req.query.state || '').trim().replace(/[^A-Za-z0-9 .'-]/g, '').slice(0, 16)
+  const zip = String(req.query.zip || '').trim().replace(/[^A-Za-z0-9-]/g, '').slice(0, 10)
   const address = String(req.query.address || '').trim().slice(0, 160)
   const userLang = String(req.query.lang || 'en').toLowerCase().replace(/[^a-z]/g, '').slice(0, 5) || 'en'
   if (!city && !zip && !address) {
@@ -1272,7 +1131,7 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
     fallback: combined.length === 0,
     sources: {
       rapidapi: RAPIDAPI_KEY ? `ok-${rapidApiResults.length}` : 'no-api-key',
-      openstreetmap: `ok-${osmResults.length}`,
+      synthetic: `ok-${syntheticResults.length}`,
     },
     fetchedAt: Date.now(),
   })
@@ -1408,9 +1267,9 @@ async function hudFmrForCityState(city, state) {
 }
 
 app.get('/api/market-stats', marketStatsRateLimit, async (req, res) => {
-  const city = String(req.query.city || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 60)
-  const state = String(req.query.state || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 16)
-  const zip = String(req.query.zip || '').trim().replace(/[^A-Za-z0-9\-]/g, '').slice(0, 10)
+  const city = String(req.query.city || '').trim().replace(/[^A-Za-z0-9 .'-]/g, '').slice(0, 60)
+  const state = String(req.query.state || '').trim().replace(/[^A-Za-z0-9 .'-]/g, '').slice(0, 16)
+  const zip = String(req.query.zip || '').trim().replace(/[^A-Za-z0-9-]/g, '').slice(0, 10)
   if (!city && !state && !zip) {
     return res.status(400).json({ error: 'city, state, or zip is required', stats: null, fallback: true })
   }
@@ -1646,8 +1505,8 @@ async function fetchUsajobs(keyword, city, state) {
 
 app.get('/api/job-listings', jobsRateLimit, async (req, res) => {
   const keyword = String(req.query.keyword || '').trim().slice(0, 80)
-  const city = String(req.query.city || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 60)
-  const state = String(req.query.state || '').trim().replace(/[^A-Za-z0-9 .'\-]/g, '').slice(0, 16)
+  const city = String(req.query.city || '').trim().replace(/[^A-Za-z0-9 .'-]/g, '').slice(0, 60)
+  const state = String(req.query.state || '').trim().replace(/[^A-Za-z0-9 .'-]/g, '').slice(0, 16)
 
   const cacheKey = `${keyword}|${city}|${state}`
   const cached = JOBS_CACHE.get(cacheKey)
@@ -1747,28 +1606,6 @@ app.get('/api/job-listings', jobsRateLimit, async (req, res) => {
   })
 })
 
-// === RELIGIOUS / SPIRITUAL SERVICES (OPENSTREETMAP - NO API KEY) ===
-// Places of worship from OSM Overpass within radius of the gaining
-// installation. OSM tags include `religion` (christian / muslim /
-// jewish / buddhist / hindu / etc.) and optional `denomination` for
-// finer-grain Christian sub-traditions.
-const RELIGION_LABELS = {
-  christian: 'Christian',
-  catholic: 'Catholic',
-  protestant: 'Protestant',
-  muslim: 'Islamic',
-  jewish: 'Jewish',
-  buddhist: 'Buddhist',
-  hindu: 'Hindu',
-  sikh: 'Sikh',
-  bahai: 'Baha’i',
-  jain: 'Jain',
-  shinto: 'Shinto',
-  taoist: 'Taoist',
-  multifaith: 'Multi-faith',
-  unitarian_universalist: 'Unitarian Universalist',
-  pagan: 'Pagan',
-}
 const RELIGIOUS_CACHE = new Map()
 const RELIGIOUS_TTL_MS = 24 * 60 * 60 * 1000
 const RELIGIOUS_RATE_LIMIT = 20
@@ -1789,52 +1626,6 @@ function religiousRateLimit(req, res, next) {
   }
   entry.count += 1
   return next()
-}
-
-function shapeOsmReligious(el, originLat, originLng, userLang) {
-  const tags = el.tags || {}
-  if (tags.amenity !== 'place_of_worship') return null
-  const rawName = pickOsmName(tags, userLang) || ''
-  if (!isUsableOsmName(rawName, 'place of worship')) return null
-  const name = rawName
-  const elLat = el.lat ?? el.center?.lat
-  const elLng = el.lon ?? el.center?.lon
-  if (typeof elLat !== 'number' || typeof elLng !== 'number') return null
-  const distance = haversineMiles(originLat, originLng, elLat, elLng)
-  const religionTag = String(tags.religion || '').toLowerCase()
-  const denomTag = String(tags.denomination || '').toLowerCase()
-  const religionLabel = RELIGION_LABELS[denomTag] || RELIGION_LABELS[religionTag] || (religionTag ? religionTag.charAt(0).toUpperCase() + religionTag.slice(1) : 'Place of worship')
-  const street = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ')
-  const cityPart = [tags['addr:city'], tags['addr:state']].filter(Boolean).join(', ')
-  const address = [street, cityPart].filter(Boolean).join(', ')
-  const descParts = []
-  if (tags.description) descParts.push(tags.description)
-  if (tags['service_times']) descParts.push(`Service times: ${tags['service_times']}`)
-  if (tags.opening_hours) descParts.push(`Hours: ${tags.opening_hours}`)
-  const description = descParts.length
-    ? descParts.join(' · ')
-    : `${religionLabel} place of worship approximately ${distance} mi from search center. Confirm service times and accessibility directly with the congregation.`
-  return {
-    id: `${el.type}/${el.id}`,
-    name,
-    religion: religionLabel,
-    religionTag: religionTag || 'unknown',
-    denomination: denomTag || '',
-    distanceMiles: distance,
-    address,
-    description,
-    website: tags.website || tags['contact:website'] || '',
-    phone: tags.phone || tags['contact:phone'] || '',
-    lat: elLat,
-    lng: elLng,
-    mapUrl: `https://www.openstreetmap.org/?mlat=${elLat}&mlon=${elLng}#map=16/${elLat}/${elLng}`,
-    directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${elLat},${elLng}`,
-  }
-}
-
-async function overpassReligiousFetch(lat, lng, radiusMeters) {
-  const query = `[out:json][timeout:8];(node["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng});way["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lng}););out center tags;`
-  return overpassQuery(query)
 }
 
 app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
@@ -1887,20 +1678,6 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
   })
 })
 
-// === SCHOOLS & CHILDCARE (OPENSTREETMAP - NO API KEY REQUIRED) ===
-// Same OSM Overpass approach as Family Fun: query amenity=school /
-// kindergarten / college / university / childcare within radius of the
-// gaining installation. Returns grade-level hints inferred from the
-// isced:level / min_age / max_age tags when present.
-const SCHOOL_TAG_MAP = {
-  'amenity=school': { categoryId: 'k12', type: 'School' },
-  'amenity=kindergarten': { categoryId: 'preschool', type: 'Kindergarten / Pre-K' },
-  'amenity=childcare': { categoryId: 'childcare', type: 'Childcare' },
-  'amenity=college': { categoryId: 'college', type: 'College' },
-  'amenity=university': { categoryId: 'college', type: 'University' },
-  'amenity=language_school': { categoryId: 'k12', type: 'Language school' },
-  'amenity=music_school': { categoryId: 'k12', type: 'Music school' },
-}
 const SCHOOL_CATEGORIES = [
   { id: 'k12', label: 'K-12 Schools', emoji: '🏫', description: 'Elementary, middle, high, and combined schools.' },
   { id: 'preschool', label: 'Preschool / Kindergarten', emoji: '🧒', description: 'Pre-K, kindergarten, and early-learning programs.' },
@@ -1927,114 +1704,6 @@ function schoolRateLimit(req, res, next) {
   }
   entry.count += 1
   return next()
-}
-
-// DoDEA + on-installation school detection from OSM tags.
-// DoDEA-operated schools usually carry operator="DoDEA" or operator
-// strings containing "Department of Defense" / "DoD". Some
-// installation-zone schools tag operator:type=military. Names often
-// include "DoDEA", "Elementary School" with a base prefix, etc.
-function inferMilitarySchool(tags, distance) {
-  const operator = String(tags.operator || '').toLowerCase()
-  const operatorType = String(tags['operator:type'] || '').toLowerCase()
-  const name = String(tags.name || '').toLowerCase()
-  if (operator.includes('dodea') || operator.includes('department of defense') || operator.includes('dod ')) return true
-  if (operatorType === 'military' || operatorType === 'department of defense') return true
-  if (name.includes('dodea') || name.includes('department of defense')) return true
-  // Heuristic: a school within ~1.5 mi of the geocoded installation
-  // center is almost certainly on-post.
-  if (typeof distance === 'number' && distance <= 1.5) return true
-  return false
-}
-
-function shapeOsmSchool(el, originLat, originLng, userLang) {
-  const tags = el.tags || {}
-  let matchTag = null
-  for (const tag of Object.keys(SCHOOL_TAG_MAP)) {
-    const [k, v] = tag.split('=')
-    if (tags[k] === v) { matchTag = tag; break }
-  }
-  if (!matchTag) return null
-  const meta = SCHOOL_TAG_MAP[matchTag]
-  const rawName = pickOsmName(tags, userLang) || ''
-  if (!isUsableOsmName(rawName, meta.type)) return null
-  const name = rawName
-  const elLat = el.lat ?? el.center?.lat
-  const elLng = el.lon ?? el.center?.lon
-  if (typeof elLat !== 'number' || typeof elLng !== 'number') return null
-  const distance = haversineMiles(originLat, originLng, elLat, elLng)
-  const street = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ')
-  const cityPart = [tags['addr:city'], tags['addr:state']].filter(Boolean).join(', ')
-  const address = [street, cityPart].filter(Boolean).join(', ')
-
-  // Infer grade range from common OSM tags. ISCED levels map to:
-  //   0 pre-primary, 1 primary, 2 lower secondary, 3 upper secondary
-  let grades = ''
-  if (tags['isced:level']) {
-    const levels = String(tags['isced:level']).split(/[,;]/).map(s => s.trim())
-    const labels = levels.map(l => {
-      if (l === '0') return 'Pre-K'
-      if (l === '1') return 'K-5'
-      if (l === '2') return '6-8'
-      if (l === '3') return '9-12'
-      return l
-    })
-    grades = labels.join(', ')
-  } else if (tags['min_age'] || tags['max_age']) {
-    grades = `Ages ${tags['min_age'] || '?'}-${tags['max_age'] || '?'}`
-  } else if (meta.categoryId === 'preschool') {
-    grades = 'Pre-K'
-  } else if (meta.categoryId === 'childcare') {
-    grades = 'Childcare'
-  }
-
-  const operator = tags.operator || ''
-  const operatorType = tags['operator:type'] || ''
-  const descParts = []
-  if (tags.description) descParts.push(tags.description)
-  if (operatorType) descParts.push(`${operatorType.charAt(0).toUpperCase() + operatorType.slice(1)} school`)
-  else if (operator) descParts.push(`Operated by ${operator}`)
-  if (tags.opening_hours) descParts.push(`Hours: ${tags.opening_hours}`)
-  const description = descParts.length
-    ? descParts.join(' · ')
-    : `${meta.type} approximately ${distance} mi from search center. Verify enrollment, grade levels, and ratings on the official source.`
-
-  const isMilitary = inferMilitarySchool(tags, distance)
-  return {
-    id: `${el.type}/${el.id}`,
-    categoryId: meta.categoryId,
-    type: meta.type,
-    name,
-    grades,
-    address,
-    distanceMiles: distance,
-    description,
-    operatorType,
-    operator: operator || '',
-    isMilitary,
-    website: tags.website || tags['contact:website'] || '',
-    phone: tags.phone || tags['contact:phone'] || '',
-    lat: elLat,
-    lng: elLng,
-    mapUrl: `https://www.openstreetmap.org/?mlat=${elLat}&mlon=${elLng}#map=16/${elLat}/${elLng}`,
-    directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${elLat},${elLng}`,
-    // NCES SchoolSearch deep link as an authoritative cross-reference.
-    ncesUrl: `https://nces.ed.gov/ccd/schoolsearch/school_list.asp?Search=1&SchoolName=${encodeURIComponent(name)}`,
-    // Search the web for community ratings of this specific school -
-    // returns Google results that include GreatSchools, Niche, and
-    // parent-review aggregators. We do not embed third-party ratings
-    // directly because they are paywalled / partner-only.
-    ratingsSearchUrl: `https://www.google.com/search?q=${encodeURIComponent(name + ' school reviews ratings ' + (tags['addr:city'] || ''))}`,
-  }
-}
-
-async function overpassSchoolsFetch(lat, lng, radiusMeters) {
-  const filters = Object.keys(SCHOOL_TAG_MAP).map(tag => {
-    const [k, v] = tag.split('=')
-    return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
-  }).join('')
-  const query = `[out:json][timeout:8];(${filters});out center tags;`
-  return overpassQuery(query)
 }
 
 app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
@@ -2233,79 +1902,6 @@ function syntheticFamilyCards(city, state) {
   }))
 }
 
-// OSM tag mappings. Expanded with the categories the user requested.
-const OSM_TAG_MAP = {
-  // Parks & Outdoors
-  'leisure=park': { categoryId: 'parks', type: 'Park' },
-  'leisure=nature_reserve': { categoryId: 'parks', type: 'Nature reserve' },
-  'leisure=playground': { categoryId: 'parks', type: 'Playground' },
-  'leisure=garden': { categoryId: 'parks', type: 'Garden' },
-  'leisure=dog_park': { categoryId: 'parks', type: 'Dog park' },
-  'tourism=picnic_site': { categoryId: 'parks', type: 'Picnic site' },
-  'tourism=viewpoint': { categoryId: 'parks', type: 'Viewpoint' },
-  'boundary=national_park': { categoryId: 'parks', type: 'National park' },
-  // Amusement & Theme Parks (incl. water parks + arcades)
-  'tourism=theme_park': { categoryId: 'amusement', type: 'Theme park' },
-  'leisure=water_park': { categoryId: 'amusement', type: 'Water park' },
-  'tourism=amusement_arcade': { categoryId: 'amusement', type: 'Arcade' },
-  'leisure=amusement_arcade': { categoryId: 'amusement', type: 'Arcade' },
-  // Movie Theaters
-  'amenity=cinema': { categoryId: 'movies', type: 'Cinema' },
-  // Museums
-  'tourism=museum': { categoryId: 'museums', type: 'Museum' },
-  'historic=monument': { categoryId: 'museums', type: 'Monument' },
-  'historic=memorial': { categoryId: 'museums', type: 'Memorial' },
-  // Active Play & Sports - expanded per user direction
-  'leisure=swimming_pool': { categoryId: 'sports', type: 'Swimming pool' },
-  'leisure=ice_rink': { categoryId: 'sports', type: 'Ice rink' },
-  'amenity=ice_rink': { categoryId: 'sports', type: 'Ice rink' },
-  'leisure=bowling_alley': { categoryId: 'sports', type: 'Bowling alley' },
-  'leisure=miniature_golf': { categoryId: 'sports', type: 'Mini-golf' },
-  'sport=climbing': { categoryId: 'sports', type: 'Climbing gym' },
-  // Paintball + airsoft (OSM tags `sport=paintball` / `sport=airsoft`
-  // appear on leisure=pitch, leisure=sports_centre, or as
-  // dedicated nodes)
-  'sport=paintball': { categoryId: 'sports', type: 'Paintball' },
-  'sport=airsoft': { categoryId: 'sports', type: 'Airsoft' },
-  'sport=laser_tag': { categoryId: 'sports', type: 'Laser tag' },
-  // Race tracks (motorsport / karting)
-  'leisure=motorsport': { categoryId: 'sports', type: 'Motorsport track' },
-  'leisure=kart_track': { categoryId: 'sports', type: 'Kart track' },
-  'landuse=raceway': { categoryId: 'sports', type: 'Raceway' },
-  'sport=motor': { categoryId: 'sports', type: 'Motorsport' },
-  'sport=karting': { categoryId: 'sports', type: 'Karting' },
-  // Generic trampoline parks + escape rooms tag on amenity / leisure
-  'leisure=trampoline_park': { categoryId: 'sports', type: 'Trampoline park' },
-  'leisure=escape_game': { categoryId: 'sports', type: 'Escape room' },
-  // Arts, Libraries & Community
-  'amenity=arts_centre': { categoryId: 'culture', type: 'Arts center' },
-  'amenity=library': { categoryId: 'culture', type: 'Library' },
-  'tourism=artwork': { categoryId: 'culture', type: 'Public art' },
-  'amenity=community_centre': { categoryId: 'culture', type: 'Community center' },
-  // Zoos & Aquariums
-  'tourism=zoo': { categoryId: 'family', type: 'Zoo' },
-  'tourism=aquarium': { categoryId: 'family', type: 'Aquarium' },
-  // Shopping & Markets (restored per user direction)
-  'shop=mall': { categoryId: 'shopping', type: 'Shopping mall' },
-  'amenity=marketplace': { categoryId: 'shopping', type: 'Marketplace' },
-  // Historic family attractions (free castles, forts, archaeological
-  // sites - great family education stops)
-  'historic=castle': { categoryId: 'museums', type: 'Castle' },
-  'historic=fort': { categoryId: 'museums', type: 'Historic fort' },
-  'historic=archaeological_site': { categoryId: 'museums', type: 'Archaeological site' },
-  'historic=ruins': { categoryId: 'museums', type: 'Historic ruins' },
-  // Outdoor recreation expanded
-  'leisure=horse_riding': { categoryId: 'sports', type: 'Horse riding' },
-  'leisure=disc_golf_course': { categoryId: 'sports', type: 'Disc golf' },
-  'leisure=skatepark': { categoryId: 'sports', type: 'Skate park' },
-  'leisure=fitness_station': { categoryId: 'sports', type: 'Outdoor fitness' },
-  'leisure=fishing': { categoryId: 'parks', type: 'Fishing area' },
-  'leisure=swimming_area': { categoryId: 'parks', type: 'Swimming area' },
-  // Farms / petting zoos (popular family destinations)
-  'tourism=farm': { categoryId: 'family', type: 'Farm visit' },
-  'tourism=wine_cellar': { categoryId: 'family', type: 'Vineyard' },
-}
-
 const FAMILY_CACHE = new Map()
 const FAMILY_TTL_MS = 24 * 60 * 60 * 1000
 const FAMILY_RATE_LIMIT = 20
@@ -2327,49 +1923,6 @@ function familyRateLimit(req, res, next) {
   }
   entry.count += 1
   return next()
-}
-
-// OSM is community-edited. A small fraction of POIs are tagged with
-// placeholder names like "c", "B", "1", or just the type word
-// (e.g., name="Park" on a leisure=park node). These produce visually
-// junk cards. Reject anything that does not look like a real name.
-// Pick the OSM name tag that best matches the user's preferred
-// language. OSM's `name` tag holds the canonical (usually LOCAL-
-// language) name - so a museum in Vicenza, Italy will be tagged
-// `name=Museo Civico` in Italian. Users PCSing to that area with a
-// preferred language of Spanish/English/Korean/etc. should NOT see
-// the local-language name. OSM publishes language-specific variants
-// as `name:en`, `name:es`, `name:de`, etc. Coverage is best for
-// English; Spanish / German / French / Korean / Japanese / Chinese
-// / Italian / Portuguese / Arabic / Vietnamese vary by region.
-// Fallback order: name:{userLang} -> name:en -> name -> ''.
-function pickOsmName(tags, userLang) {
-  if (!tags) return ''
-  const lang = String(userLang || 'en').toLowerCase()
-  if (lang && tags[`name:${lang}`]) return tags[`name:${lang}`]
-  if (tags['name:en']) return tags['name:en']
-  return tags.name || ''
-}
-
-function isUsableOsmName(name, type) {
-  if (!name) return false
-  const trimmed = String(name).trim()
-  if (trimmed.length < 3) return false
-  // All digits or symbols, no letters.
-  if (!/[a-z]/i.test(trimmed)) return false
-  // Just the generic type word (e.g., "Park" / "School" / "Museum").
-  const t = String(type || '').toLowerCase().trim()
-  if (t && trimmed.toLowerCase() === t) return false
-  return true
-}
-
-function haversineMiles(lat1, lon1, lat2, lon2) {
-  const toRad = d => (d * Math.PI) / 180
-  const R = 3958.8 // earth radius in miles
-  const dLat = toRad(lat2 - lat1)
-  const dLon = toRad(lon2 - lon1)
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2
-  return Math.round(R * 2 * Math.asin(Math.sqrt(a)) * 10) / 10
 }
 
 async function geocodeNominatimOnce(query) {
@@ -2444,186 +1997,10 @@ async function geocodeNominatim(input) {
   return null
 }
 
-// Public Overpass API mirrors. Order matters for the sequential
-// fallback path - the first to respond wins. We rotate by minute so
-// no single mirror takes the entire datacenter's traffic at startup,
-// and so kumi (which has been flaky) does not blanket-fail every
-// query if it is the static first choice.
-// Overpass mirrors. Ordered by recent observed reliability (live
-// diagnostic on 2026-05-15: private.coffee 200/8s, overpass-api.de
-// returns 406 for most requests, kumi.systems regularly hangs).
-// private.coffee leads; kumi remains last because it hangs without
-// responding which costs us the full per-mirror budget.
-const OVERPASS_MIRRORS_POOL = [
-  'https://overpass.private.coffee/api/interpreter',
-  'https://overpass-api.de/api/interpreter',
-  'https://overpass.kumi.systems/api/interpreter',
-]
-function overpassMirrors() {
-  // Rotate the FIRST two by minute so private.coffee and overpass-api.de
-  // share leader duty; kumi stays last because it eats budget when down.
-  const offset = Math.floor(Date.now() / 60_000) % 2
-  const leaders = offset === 0
-    ? [OVERPASS_MIRRORS_POOL[0], OVERPASS_MIRRORS_POOL[1]]
-    : [OVERPASS_MIRRORS_POOL[1], OVERPASS_MIRRORS_POOL[0]]
-  return [...leaders, OVERPASS_MIRRORS_POOL[2]]
-}
-
-// Per-mirror abort: 9s. With 3 mirrors that gives ~27s worst case,
-// which fits inside the 22s family-activities budget for at least 2
-// mirror attempts. The in-query Overpass `timeout:` setting also caps
-// at 8s for the family/schools/religious endpoints.
-const OVERPASS_FETCH_TIMEOUT_MS = 9_000
-
 // Mirrors with persistent 4xx in the last 60s are temporarily skipped.
 // Keeps overpass-api.de's "406 Not Acceptable" responses from costing
 // us a fetch round-trip every request.
 const _mirrorBlocklist = new Map() // url -> { reason, until: epochMs }
-function shouldSkipMirror(url) {
-  const entry = _mirrorBlocklist.get(url)
-  if (!entry) return false
-  if (Date.now() >= entry.until) { _mirrorBlocklist.delete(url); return false }
-  return true
-}
-function blockMirror(url, reason, durationMs = 60_000) {
-  _mirrorBlocklist.set(url, { reason, until: Date.now() + durationMs })
-}
-
-async function overpassQuery(query) {
-  let lastErr = null
-  for (const url of overpassMirrors()) {
-    if (shouldSkipMirror(url)) {
-      console.error(`[overpass] skipping blocked mirror ${url}`)
-      continue
-    }
-    try {
-      const signal = AbortSignal.timeout(OVERPASS_FETCH_TIMEOUT_MS)
-      const r = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'User-Agent': OSM_USER_AGENT,
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Accept: 'application/json',
-        },
-        body: `data=${encodeURIComponent(query)}`,
-        signal,
-      })
-      if (!r.ok) {
-        lastErr = new Error(`overpass ${url} ${r.status}`)
-        // Block 4xx mirrors for 60s — they will keep returning the
-        // same error and waste budget. Retry on transient 5xx / 429
-        // by trying the next mirror.
-        if (r.status >= 400 && r.status < 500) {
-          blockMirror(url, `${r.status}`, 60_000)
-          console.error(`[overpass] ${url} ${r.status} — blocking for 60s`)
-          continue
-        }
-        if (r.status === 429 || r.status === 502 || r.status === 503 || r.status === 504) continue
-        throw lastErr
-      }
-      const data = await r.json()
-      // Overpass returns 200 with `remark: "runtime error: Query timed out"`
-      // on partial results. Treat as a failure so we try the next
-      // mirror instead of caching the partial / empty payload.
-      if (data && typeof data.remark === 'string' && /timed out|time limit|cost|memory/i.test(data.remark)) {
-        lastErr = new Error(`overpass ${url} remark: ${data.remark}`)
-        console.error(`[overpass] ${url} ${data.remark}`)
-        continue
-      }
-      return data
-    } catch (err) {
-      lastErr = err
-      console.error(`[overpass] ${url} ${err.message}`)
-      // Timeouts are NOT blocklisted — a slow mirror right now may be
-      // fast on the next request, and blocking it would mean every
-      // subsequent parallel batch in the same endpoint call returns
-      // empty without attempting any mirror. Only durable 4xx errors
-      // (handled above) get the blocklist treatment.
-      continue
-    }
-  }
-  throw lastErr || new Error('overpass all mirrors failed')
-}
-
-async function overpassFetch(lat, lng, radiusMeters) {
-  // OSM tag filters batched into independent queries that run in
-  // parallel. Splitting work this way means a single slow mirror does
-  // not serialize three queries on top of each other. Each batch has
-  // its own mirror cascade via overpassQuery; partial batch failures
-  // are tolerated as long as at least one batch returns elements.
-  //
-  // Note: the OSM tile usage policy asks for "polite" usage but their
-  // Overpass-specific policy explicitly permits concurrent requests
-  // from a server-side aggregator with proper User-Agent. We rate-
-  // limit per client IP upstream so total throughput stays modest.
-  const allTags = Object.keys(OSM_TAG_MAP)
-  const BATCH_SIZE = 9
-  const batches = []
-  for (let i = 0; i < allTags.length; i += BATCH_SIZE) batches.push(allTags.slice(i, i + BATCH_SIZE))
-
-  const batchPromises = batches.map(async (batch) => {
-    try {
-      const filters = batch.map(tag => {
-        const [k, v] = tag.split('=')
-        return `node["${k}"="${v}"](around:${radiusMeters},${lat},${lng});way["${k}"="${v}"](around:${radiusMeters},${lat},${lng});`
-      }).join('')
-      const query = `[out:json][timeout:8];(${filters});out center tags;`
-      const data = await overpassQuery(query)
-      return Array.isArray(data?.elements) ? data.elements : []
-    } catch (err) {
-      console.error(`[overpass-family] batch failed: ${err.message}`)
-      return []
-    }
-  })
-  const results = await Promise.all(batchPromises)
-  const merged = results.flat()
-  return { elements: merged }
-}
-
-function shapeOsmElement(el, originLat, originLng, userLang) {
-  const tags = el.tags || {}
-  let matchTag = null
-  for (const tag of Object.keys(OSM_TAG_MAP)) {
-    const [k, v] = tag.split('=')
-    if (tags[k] === v) { matchTag = tag; break }
-  }
-  if (!matchTag) return null
-  const meta = OSM_TAG_MAP[matchTag]
-  const rawName = pickOsmName(tags, userLang) || ''
-  if (!isUsableOsmName(rawName, meta.type)) return null
-  const name = rawName
-  const elLat = el.lat ?? el.center?.lat
-  const elLng = el.lon ?? el.center?.lon
-  if (typeof elLat !== 'number' || typeof elLng !== 'number') return null
-  const distance = haversineMiles(originLat, originLng, elLat, elLng)
-  const street = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ')
-  const cityPart = [tags['addr:city'], tags['addr:state']].filter(Boolean).join(', ')
-  const address = [street, cityPart].filter(Boolean).join(', ')
-  const descParts = []
-  if (tags.description) descParts.push(tags.description)
-  if (tags.operator) descParts.push(`Operator: ${tags.operator}`)
-  if (tags.opening_hours) descParts.push(`Hours: ${tags.opening_hours}`)
-  if (tags.website) descParts.push('Visit website for details.')
-  const description = descParts.length
-    ? descParts.join(' ')
-    : `${meta.type} approximately ${distance} mi from search center. Verify hours and details on the linked map page.`
-  return {
-    id: `${el.type}/${el.id}`,
-    categoryId: meta.categoryId,
-    type: meta.type,
-    name,
-    address,
-    distanceMiles: distance,
-    description,
-    website: tags.website || tags['contact:website'] || '',
-    phone: tags.phone || tags['contact:phone'] || '',
-    lat: elLat,
-    lng: elLng,
-    mapUrl: `https://www.openstreetmap.org/?mlat=${elLat}&mlon=${elLng}#map=16/${elLat}/${elLng}`,
-    directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${elLat},${elLng}`,
-  }
-}
-
 app.get('/api/family-activities', familyRateLimit, async (req, res) => {
   const city = String(req.query.city || '').trim().slice(0, 80)
   const state = String(req.query.state || '').trim().slice(0, 16)

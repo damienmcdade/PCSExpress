@@ -88,6 +88,9 @@ export default function DynamicTimeline({ theme, profile }) {
 
   useEffect(() => writeNotificationState(enabled), [enabled]);
 
+  // selectMilestones only reads profile?.isOverseas; narrowing the dep
+  // array prevents re-running on unrelated profile updates.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const milestones = useMemo(() => selectMilestones(profile), [profile?.isOverseas]);
   const timeline = useMemo(() => milestones.map(item => {
     const dueDate = rnltDate ? addDays(rnltDate, -item.offsetDays) : null;

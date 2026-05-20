@@ -122,28 +122,6 @@ function NavigationModule({ theme, profile }) {
 
   const generateOnBaseRoute = () => {
     alert('Official public on-base route data is not available for this installation. Use the public route planner or the official installation directory for current visitor guidance.');
-    return;
-    if (!departingFrom || !destination) {
-      alert('Please select both departure and destination');
-      return;
-    }
-    const newRoute = {
-      id: Date.now(),
-      from: departingFrom,
-      to: destination,
-      distance: `${(Math.random() * 5 + 0.5).toFixed(1)} mi`,
-      duration: `${Math.floor(Math.random() * 20 + 5)} min`,
-      type: Math.random() > 0.5 ? 'Driving' : 'Walking',
-      directions: [
-        `Head east from ${departingFrom}`,
-        'Continue for 0.5 miles',
-        'Turn right at intersection',
-        `Arrive at ${destination}`,
-      ],
-      timestamp: new Date().toLocaleDateString(),
-    };
-    setSavedRoutes([...savedRoutes, newRoute]);
-    setSelectedRoute(newRoute);
   };
 
   const deleteRoute = (id) => {

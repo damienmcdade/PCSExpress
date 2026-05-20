@@ -121,7 +121,12 @@ function fmt(n) {
 }
 
 export default function MoveBudgetTracker({ theme, profile }) {
+  // Both builders only branch on profile?.isOverseas; the narrower dep
+  // array avoids rebuilding categories on every unrelated profile
+  // update (e.g., the user editing departingDate).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const EXPENSE_CATEGORIES = useMemo(() => buildExpenseCategories(profile), [profile?.isOverseas]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const suggested = useMemo(() => buildSuggestedRanges(profile), [profile?.isOverseas]);
   const [entitlements, setEntitlements] = useState(() =>
     Object.fromEntries(ENTITLEMENT_CATEGORIES.map(c => [c.id, '']))

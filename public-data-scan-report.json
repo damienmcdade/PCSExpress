@@ -1,6 +1,127 @@
 {
-  "generatedAt": "2026-05-06T18:44:20.425Z",
+  "generatedAt": "2026-05-20T02:44:29.641Z",
   "standard": "Public-release safety scan for classified, CUI, operational, and sensitive-data indicators",
-  "result": "PASS",
-  "findings": []
+  "result": "REVIEW_REQUIRED",
+  "findings": [
+    {
+      "file": "src/App.jsx",
+      "line": 510,
+      "pattern": "\\btactical operations?\\b",
+      "text": "// === TACTICAL OPERATIONS CENTER (TOC) UI PALETTE ==="
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 537,
+      "pattern": "\\btactical operations?\\b",
+      "text": "// line at 8% opacity. Renders as a tactical operations grid"
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1060,
+      "pattern": "\\broster\\b",
+      "text": "'Check if you stay on the State roster or fully transfer to federal service during your orders.',"
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 4387,
+      "pattern": "\\broster\\b",
+      "text": "'pcs-operations': 'Everything PCS planning needs in one operations cell: phased task checklist, paperwork roster with binder export, and the 180-day OCONUS / 90-day CONUS timeline backward-planned from your report-no-later-than date.',"
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 6410,
+      "pattern": "\\bCUI\\b",
+      "text": "<strong>Heads up:</strong> Don’t enter classified information, CUI, rosters, deployment details, or anything else that isn’t public. The Translation “Translate” tab is the one exception — free text there is sent to a translation service; do not paste sensitive info there."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 6810,
+      "pattern": "\\broster\\b",
+      "text": "{ tab: 'pcs-operations',      title: 'PCS Operations',               body: 'Plan and execute every PCS task. Branch-tailored Checklist (Orders Received through In-Processing), Paperwork roster with printable Binder export, and the 180-day OCONUS / 90-day CONUS Timeline backward-planned from your report date. No uploads — you keep the documents yourself.' },"
+    },
+    {
+      "file": "src/DemoTour.jsx",
+      "line": 103,
+      "pattern": "\\bFOUO\\b",
+      "text": "content: 'Inside Home Relocation → JTR Assistant:\\n• 14 hand-written answers covering PPM payout, TLE vs TLA, Dislocation Allowance, POV shipment, OCONUS OHA / MIHA / LQA, pet allowance, civilian House Hunting Trip, real-estate reimbursement, Combat Zone Tax Exclusion, Form 2555 FEIE, weight allowance by rank, POV mileage (MALT), and the claim window. Each answer carries the JTR / FTR / DSSR section number.\\n• Local keyword search — no network call, no upload.\\n• Optional \"Ask anything\" field that can route a free-text question to an AI gateway when a JTR_ASSISTANT_PROVIDER is configured (Anthropic, OpenAI, or a private model). Until then it returns a clear \"Not configured\" message and points you at the gaining finance office.\\n• Permanent OPSEC banner above the input — never paste classified, FOUO, GBL numbers, or specific dates.\\n• Authoritative resource links to the official JTR, FTR, DSSR, and IRS Pub 3 (Armed Forces Tax Guide) at the bottom of the tab.',"
+    },
+    {
+      "file": "src/components/AIAssistantChip.jsx",
+      "line": 818,
+      "pattern": "\\bFOUO\\b",
+      "text": "<strong>OPSEC:</strong> never enter classified, FOUO, CUI, sponsor names, GBL numbers, exact unit IDs, or specific operational dates. Treat this as an unclassified planning conversation."
+    },
+    {
+      "file": "src/components/AIAssistantChip.jsx",
+      "line": 818,
+      "pattern": "\\bCUI\\b",
+      "text": "<strong>OPSEC:</strong> never enter classified, FOUO, CUI, sponsor names, GBL numbers, exact unit IDs, or specific operational dates. Treat this as an unclassified planning conversation."
+    },
+    {
+      "file": "src/components/ComplianceAttestationModule.jsx",
+      "line": 113,
+      "pattern": "\\bCUI\\b",
+      "text": "{ label: 'Data ingested',        value: 'Public installation metadata, public DTMO/GSA reference data, user-entered PCS profile state (kept local). No classified, controlled-unclassified (CUI), or operationally sensitive data is ingested or transmitted.', cite: '' },"
+    },
+    {
+      "file": "src/components/ComplianceAttestationModule.jsx",
+      "line": 124,
+      "pattern": "\\bCUI\\b",
+      "text": "{ label: 'NIST SP 800-171', value: 'CUI-handling problem removed at the source — no document upload anywhere in the app.',                                            cite: 'grep -r \\'type=\"file\"\\' src/  →  0 hits' },"
+    },
+    {
+      "file": "src/components/ComplianceAttestationModule.jsx",
+      "line": 167,
+      "pattern": "\\broster\\b",
+      "text": "{ label: 'DoD VDP',          value: 'Independent app — not on the DoD VDP roster (cyber.mil/vdp). Direct report to maintainer.',                                                        cite: '' },"
+    },
+    {
+      "file": "src/components/EmploymentModule.jsx",
+      "line": 158,
+      "pattern": "\\bCUI\\b",
+      "text": "leadResume: 'Build a federal-ready resume with official USAJOBS and Department of Labor guidance. Do not place classified, CUI, SSN, or sensitive family information in a resume.',"
+    },
+    {
+      "file": "src/components/EmploymentModule.jsx",
+      "line": 172,
+      "pattern": "\\bCUI\\b",
+      "text": "tip5: 'Never include SSN, classified information, CUI, photos, or unrelated personal details.',"
+    },
+    {
+      "file": "src/components/EmploymentModule.jsx",
+      "line": 231,
+      "pattern": "\\bCUI\\b",
+      "text": "tip5: 'No incluya SSN, informacion clasificada, CUI, fotos ni datos personales innecesarios.',"
+    },
+    {
+      "file": "src/components/JTRAssistantModule.jsx",
+      "line": 239,
+      "pattern": "\\bFOUO\\b",
+      "text": "OPSEC: never enter classified, FOUO, CUI, sponsor names, GBL numbers, exact dates, or any data that, if combined, could identify a unit, mission, or movement schedule. Treat this as an unclassified planning conversation."
+    },
+    {
+      "file": "src/components/JTRAssistantModule.jsx",
+      "line": 239,
+      "pattern": "\\bCUI\\b",
+      "text": "OPSEC: never enter classified, FOUO, CUI, sponsor names, GBL numbers, exact dates, or any data that, if combined, could identify a unit, mission, or movement schedule. Treat this as an unclassified planning conversation."
+    },
+    {
+      "file": "src/i18n/useAppLanguageRuntime.js",
+      "line": 435,
+      "pattern": "\\bCUI\\b",
+      "text": "'Army', 'Navy', 'Marine Corps', 'Air Force', 'Space Force', 'Coast Guard', 'DoD', 'DISA', 'CUI', 'JTR', 'DOL', 'SBA', 'VBOC',"
+    },
+    {
+      "file": "src/i18n/useAppLanguageRuntime.js",
+      "line": 487,
+      "pattern": "\\bCUI\\b",
+      "text": "['security', /security|privacy|public data|classified|cui|disa|dod|encrypted|local device/i],"
+    },
+    {
+      "file": "src/i18n/useAppLanguageRuntime.js",
+      "line": 505,
+      "pattern": "\\bCUI\\b",
+      "text": "['security', /security|classified|cui|privacy|local device|public data|disa|dod/i],"
+    }
+  ]
 }

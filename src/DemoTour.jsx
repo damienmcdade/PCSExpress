@@ -116,7 +116,7 @@ const DEMO_STEPS = [
     id: 'family-readiness',
     title: 'Family Readiness',
     description: 'Sub-tabs for deployment, EFMP, jobs, immigration, pets, and schools.',
-    content: "Marcus has pets, so the Pets tab is important:\n• APHIS / USDA paperwork for getting pets overseas\n• Vet checklist (rabies shot, microchip)\n• Korea's pet rules (Korea usually doesn\'t require quarantine if your paperwork is in order)\n• How to book pets on the flight\n\nThe Employment tab has spouse job help — SECO and MyCAA.",
+    content: "Marcus has pets, so the Pets tab is important:\n• APHIS / USDA paperwork for getting pets overseas\n• Vet checklist (rabies shot, microchip)\n• Korea's pet rules (Korea usually doesn't require quarantine if your paperwork is in order)\n• How to book pets on the flight\n\nThe Employment tab has spouse job help — SECO and MyCAA.",
     action: 'Go to Family Readiness',
     target: 'family',
   },

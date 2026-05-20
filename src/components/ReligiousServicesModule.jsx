@@ -344,6 +344,10 @@ function ReligiousServicesModule({ theme, profile }) {
         setLiveServices({ status: 'ready', services: [], reason: `network-${err?.message || 'error'}` })
       })
     return () => { cancelled = true }
+    // profile.language is read inside the request body but UI language
+    // changes must not refetch the OSM payload — translation happens
+    // client-side. Narrowed dep array is intentional.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, profile?.gainingInstallation])
 
   // STRICT preference filter (per user direction): only surface OSM

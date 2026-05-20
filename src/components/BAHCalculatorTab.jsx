@@ -6,7 +6,6 @@ import { useState, useMemo } from 'react';
 import DataFreshnessFooter from './DataFreshnessFooter';
 import {
   BAH_PAY_GRADES,
-  BAH_INSTALLATIONS,
   getBAHRate,
   getMHAForInstallation,
   isOCONUS,

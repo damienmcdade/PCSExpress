@@ -410,61 +410,11 @@ function searchKB(query) {
   return bestScore >= 4 ? best : null; // require at least one tag hit + one body hit
 }
 
-// ── Trigger button. Two stylistic variants, both branch-aware.
-export function AIAssistantTrigger({ onClick, variant = 'sidebar', theme, label = 'AI Assistant', ariaLabel = 'Open AI Assistant' }) {
-  if (variant === 'sidebar') {
-    // Sidebar footer button — sits above the Security button.
-    return (
-      <button
-        onClick={onClick}
-        aria-label={ariaLabel}
-        style={{
-          width: '100%',
-          padding: '12px 16px',
-          background: 'rgba(13, 59, 102, 0.20)',
-          border: 'none',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
-          color: '#FFFFFF',
-          fontSize: 11,
-          cursor: 'pointer',
-          fontWeight: 800,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          textAlign: 'left',
-        }}
-      >
-        <span aria-hidden="true" style={{ fontSize: 14 }}>🤖</span>
-        {label}
-      </button>
-    );
-  }
-  // 'pill' variant — used inline on the home page above the Security
-  // & data handling button.
-  return (
-    <button
-      onClick={onClick}
-      aria-label={ariaLabel}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '10px 14px',
-        borderRadius: 999,
-        border: '1px solid rgba(13, 59, 102, 0.35)',
-        background: '#0D3B66',
-        color: '#FFFFFF',
-        fontSize: 11,
-        fontWeight: 800,
-        cursor: 'pointer',
-        boxShadow: '0 6px 16px rgba(13, 59, 102, 0.28)',
-      }}
-    >
-      <span aria-hidden="true" style={{ fontSize: 14 }}>🤖</span>
-      {label}
-    </button>
-  );
-}
+// AIAssistantTrigger was extracted to ./AIAssistantTrigger.jsx so the
+// main bundle no longer eager-loads this 900-line modal + KB. The
+// trigger is the small surface users see at boot; the modal — this
+// file — is lazy-loaded by App.jsx and mounts only after the trigger
+// is clicked.
 
 // ── Modal. Renders only when `open` is true. Controlled by parent.
 // `language` is forwarded to /api/jtr-assistant so the LLM responds
@@ -596,6 +546,13 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
     setMessages(nextHistory);
     setBusy(true);
 
+    // Hoisted so the catch block can pass `curated` to
+    // answerFromLocalSources on abort / network failure paths.
+    // Short curated answer when running in KB-fallback mode without an
+    // LLM provider. Lets "what's overdue" / "what's next" feel
+    // immediate even when there's no API key configured.
+    const curated = curatedContextAnswer(q, userContext);
+
     try {
       abortRef.current = new AbortController();
       const timer = setTimeout(() => abortRef.current?.abort(), 30_000);
@@ -604,10 +561,6 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
       // reason about context. The backend may ignore `history` until
       // the operator wires in a real provider that supports it.
       const history = nextHistory.slice(-12).map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', text: m.text }));
-      // Short curated answer when running in KB-fallback mode without
-      // an LLM provider. Lets "what's overdue" / "what's next" feel
-      // immediate even when there's no API key configured.
-      const curated = curatedContextAnswer(q, userContext);
       const userContextStr = formatUserContextForPrompt(userContext);
       // Request streaming first. If the backend can't / won't stream
       // (curated-KB fallback or non-Anthropic providers) it returns a
@@ -633,7 +586,7 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
         const reader = r.body.getReader();
         let buffer = '';
         let acc = '';
-        // eslint-disable-next-line no-constant-condition
+         
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;

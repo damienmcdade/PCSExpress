@@ -111,7 +111,7 @@ function installInitCallback() {
   window.googleTranslateElementInit = function googleTranslateElementInit() {
     if (typeof window.google === 'undefined' || !window.google.translate) return;
     try {
-      // eslint-disable-next-line no-new
+       
       new window.google.translate.TranslateElement(
         {
           pageLanguage: 'en',
