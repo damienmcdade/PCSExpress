@@ -21,6 +21,7 @@
  *   - Type to filter
  */
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 const ENTRIES = [
   // Top-level (current) mission groups.
@@ -64,6 +65,8 @@ export default function CommandPalette() {
   const [query, setQuery] = useState('');
   const [activeIdx, setActiveIdx] = useState(0);
   const inputRef = useRef(null);
+  const dialogRef = useRef(null);
+  useFocusTrap(dialogRef, open);
 
   const filtered = useMemo(() => ENTRIES.filter(e => fuzzyMatch(query, e)), [query]);
 
@@ -119,6 +122,7 @@ export default function CommandPalette() {
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label="Command palette"

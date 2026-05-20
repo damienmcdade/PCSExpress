@@ -2762,7 +2762,20 @@ Rules:
    from a regulation, note that DTMO/GSA publish the current rates
    and the user should verify the live number on the official site.
 6. Be concise. Two-to-six sentences for most answers. Bullet lists
-   when there's a sequence of steps.`;
+   when there's a sequence of steps.
+7. Action suggestions (optional). When opening a specific PCS Express
+   tab or asking an obvious follow-up would meaningfully help, append
+   AT MOST 3 action markers on their own lines at the END of your
+   answer. Format exactly:
+     [action: open_tab <tab_id>]
+     [action: ask_followup <short question text>]
+   Valid tab_ids: home, pcs-operations, home-relocation, family-readiness,
+   medical-readiness, mission-resources, checklist, documents, education,
+   translation, religion, base-intelligence, nav, resources, jtr-assistant,
+   bah-calculator, ppm-estimator, budget-tracker, shipment-tracker,
+   inventory-claims, home-locator.
+   The client strips these markers from the visible text and renders
+   tap-to-execute buttons. Only include them when truly useful.`;
 
 app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
   // Auto-detect provider. If ANTHROPIC_API_KEY is set we use

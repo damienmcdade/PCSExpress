@@ -31,6 +31,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { apiUrl } from '../config/apiConfig';
 import { AuditLogger } from '../security/SecurityExtensions';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 // Curated knowledge base — same content as JTRAssistantModule's KB but
 // kept inline here so the modal works fully offline / without the LLM
@@ -264,6 +265,61 @@ const INAPP_SUBTAB_MAP = {
   'help hub':           'help-hub',
   'veteran support':    'veteran',
 };
+// Parse `[action: <verb> <args>]` markers out of an assistant message.
+// Claude is taught (in the system prompt, both server and Vercel
+// function) to optionally append these as a final line so the user
+// can tap-execute instead of re-typing a follow-up. Two verbs:
+//
+//   [action: open_tab <tab_id>]       → renders an "Open <Label>" button
+//   [action: ask_followup <text>]     → renders an "Ask: <text>" button
+//
+// Returns { cleanText, actions }. Actions are stripped from the
+// visible text so the markers don't leak into the chat UI when the
+// model decides to include them.
+const TAB_LABELS = {
+  'home':              'Command Center',
+  'pcs-operations':    'PCS Operations',
+  'home-relocation':   'Movement & Logistics',
+  'family-readiness':  'Family Readiness',
+  'medical-readiness': 'Holistic Health',
+  'mission-resources': 'Mission Resources',
+  'checklist':         'Checklist',
+  'documents':         'Paperwork',
+  'education':         'Education',
+  'translation':       'Translation',
+  'religion':          'Faith & Chaplains',
+  'base-intelligence': 'Base Insights',
+  'nav':               'Maps',
+  'resources':         'Help Hub',
+  'jtr-assistant':     'JTR Assistant',
+  'bah-calculator':    'BAH / OHA Calculator',
+  'ppm-estimator':     'PPM Estimator',
+  'budget-tracker':    'Budget Tracker',
+  'shipment-tracker':  'Shipment Tracker',
+  'inventory-claims':  'Inventory & Claims',
+  'home-locator':      'Home Locator',
+};
+function parseAIActions(text) {
+  if (typeof text !== 'string' || !text) return { cleanText: '', actions: [] };
+  const actions = [];
+  const cleanText = text.replace(
+    /\[action:\s*(open_tab|ask_followup)\s+([^\]]+)\]/gi,
+    (_, verb, argsRaw) => {
+      const args = String(argsRaw).trim();
+      if (verb.toLowerCase() === 'open_tab') {
+        if (TAB_LABELS[args]) actions.push({ verb: 'open_tab', tab: args, label: TAB_LABELS[args] });
+      } else if (verb.toLowerCase() === 'ask_followup') {
+        // Truncate questions so a runaway model can't generate a
+        // 2,000-char follow-up button. Keep first 200 chars.
+        const q = args.slice(0, 200);
+        if (q.length > 0) actions.push({ verb: 'ask_followup', q });
+      }
+      return '';
+    }
+  ).replace(/\n{3,}/g, '\n\n').trim();
+  return { cleanText, actions };
+}
+
 function parseInappCitation(message) {
   if (!message) return null;
   const candidates = [];
@@ -466,6 +522,7 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
   const [messages, setMessages] = useState([]);
   const [busy, setBusy] = useState(false);
   const abortRef = useRef(null);
+  const dialogRef = useRef(null);
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -682,10 +739,13 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
     }
   };
 
+  useFocusTrap(dialogRef, open);
+
   if (!open) return null;
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label="AI Assistant"
@@ -775,6 +835,8 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
           )}
           {messages.map((m, idx) => {
             const nav = m.role === 'assistant' ? parseInappCitation(m) : null;
+            const parsed = m.role === 'assistant' ? parseAIActions(m.text) : { cleanText: m.text, actions: [] };
+            const renderText = m.role === 'assistant' ? parsed.cleanText : m.text;
             return (
               <div key={idx} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', marginBottom: 8 }}>
                 <div style={{
@@ -788,9 +850,43 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
                   lineHeight: 1.6,
                   whiteSpace: 'pre-wrap',
                 }}>
-                  {m.text}
+                  {renderText}
                   {m.source && (
                     <div style={{ fontSize: 10, fontWeight: 700, color: '#56697C', marginTop: 6, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>source: {m.source}</div>
+                  )}
+                  {parsed.actions.length > 0 && (
+                    <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {parsed.actions.map((a, ai) => {
+                        if (a.verb === 'open_tab') {
+                          return (
+                            <button
+                              key={ai}
+                              onClick={() => {
+                                window.dispatchEvent(new CustomEvent('pcs-navigate', { detail: { tab: a.tab } }));
+                                onClose();
+                              }}
+                              aria-label={`Open ${a.label}`}
+                              style={{ padding: '5px 10px', borderRadius: 999, background: '#1B5E20', color: '#FFFFFF', border: 'none', fontSize: 10, fontWeight: 800, cursor: 'pointer' }}
+                            >
+                              <span aria-hidden="true">↗</span> Open {a.label}
+                            </button>
+                          );
+                        }
+                        if (a.verb === 'ask_followup') {
+                          return (
+                            <button
+                              key={ai}
+                              onClick={() => { setQuestion(a.q); inputRef.current?.focus(); }}
+                              aria-label={`Ask follow-up: ${a.q}`}
+                              style={{ padding: '5px 10px', borderRadius: 999, background: '#FFFFFF', color: '#0D3B66', border: '1px solid #0D3B66', fontSize: 10, fontWeight: 800, cursor: 'pointer', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                            >
+                              <span aria-hidden="true">?</span> {a.q}
+                            </button>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
                   )}
                   {nav && (
                     <button
