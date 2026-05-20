@@ -1,0 +1,17 @@
+# Nixpacks build plan for Railway. The presence of railway.json with
+# `"builder": "nixpacks"` plus this file tells Railway to skip the
+# bundled Dockerfile (kept in the repo for local Docker builds) and
+# build via Nixpacks instead — historically more reliable on Railway
+# for this Node 22 + Vite + Express stack.
+
+[phases.setup]
+nixPkgs = ["nodejs_22", "npm-10_x"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "node server/index.js"
