@@ -2,21 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Favicons + PWA icons. All derived from the iOS canonical AppIcon
-         source (ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png)
-         so the browser tab matches the iOS simulator and Android
-         launcher icon.
-         /favicon.ico and /apple-touch-icon.png are physical files (not
-         relying on the SPA fallback) so legacy clients that request the
-         default-path icons — Railway's project-card crawler, link-
-         preview bots, older browsers — receive a real image instead of
-         the SPA's index.html. -->
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
-    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png" />
+    <!-- Favicons + PWA icons. All derived from the iOS canonical
+         AppIcon source so the browser tab matches the iOS simulator
+         and Android launcher icon.
+         -v3 versioned filenames force Safari's persistent icon
+         database to refetch on next visit. Safari ignores
+         Cache-Control on cached favicons and keys its icon cache by
+         URL, so a new path is the only reliable way to invalidate.
+         Legacy default-path files (/favicon.ico, /apple-touch-icon.png)
+         are still shipped for crawlers and old clients that bypass
+         the <link> tags entirely. -->
+    <link rel="icon" href="/favicon-v3.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32-v3.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16-v3.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96-v3.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-v3.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon-180-v3.png" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#0A1628" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -32,7 +33,7 @@
     <meta property="og:description" content="Guided PCS workflows, centralized relocation tools, and military-specific resources for all DoD branches, components, and military families." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://pcsexpress.app/" />
-    <meta property="og:image" content="https://pcsexpress.app/icon-1024.png" />
+    <meta property="og:image" content="https://pcsexpress.app/icon-1024-v3.png" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1024" />
     <meta property="og:image:height" content="1024" />
@@ -40,7 +41,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="PCS Express — Military relocation readiness platform" />
     <meta name="twitter:description" content="Guided PCS workflows, centralized relocation tools, and military-specific resources for all DoD branches, components, and military families." />
-    <meta name="twitter:image" content="https://pcsexpress.app/icon-1024.png" />
+    <meta name="twitter:image" content="https://pcsexpress.app/icon-1024-v3.png" />
     <title>PCS Express — Military Relocation Readiness</title>
     <script src="/sw-killswitch.js"></script>
   </head>
