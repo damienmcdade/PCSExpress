@@ -180,18 +180,97 @@ app.get('/api/push-config', (req, res) => {
   res.status(200).json({ vapidPublicKey: VAPID_PUBLIC_KEY || null })
 })
 
-app.post('/api/push-subscribe', express.json(), (req, res) => {
+// Per-IP rate limit for /api/push-subscribe + /api/push-unsubscribe.
+// Tight budget — a legitimate client only needs to subscribe once
+// per device; anything beyond a handful per minute is automation /
+// spam trying to fill the Map.
+const _pushHits = new Map() // ip -> { count, windowStart }
+const PUSH_RATE_LIMIT = 5
+const PUSH_RATE_WINDOW_MS = 60_000
+registerRateLimitMap(_pushHits, PUSH_RATE_WINDOW_MS)
+
+function pushRateLimit(req, res, next) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const now = Date.now()
+  const entry = _pushHits.get(ip)
+  if (!entry || now - entry.windowStart > PUSH_RATE_WINDOW_MS) {
+    _pushHits.set(ip, { count: 1, windowStart: now })
+    return next()
+  }
+  if (entry.count >= PUSH_RATE_LIMIT) {
+    return res.status(429).json({ error: 'Rate limit exceeded. Try again in a minute.' })
+  }
+  entry.count += 1
+  return next()
+}
+
+// Allowlist of legitimate Web Push services. Any subscription whose
+// endpoint URL doesn't match one of these gets rejected — blocks the
+// spam vector where an attacker POSTs a subscription pointing at an
+// arbitrary HTTP endpoint, hoping the dispatcher will then make
+// authenticated requests to it.
+const PUSH_ENDPOINT_HOST_ALLOWLIST = [
+  'fcm.googleapis.com',                   // Chrome / Edge / Android (FCM v1)
+  'updates.push.services.mozilla.com',    // Firefox
+  'web.push.apple.com',                   // Safari (macOS + iOS 16.4+)
+  'wns2-bn3p.notify.windows.com',         // Edge legacy (WNS)
+]
+
+// Hard cap on stored subscriptions. Prevents a sustained spammer
+// from blowing up the in-memory Map even if their requests pass
+// the rate limit. When at cap, the oldest entry is evicted (Map
+// iteration order is insertion order in V8).
+const PUSH_SUBSCRIPTIONS_MAX = 10_000
+
+function isAllowedPushEndpoint(endpoint) {
+  if (typeof endpoint !== 'string' || endpoint.length < 12 || endpoint.length > 1024) return false
+  let u
+  try { u = new URL(endpoint) } catch { return false }
+  if (u.protocol !== 'https:') return false
+  return PUSH_ENDPOINT_HOST_ALLOWLIST.some(allowed => u.hostname === allowed || u.hostname.endsWith('.' + allowed))
+}
+
+function isValidPushSubscription(sub) {
+  if (!sub || typeof sub !== 'object') return false
+  if (!isAllowedPushEndpoint(sub.endpoint)) return false
+  const keys = sub.keys
+  if (!keys || typeof keys !== 'object') return false
+  // p256dh ≈ 87 base64url chars, auth ≈ 22. Allow slack.
+  if (typeof keys.p256dh !== 'string' || keys.p256dh.length < 40 || keys.p256dh.length > 200) return false
+  if (typeof keys.auth   !== 'string' || keys.auth.length   < 10 || keys.auth.length   > 100) return false
+  if (!/^[A-Za-z0-9_-]+$/.test(keys.p256dh)) return false
+  if (!/^[A-Za-z0-9_-]+$/.test(keys.auth))   return false
+  return true
+}
+
+app.post('/api/push-subscribe', pushRateLimit, express.json({ limit: '4kb' }), (req, res) => {
   const sub = req.body
-  if (!sub || !sub.endpoint || typeof sub.endpoint !== 'string') {
+  if (!isValidPushSubscription(sub)) {
     return res.status(400).json({ error: 'invalid-subscription' })
   }
-  PUSH_SUBSCRIPTIONS.set(sub.endpoint, sub)
+  // Evict the oldest entry if we'd otherwise exceed the cap. Map
+  // iteration order in V8 is insertion order, so .keys().next()
+  // returns the earliest-inserted endpoint.
+  if (!PUSH_SUBSCRIPTIONS.has(sub.endpoint) && PUSH_SUBSCRIPTIONS.size >= PUSH_SUBSCRIPTIONS_MAX) {
+    const oldest = PUSH_SUBSCRIPTIONS.keys().next().value
+    if (oldest) PUSH_SUBSCRIPTIONS.delete(oldest)
+  }
+  // Store ONLY the fields we need (endpoint + keys). Drops anything
+  // else the client tried to attach — defence against an attacker
+  // sneaking in extra metadata fields that a future dispatcher might
+  // mistakenly forward.
+  PUSH_SUBSCRIPTIONS.set(sub.endpoint, {
+    endpoint: sub.endpoint,
+    keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth },
+  })
   return res.status(200).json({ ok: true, count: PUSH_SUBSCRIPTIONS.size })
 })
 
-app.post('/api/push-unsubscribe', express.json(), (req, res) => {
+app.post('/api/push-unsubscribe', pushRateLimit, express.json({ limit: '4kb' }), (req, res) => {
   const endpoint = req.body?.endpoint
-  if (!endpoint) return res.status(400).json({ error: 'endpoint-required' })
+  if (typeof endpoint !== 'string' || !isAllowedPushEndpoint(endpoint)) {
+    return res.status(400).json({ error: 'invalid-endpoint' })
+  }
   PUSH_SUBSCRIPTIONS.delete(endpoint)
   return res.status(200).json({ ok: true })
 })
@@ -2722,18 +2801,26 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
   const provider = explicit
     || (process.env.ANTHROPIC_API_KEY ? 'anthropic' : '')
     || (process.env.OPENAI_API_KEY ? 'openai' : '')
-  const q = String(req.body?.q || '').trim().slice(0, 1000)
+  // Strip ASCII control characters and collapse whitespace before any
+  // user-supplied text reaches the LLM system prompt. Defends against
+  // prompt-injection vectors that rely on smuggling newlines or null
+  // bytes into the question or context blob to escape the
+  // surrounding `${...}` template into a new instruction.
+  const sanitizeForPrompt = (s, maxLen) => String(s || '')
+    .replace(/[\x00-\x1F\x7F]+/g, ' ')   // strip control chars
+    .replace(/\s+/g, ' ')                 // collapse whitespace
+    .trim()
+    .slice(0, maxLen)
+
+  const q = sanitizeForPrompt(req.body?.q, 1000)
   const rawHistory = Array.isArray(req.body?.history) ? req.body.history : []
   const language = String(req.body?.language || 'en').trim().slice(0, 8).toLowerCase().replace(/[^a-z-]/g, '')
   const wantStream = !!req.body?.stream
   // Compact user-context blob from the client. Already filtered down
   // to non-PII attributes (branch, rank, component, phase, day count,
-  // open-task count, top task labels). We forward it verbatim into
-  // the LLM system prompt so the model can give tailored answers like
-  // "your 3 open POV tasks need to clear in 14 days" without us
-  // teaching it a schema. Cap at 1000 chars defensively in case a
-  // future client variant sends more.
-  const userContext = String(req.body?.userContext || '').slice(0, 1000)
+  // open-task count, top task labels). Sanitized identically to `q`
+  // so a malicious userContext can't inject a new system instruction.
+  const userContext = sanitizeForPrompt(req.body?.userContext, 1000)
   if (!q) return res.status(400).json({ error: 'q is required' })
 
   if (!provider) {
@@ -2761,7 +2848,11 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
       .slice(-10)
       .map(m => ({
         role: m?.role === 'assistant' ? 'assistant' : 'user',
-        content: String(m?.text || '').slice(0, 1500),
+        // Sanitize history content the same way as `q` — strips
+        // control chars and collapses whitespace so a smuggled
+        // newline + "new instruction" pattern in an old message
+        // can't escape its role envelope on resubmission.
+        content: sanitizeForPrompt(m?.text, 1500),
       }))
       .filter(m => m.content.length > 0)
     // Append the current question if it isn't already the last user
