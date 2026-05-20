@@ -345,6 +345,91 @@ function ordersTypeMeta(component, ordersType) {
   return ordersTypeCatalog(component).find(o => o.value === ordersType) || null
 }
 
+// Checklist tailoring helpers. Live in App.jsx (not src/data/) because
+// CHECKLIST_FILTERS calls ordersTypeMeta() defined above and is most
+// naturally co-located with the App-component scope that consumes
+// getTailoredChecklist. The underlying BRANCH_PCS_CHECKLISTS +
+// DOD_CIVILIAN_CHECKLIST data tables themselves live in src/data/.
+function getBranchChecklist(branch, component) {
+  if (component === 'DoD Civilian') return DOD_CIVILIAN_CHECKLIST;
+  return BRANCH_PCS_CHECKLISTS[branch] || BRANCH_PCS_CHECKLISTS['Army'];
+}
+
+// Predicate-based task filtering. A task is shown only when EVERY
+// applicable predicate returns true. `\bschool\b` is intentionally
+// singular: we don't want to filter universal tasks such as "Make
+// certified copies of orders for finance, housing, schools" which
+// simply mention schools as a copy-recipient.
+const CHECKLIST_FILTERS = [
+  { pattern: /\bpet\b|aphis|usda|veterinar|rabies|microchip|kennel/i,
+    keep: (p) => p.hasPets },
+  { pattern: /\bschool\b|education\s+records|district|iep|504 plan|enroll children|\bcyss\b|pediatrician|children'?s\b|childcare\b|child care\b|\bcdc\b|child development/i,
+    keep: (p) => p.hasChildren },
+  { pattern: /\bspouse|seco|mycaa|dependent\b|dependents\b|deers-linked mtf and book pediatric|family member travel screening|family member overseas screening|family care plan|family readiness/i,
+    keep: (p) => p.hasDependents || p.hasChildren },
+  { pattern: /\befmp\b/i,
+    keep: (p) => p.hasDependents || p.hasChildren },
+  { pattern: /\bweight ticket|weight-ticket|\bppm\b|\bdity\b/i,
+    keep: (p) => p.moveType === 'PPM' },
+  { pattern: /\boconus\b|no-fee passport|overseas screening|\bsofa\b|country clearance|host nation|host-nation|\bvisa\b/i,
+    keep: (p) => p.isOverseas },
+  { pattern: /house hunting trip/i,
+    keep: (p) => !p.isOverseas },
+  { pattern: /license reciprocity at gaining state/i,
+    keep: (p) => !p.isOverseas },
+  { pattern: /host-nation professional credential recognition/i,
+    keep: (p) =>  p.isOverseas },
+  { pattern: /\bbah\b|basic allowance for housing|on-post housing|on-installation housing|housing waitlist/i,
+    keep: (p) => p.component !== 'Reserve' && p.component !== 'National Guard'
+      ? true
+      : !p.ordersType
+        || (ordersTypeMeta(p.component, p.ordersType)?.bahEligible !== false) },
+  { pattern: /\bhhg\b|household goods|dps\b|tmo\b|tle\b|tqse\b|dla\b|dislocation allowance|per diem|household-goods/i,
+    keep: (p) => p.component !== 'Reserve' && p.component !== 'National Guard'
+      ? true
+      : !p.ordersType
+        || (ordersTypeMeta(p.component, p.ordersType)?.pcsEntitled !== false) },
+  { pattern: /\btricare prime\b|enroll in tricare/i,
+    keep: (p) => p.component !== 'Reserve' && p.component !== 'National Guard'
+      ? true
+      : !p.ordersType
+        || (ordersTypeMeta(p.component, p.ordersType)?.tricarePrime !== false) },
+  { pattern: /register with mtf|enroll family in tricare at gaining installation/i,
+    keep: (p) => !p.isOverseas },
+  { pattern: /tricare overseas program|tricare-overseas\.com|\btop prime\b|\btop select\b/i,
+    keep: (p) =>  p.isOverseas },
+  { pattern: /file change of address with usps|usps, bank, irs, and social security change of address/i,
+    keep: (p) => !p.isOverseas },
+  { pattern: /apo\/fpo\/dpo/i,
+    keep: (p) =>  p.isOverseas },
+  { pattern: /on-base credit union|host-nation account/i,
+    keep: (p) =>  p.isOverseas },
+  { pattern: /family member preference \(fmp\)|priority placement program \(ppp-s\)|host-nation work permit/i,
+    keep: (p) =>  p.isOverseas },
+  { pattern: /foreign-currency receipts|exchange-rate adjustment policy/i,
+    keep: (p) =>  p.isOverseas },
+];
+
+function applyChecklistFilters(items, profileAttrs) {
+  if (!Array.isArray(items)) return items;
+  return items.filter(text => {
+    if (typeof text !== 'string') return true;
+    for (const f of CHECKLIST_FILTERS) {
+      if (f.pattern.test(text) && !f.keep(profileAttrs)) return false;
+    }
+    return true;
+  });
+}
+
+function getTailoredChecklist(branch, profileAttrs = {}) {
+  const raw = getBranchChecklist(branch, profileAttrs.component);
+  const out = {};
+  for (const phase of Object.keys(raw)) {
+    out[phase] = applyChecklistFilters(raw[phase], profileAttrs);
+  }
+  return out;
+}
+
 function normalizeProfile(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
   const branch = BRANCH_THEMES[raw.branch] ? raw.branch : PROFILE_DEFAULTS.branch;
