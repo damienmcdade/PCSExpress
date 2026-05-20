@@ -18,8 +18,9 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "smoke": "playwright test scripts/smoke-check.spec.cjs --browser=chromium --reporter=line",
-    "ios:build": "npm run build && npx cap sync ios && echo 'iOS build synced. Open with: open ios/App/App.xcworkspace'",
-    "ios:open": "open ios/App/App.xcworkspace",
+    "ios:build": "npm run build && npx cap sync ios && echo 'iOS build synced. Open with: open ios/App/App.xcodeproj'",
+    "ios:open": "open ios/App/App.xcodeproj",
+    "ios:upload": "bash scripts/ios-archive-upload.sh",
     "cap:sync": "npx cap sync ios",
     "android:sync": "npm run build && npx cap sync android",
     "android:open": "npx cap open android",
@@ -29,6 +30,7 @@
     "deploy:all": "npm run deploy:vercel && npm run deploy:railway"
   },
   "dependencies": {
+    "@capacitor/haptics": "^8.0.2",
     "cors": "^2.8.5",
     "debug": "^4.4.3",
     "dotenv": "^16.4.5",

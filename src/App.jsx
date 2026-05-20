@@ -13,6 +13,7 @@ import PlatformBanners from './components/PlatformBanners'
 // AIAssistantModal is lazy — its 900-line file + curated KB only loads
 // once the user actually opens the assistant.
 import AIAssistantTrigger from './components/AIAssistantTrigger'
+import AIAssistantFAB from './components/AIAssistantFAB'
 import DynamicTimeline from './components/DynamicTimeline'
 import PrivacyShield from './components/PrivacyShield'
 
@@ -7206,6 +7207,9 @@ function App() {
           Lazy-loaded — Suspense fallback is null because the modal
           itself returns null when closed, so an invisible fallback is
           the right visual state during the chunk fetch. */}
+      {/* Native-only floating AI trigger; web renders nothing. */}
+      <AIAssistantFAB theme={theme} onClick={() => setShowAIAssistant(true)} />
+
       <Suspense fallback={null}>
       <AIAssistantModal
         open={showAIAssistant}
