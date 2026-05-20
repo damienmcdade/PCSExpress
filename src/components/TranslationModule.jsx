@@ -194,7 +194,7 @@ export default function TranslationModule({ theme, profile }) {
       desc: isCivilian
         ? 'DoD civilians have limited Military OneSource access but can request interpreter referrals for OCONUS PCS assignments. Call 1-800-342-9647.'
         : 'Free interpreter referrals, document-translation help, and language-line connections for service members and family members. Call 1-800-342-9647 (worldwide, 24/7) and ask for a Military OneSource consultant.',
-      url: 'https://www.militaryonesource.mil/resources/tools/language-translation-services/',
+      url: 'https://www.militaryonesource.mil/all-the-ways/',
       phone: '1-800-342-9647',
     },
     {

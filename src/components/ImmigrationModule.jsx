@@ -434,7 +434,7 @@ export default function ImmigrationModule({ theme, profile }) {
           <div style={{ background: '#E3F2FD', border: '1px solid #90CAF9', borderRadius: 10, padding: 12, marginTop: 8 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#1565C0', marginBottom: 4 }}>USCIS Civics Practice Test</div>
             <div style={{ fontSize: 11, color: '#0D47A1', lineHeight: 1.5, marginBottom: 8 }}>Practice all 100 civics questions for the naturalization test — available free on USCIS.gov.</div>
-            <a href="https://www.uscis.gov/citizenship/find-study-materials-and-resources/study-for-the-test/civics-practice-test" target="_blank" rel="noopener noreferrer" className="card-cta" style={{ '--cta-color': '#1565C0' }}>Take Practice Test</a>
+            <a href="https://www.uscis.gov/citizenship/find-study-materials-and-resources" target="_blank" rel="noopener noreferrer" className="card-cta" style={{ '--cta-color': '#1565C0' }}>Take Practice Test</a>
           </div>
         </div>
       )}

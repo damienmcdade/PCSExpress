@@ -114,7 +114,7 @@ const CIVILIAN_RESOURCES = [
     branches: ['DoD Civilian'],
     audience: 'Federal civilian employees facing PCS-related financial hardship',
     desc: 'No-interest emergency loans and need-based grants for federal employees facing relocation hardship, unexpected expenses, or shortfalls during a PCS.',
-    url: 'https://feea.org/our-programs/emergency-assistance/',
+    url: 'https://feea.org',
   },
   {
     name: 'Federal Travel Regulation — Civilian PCS Allowances',
@@ -122,7 +122,7 @@ const CIVILIAN_RESOURCES = [
     branches: ['DoD Civilian'],
     audience: 'Federal civilians on a PCS authorization',
     desc: 'GSA Chapter 302 of the FTR governs civilian PCS allowances including HHG, TQSE, real-estate expense, miscellaneous expense, and house-hunting trip reimbursement.',
-    url: 'https://www.gsa.gov/policy-regulations/regulations/federal-travel-regulation-ftr',
+    url: 'https://www.gsa.gov/policy-regulations/regulations/federal-travel-regulation',
   },
   {
     name: 'DCPAS Civilian Relocation Policy Guide',
@@ -130,7 +130,7 @@ const CIVILIAN_RESOURCES = [
     branches: ['DoD Civilian'],
     audience: 'DoD civilian employees relocating between agencies or installations',
     desc: 'DoD Civilian Personnel Advisory Service guide explaining service agreements, advance pay, dependent travel, and FTR application within DoD.',
-    url: 'https://www.dcpas.osd.mil/policy/relocation',
+    url: 'https://www.google.com/search?q=DCPAS+relocation+site%3Adcpas.osd.mil',
   },
   {
     name: 'OPM Locality Pay Tables',
@@ -146,7 +146,7 @@ const CIVILIAN_RESOURCES = [
     branches: ['DoD Civilian'],
     audience: 'DoD civilians PCSing to OCONUS assignments',
     desc: 'Department of State Standardized Regulations — authoritative LQA, TQSA, Post Allowance, and Education Allowance rates for U.S. government civilians overseas.',
-    url: 'https://aoprals.state.gov/Web920/dssr.asp',
+    url: 'https://aoprals.state.gov',
   },
   {
     name: 'TSP Hardship Withdrawal Guidance',
@@ -154,7 +154,7 @@ const CIVILIAN_RESOURCES = [
     branches: ['DoD Civilian'],
     audience: 'Federal civilians with TSP accounts',
     desc: 'Thrift Savings Plan financial hardship in-service withdrawal information — last-resort option for PCS-related cash needs.',
-    url: 'https://www.tsp.gov/access-your-account/withdrawals-in-retirement/in-service-withdrawals/',
+    url: 'https://www.tsp.gov',
   },
   {
     name: 'Employee Assistance Program (EAP)',

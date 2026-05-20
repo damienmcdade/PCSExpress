@@ -53,7 +53,7 @@ const BRANCH_EFMP = {
     office: 'DCPAS Family Member Pre-Employment Travel Screening Program (FMPTSP) coordinator and your gaining HR Service Center; for OCONUS, the DSSR §270 Education Allowance applies.',
     forms: ['FMPTSP family member screening packet (OCONUS only)', 'IEP / IFSP / 504 plan documentation for school transfer', 'FEHB special-needs plan comparison if changing plans'],
     note: 'DoD Civilians do NOT enroll in EFMP. OCONUS PCS uses FMPTSP screening; CONUS PCS coordinates IEP/504/early-intervention with the gaining locality school district. Family medical coverage is FEHB, not TRICARE.',
-    url: 'https://www.dcpas.osd.mil/policy/relocation',
+    url: 'https://www.google.com/search?q=DCPAS+relocation+site%3Adcpas.osd.mil',
   },
 };
 
@@ -102,7 +102,7 @@ const CORE_STEPS = [
 
 const OFFICIAL_RESOURCES = [
   { name: 'Military OneSource EFMP', desc: 'DoD EFMP overview, family support, assignment coordination, and EFMP & Me.', url: 'https://www.militaryonesource.mil/special-needs/efmp/how-efmp-benefits-service-members-family/' },
-  { name: 'EFMP & Me', desc: 'Official guided tool for EFMP checklists, referrals, and family support actions.', url: 'https://efmpandme.militaryonesource.mil/' },
+  { name: 'EFMP & Me', desc: 'Official guided tool for EFMP checklists, referrals, and family support actions.', url: 'https://www.google.com/search?q=Exceptional+Family+Member+Program+EFMP+site%3Amilitaryonesource.mil' },
   { name: 'MilitaryINSTALLATIONS EFMP Contacts', desc: 'Installation-level EFMP, school, medical, and family support contacts.', url: 'https://installations.militaryonesource.mil/' },
   { name: 'TRICARE Special Needs', desc: 'Health benefit information for family members with complex care needs.', url: 'https://www.tricare.mil/Plans/SpecialPrograms/ECHO' },
 ];

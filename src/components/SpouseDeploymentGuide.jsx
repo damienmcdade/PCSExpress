@@ -243,7 +243,7 @@ function SpouseDeploymentGuide({ theme, profile: _profile }) {
           critical: true,
           links: [
             { label: 'SCRA Financial Protections', url: 'https://www.justice.gov/servicemembers/financial-and-housing-rights-0' },
-            { label: 'SCRA Auto Protections (CFPB)', url: 'https://www.consumerfinance.gov/consumer-tools/military-financial-lifecycle/scra/' },
+            { label: 'SCRA Auto Protections (CFPB)', url: 'https://www.consumerfinance.gov/consumer-tools/educator-tools/servicemembers/' },
           ],
         },
       ],
