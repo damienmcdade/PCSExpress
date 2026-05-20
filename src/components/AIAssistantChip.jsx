@@ -122,6 +122,91 @@ const CURATED_KB = [
   { tags: ['veteran','va','support','vet'], citation: 'In-app: Mission Resources → Veteran Support',
     q: 'Where do I find veteran resources in the app?',
     a: 'Mission Resources → Veteran Support. Veteran-owned business directories, public veteran resources, and local search around your gaining location. The Family Readiness group also surfaces VA-side benefits (GI Bill, VA Loan, Vet Center) where relevant.' },
+
+  // ── Help Hub / Mission Resources topics — match the Resources tab's
+  // section vocabulary (healthcare, family, financial, pcs, education,
+  // careers, portals) so users asking "where do I find X" get the
+  // right official link AND the right in-app surface.
+
+  { tags: ['crisis','suicide','988','onesource','help','emergency','safety'], citation: 'Veterans Crisis Line / Military OneSource',
+    q: 'Who do I call in a crisis?',
+    a: 'Military Crisis Line: dial 988, then press 1. Available 24/7 for service members, veterans, and their families. Text 838255. Chat: veteranscrisisline.net. Military OneSource: 1-800-342-9647 for non-emergency counseling, financial, legal, and relocation support. Both numbers are pinned at the top of every PCS Express AI Assistant conversation.' },
+
+  { tags: ['tricare','health','insurance','medical','enrollment','dental','overseas'], citation: 'In-app: Mission Resources → Help Hub → Healthcare / tricare.mil',
+    q: 'How do I enroll in TRICARE or find a provider?',
+    a: 'Mission Resources → Help Hub → Healthcare tab lists TRICARE (tricare.mil), MHS GENESIS Patient Portal (patient.mhsgenesis.health.mil) for records and appointments, TRICARE Pharmacy via Express Scripts, TRICARE Dental Program, TRICARE For Life (Medicare-wraparound), and TRICARE Overseas / TOP for OCONUS beneficiaries. For PCS, update DEERS first (milConnect), then re-enroll TRICARE Prime at the gaining region.' },
+
+  { tags: ['onesource','military onesource','counseling','legal','financial','24/7'], citation: 'In-app: Mission Resources → Help Hub → Family / militaryonesource.mil',
+    q: 'What does Military OneSource cover?',
+    a: 'Military OneSource (1-800-342-9647 / militaryonesource.mil) — 24/7 free support for service members, spouses, dependents, and survivors. Confidential non-medical counseling (12 sessions per issue per year), financial counseling, legal consultations, tax filing (MilTax), relocation services, and SECO career coaching for spouses. Find it under Mission Resources → Help Hub → Family.' },
+
+  { tags: ['mypay','dfas','les','allotment','w-2','pay statement'], citation: 'In-app: Mission Resources → Help Hub → Financial / mypay.dfas.mil',
+    q: 'How do I view my LES or update an allotment?',
+    a: 'myPay (mypay.dfas.mil) is the DFAS portal for active duty, reserve, retiree, and federal civilian pay. View Leave & Earnings Statements (LES), download W-2s, start/stop allotments, change federal & state tax withholding, update bank info. Listed in Mission Resources → Help Hub → Financial.' },
+
+  { tags: ['scra','servicemembers civil relief act','lease','interest rate','foreclosure'], citation: 'JAG / SCRA / In-app: Mission Resources → Help Hub → PCS',
+    q: 'How does SCRA help when I receive PCS orders?',
+    a: 'The Servicemembers Civil Relief Act lets you break a residential lease with 30-day notice once you have PCS orders to a new duty station 35+ miles away. Caps pre-service debt interest at 6%. Protects from default judgment, foreclosure, and certain credit/insurance actions during active duty. Send a copy of your orders + written notice; the landlord must release you. Listed in Mission Resources → Help Hub → PCS. JAG can review specific cases.' },
+
+  { tags: ['va loan','home loan','va home loan','zero down','funding fee','coe'], citation: 'In-app: Mission Resources → Help Hub → PCS / va.gov',
+    q: 'How do I use the VA home loan benefit?',
+    a: 'Zero-down home loan for service members, veterans, and eligible surviving spouses (va.gov/housing-assistance/home-loans). Request a Certificate of Eligibility (COE) on VA.gov — most COEs issue instantly. No PMI. One-time VA funding fee (1.4-3.6% of loan), waived for veterans with 10%+ service-connected disability. Reusable benefit. Listed in Mission Resources → Help Hub → PCS.' },
+
+  { tags: ['gi bill','post-9/11','transfer','dependents','education benefits','toe'], citation: 'In-app: Mission Resources → Help Hub → Education / va.gov/education',
+    q: 'How do I use my GI Bill or transfer it to dependents?',
+    a: 'Apply at va.gov/education. Post-9/11 GI Bill: 36 months of tuition + Monthly Housing Allowance + book stipend. Transfer to dependents (TOE) requires 6 years of service and 4 more years committed — request via milConnect BEFORE you separate. Check remaining entitlement on VA.gov. Listed in Mission Resources → Help Hub → Education.' },
+
+  { tags: ['mycaa','spouse','scholarship','career','education','seco'], citation: 'In-app: Mission Resources → Help Hub → Education / Careers',
+    q: 'What scholarships are available for military spouses?',
+    a: 'MyCAA (Military Spouse Career Advancement Accounts) provides up to $4,000/year for spouses of E-1 to E-5, W-1 to W-2, or O-1 to O-2 pursuing portable career credentials. Apply via militaryonesource.mil. MySECO (myseco.militaryonesource.mil) adds career coaching, scholarship search, and the Military Spouse Employment Partnership job board. Listed in Help Hub → Education AND Careers.' },
+
+  { tags: ['tap','transition','sepration','retirement','dodtap','transition gps'], citation: 'In-app: Mission Resources → Help Hub → Careers / dodtap.mil',
+    q: 'When do I start TAP (Transition Assistance Program)?',
+    a: 'Mandatory pre-separation TAP must start 365 days before separation/retirement (180 minimum). Five mandatory tracks: Pre-separation Counseling, DoD Career Readiness Standards, MOS Crosswalk, Financial Planning, VA Benefits Briefing. Schedule via dodtap.mil or your branch portal (Army: tapevents.mil). Listed in Mission Resources → Help Hub → Careers.' },
+
+  { tags: ['usajobs','federal','civilian','veteran preference','vra','30%'], citation: 'In-app: Mission Resources → Help Hub → Careers / usajobs.gov',
+    q: 'How do I claim veteran preference on USAJobs?',
+    a: 'usajobs.gov adds 5 (TP) or 10 (CP/CPS) points to your civil service exam score depending on disability rating. Eligible categories: 5-Point (3+ years active duty, campaign medal, or peace-time vet); 10-Point (VA-rated disability, Purple Heart, certain campaigns). Use VRA appointment for non-competitive hire if you have 30%+ disability or recent separation. Listed in Mission Resources → Help Hub → Careers.' },
+
+  { tags: ['milconnect','dmdc','deers','id card','records','benefits'], citation: 'In-app: Mission Resources → Help Hub → Portals / milconnect.dmdc.osd.mil',
+    q: 'How do I update DEERS / get a new ID card?',
+    a: 'milConnect (milconnect.dmdc.osd.mil) is the DMDC portal for DEERS updates (add dependents, change address, beneficiary updates), benefit summaries, GI Bill transfers, and TRICARE plan info. ID card replacements are scheduled via ID Card Office Online (idco.dmdc.osd.mil). Listed in Mission Resources → Help Hub → Portals.' },
+
+  { tags: ['dps','move.mil','schedule','self counsel','tsp','household goods'], citation: 'In-app: Mission Resources → Help Hub → PCS / dps.move.mil',
+    q: 'How do I schedule my HHG move on DPS?',
+    a: 'Defense Personal Property System (dps.move.mil) is the DoD portal for scheduling household goods moves, tracking shipments, and filing claims. Submit your application 60+ days before move date. Self-counsel option available. Get GBL/TCN. Inside PCS Express, track the live milestones in Movement & Logistics → Shipment Tracker. Listed in Mission Resources → Help Hub → PCS.' },
+
+  { tags: ['military installations','find base','installation','gaining','services'], citation: 'In-app: Mission Resources → Help Hub → PCS / installations.militaryonesource.mil',
+    q: 'How do I look up services at my gaining installation?',
+    a: 'installations.militaryonesource.mil lists every DoD installation worldwide with on-post housing, childcare wait-list, family support office, fitness centers, dental clinics, dining, MWR, and chapel info. Search by base name. Inside PCS Express, the same data drives Mission Resources → Base Insights for verified family reviews. Listed in Help Hub → PCS.' },
+
+  { tags: ['operation homefront','emergency','financial assistance','family'], citation: 'In-app: Mission Resources → Help Hub → Family / operationhomefront.org',
+    q: 'Where can I get emergency financial assistance during PCS?',
+    a: 'Operation Homefront (operationhomefront.org/critical-financial-assistance/) — emergency rent, utilities, food assistance, and back-to-school programs for active duty, post-9/11 wounded warriors, and their families. Air Force Aid Society, Army Emergency Relief, Navy-Marine Corps Relief Society, and Coast Guard Mutual Assistance all have similar PCS hardship grants. Listed in Mission Resources → Help Hub → Family.' },
+
+  { tags: ['dodea','school','dependent','dod school','overseas school','dod education'], citation: 'In-app: Family Readiness → Education / dodea.edu',
+    q: 'How do I enroll my child in DoDEA schools?',
+    a: 'DoDEA (dodea.edu) operates ~160 DoD schools for military dependents at OCONUS installations + select stateside bases (e.g., Quantico, Fort Bragg). Enrollment opens after sponsor orders confirmed. Required: PCS orders, birth certificate, immunization records, prior school transcript. Listed in Family Readiness → Education AND Mission Resources → Help Hub → Education.' },
+
+  { tags: ['va benefits','disability','claim','compensation','intent to file'], citation: 'In-app: Mission Resources → Veteran Support / va.gov/disability',
+    q: 'How do I file a VA disability claim?',
+    a: 'va.gov/disability — file online via VA.gov, by mail (VA Form 21-526EZ), or in person. Submit Intent to File first to lock in effective date while you gather evidence. Use VSO (DAV, VFW, American Legion) free of charge for representation. eBenefits replaced by VA.gov. Average processing 100-130 days. Listed in Mission Resources → Veteran Support.' },
+
+  { tags: ['hpsp','health professions','medical school','scholarship'], citation: 'Service-specific HPSP / In-app: Help Hub → Education',
+    q: 'What is HPSP and who qualifies?',
+    a: 'Health Professions Scholarship Program (HPSP) — full tuition + monthly stipend for medical, dental, veterinary, optometry, pharmacy, and clinical psychology students in exchange for a year-for-year service commitment as a military officer (minimum 3 years). Service-specific portals: Army (recruiting.army.mil), Navy, Air Force. Listed in Mission Resources → Help Hub → Education.' },
+
+  { tags: ['army','navy','air force','marines','coast guard','space force','branch'], citation: 'In-app: throughout (branch-tailored content)',
+    q: 'Does PCS Express tailor content per branch?',
+    a: 'Yes. Pick your branch during onboarding (Army, Navy, Air Force, Marines, Coast Guard, Space Force) and the checklist, paperwork, finance offices, evaluation forms, leave forms, and personnel portals retune automatically. Switch any time from Profile (sidebar footer → Profile). Theme colors also shift per branch.' },
+
+  { tags: ['offline','pwa','install','add to home screen','works offline'], citation: 'In-app: PWA install nudge / PCS Express docs',
+    q: 'Does PCS Express work offline?',
+    a: 'Yes. The app caches its UI shell, your encrypted profile, and your checklist locally. Most features keep working without network — the AI Assistant falls back to the curated KB, calculators run locally, checklists/reminders are local-first. Map tiles cache once visited. The offline banner appears automatically when you lose connection. Install as a PWA (Add to Home Screen on iOS Safari / Install prompt on Chrome/Edge/Android) for the smoothest offline experience.' },
+
+  { tags: ['privacy','data','security','encryption','what do you collect','no upload'], citation: 'In-app: Command Center → 🔒 Security & data handling',
+    q: 'What data does PCS Express collect or send to servers?',
+    a: 'Effectively none. Your profile, checklist, reminders, and audit log live encrypted (AES-256-GCM, key in IndexedDB, never extractable) on your device. The AI Assistant sends only your question (and a minimal non-PII context blob: branch / rank / phase / open-task count) — never your name, email, address, or document content. PCS Express does not accept document or photo uploads anywhere. Full detail in Command Center → 🔒 Security & data handling.' },
 ];
 
 // Parse an "In-app: <Group> → <Subtab>" hint out of an assistant
@@ -384,6 +469,36 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
+  // Local-only fallback path used whenever the live API can't be
+  // reached (Railway 404, upstream 5xx, network timeout, DNS failure,
+  // request aborted). Tries — in order — a context-aware curated
+  // answer for the user's own checklist state, a curated KB hit by
+  // tag/keyword, then a graceful pointer to the JTR Assistant tab.
+  // ALWAYS produces a message so the user never sees a dead-end.
+  const answerFromLocalSources = (q, curated, reason) => {
+    if (curated) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        text: curated + `\n\n_(Live AI temporarily unreachable — answered from your local checklist data.)_`,
+        source: 'context-aware-offline',
+      }]);
+      return;
+    }
+    const hit = searchKB(q);
+    if (hit) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        text: `${hit.a}\n\n[Citation: ${hit.citation}]\n\n_(Live AI temporarily unreachable — answered from the curated PCS Express knowledge base.)_`,
+        source: 'curated-kb-offline',
+      }]);
+      return;
+    }
+    setMessages(prev => [...prev, {
+      role: 'system',
+      text: `Live AI is temporarily unreachable (${reason}) and no curated entry matches that exact question. Try rephrasing, browse the full curated library inside Movement & Logistics → JTR Assistant, or check Mission Resources → Help Hub for the official source.`,
+    }]);
+  };
+
   // Reset conversation every time the modal opens so nothing persists
   // across user sessions or chip toggles.
   useEffect(() => {
@@ -532,7 +647,11 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
           }]);
         }
       } else if (!r.ok) {
-        setMessages(prev => [...prev, { role: 'system', text: 'Could not reach the assistant. Try again in a minute or use the JTR Assistant tab.' }]);
+        // Backend unreachable (Railway 404, 5xx upstream, etc.) — fall
+        // through to the same curated path the 501 branch uses so the
+        // assistant always produces SOMETHING useful instead of a
+        // generic "try again later" dead end.
+        answerFromLocalSources(q, curated, /*reason=*/ `backend returned HTTP ${r.status}`);
       } else {
         const data = await r.json();
         const answer = String(data?.answer || '').trim();
@@ -541,9 +660,13 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
       }
     } catch (err) {
       if (err?.name === 'AbortError') {
-        setMessages(prev => [...prev, { role: 'system', text: 'Request timed out. Try a shorter question or check your connection.' }]);
+        // Time-budget exceeded — still try to answer locally before
+        // giving up. A 30s wait followed by "try a shorter question"
+        // is the worst possible UX.
+        answerFromLocalSources(q, curated, /*reason=*/ 'request timed out');
       } else {
-        setMessages(prev => [...prev, { role: 'system', text: 'Network error. Check your connection and try again.' }]);
+        // Network / DNS / TLS / fetch failure — same fallback path.
+        answerFromLocalSources(q, curated, /*reason=*/ 'network error');
       }
     } finally {
       setBusy(false);
