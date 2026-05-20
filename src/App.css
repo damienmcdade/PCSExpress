@@ -1988,6 +1988,29 @@ textarea:focus-visible,
   outline-offset: 2px;
 }
 
+/* Universal press-feedback fallback. Any <button>, anchor, or
+   role="button" that isn't already styled by one of the rich effect
+   classes (.pcs-tab, .pcs-chip, .pcs-quick-action, .pcs-bottom-tab,
+   .pcs-side-link, .pcs-check-item, .pcs-doc-card, .pcs-skip-link,
+   .pcs-card-cta) gets a subtle scale-down on press. Makes sure every
+   single tab / sub-tab / category selector / one-off button in the
+   app gives tactile feedback even if a developer forgot to apply an
+   effect class. Hover lift is intentionally NOT global — too many
+   button shapes for a universal hover transform to look right. */
+@media not (prefers-reduced-motion: reduce) {
+  button:not(:disabled):not(.pcs-tab):not(.pcs-chip):not(.pcs-quick-action):not(.pcs-bottom-tab):not(.pcs-side-link):not(.pcs-check-item):not(.pcs-doc-card):not(.pcs-skip-link):not(.pcs-card-cta),
+  a[role="button"]:not(.pcs-tab):not(.pcs-chip):not(.pcs-quick-action):not(.pcs-bottom-tab):not(.pcs-side-link):not(.pcs-card-cta),
+  [role="button"]:not(.pcs-tab):not(.pcs-chip):not(.pcs-quick-action):not(.pcs-bottom-tab):not(.pcs-side-link):not(.pcs-card-cta) {
+    transition: transform 100ms ease-out, opacity 160ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:not(:disabled):not(.pcs-tab):not(.pcs-chip):not(.pcs-quick-action):not(.pcs-bottom-tab):not(.pcs-side-link):not(.pcs-check-item):not(.pcs-doc-card):not(.pcs-skip-link):not(.pcs-card-cta):active,
+  a[role="button"]:not(.pcs-tab):not(.pcs-chip):not(.pcs-quick-action):not(.pcs-bottom-tab):not(.pcs-side-link):not(.pcs-card-cta):active,
+  [role="button"]:not(.pcs-tab):not(.pcs-chip):not(.pcs-quick-action):not(.pcs-bottom-tab):not(.pcs-side-link):not(.pcs-card-cta):active {
+    transform: scale(0.97);
+  }
+}
+
 /* Quick action chips: hover lift + active press matching the
    sidebar / home-tile family. */
 .pcs-quick-action {
