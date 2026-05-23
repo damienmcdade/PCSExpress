@@ -5,6 +5,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { apiUrl } from '../config/apiConfig'
+import TabBar from './TabBar'
 
 const BASE_CITY = {
   'Fort Liberty': 'Fayetteville, NC',
@@ -626,13 +627,25 @@ function EmploymentModule({ theme, profile }) {
         {copy.lang !== 'en' && <div style={{ fontSize: 11, color: '#46586B', lineHeight: 1.55, marginTop: 5 }}>{copy.text('languageNote')} ({LANGUAGE_NAMES[copy.lang] || copy.lang})</div>}
       </div>
 
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
-        {tabs.map((tab) => (
-          <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`pcs-tab ${activeTab === tab.id ? 'is-active' : ''}`} style={tabStyle(tab.id)}>
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <TabBar ariaLabel="Employment sections" className="pcs-tabbar--flush">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              data-active={isActive || undefined}
+              onClick={() => setActiveTab(tab.id)}
+              className={`pcs-tab ${isActive ? 'is-active' : ''}`}
+              style={tabStyle(tab.id)}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </TabBar>
 
       {activeTab === 'jobSearch' && (
         <div>

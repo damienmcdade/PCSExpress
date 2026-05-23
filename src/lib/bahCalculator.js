@@ -272,6 +272,12 @@ const MHA_RATES = {
   // Best-effort 2026 estimates aligned to DTMO local rental survey ranges.
   // Verify against the official DTMO BAH Rate Lookup before relying on for production:
   // https://www.travel.dod.mil/Allowances/Basic-Allowance-for-Housing/BAH-Rate-Lookup/
+  //
+  // Every MHA defined in the block below is also enumerated in
+  // ESTIMATED_MHA_KEYS (further down this file). UI surfaces an "Estimate —
+  // verify with DTMO" pill when one of these is selected. When an entry is
+  // confirmed against an official DTMO publication, REMOVE its key from
+  // ESTIMATED_MHA_KEYS — leaving the rate row untouched but flipping the pill off.
   'Dale County, AL': [ // Fort Novosel (Rucker)
     [987,747],[987,747],[987,747],[1212,924],[1425,1095],[1587,1284],
     [1716,1467],[1839,1680],[1944,1782],
@@ -987,6 +993,56 @@ export function isOCONUS(installationName) {
 export function formatCurrencyBAH(amount) {
   if (amount === null || amount === undefined) return '—';
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
+}
+
+// MHA keys whose rates are best-effort 2026 estimates, NOT pulled from an
+// official DTMO published table. Sourced from the "Added 2026" comment block
+// in MHA_RATES above. The BAH calculator UI shows a verification pill when
+// the resolved MHA for the selected installation is in this set.
+// Remove a key from this set once its rates have been confirmed against the
+// official DTMO BAH Rate Lookup — leave the row in MHA_RATES untouched.
+export const ESTIMATED_MHA_KEYS = new Set([
+  'Dale County, AL', 'Madison County, AL', 'Anniston, AL',
+  'Cochise County, AZ', 'Yuma, AZ', 'Maricopa County, AZ', 'Pima County, AZ',
+  'Pine Bluff, AR',
+  'Alameda County, CA', 'San Bernardino County, CA', 'Monterey County, CA',
+  'Kings County, CA', 'Solano County, CA', 'Yuba County, CA', 'Kern County, CA',
+  'Santa Barbara County, CA', 'Riverside County, CA',
+  'Aurora, CO',
+  'Bay County, FL', 'Brevard County, FL', 'Hillsborough County, FL', 'Miami-Dade, FL',
+  'Houston County, GA', 'Lowndes County, GA',
+  'Elmore County, ID',
+  'Rock Island, IL', 'St. Clair County, IL',
+  'Vernon Parish, LA', 'Bossier Parish, LA', 'Orleans Parish, LA',
+  'Frederick County, MD',
+  'Middlesex County, MA', 'Suffolk County, MA', 'Barnstable County, MA',
+  'Macomb County, MI',
+  'Cascade County, MT',
+  'Sarpy County, NE',
+  'Clark County, NV',
+  'Morris County, NJ', 'Cape May County, NJ',
+  'Doña Ana County, NM', 'Bernalillo County, NM', 'Otero County, NM', 'Curry County, NM',
+  'Orange County, NY',
+  'Pasquotank County, NC', 'Wayne County, NC',
+  'Ward County, ND', 'Grand Forks County, ND',
+  'Cuyahoga County, OH',
+  'Johnson County, MO',
+  'Cumberland County, PA', 'Monroe County, PA',
+  'San Juan, PR',
+  'Charleston County, SC', 'Beaufort County, SC', 'Sumter County, SC',
+  'Pennington County, SD',
+  'Bowie County, TX', 'Wichita County, TX', 'Taylor County, TX',
+  'Tom Green County, TX', 'Val Verde County, TX',
+  'Davis County, UT', 'Tooele County, UT',
+  'York County, VA',
+  'Snohomish County, WA', 'Island County, WA', 'Kitsap County, WA',
+  'King County, WA', 'Spokane County, WA',
+  'Monroe County, WI',
+  'Laramie County, WY',
+]);
+
+export function isEstimatedMHA(mhaKey) {
+  return ESTIMATED_MHA_KEYS.has(mhaKey);
 }
 
 // Aliases: profile name variants → canonical key (handles renames, abbreviations, USAG vs Camp, etc.)

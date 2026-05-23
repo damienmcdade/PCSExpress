@@ -15,6 +15,7 @@
 
 import { useMemo, useState } from 'react';
 import { resolveInstallation } from '../lib/bahCalculator';
+import TabBar from './TabBar';
 
 const REVIEW_CATEGORIES = ['Housing', 'Schools', 'Childcare'];
 
@@ -246,13 +247,16 @@ export default function BaseIntelligenceReviews({ theme, profile }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6, marginBottom: 14 }}>
-        {REVIEW_CATEGORIES.map(item => (
-          <button key={item} onClick={() => setCategory(item)} style={{ flexShrink: 0, borderRadius: 999, border: `1.5px solid ${category === item ? theme.primary : '#D6E0EA'}`, background: category === item ? theme.primary : '#FFFFFF', color: category === item ? '#FFFFFF' : '#243447', padding: '8px 14px', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
-            {item}
-          </button>
-        ))}
-      </div>
+      <TabBar ariaLabel="Review filters" className="pcs-tabbar--flush">
+        {REVIEW_CATEGORIES.map(item => {
+          const isActive = category === item;
+          return (
+            <button key={item} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setCategory(item)} style={{ flexShrink: 0, borderRadius: 999, border: `1.5px solid ${isActive ? theme.primary : '#D6E0EA'}`, background: isActive ? theme.primary : '#FFFFFF', color: isActive ? '#FFFFFF' : '#243447', padding: '8px 14px', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
+              {item}
+            </button>
+          );
+        })}
+      </TabBar>
 
       {!hasAnyReviews && (
         <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 14, padding: 16, marginBottom: 14 }}>

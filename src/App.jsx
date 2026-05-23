@@ -6,7 +6,10 @@
 import { Suspense, lazy, useState, useEffect, useRef } from 'react'
 import './App.css'
 import { apiUrl } from './config/apiConfig'
+import { INDEPENDENCE_DISCLAIMER } from './config/disclaimer'
 import AppErrorBoundary from './components/AppErrorBoundary'
+import AppShellFooter from './components/AppShellFooter'
+import IndependenceAck from './components/IndependenceAck'
 import CommandPalette from './components/CommandPalette'
 import PlatformBanners from './components/PlatformBanners'
 // AIAssistantTrigger stays eager (small button users see at boot).
@@ -14,6 +17,7 @@ import PlatformBanners from './components/PlatformBanners'
 // once the user actually opens the assistant.
 import AIAssistantTrigger from './components/AIAssistantTrigger'
 import AIAssistantFAB from './components/AIAssistantFAB'
+import TabBar from './components/TabBar'
 import { usePullToRefresh } from './hooks/usePullToRefresh'
 import DynamicTimeline from './components/DynamicTimeline'
 import PrivacyShield from './components/PrivacyShield'
@@ -647,11 +651,13 @@ function QuickActionsRow({ theme, onJumpTo, onOpenAI, onOpenCompliance }) {
     { id: 'security',   icon: '🔒', label: 'Security & data',    onClick: onOpenCompliance },
   ];
   return (
-    <div role="region" aria-label="Quick actions" style={{ display: 'flex', gap: 8, overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginBottom: 14, paddingBottom: 4, scrollbarWidth: 'thin' }}>
+    <TabBar ariaLabel="Quick actions" className="pcs-tabbar--flush">
       {actions.map(a => (
         <button
           key={a.id}
           type="button"
+          role="tab"
+          aria-selected={false}
           onClick={a.onClick}
           aria-label={a.label}
           className="pcs-quick-action"
@@ -676,7 +682,7 @@ function QuickActionsRow({ theme, onJumpTo, onOpenAI, onOpenCompliance }) {
           {a.label}
         </button>
       ))}
-    </div>
+    </TabBar>
   );
 }
 
@@ -1698,18 +1704,19 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
       </div>
 
       {/* Phase tabs */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
+      <TabBar ariaLabel="PCS phase" className="pcs-tabbar--flush">
         {Object.keys(branchChecklist).map(phase => {
           const phaseTasks = branchChecklist[phase].map((_, i) => `${phase}-${i}`);
           const phaseDone = phaseTasks.filter(k => checklistItems[k]).length;
           const phaseOverdue = daysUntil !== null && PHASE_WINDOWS[phase] && daysUntil < PHASE_WINDOWS[phase].overdueAt && phaseDone < phaseTasks.length;
+          const isActive = activePhase === phase;
           return (
-            <button key={phase} onClick={() => setActivePhase(phase)} className={`pcs-tab ${activePhase === phase ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${phaseOverdue ? '#EF9A9A' : activePhase === phase ? theme.primary : '#E0E6EE'}`, background: activePhase === phase ? theme.primary : phaseOverdue ? '#FFF5F5' : '#FFF', color: activePhase === phase ? '#FFF' : phaseOverdue ? '#C62828' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: phaseOverdue || activePhase === phase ? 800 : 700, whiteSpace: 'nowrap' }}>
+            <button key={phase} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setActivePhase(phase)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${phaseOverdue ? '#EF9A9A' : isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : phaseOverdue ? '#FFF5F5' : '#FFF', color: isActive ? '#FFF' : phaseOverdue ? '#C62828' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: phaseOverdue || isActive ? 800 : 700, whiteSpace: 'nowrap' }}>
               {phaseOverdue ? '⚠ ' : ''}{phase} ({phaseDone}/{phaseTasks.length})
             </button>
           );
         })}
-      </div>
+      </TabBar>
 
       {/* "Explain this phase" — opens the AI Assistant with a
           phase-specific question pre-filled so the user doesn't have
@@ -2425,10 +2432,15 @@ function VeteranBusinessesTab({ theme, profile }) {
       {bubbleLinks.length > 1 && (
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: '#56697C', marginBottom: 8, letterSpacing: '.06em' }}>ACTIVE CATEGORY LINKS</div>
-          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6 }}>
-            {bubbleLinks.map(bubble => (
+          <TabBar ariaLabel="Veteran resources" className="pcs-tabbar--flush">
+            {bubbleLinks.map(bubble => {
+              const isActive = filter === bubble.category;
+              return (
               <a
                 key={bubble.category}
+                role="tab"
+                aria-selected={isActive}
+                data-active={isActive || undefined}
                 href={bubble.url}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -2440,23 +2452,24 @@ function VeteranBusinessesTab({ theme, profile }) {
                   maxWidth: 210,
                   padding: '9px 12px',
                   borderRadius: 16,
-                  border: `1.5px solid ${filter === bubble.category ? theme.primary : '#D6E0EA'}`,
-                  background: filter === bubble.category ? theme.primary : '#FFFFFF',
-                  color: filter === bubble.category ? '#FFFFFF' : '#243447',
+                  border: `1.5px solid ${isActive ? theme.primary : '#D6E0EA'}`,
+                  background: isActive ? theme.primary : '#FFFFFF',
+                  color: isActive ? '#FFFFFF' : '#243447',
                   fontSize: 11,
                   cursor: 'pointer',
                   fontWeight: 800,
                   whiteSpace: 'normal',
                   lineHeight: 1.25,
                   textDecoration: 'none',
-                  boxShadow: filter === bubble.category ? '0 6px 14px rgba(0,0,0,0.14)' : 'none',
+                  boxShadow: isActive ? '0 6px 14px rgba(0,0,0,0.14)' : 'none',
                 }}
               >
                 <span style={{ display: 'block', marginBottom: 4 }}>{bubble.label}</span>
                 <span style={{ display: 'block', fontSize: 10, fontWeight: 700, opacity: 0.82 }}>Open active source</span>
               </a>
-            ))}
-          </div>
+              );
+            })}
+          </TabBar>
           <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.45 }}>
             Each bubble opens an official SBA, VA, or SAM.gov resource. The Search, Food, and Home Services cards now use the same verified-source pattern as the SBA and VA cards.
           </div>
@@ -4112,13 +4125,16 @@ function ResourcesTab({ theme, profile }) {
   return (
     <div style={{ padding: 16 }}>
       {/* Section tabs */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
-        {SECTIONS.map(s => (
-          <button key={s.id} onClick={() => setActiveSection(s.id)} className={`pcs-tab ${activeSection === s.id ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${activeSection === s.id ? theme.primary : '#E0E6EE'}`, background: activeSection === s.id ? theme.primary : '#FFF', color: activeSection === s.id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
-            {s.icon} {s.label}
-          </button>
-        ))}
-      </div>
+      <TabBar ariaLabel="Resource sections" className="pcs-tabbar--flush">
+        {SECTIONS.map(s => {
+          const isActive = activeSection === s.id;
+          return (
+            <button key={s.id} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setActiveSection(s.id)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
+              {s.icon} {s.label}
+            </button>
+          );
+        })}
+      </TabBar>
 
       {/* Resource cards */}
       {getVisibleResources(RESOURCES[activeSection] || []).map((r, idx) => {
@@ -6363,7 +6379,7 @@ function HomeLegalBanners({ theme }) {
         <strong>Official public data disclaimer:</strong> Base, resource, housing, and benefit information is limited to official public U.S. government, military, and public-source references where available; users must verify details with the official source before acting.
       </div>
       <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 12, padding: 14, color: '#6D4C00', fontSize: 11, lineHeight: 1.6 }}>
-        <strong>Independent application notice:</strong> PCS Express is privately developed and is not owned, operated, endorsed, certified, or approved by the Department of Defense, DISA, any military branch, or any U.S. government agency.
+        <strong>Independent application notice:</strong> {INDEPENDENCE_DISCLAIMER}
       </div>
     </div>
   );
@@ -7231,18 +7247,15 @@ function App() {
                 directly above the Security & data handling pill so
                 the two never overlap and the safety entry stays
                 anchored at the bottom of the page. The build stamp
-                below is purely diagnostic — it shows the git SHA and
-                build time so a stuck user can confirm which version
-                they're actually running. */}
+                moved to <AppShellFooter /> so it (and the
+                independence disclaimer) appear on every tab, not
+                only Home. */}
             <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
               <AIAssistantTrigger variant="pill" onClick={() => setShowAIAssistant(true)} theme={theme} />
               <button onClick={() => setShowCompliance(true)} aria-label="Open security and data-handling information" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 999, border: `1px solid ${UI_PALETTE.line}`, background: UI_PALETTE.surface, color: theme.primary, fontSize: 11, fontWeight: 800, cursor: 'pointer', boxShadow: '0 6px 16px rgba(38,53,31,0.08)' }}>
                 <span aria-hidden="true" style={{ fontSize: 14 }}>🔒</span>
                 Security &amp; data handling
               </button>
-              <div title="Deployment version" style={{ fontSize: 9, fontWeight: 700, color: UI_PALETTE.muted, letterSpacing: '.06em', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', opacity: 0.55, userSelect: 'all' }}>
-                build · {import.meta.env.VITE_BUILD_SHA || 'unknown'} · {(import.meta.env.VITE_BUILD_TIME || '').slice(0, 16).replace('T', ' ')}
-              </div>
             </div>
             </div>
           </div>
@@ -7378,6 +7391,18 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Persistent app-shell footer — independence disclaimer +
+          build stamp, visible on every tab. Stays above the iOS
+          bottom tab bar because that bar is position:fixed. */}
+      <AppShellFooter />
+
+      {/* First-launch independence acknowledgement. Self-gated: only
+          renders when the user has not already tapped "I understand".
+          Catches users who skipped the landing page (deep links,
+          mobile launch into last tab, returning users with a saved
+          profile). */}
+      <IndependenceAck />
 
       {/* ── iOS BOTTOM TAB BAR ── native only, invisible on web/Railway ── */}
       {isNative && !isDesktop && (

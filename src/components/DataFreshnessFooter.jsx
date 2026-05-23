@@ -33,7 +33,7 @@ export default function DataFreshnessFooter({ versionKey, style = {} }) {
       }}
     >
       <span style={{ fontWeight: 800, color: '#0D1821' }}>{v.label}</span>{' '}
-      effective <strong>{v.effective}</strong> · sourced from {v.source}.{' '}
+      — rates current as of <strong>{v.effective}</strong> — source: {v.source}.{' '}
       <a
         href={v.url}
         target="_blank"

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { apiUrl } from '../config/apiConfig'
 import CopyableText from './CopyableText'
 import { usePullToRefresh } from '../hooks/usePullToRefresh'
+import TabBar from './TabBar'
 
 const OVERSEAS_KEYWORDS = [
   'Humphreys', 'Kadena', 'Yokota', 'Ramstein', 'Stuttgart',
@@ -475,14 +476,25 @@ function ReligiousServicesModule({ theme, profile }) {
       </h2>
 
       {/* TAB BAR */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-        {TABS.map((t) => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} className={`pcs-tab ${activeTab === t.id ? 'is-active' : ''}`} style={tabBtn(t)}>
-            <span>{t.icon}</span>
-            <span>{t.label}</span>
-          </button>
-        ))}
-      </div>
+      <TabBar ariaLabel="Religious services sections" className="pcs-tabbar--flush">
+        {TABS.map((t) => {
+          const isActive = activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={isActive}
+              data-active={isActive || undefined}
+              onClick={() => setActiveTab(t.id)}
+              className={`pcs-tab ${isActive ? 'is-active' : ''}`}
+              style={tabBtn(t)}
+            >
+              <span>{t.icon}</span>
+              <span>{t.label}</span>
+            </button>
+          );
+        })}
+      </TabBar>
 
       {/* ── SERVICES TAB ── */}
       {activeTab === 'services' && (

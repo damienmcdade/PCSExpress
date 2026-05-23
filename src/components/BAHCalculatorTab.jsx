@@ -4,11 +4,13 @@
  */
 import { useState, useMemo } from 'react';
 import DataFreshnessFooter from './DataFreshnessFooter';
+import { CalculatorResultLabel, PlanningAidDisclaimer } from './CalculatorResultLabel';
 import {
   BAH_PAY_GRADES,
   getBAHRate,
   getMHAForInstallation,
   isOCONUS,
+  isEstimatedMHA,
   formatCurrencyBAH,
   INSTALLATION_MHA_MAP,
 } from '../lib/bahCalculator';
@@ -111,6 +113,7 @@ export default function BAHCalculatorTab({ theme, profile }) {
 
   const oconus = dutyStation ? isOCONUS(dutyStation) : false;
   const mha = dutyStation ? getMHAForInstallation(dutyStation) : null;
+  const mhaIsEstimate = mha ? isEstimatedMHA(mha) : false;
 
   const withRate = useMemo(() => getBAHRate(dutyStation, payGrade, true), [dutyStation, payGrade]);
   const withoutRate = useMemo(() => getBAHRate(dutyStation, payGrade, false), [dutyStation, payGrade]);
@@ -252,6 +255,10 @@ export default function BAHCalculatorTab({ theme, profile }) {
               {payGrade} · {withDeps ? `${numDeps} dependent${numDeps > 1 ? 's' : ''}` : 'no dependents'} · {mha}
             </div>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 6 }}>2026 DoD rate effective 1 Jan 2026</div>
+            <CalculatorResultLabel
+              tier={mhaIsEstimate ? 'estimate' : 'official'}
+              note={mhaIsEstimate ? 'This MHA is not from the official DTMO 2026 table — verify the exact rate at the DTMO BAH Rate Lookup.' : null}
+            />
           </div>
 
           {/* Side-by-side comparison */}
@@ -329,6 +336,7 @@ export default function BAHCalculatorTab({ theme, profile }) {
         Planning tool only. Rates shown are 2026 DTMO published tables for selected MHAs. Verify exact entitlement with your unit S1/finance office or the official DTMO rate lookup tool before making housing decisions.
       </div>
 
+      <PlanningAidDisclaimer />
       <DataFreshnessFooter versionKey="bah" />
     </div>
   );

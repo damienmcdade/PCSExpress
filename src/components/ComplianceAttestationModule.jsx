@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react';
 // chunk evaluation that Vite warned about and could TDZ a
 // module-level `let` in cryptoStore under specific minifier paths.
 import { encryptionAvailable, secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
+import { INDEPENDENCE_DISCLAIMER } from '../config/disclaimer';
 
 // Personal data export. Builds a JSON blob of every secureLocalStore
 // key the user has touched and offers it as a download. The user can
@@ -178,7 +179,7 @@ export default function ComplianceAttestationModule({ theme, profile }) {
         <div style={{ fontSize: 10, fontWeight: 950, color: theme.accent, letterSpacing: '.16em', marginBottom: 6 }}>COMPLIANCE ATTESTATION</div>
         <div style={{ fontSize: 17, fontWeight: 950, marginBottom: 6 }}>Security posture & data-handling commitments</div>
         <div style={{ fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,0.85)' }}>
-          In-app summary of the controls documented in <code>SECURITY.md</code> and <code>public/.well-known/security.txt</code>. PCS Express is an independent application — not endorsed, certified, or approved by the Department of Defense, DISA, or any U.S. government agency. Engineering choices align with public DoD / DISA / NIST / OWASP guidance on a best-effort basis.
+          In-app summary of the controls documented in <code>SECURITY.md</code> and <code>public/.well-known/security.txt</code>. {INDEPENDENCE_DISCLAIMER} Engineering choices align with public DoD / DISA / NIST / OWASP guidance on a best-effort basis.
         </div>
       </div>
 

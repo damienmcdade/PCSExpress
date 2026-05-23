@@ -4,6 +4,7 @@
  */
 import { useState, useMemo } from 'react';
 import DataFreshnessFooter from './DataFreshnessFooter';
+import { CalculatorResultLabel, PlanningAidDisclaimer } from './CalculatorResultLabel';
 
 const fieldStyle = {
   border: '1px solid #D8DEE7',
@@ -191,6 +192,10 @@ export default function MoveBudgetTracker({ theme, profile }) {
             <div style={{ fontSize: 18, fontWeight: 900, color: '#B71C1C' }}>{fmt(totalExpenses)}</div>
           </div>
         </div>
+        <CalculatorResultLabel
+          tier="estimate"
+          note="Net position uses what you entered; the 2026 planning ranges shown next to each expense are derived from BLS CPI + GSA per-diem averages, not entitlements you are guaranteed."
+        />
       </div>
 
       {/* Entitlements Section */}
@@ -278,6 +283,7 @@ export default function MoveBudgetTracker({ theme, profile }) {
         <a href="https://dps.move.mil/cust/standard/user/home.xhtml" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">DPS / Move.mil — HHG & Claims</a>
       </div>
 
+      <PlanningAidDisclaimer />
       <DataFreshnessFooter versionKey="budget" />
     </div>
   );

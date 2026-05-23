@@ -20,6 +20,7 @@
  *   - OCONUS: TRICARE Overseas Program (TOP) + International SOS
  */
 import { useMemo, useState } from 'react';
+import TabBar from './TabBar';
 
 // TRICARE region routing. AK and HI fall in West; territories and OCONUS
 // route to the TRICARE Overseas Program (TOP). DoD Civilians (FEHB) don't
@@ -342,15 +343,18 @@ export default function MedicalReadinessTab({ theme, profile }) {
   return (
     <div>
       {/* Sub-tab navigation */}
-      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', padding: '12px 16px 8px', borderBottom: '1px solid #E0E6EE' }}>
-        {subTabs.map(s => (
-          <button key={s.id} onClick={() => setTab(s.id)}
-            className={`pcs-tab ${tab === s.id ? 'is-active' : ''}`}
-            style={{ flexShrink: 0, padding: '7px 13px', borderRadius: 999, border: `1.5px solid ${tab === s.id ? colors.primary : '#E0E6EE'}`, background: tab === s.id ? colors.primary : '#FFF', color: tab === s.id ? '#FFF' : '#56697C', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
-            {s.label}
-          </button>
-        ))}
-      </div>
+      <TabBar ariaLabel="Holistic health pillars" style={{ borderBottom: '1px solid #E0E6EE' }}>
+        {subTabs.map(s => {
+          const isActive = tab === s.id;
+          return (
+            <button key={s.id} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setTab(s.id)}
+              className={`pcs-tab ${isActive ? 'is-active' : ''}`}
+              style={{ flexShrink: 0, padding: '7px 13px', borderRadius: 999, border: `1.5px solid ${isActive ? colors.primary : '#E0E6EE'}`, background: isActive ? colors.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+              {s.label}
+            </button>
+          );
+        })}
+      </TabBar>
 
       <div style={{ padding: 16 }}>
         {showEmergencyBanner && <EmergencyBanner theme={theme} />}

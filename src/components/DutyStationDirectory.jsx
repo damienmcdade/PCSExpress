@@ -5,6 +5,7 @@
 import { useState, useMemo } from 'react';
 import { resolveInstallation } from '../lib/bahCalculator';
 import { INSTALLATION_MARKETS } from '../data/installationMarkets';
+import TabBar from './TabBar';
 
 // Full data for major installations
 const INSTALLATION_DIRECTORY = {
@@ -1588,15 +1589,18 @@ export default function DutyStationDirectory({ theme, profile }) {
           )}
 
           {/* Section tabs */}
-          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 14 }}>
-            {sections.map(s => (
-              <button key={s.id} onClick={() => setSection(s.id)}
-                className={`pcs-tab ${section === s.id ? 'is-active' : ''}`}
-                style={{ flexShrink: 0, padding: '7px 14px', borderRadius: 999, border: `1.5px solid ${section === s.id ? theme.primary : '#E0E6EE'}`, background: section === s.id ? theme.primary : '#FFF', color: section === s.id ? '#FFF' : '#56697C', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                {s.label}
-              </button>
-            ))}
-          </div>
+          <TabBar ariaLabel="Duty station sections" className="pcs-tabbar--flush">
+            {sections.map(s => {
+              const isActive = section === s.id;
+              return (
+                <button key={s.id} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setSection(s.id)}
+                  className={`pcs-tab ${isActive ? 'is-active' : ''}`}
+                  style={{ flexShrink: 0, padding: '7px 14px', borderRadius: 999, border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                  {s.label}
+                </button>
+              );
+            })}
+          </TabBar>
 
           {section === 'housing' && (
             <div style={{ display: 'grid', gap: 10 }}>

@@ -5,6 +5,7 @@
 
 import { useMemo, useState } from 'react';
 import DataFreshnessFooter from './DataFreshnessFooter';
+import { CalculatorResultLabel, PlanningAidDisclaimer } from './CalculatorResultLabel';
 import { PPM_PAYGRADES, calculatePPMEstimate, formatCurrency } from '../lib/ppmCalculator';
 
 const fieldStyle = {
@@ -136,6 +137,10 @@ export default function PPMFinancialEstimator({ theme, profile }) {
         <div style={{ marginTop: 10, fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>
           Weight above the rank planning allowance is excluded from the reimbursable estimate. This is a planning tool, not an entitlement decision.
         </div>
+        <CalculatorResultLabel
+          tier="estimate"
+          note="Uses official JTR incentive rate with estimated market costs (fuel, truck rental, labor) — verify the official PPM payment with DPS / your PPSO."
+        />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
@@ -154,7 +159,9 @@ export default function PPMFinancialEstimator({ theme, profile }) {
         <a href="https://dps.move.mil/cust/standard/user/home.xhtml" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">Open DPS / Move.mil</a>
       </div>
 
+      <PlanningAidDisclaimer />
       <DataFreshnessFooter versionKey="ppm" />
+      <DataFreshnessFooter versionKey="ppm_config" />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import TabBar from './TabBar'
 
 function EducationModule({ theme, profile }) {
   const [activeTab, setActiveTab] = useState('schools')
@@ -188,32 +189,38 @@ function EducationModule({ theme, profile }) {
       <h2 style={{ color: theme.primary }}>🎓 Education & Spouse Employment</h2>
 
       {/* TABS */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+      <TabBar ariaLabel="Education sections" className="pcs-tabbar--flush">
         {[
           { id: 'schools', label: 'Schools', icon: '🏫' },
           { id: 'universities', label: 'Universities', icon: '🎓' },
           { id: 'spouse', label: 'Spouse Jobs', icon: '💼' },
           { id: 'career', label: profile?.component === 'DoD Civilian' ? 'Civilian Career' : 'Career & Benefits', icon: '🎯' },
-        ].map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setActiveTab(t.id)}
-            className={`pcs-tab ${activeTab === t.id ? 'is-active' : ''}`}
-            style={{
-              padding: '8px 12px',
-              borderRadius: 20,
-              border: `1.5px solid ${activeTab === t.id ? theme.primary : '#E0E6EE'}`,
-              background: activeTab === t.id ? theme.primary : '#FFFFFF',
-              color: activeTab === t.id ? '#FFFFFF' : '#56697C',
-              fontSize: 11,
-              cursor: 'pointer',
-              fontWeight: activeTab === t.id ? 800 : 500,
-            }}
-          >
-            {t.icon} {t.label}
-          </button>
-        ))}
-      </div>
+        ].map((t) => {
+          const isActive = activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={isActive}
+              data-active={isActive || undefined}
+              onClick={() => setActiveTab(t.id)}
+              className={`pcs-tab ${isActive ? 'is-active' : ''}`}
+              style={{
+                padding: '8px 12px',
+                borderRadius: 20,
+                border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`,
+                background: isActive ? theme.primary : '#FFFFFF',
+                color: isActive ? '#FFFFFF' : '#56697C',
+                fontSize: 11,
+                cursor: 'pointer',
+                fontWeight: isActive ? 800 : 500,
+              }}
+            >
+              {t.icon} {t.label}
+            </button>
+          );
+        })}
+      </TabBar>
 
       {/* SCHOOLS */}
       {activeTab === 'schools' && (() => {

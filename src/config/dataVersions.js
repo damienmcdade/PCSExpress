@@ -16,15 +16,44 @@
 
 export const DATA_VERSIONS = {
   bah: {
-    label: 'BAH / OHA rate table',
+    label: 'BAH rate table',
     effective: '2026-01-01',
     source: 'DTMO published 2026 BAH tables',
     url: 'https://www.travel.dod.mil/Allowances/Basic-Allowance-for-Housing/BAH-Rate-Lookup/',
+  },
+  oha: {
+    // OHA tables are republished by DTMO on a quarterly cycle (Jan / Apr / Jul / Oct).
+    // The `effective` date pins which quarterly drop our hardcoded rent caps reflect.
+    label: 'OHA / MIHA rate tables',
+    effective: '2026-01-01',
+    cadence: 'quarterly',
+    source: 'DTMO published OHA country tables (Q1 2026)',
+    url: 'https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/OHA-Rate-Lookup/',
+  },
+  lqa: {
+    // LQA / TQSA ceilings live in the DSSR and are republished on an annual cycle
+    // (with intermittent off-cycle adjustments for currency / cost-of-living swings).
+    label: 'LQA / TQSA (DoD Civilian OCONUS)',
+    effective: '2026-01-01',
+    cadence: 'annual',
+    source: 'DSSR §920 (Department of State) + DCPAS LQA Worksheet',
+    url: 'https://aoprals.state.gov/Web920/dssr.asp',
   },
   ppm: {
     label: 'PPM (DITY) calculator',
     effective: '2026-01-01',
     source: 'JTR §050302 + DTMO PPM Worksheet',
+    url: 'https://www.travel.dod.mil/Allowances/Dislocation-Allowance/',
+  },
+  ppm_config: {
+    // Planning estimates for truck / fuel / labor / GCC inputs to the PPM calc.
+    // These are NOT JTR-mandated entitlement rates — they are model inputs the
+    // tool uses to project rental and labor costs. Versioned separately from
+    // the `ppm` entry above so refreshing market estimates does not appear to
+    // imply the entitlement formula itself changed.
+    label: 'PPM planning estimates (truck / fuel / labor / GCC)',
+    effective: '2026-01-01',
+    source: 'Planning estimates aligned to JTR §050302 + DTMO GCC methodology; market inputs (fuel, truck, labor) are national averages',
     url: 'https://www.travel.dod.mil/Allowances/Dislocation-Allowance/',
   },
   malt: {

@@ -26,3 +26,4 @@ Thumbs.db
 .vercel-session/
 .env*.local
 test-results/
+.link-audit/

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
 import { apiUrl } from '../config/apiConfig'
+import TabBar from './TabBar'
 
 const store = {
   get: (k) => readLegacyJson(k, null),
@@ -343,13 +344,16 @@ export default function TranslationModule({ theme, profile }) {
       {subTab === 'phrases' && (
         <div>
           {/* Category selector */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 14, overflowX: 'auto', paddingBottom: 4 }}>
-            {PHRASE_CATEGORIES.map(c => (
-              <button key={c.id} onClick={() => setPhraseCategory(c.id)} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${phraseCategory === c.id ? theme.primary : '#E0E6EE'}`, background: phraseCategory === c.id ? theme.primary : '#FFF', color: phraseCategory === c.id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                {c.icon} {c.label}
-              </button>
-            ))}
-          </div>
+          <TabBar ariaLabel="Translation sections" className="pcs-tabbar--flush">
+            {PHRASE_CATEGORIES.map(c => {
+              const isActive = phraseCategory === c.id;
+              return (
+                <button key={c.id} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setPhraseCategory(c.id)} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                  {c.icon} {c.label}
+                </button>
+              );
+            })}
+          </TabBar>
 
           {/* Language columns header */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>

@@ -1213,8 +1213,32 @@ body {
 
 .pet-phase-tabs {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 12px,
+    #000 calc(100% - 12px),
+    transparent 100%
+  );
+          mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 12px,
+    #000 calc(100% - 12px),
+    transparent 100%
+  );
+}
+
+.pet-phase-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .pet-phase-tabs button {
@@ -1225,6 +1249,9 @@ body {
   font-weight: 900;
   min-height: 36px;
   padding: 8px 11px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  white-space: nowrap;
 }
 
 .pet-task-list {
@@ -1414,12 +1441,9 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .pet-phase-tabs {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
+  /* pet-phase-tabs keeps horizontal scroll on mobile (no vertical stack) —
+     matches the unified TabBar pattern across the app. */
 
-  .pet-phase-tabs button,
   .assistance-card a,
   .efmp-branch-card a,
   .inventory-add-row button {
@@ -1829,6 +1853,68 @@ input, select, textarea {
   .pcs-tab::after {
     animation: none !important;
     transition-duration: 0ms !important;
+  }
+}
+
+/* ── Shared TabBar container ──────────────────────────────────────────
+   Wrapper used by every tab strip across the app via <TabBar>. Provides
+   a single horizontal-scroll row (no wrap), edge-fade affordance so users
+   see there's more content to the right, and hides the scrollbar. The
+   buttons inside keep their own .pcs-tab styling. */
+.pcs-tabbar {
+  position: relative;
+  margin-bottom: 16px;
+  /* Edge fade — masks the row so content fades into the card edges
+     instead of clipping abruptly. Browsers without mask-image just
+     show the row flush; no functional regression. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+          mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+}
+
+.pcs-tabbar-scroller {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 16px 6px;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.pcs-tabbar-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.pcs-tabbar-scroller > * {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+}
+
+/* When TabBar lives inside a card with its own horizontal padding, the
+   wrapper's 16px gutter doubles up. Callers can opt out by passing
+   className="pcs-tabbar--flush". */
+.pcs-tabbar--flush .pcs-tabbar-scroller {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcs-tabbar-scroller {
+    scroll-behavior: auto;
   }
 }
 

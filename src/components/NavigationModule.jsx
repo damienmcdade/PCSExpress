@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import BaseMapModule from './BaseMapModule'
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
+import TabBar from './TabBar'
 
 function NavigationModule({ theme, profile }) {
   const [activeTab, setActiveTab] = useState('routes')
@@ -165,32 +166,38 @@ function NavigationModule({ theme, profile }) {
       <h2 style={{ color: theme.primary, padding: '0 16px', marginTop: 16, marginBottom: 8 }}>Navigation</h2>
 
       {/* TABS */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', padding: '0 16px' }}>
+      <TabBar ariaLabel="Navigation sections">
         {[
           { id: 'routes', label: 'Route Planner', icon: '🛣️' },
           { id: 'directions', label: 'Directions', icon: '📋' },
           { id: 'saved', label: 'Saved Routes', icon: '💾' },
           { id: 'baseMap', label: 'Base Map', icon: '🗺️' },
-        ].map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setActiveTab(t.id)}
-            className={`pcs-tab ${activeTab === t.id ? 'is-active' : ''}`}
-            style={{
-              padding: '8px 12px',
-              borderRadius: 20,
-              border: `1.5px solid ${activeTab === t.id ? theme.primary : '#E0E6EE'}`,
-              background: activeTab === t.id ? theme.primary : '#FFFFFF',
-              color: activeTab === t.id ? '#FFFFFF' : '#56697C',
-              fontSize: 11,
-              cursor: 'pointer',
-              fontWeight: activeTab === t.id ? 800 : 500,
-            }}
-          >
-            {t.icon} {t.label}
-          </button>
-        ))}
-      </div>
+        ].map((t) => {
+          const isActive = activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={isActive}
+              data-active={isActive || undefined}
+              onClick={() => setActiveTab(t.id)}
+              className={`pcs-tab ${isActive ? 'is-active' : ''}`}
+              style={{
+                padding: '8px 12px',
+                borderRadius: 20,
+                border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`,
+                background: isActive ? theme.primary : '#FFFFFF',
+                color: isActive ? '#FFFFFF' : '#56697C',
+                fontSize: 11,
+                cursor: 'pointer',
+                fontWeight: isActive ? 800 : 500,
+              }}
+            >
+              {t.icon} {t.label}
+            </button>
+          );
+        })}
+      </TabBar>
 
       <div style={{ padding: '0 16px 16px' }}>
         {/* ROUTE PLANNER */}

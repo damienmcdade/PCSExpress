@@ -3,10 +3,9 @@
 # applications; PCS Express is an independent app and is not on the
 # DoD VDP roster — report directly to the maintainer.
 
-Contact: mailto:security@pcsexpress.example
 Contact: https://github.com/damienmcdade/PCSExpress/security/advisories/new
 Preferred-Languages: en
-Canonical: https://pcs-express.vercel.app/.well-known/security.txt
+Canonical: https://pcsexpress.app/.well-known/security.txt
 Policy: https://github.com/damienmcdade/PCSExpress/blob/main/SECURITY.md
 Expires: 2027-12-31T23:59:59-00:00
 

@@ -5,6 +5,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions';
+import TabBar from './TabBar';
 
 // ─── Document categories ─────────────────────────────────────────────────────
 
@@ -527,13 +528,13 @@ export default function PCSDocumentsModule({ theme, profile }) {
       )}
 
       <div style={{ padding: '12px 16px 0', background: '#F8FAFC' }}>
-        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 10 }}>
+        <TabBar ariaLabel="Document categories" className="pcs-tabbar--flush">
           {DOC_CATEGORIES.filter(c => c.id !== 'oconus' || isOconus).map(c => {
             const p = progress[c.id];
             const isActive = activecat === c.id;
             const allReqDone = p.reqTotal === 0 || p.reqDone === p.reqTotal;
             return (
-              <button key={c.id} onClick={() => setActivecat(c.id)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 20, border: `1.5px solid ${isActive ? c.color : '#CBD5E1'}`, background: isActive ? c.color : '#FFF', color: isActive ? '#FFF' : '#374151', fontSize: 11, fontWeight: isActive ? 800 : 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button key={c.id} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setActivecat(c.id)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 20, border: `1.5px solid ${isActive ? c.color : '#CBD5E1'}`, background: isActive ? c.color : '#FFF', color: isActive ? '#FFF' : '#374151', fontSize: 11, fontWeight: isActive ? 800 : 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span>{c.icon}</span>
                 <span>{c.label}</span>
                 <span style={{ background: isActive ? 'rgba(255,255,255,0.25)' : (allReqDone ? '#D1FAE5' : '#FEE2E2'), color: isActive ? '#FFF' : (allReqDone ? '#065F46' : '#991B1B'), fontSize: 10, fontWeight: 900, padding: '1px 6px', borderRadius: 10 }}>
@@ -542,7 +543,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
               </button>
             );
           })}
-        </div>
+        </TabBar>
       </div>
 
       <div style={{ padding: '4px 16px 16px' }}>

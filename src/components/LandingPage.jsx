@@ -25,6 +25,7 @@
  */
 import { useState } from 'react';
 import DemoRequestForm from './DemoRequestForm';
+import { INDEPENDENCE_DISCLAIMER } from '../config/disclaimer';
 
 const PALETTE = {
   navy: '#0D3B66',
@@ -521,7 +522,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
       <footer style={{ background: PALETTE.navyDeep, color: 'rgba(255,255,255,0.75)', padding: '36px 20px 28px' }}>
         <div style={{ maxWidth: 1180, margin: '0 auto' }}>
           <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '14px 18px', fontSize: 12, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)' }}>
-            <strong style={{ color: PALETTE.gold }}>Disclaimer.</strong> PCS Express is an independent platform and is not currently endorsed by, affiliated with, or officially approved by the Department of Defense, Department of Veterans Affairs, or any military branch unless otherwise stated. References to JTR, FTR, DSSR, DTMO, TRICARE, the GI Bill, SCRA, and other federal regulations are provided for planning and educational purposes. Verify exact entitlements with your unit S1 / IPAC / MPF / PSD or the official publication before making financial or housing decisions.
+            <strong style={{ color: PALETTE.gold }}>Disclaimer.</strong> {INDEPENDENCE_DISCLAIMER} References to JTR, FTR, DSSR, DTMO, TRICARE, the GI Bill, SCRA, and other federal regulations are provided for planning and educational purposes. Verify exact entitlements with your unit S1 / IPAC / MPF / PSD or the official publication before making financial or housing decisions.
           </div>
           <div style={{ marginTop: 22, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 18, fontSize: 12 }}>
             <div>
@@ -543,24 +544,20 @@ export default function LandingPage({ onStartPlan, onClose }) {
               <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 8 }}>Trust</div>
               <div style={{ lineHeight: 2 }}>
                 <button onClick={() => scrollTo('security')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Security & privacy</button>
-                {/* TODO: link to /privacy and /terms pages once the
-                    legal review is complete. Placeholder anchors for now. */}
-                <a href="#privacy" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>Privacy policy (TODO)</a>
-                <a href="#terms" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>Terms of service (TODO)</a>
+                <span style={{ color: 'inherit', display: 'block', fontSize: 12, opacity: 0.65 }}>Privacy policy — coming soon</span>
+                <span style={{ color: 'inherit', display: 'block', fontSize: 12, opacity: 0.65 }}>Terms of service — coming soon</span>
               </div>
             </div>
             <div>
               <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 8 }}>Contact</div>
               <div style={{ lineHeight: 2 }}>
                 <button onClick={() => scrollTo('demo')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Demo / partner inquiry</button>
-                {/* TODO: replace with the founder's published contact
-                    address once the public-comms channel is selected. */}
-                <span style={{ display: 'block', fontSize: 12 }}>contact@pcsexpress.app (TODO)</span>
+                <a href="mailto:contact@pcsexpress.app" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>contact@pcsexpress.app</a>
               </div>
             </div>
           </div>
           <div style={{ marginTop: 26, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,0.12)', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: 'rgba(255,255,255,0.6)' }}>
-            <div>© {new Date().getFullYear()} PCS Express LLC (TODO — pending entity formation). All rights reserved.</div>
+            <div>© {new Date().getFullYear()} PCS Express. All rights reserved.</div>
             <div style={{ display: 'flex', gap: 14 }}>
               <button onClick={startPlan} style={{ background: 'none', border: 'none', color: PALETTE.gold, fontWeight: 800, cursor: 'pointer', padding: 0, fontSize: 11 }}>Start Your PCS Plan →</button>
             </div>
