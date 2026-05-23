@@ -428,11 +428,11 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
               <button
                 onClick={() => setTypeFilter('All')}
                 style={{
-                  padding: '6px 12px', borderRadius: 16,
+                  padding: '10px 14px', borderRadius: 16,
                   border: `1.5px solid ${typeFilter === 'All' ? colors.primary : '#D6E0EA'}`,
                   background: typeFilter === 'All' ? colors.primary : '#FFFFFF',
                   color: typeFilter === 'All' ? '#FFFFFF' : '#243447',
-                  fontSize: 11, fontWeight: 800, cursor: 'pointer',
+                  fontSize: 12, fontWeight: 800, cursor: 'pointer',
                 }}
               >
                 All ({listings.items.length})
@@ -442,11 +442,11 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
                   key={t}
                   onClick={() => setTypeFilter(t)}
                   style={{
-                    padding: '6px 12px', borderRadius: 16,
+                    padding: '10px 14px', borderRadius: 16,
                     border: `1.5px solid ${typeFilter === t ? colors.primary : '#D6E0EA'}`,
                     background: typeFilter === t ? colors.primary : '#FFFFFF',
                     color: typeFilter === t ? '#FFFFFF' : '#243447',
-                    fontSize: 11, fontWeight: 800, cursor: 'pointer',
+                    fontSize: 12, fontWeight: 800, cursor: 'pointer',
                   }}
                 >
                   {t} ({counts[t]})

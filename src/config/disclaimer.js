@@ -21,3 +21,15 @@
 
 export const INDEPENDENCE_DISCLAIMER =
   'PCS Express is an independent platform — not endorsed by or affiliated with the DoD, VA, or any military branch.';
+
+/*
+ * Generic-purpose disclaimer — informational-only / not-advice notice.
+ *
+ * The app covers regulation-adjacent territory (SCRA, CZTE, USCIS forms,
+ * VA disability, JTR/FTR/DSSR entitlements) and could otherwise read as
+ * legal, tax, immigration, or financial advice. Surface this alongside
+ * any calculator output, immigration checklist, or benefit-eligibility
+ * narrative.
+ */
+export const NOT_ADVICE_DISCLAIMER =
+  'Informational only — not legal, tax, immigration, or financial advice. Consult a licensed professional and verify entitlements with your unit S1 / IPAC / MPF / PSD before acting.';

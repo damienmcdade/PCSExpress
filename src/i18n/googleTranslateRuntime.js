@@ -68,11 +68,15 @@ function setGoogTransCookie(targetLang) {
   // intentionally do NOT set Domain on localhost (browser scoping).
   const isLocalHost = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(window.location.hostname);
   const domainAttr = isLocalHost ? '' : `domain=${window.location.hostname};`;
-  document.cookie = `googtrans=${value}; path=/; ${domainAttr} samesite=lax`;
+  // Add Secure flag on HTTPS so the cookie never rides on a downgraded
+  // request. Skipped on plain http://localhost so the dev server still
+  // works without TLS.
+  const secureAttr = window.location.protocol === 'https:' ? ' Secure;' : '';
+  document.cookie = `googtrans=${value}; path=/; ${domainAttr} samesite=lax;${secureAttr}`;
   // Also set the bare-domain variant for production hosts (e.g.,
   // pcsexpress.app needs both .pcsexpress.app and pcsexpress.app).
   if (!isLocalHost && window.location.hostname.split('.').length >= 2) {
-    document.cookie = `googtrans=${value}; path=/; domain=.${window.location.hostname}; samesite=lax`;
+    document.cookie = `googtrans=${value}; path=/; domain=.${window.location.hostname}; samesite=lax;${secureAttr}`;
   }
 }
 

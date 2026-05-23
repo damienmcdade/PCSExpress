@@ -165,6 +165,10 @@ function NavigationModule({ theme, profile }) {
     <div style={{ padding: 16 }}>
       <h2 style={{ color: theme.primary, padding: '0 16px', marginTop: 16, marginBottom: 8 }}>Navigation</h2>
 
+      <div role="note" aria-label="OpenStreetMap egress notice" style={{ padding: '8px 12px', margin: '0 16px 12px', background: '#F0F4FF', border: '1px solid #C7D7F5', borderRadius: 10, fontSize: 11, lineHeight: 1.5, color: '#1A3A5C' }}>
+        <strong>Heads up:</strong> Addresses you enter here are sent to <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" style={{ color: '#0D3B66' }}>OpenStreetMap</a> (Nominatim + OSRM) for geocoding and routing. Don't enter classified or operationally sensitive locations. Map data © OpenStreetMap contributors, ODbL.
+      </div>
+
       {/* TABS */}
       <TabBar ariaLabel="Navigation sections">
         {[

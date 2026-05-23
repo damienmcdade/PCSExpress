@@ -25,6 +25,7 @@
  */
 import { useState } from 'react';
 import DemoRequestForm from './DemoRequestForm';
+import CrisisLineChip from './CrisisLineChip';
 import { INDEPENDENCE_DISCLAIMER } from '../config/disclaimer';
 
 const PALETTE = {
@@ -419,7 +420,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
             </Card>
             <Card>
               <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Mission alignment</div>
-              <div style={{ fontSize: 13, color: PALETTE.muted, lineHeight: 1.6 }}>Supports DoD readiness goals around family resilience, transition assistance, and reduction of relocation-related administrative overhead.</div>
+              <div style={{ fontSize: 13, color: PALETTE.muted, lineHeight: 1.6 }}>Designed with DoD-published family-readiness and transition-assistance priorities in mind, with the goal of reducing relocation-related administrative overhead. PCS Express is independent and is not endorsed, sponsored, or coordinated with the DoD.</div>
             </Card>
           </div>
 
@@ -545,8 +546,8 @@ export default function LandingPage({ onStartPlan, onClose }) {
               <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 8 }}>Trust</div>
               <div style={{ lineHeight: 2 }}>
                 <button onClick={() => scrollTo('security')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Security & privacy</button>
-                <span style={{ color: 'inherit', display: 'block', fontSize: 12, opacity: 0.65 }}>Privacy policy — coming soon</span>
-                <span style={{ color: 'inherit', display: 'block', fontSize: 12, opacity: 0.65 }}>Terms of service — coming soon</span>
+                <a href="/privacy.html" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>Privacy notice</a>
+                <a href="/terms.html" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>Terms of use</a>
               </div>
             </div>
             <div>
@@ -565,6 +566,10 @@ export default function LandingPage({ onStartPlan, onClose }) {
           </div>
         </div>
       </footer>
+      {/* Crisis line is always reachable, even on the public marketing
+          page — military readers in distress should never have to dig
+          through the app to find 988+1 / Military OneSource. */}
+      <CrisisLineChip isNative={false} isDesktop={true} />
     </div>
   );
 }

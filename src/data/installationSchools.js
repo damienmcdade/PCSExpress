@@ -3,6 +3,21 @@
  * main shell file and let Vite chunk static data independently of
  * App component code (cache invalidation granularity). Verbatim
  * copy of the inlined version; no schema or behavior change.
+ *
+ * PROVENANCE NOTE (added during pre-launch audit):
+ *   The numeric `rating` values and `desc` blurbs below are summary
+ *   characterizations to help families compare options at a glance.
+ *   They are NOT sourced from GreatSchools, Niche, U.S. News, or any
+ *   other proprietary feed, and should not be treated as authoritative
+ *   evaluations of the named institutions. Users should always verify
+ *   current performance, accreditation, and military-family fit
+ *   directly with each school. If a school disputes its rating or
+ *   description, the entry will be corrected or removed.
+ *
+ *   Roadmap: replace this static table with on-demand links to the
+ *   official NCES Common Core of Data (https://nces.ed.gov/ccd/) so
+ *   the app stops carrying editorial assessments and only links to
+ *   authoritative records.
  */
 export const INSTALLATION_SCHOOLS = {
   "Fort Liberty": [

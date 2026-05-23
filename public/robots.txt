@@ -1,0 +1,16 @@
+# PCS Express — robots.txt
+# https://www.robotstxt.org/
+
+User-agent: *
+Allow: /
+# The app is a single-page React shell; deep tab content is
+# state-driven inside index.html, not separate URLs. Crawlers are
+# welcome but will only see the landing page on a default fetch.
+Disallow: /api/
+Disallow: /assets/
+# Allow ads.txt + security.txt + sitemap for crawlers that look:
+Allow: /ads.txt
+Allow: /sitemap.xml
+Allow: /.well-known/security.txt
+
+Sitemap: https://pcsexpress.app/sitemap.xml

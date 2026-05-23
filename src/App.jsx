@@ -19,6 +19,7 @@ import AIAssistantTrigger from './components/AIAssistantTrigger'
 import AIAssistantFAB from './components/AIAssistantFAB'
 import TabBar from './components/TabBar'
 import { usePullToRefresh } from './hooks/usePullToRefresh'
+import { useFocusTrap } from './hooks/useFocusTrap'
 import DynamicTimeline from './components/DynamicTimeline'
 import PrivacyShield from './components/PrivacyShield'
 
@@ -173,8 +174,10 @@ async function eraseAllUserData() {
 // will be deleted before they confirm. The "Yes, Delete Everything" button
 // is intentionally far from the X / Cancel and uses a destructive red.
 function ResetWarningModal({ theme: _theme, onConfirm, onCancel }) {
+  const dialogRef = useRef(null);
+  useFocusTrap(dialogRef, true);
   return (
-    <div data-no-language-runtime role="dialog" aria-modal="true" aria-labelledby="reset-warning-title" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+    <div ref={dialogRef} data-no-language-runtime role="dialog" aria-modal="true" aria-labelledby="reset-warning-title" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ background: '#FFFFFF', borderRadius: 16, maxWidth: 480, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 30px 60px rgba(0,0,0,0.4)', borderTop: `6px solid #DC2626` }}>
         {/* Header */}
         <div style={{ background: '#7F1D1D', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1685,7 +1688,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: theme.primary }}>Overall Progress</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 12, color: '#888' }}>{done}/{allTasks.length} tasks</span>
+            <span style={{ fontSize: 12, color: '#56697C' }}>{done}/{allTasks.length} tasks</span>
             <span style={{ fontSize: 17, fontWeight: 900, color: pct === 100 ? '#2E7D32' : theme.accent }}>{pct}%</span>
             {pct === 100 && <span style={{ fontSize: 11, fontWeight: 700, background: '#2E7D32', color: '#FFF', borderRadius: 6, padding: '2px 8px' }}>COMPLETE</span>}
           </div>
@@ -1758,19 +1761,21 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
           const checked = !!checklistItems[`${activePhase}-${i}`];
           const taskOverdue = phaseIsOverdue && !checked;
           return (
-            <div key={i} onClick={() => toggleCheckItem(activePhase, i)} className={`pcs-check-item ${checked ? 'is-checked' : ''} ${taskOverdue ? 'is-overdue' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 14px', borderRadius: 8, background: checked ? '#E8F5E9' : taskOverdue ? '#FFF5F5' : '#FFFFFF', border: `1px solid ${checked ? '#A5D6A7' : taskOverdue ? '#FFCDD2' : 'rgba(0,0,0,0.08)'}`, cursor: 'pointer', marginBottom: 8, '--check-accent': theme.accent }}>
-              <div className="pcs-check-item__box" style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${checked ? '#2E7D32' : taskOverdue ? '#E57373' : theme.accent}`, background: checked ? '#2E7D32' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                {checked && <span style={{ color: '#fff', fontSize: 14, fontWeight: 900 }}>✓</span>}
-              </div>
-              <div style={{ flex: 1 }}>
-                <span style={{ fontSize: 13, color: checked ? '#888' : taskOverdue ? '#C62828' : theme.primary, textDecoration: checked ? 'line-through' : 'none', fontWeight: checked ? 400 : 600, lineHeight: 1.4 }}>{task}</span>
-                {taskOverdue && <div style={{ fontSize: 10, color: '#E57373', fontWeight: 800, marginTop: 3 }}>PAST DUE — Complete immediately</div>}
-                {reminders[`${activePhase}-${i}`] && (
-                  <div style={{ fontSize: 10, color: '#0D3B66', fontWeight: 700, marginTop: 3 }}>
-                    ⏰ Reminder: {new Date(reminders[`${activePhase}-${i}`]).toLocaleString()}
-                  </div>
-                )}
-              </div>
+            <div key={i} className={`pcs-check-item ${checked ? 'is-checked' : ''} ${taskOverdue ? 'is-overdue' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 14px', borderRadius: 8, background: checked ? '#E8F5E9' : taskOverdue ? '#FFF5F5' : '#FFFFFF', border: `1px solid ${checked ? '#A5D6A7' : taskOverdue ? '#FFCDD2' : 'rgba(0,0,0,0.08)'}`, marginBottom: 8, '--check-accent': theme.accent }}>
+              <button type="button" role="checkbox" aria-checked={checked} onClick={() => toggleCheckItem(activePhase, i)} style={{ flex: 1, display: 'flex', alignItems: 'flex-start', gap: 12, background: 'transparent', border: 'none', padding: 0, margin: 0, textAlign: 'left', font: 'inherit', color: 'inherit', cursor: 'pointer' }}>
+                <span className="pcs-check-item__box" aria-hidden="true" style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${checked ? '#2E7D32' : taskOverdue ? '#E57373' : theme.accent}`, background: checked ? '#2E7D32' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                  {checked && <span style={{ color: '#fff', fontSize: 14, fontWeight: 900 }}>✓</span>}
+                </span>
+                <span style={{ flex: 1 }}>
+                  <span style={{ fontSize: 13, color: checked ? '#888' : taskOverdue ? '#C62828' : theme.primary, textDecoration: checked ? 'line-through' : 'none', fontWeight: checked ? 400 : 600, lineHeight: 1.4 }}>{task}</span>
+                  {taskOverdue && <span style={{ display: 'block', fontSize: 10, color: '#E57373', fontWeight: 800, marginTop: 3 }}>PAST DUE — Complete immediately</span>}
+                  {reminders[`${activePhase}-${i}`] && (
+                    <span style={{ display: 'block', fontSize: 10, color: '#0D3B66', fontWeight: 700, marginTop: 3 }}>
+                      ⏰ Reminder: {new Date(reminders[`${activePhase}-${i}`]).toLocaleString()}
+                    </span>
+                  )}
+                </span>
+              </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1784,7 +1789,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
                   def.setHours(9, 0, 0, 0);
                   const pad = (n) => String(n).padStart(2, '0');
                   const defStr = `${def.getFullYear()}-${pad(def.getMonth() + 1)}-${pad(def.getDate())}T${pad(def.getHours())}:${pad(def.getMinutes())}`;
-                   
+
                   const picked = window.prompt('Remind me on (YYYY-MM-DDTHH:MM, 24-hour):', defStr);
                   if (picked && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(picked)) {
                     setReminder(key, picked);
@@ -2030,7 +2035,7 @@ function SchoolsTab({ theme, profile }) {
           )}
           {filteredSchools.length > 0 && (
             <div style={{ display: 'flex', gap: 6, marginBottom: 12, alignItems: 'center' }}>
-              <span style={{ fontSize: 11, color: '#888' }}>Sort curated:</span>
+              <span style={{ fontSize: 11, color: '#56697C' }}>Sort curated:</span>
               {[['rating', 'Highest Rated'], ['name', 'A–Z']].map(([id, label]) => (
                 <button key={id} onClick={() => setSortBy(id)} className={`pcs-chip ${sortBy === id ? 'is-active' : ''}`} style={{ padding: '5px 10px', borderRadius: 14, border: `1.5px solid ${sortBy === id ? theme.primary : '#E0E6EE'}`, background: sortBy === id ? theme.primary : '#FFF', color: sortBy === id ? '#FFF' : '#56697C', fontSize: 10, cursor: 'pointer', fontWeight: 700 }}>
                   {label}
@@ -2047,7 +2052,7 @@ function SchoolsTab({ theme, profile }) {
               </div>
               <div style={{ marginBottom: 6 }}><StarRating rating={school.rating} /></div>
               <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 6 }}>{school.desc}</div>
-              <div style={{ fontSize: 11, color: '#888', marginBottom: 10 }}>📍 {school.city}</div>
+              <div style={{ fontSize: 11, color: '#56697C', marginBottom: 10 }}>📍 {school.city}</div>
               <a href={school.url || officialSchoolSearchUrl(school.name, school.city)} target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>{school.url ? 'Visit School Website' : 'Find Official School Info'}</a>
             </div>
           ))}
@@ -3833,12 +3838,12 @@ function EducationBenefitsTab({ theme, profile }) {
             <div key={idx} style={{ background: '#FFFFFF', border: `1px solid ${ch.best ? theme.accent : '#E0E6EE'}`, borderLeft: `3px solid ${ch.best ? theme.accent : theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                 <div>
-                  <div style={{ fontSize: 12, color: '#888' }}>Chapter {ch.chapter}</div>
+                  <div style={{ fontSize: 12, color: '#56697C' }}>Chapter {ch.chapter}</div>
                   <div style={{ fontSize: 14, fontWeight: 800, color: '#0D1821' }}>{ch.name}</div>
                 </div>
                 {ch.best && <span style={{ background: theme.accent, color: theme.secondary, fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 6 }}>MOST COMMON</span>}
               </div>
-              <div style={{ fontSize: 11, color: '#888', marginBottom: 10, fontStyle: 'italic' }}>{ch.who}</div>
+              <div style={{ fontSize: 11, color: '#56697C', marginBottom: 10, fontStyle: 'italic' }}>{ch.who}</div>
               {ch.benefits.map((b, i) => (
                 <div key={i} style={{ fontSize: 12, color: '#333', marginBottom: 4 }}>✓ {b}</div>
               ))}
@@ -3922,7 +3927,7 @@ function EducationBenefitsTab({ theme, profile }) {
                       </div>
                       <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 8 }}>
                         <div style={{ fontSize: 13, fontWeight: 900, color: theme.primary }}>{col.rating.toFixed(1)}</div>
-                        <div style={{ fontSize: 9, color: '#888' }}>/ 5.0</div>
+                        <div style={{ fontSize: 9, color: '#56697C' }}>/ 5.0</div>
                       </div>
                     </div>
                     <div style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 10 }}>{col.desc}</div>
@@ -5558,12 +5563,12 @@ function Onboarding({ onComplete }) {
               {/* Name */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                 <div>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('firstName')}</label>
-                  <input value={p.firstName} onChange={e => upd('firstName', e.target.value)} placeholder="Jordan" style={inputSt} />
+                  <label htmlFor="profile-firstName" style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('firstName')}</label>
+                  <input id="profile-firstName" name="firstName" autoComplete="given-name" value={p.firstName} onChange={e => upd('firstName', e.target.value)} placeholder="Jordan" style={inputSt} />
                 </div>
                 <div>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('lastName')}</label>
-                  <input value={p.lastName} onChange={e => upd('lastName', e.target.value)} placeholder="Rivera" style={inputSt} />
+                  <label htmlFor="profile-lastName" style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('lastName')}</label>
+                  <input id="profile-lastName" name="lastName" autoComplete="family-name" value={p.lastName} onChange={e => upd('lastName', e.target.value)} placeholder="Rivera" style={inputSt} />
                 </div>
               </div>
 
@@ -5573,8 +5578,8 @@ function Onboarding({ onComplete }) {
                   is not a top-level option — pick Reserve or National
                   Guard, then select AGR as your orders type below. */}
               <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('component')}</label>
-                <select value={p.component} onChange={e => {
+                <label htmlFor="profile-component" style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('component')}</label>
+                <select id="profile-component" name="component" aria-required="true" value={p.component} onChange={e => {
                   const comp = e.target.value;
                   if (comp === 'DoD Civilian') {
                     // Reset paygrade to the GS-equivalent default when
@@ -5604,10 +5609,10 @@ function Onboarding({ onComplete }) {
                 </div>
               ) : p.component === 'DoD Civilian' ? (
                 <div style={{ marginBottom: 12 }}>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
+                  <label htmlFor="profile-paygrade" style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
                     CIVILIAN GRADE <span style={{ fontWeight: 400, opacity: 0.5, fontSize: 10 }}>(optional)</span>
                   </label>
-                  <select value={p.paygrade} onChange={e => upd('paygrade', e.target.value)} style={inputSt}>
+                  <select id="profile-paygrade" name="paygrade" value={p.paygrade} onChange={e => upd('paygrade', e.target.value)} style={inputSt}>
                     <option value="N/A">N/A — Not Applicable</option>
                     {CIVILIAN_GRADES.map(g => (
                       <option key={g.grade} value={g.grade}>{g.title}</option>
@@ -5616,10 +5621,10 @@ function Onboarding({ onComplete }) {
                 </div>
               ) : (
                 <div style={{ marginBottom: 12 }}>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
+                  <label htmlFor="profile-paygrade" style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
                     {ot('payGradeRank')} <span style={{ fontWeight: 400, opacity: 0.5, fontSize: 10 }}>(optional)</span>
                   </label>
-                  <select value={p.paygrade} onChange={e => upd('paygrade', e.target.value)} style={inputSt}>
+                  <select id="profile-paygrade" name="paygrade" value={p.paygrade} onChange={e => upd('paygrade', e.target.value)} style={inputSt}>
                     <option value="N/A">N/A — Not Applicable</option>
                     {(BRANCH_RANKS[p.branch] || BRANCH_RANKS['Army']).map(r => (
                       <option key={r.grade} value={r.grade}>{r.grade} – {r.title} ({r.abbr})</option>
@@ -5634,10 +5639,10 @@ function Onboarding({ onComplete }) {
                   Prime, HHG, and the rest of the PCS package. */}
               {(p.component === 'Reserve' || p.component === 'National Guard') && (
                 <div style={{ marginBottom: 12 }}>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
+                  <label htmlFor="profile-ordersType" style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
                     ORDERS TYPE
                   </label>
-                  <select value={p.ordersType || ''} onChange={e => upd('ordersType', e.target.value)} style={inputSt}>
+                  <select id="profile-ordersType" name="ordersType" aria-required="true" value={p.ordersType || ''} onChange={e => upd('ordersType', e.target.value)} style={inputSt}>
                     <option value="">— Select your orders type —</option>
                     {ordersTypeCatalog(p.component).map(o => (
                       <option key={o.value} value={o.value}>{o.label}</option>
@@ -5658,11 +5663,11 @@ function Onboarding({ onComplete }) {
 
               {/* Language */}
               <div style={{ marginBottom: 16 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('preferredLanguage')}</label>
-                <select value={p.language} onChange={e => upd('language', e.target.value)} style={inputSt}>
+                <label htmlFor="profile-language" style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('preferredLanguage')}</label>
+                <select id="profile-language" name="language" autoComplete="language" aria-required="true" aria-describedby="profile-language-help" value={p.language} onChange={e => upd('language', e.target.value)} style={inputSt}>
                   {SUPPORTED_LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.native} — {l.name}</option>)}
                 </select>
-                <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{ot('languageHelp')}</div>
+                <div id="profile-language-help" style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>{ot('languageHelp')}</div>
               </div>
 
               <button onClick={() => setStep(-1)} style={{ width: '100%', padding: '10px', marginBottom: 10, borderRadius: 10, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: UI_PALETTE.muted, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
@@ -5706,9 +5711,9 @@ function Onboarding({ onComplete }) {
 
               {/* Departing date */}
               <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('reportNLTDate')}</label>
-                <input type="date" value={p.reportNLTDate || p.departingDate} onChange={e => { upd('reportNLTDate', e.target.value); upd('departingDate', e.target.value); }} style={{ ...inputSt, colorScheme: 'dark' }} />
-                <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{ot('reportNLTHelp')}</div>
+                <label htmlFor="profile-reportNLTDate" style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('reportNLTDate')}</label>
+                <input id="profile-reportNLTDate" name="reportNLTDate" type="date" aria-describedby="profile-reportNLTDate-help" aria-required="true" value={p.reportNLTDate || p.departingDate} onChange={e => { upd('reportNLTDate', e.target.value); upd('departingDate', e.target.value); }} style={{ ...inputSt, colorScheme: 'dark' }} />
+                <div id="profile-reportNLTDate-help" style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>{ot('reportNLTHelp')}</div>
               </div>
 
               <div style={{ display: 'flex', gap: 10 }}>
@@ -5737,12 +5742,12 @@ function Onboarding({ onComplete }) {
                   <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent }}>{ot('childrensAges')}</label>
                   <button onClick={() => upd('childAges', [...p.childAges, ''])} style={{ padding: '5px 12px', borderRadius: 8, background: theme.accent, color: theme.secondary, border: 'none', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>{ot('addChild')}</button>
                 </div>
-                {p.childAges.length === 0 && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '6px 0' }}>{ot('noChildrenYet')}</div>}
+                {p.childAges.length === 0 && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center', padding: '6px 0' }}>{ot('noChildrenYet')}</div>}
                 {p.childAges.map((age, idx) => (
                   <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', minWidth: 60 }}>{ot('childN')} {idx + 1}</div>
                     <input type="number" min="0" max="25" value={age} onChange={e => { const a = [...p.childAges]; a[idx] = e.target.value; upd('childAges', a); }} placeholder={ot('agePlaceholder')} style={{ ...inputSt, width: 80, flexShrink: 0 }} />
-                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{ot('yrs')}</span>
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{ot('yrs')}</span>
                     <button onClick={() => upd('childAges', p.childAges.filter((_, i) => i !== idx))} aria-label={`Remove child ${idx + 1}`} style={{ marginLeft: 'auto', padding: '4px 9px', borderRadius: 7, background: 'rgba(255,80,80,0.2)', border: '1px solid rgba(255,80,80,0.35)', color: '#FF8080', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}><span aria-hidden="true">✕</span></button>
                   </div>
                 ))}
@@ -5755,7 +5760,7 @@ function Onboarding({ onComplete }) {
                 </div>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>{ot('hasPetsLabel')}</div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>{ot('hasPetsHelp')}</div>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>{ot('hasPetsHelp')}</div>
                 </div>
               </div>
 
@@ -5766,7 +5771,7 @@ function Onboarding({ onComplete }) {
                   {['HHG', 'PPM'].map(opt => (
                     <button key={opt} onClick={() => upd('moveType', opt)} className={`pcs-chip ${p.moveType === opt ? 'is-active' : ''}`} style={{ flex: 1, padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${p.moveType === opt ? theme.accent : 'rgba(255,255,255,0.18)'}`, background: p.moveType === opt ? `${theme.accent}25` : 'rgba(255,255,255,0.04)', color: p.moveType === opt ? '#FFF' : 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: p.moveType === opt ? 800 : 600, cursor: 'pointer', textAlign: 'left' }}>
                       <div style={{ fontWeight: 900, fontSize: 13 }}>{ot(opt === 'HHG' ? 'moveTypeHHG' : 'moveTypePPM')}</div>
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 3, lineHeight: 1.4 }}>{ot(opt === 'HHG' ? 'moveTypeHHGHelp' : 'moveTypePPMHelp')}</div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 3, lineHeight: 1.4 }}>{ot(opt === 'HHG' ? 'moveTypeHHGHelp' : 'moveTypePPMHelp')}</div>
                     </button>
                   ))}
                 </div>
@@ -5774,13 +5779,13 @@ function Onboarding({ onComplete }) {
 
               {/* Religious preference */}
               <div style={{ marginBottom: 16 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
+                <label htmlFor="profile-religiousPreference" style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
                   {ot('religiousPreference')} <span style={{ fontWeight: 400, opacity: 0.55, fontSize: 10 }}>{ot('religiousPreferenceNote')}</span>
                 </label>
-                <select value={p.religiousPreference} onChange={e => upd('religiousPreference', e.target.value)} style={inputSt}>
+                <select id="profile-religiousPreference" name="religiousPreference" aria-describedby="profile-religiousPreference-help" value={p.religiousPreference} onChange={e => upd('religiousPreference', e.target.value)} style={inputSt}>
                   {RELIGIOUS_PREFERENCES.map(r => <option key={r} value={r}>{RELIGIOUS_PREF_LABELS[r]?.[onboardingLanguage] || r}</option>)}
                 </select>
-                <div style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{ot('religiousPreferenceHelp')}</div>
+                <div id="profile-religiousPreference-help" style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>{ot('religiousPreferenceHelp')}</div>
               </div>
 
               {/* Zero-Upload value prop (per redesign brief) */}
@@ -6396,7 +6401,7 @@ function HomeLegalBanners({ theme }) {
         </div>
       </div>
       <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, color: '#34495E', fontSize: 11, lineHeight: 1.6 }}>
-        <strong>Official public data disclaimer:</strong> Base, resource, housing, and benefit information is limited to official public U.S. government, military, and public-source references where available; users must verify details with the official source before acting.
+        <strong>Source disclaimer:</strong> Base, resource, housing, and benefit information shown in PCS Express points to official public U.S. government, military, and other public-source references where available. PCS Express is not itself an official source — always verify details with the originating source before acting.
       </div>
       <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 12, padding: 14, color: '#6D4C00', fontSize: 11, lineHeight: 1.6 }}>
         <strong>Independent application notice:</strong> {INDEPENDENCE_DISCLAIMER}
@@ -6566,6 +6571,21 @@ function App() {
   const [showResetWarning, setShowResetWarning] = useState(false);
   const [showCompliance, setShowCompliance] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  // Focus-trap refs for the inline modal dialogs rendered in this
+  // component. Each ref is attached to the modal's outermost <div>
+  // and paired with useFocusTrap so keyboard focus stays inside while
+  // the dialog is open (and restores to the trigger on close). The
+  // ResetWarningModal manages its own trap inside its component body.
+  // The slide-down nav drawer is only mounted on web mobile (not
+  // desktop, not iOS native shell); the ref simply stays null on
+  // platforms where the drawer isn't rendered, and useFocusTrap is
+  // a no-op when containerRef.current is null.
+  const navDrawerRef = useRef(null);
+  const notifsRef = useRef(null);
+  const complianceRef = useRef(null);
+  useFocusTrap(navDrawerRef, navOpen);
+  useFocusTrap(notifsRef, showNotifs);
+  useFocusTrap(complianceRef, showCompliance);
   const [checklistItems, setChecklistItems] = useState(() => {
     return readLegacyJson('pcs_checklist_checks', {});
   });
@@ -7114,7 +7134,7 @@ function App() {
           Renders the same icon-rich item shape as the desktop sidebar:
           emoji glyph + label + 3-letter abbr badge. */}
       {!isDesktop && !isNative && navOpen && (
-        <div style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: 0, right: 0, maxWidth: 480, margin: '0 auto', zIndex: 200, background: theme.secondary, borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
+        <div ref={navDrawerRef} role="dialog" aria-modal="true" aria-label="Navigation" style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: 0, right: 0, maxWidth: 480, margin: '0 auto', zIndex: 200, background: theme.secondary, borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0 }}>
             {LOCALIZED_BOTTOM_NAV.map(item => (
               <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-side-link ${activeTab === item.id ? 'is-active' : ''}`} style={{ padding: '12px 4px', background: activeTab === item.id ? `${theme.accent}25` : 'transparent', border: 'none', borderBottom: `1px solid rgba(255,255,255,0.07)`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.75)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontSize: 9, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', '--side-accent': theme.accent }}>
@@ -7132,12 +7152,12 @@ function App() {
 
       {/* Notification dropdown */}
       {showNotifs && pendingAlerts.length > 0 && (
-        <div role="dialog" aria-modal="true" aria-labelledby="pcs-notif-title" style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: isDesktop ? 230 : 0, right: 0, maxWidth: isDesktop ? '100%' : 480, margin: isDesktop ? 0 : '0 auto', zIndex: 200, background: '#FFFFFF', borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+        <div ref={notifsRef} role="dialog" aria-modal="true" aria-labelledby="pcs-notif-title" style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: isDesktop ? 230 : 0, right: 0, maxWidth: isDesktop ? '100%' : 480, margin: isDesktop ? 0 : '0 auto', zIndex: 200, background: '#FFFFFF', borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
           <div style={{ padding: '10px 16px', borderBottom: '1px solid #F0F0F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div id="pcs-notif-title" style={{ fontSize: 13, fontWeight: 800, color: '#0D1821' }}>
               {overdueCount > 0 ? <>{overdueCount}{' '}{overdueCount !== 1 ? 'Overdue Actions' : 'Overdue Action'}</> : 'Pending Actions'}
             </div>
-            <button onClick={() => setShowNotifs(false)} aria-label="Close notifications" style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: '#888' }}><span aria-hidden="true">✕</span></button>
+            <button onClick={() => setShowNotifs(false)} aria-label="Close notifications" style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: '#56697C' }}><span aria-hidden="true">✕</span></button>
           </div>
           {pendingAlerts.map((alert, i) => (
             <div key={i} onClick={() => { goTo('checklist'); }} style={{ padding: '12px 16px', borderBottom: '1px solid #F8F8F8', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: alert.overdue ? '#FFF5F5' : '#FFFDE7' }}>
@@ -7146,7 +7166,7 @@ function App() {
                 <div style={{ fontSize: 12, fontWeight: 700, color: alert.overdue ? '#C62828' : '#E65100' }}>
                   {alert.overdue ? 'Overdue Action' : 'Due Now'}{': '}{alert.phase}
                 </div>
-                <div style={{ fontSize: 11, color: '#888', marginTop: 1 }}>
+                <div style={{ fontSize: 11, color: '#56697C', marginTop: 1 }}>
                   {alert.count}{' '}{alert.count !== 1 ? 'tasks remaining' : 'task remaining'}{' · '}{alert.daysUntil < 0 ? `${Math.abs(alert.daysUntil)}d past departure` : `${alert.daysUntil}d until departure`}
                 </div>
               </div>
@@ -7360,7 +7380,7 @@ function App() {
           used to live in the bottom nav; moved to a modal so it stays
           one tap away without crowding the PCS-task category bar. */}
       {showCompliance && (
-        <div role="dialog" aria-modal="true" aria-label="Security and data handling" onClick={() => setShowCompliance(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(13, 24, 33, 0.65)', zIndex: 400, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: isDesktop ? 32 : 0 }}>
+        <div ref={complianceRef} role="dialog" aria-modal="true" aria-label="Security and data handling" onClick={() => setShowCompliance(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(13, 24, 33, 0.65)', zIndex: 400, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: isDesktop ? 32 : 0 }}>
           <div onClick={e => e.stopPropagation()} style={{ background: UI_PALETTE.page, width: '100%', maxWidth: isDesktop ? 720 : 480, maxHeight: isDesktop ? '85vh' : '92vh', overflowY: 'auto', borderRadius: isDesktop ? 18 : '18px 18px 0 0', boxShadow: '0 -8px 40px rgba(0,0,0,0.4)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: `1px solid ${UI_PALETTE.line}`, position: 'sticky', top: 0, background: UI_PALETTE.page, zIndex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

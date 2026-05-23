@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Notice — PCS Express</title>
+  <meta name="robots" content="index, follow" />
+  <meta name="description" content="PCS Express privacy notice — what we collect, what stays on your device, and what is sent to which third parties." />
+  <link rel="icon" href="/favicon-v3.ico" sizes="any" />
+  <style>
+    :root {
+      --bg: #F4F6F9;
+      --surface: #FFFFFF;
+      --text: #0D1821;
+      --muted: #56697C;
+      --accent: #C99A3D;
+      --navy: #082A4D;
+      --border: #E0E6EE;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.65;
+    }
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+    nav.topbar {
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: saturate(180%) blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    nav.topbar a {
+      color: var(--navy);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    nav.topbar a:hover { color: var(--accent); }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 950;
+      color: var(--navy);
+    }
+    .brand-mark {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, #0D3B66, #082A4D);
+      color: var(--accent);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 950;
+    }
+    h1 { font-size: 28px; margin: 24px 0 8px; color: var(--navy); }
+    h2 { font-size: 18px; margin: 32px 0 8px; color: var(--navy); }
+    h3 { font-size: 14px; margin: 18px 0 6px; }
+    p, li { color: var(--text); }
+    .meta { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+    .draft-banner {
+      background: #FFF8E1;
+      border: 1px solid #FFE082;
+      color: #6D4C00;
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 20px;
+      font-size: 13px;
+    }
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+    }
+    th { background: #F0F4FF; color: var(--navy); }
+    code {
+      background: #F0F4FF;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    a { color: #0D3B66; }
+    a:hover { color: var(--accent); }
+    footer.legal-footer {
+      margin-top: 60px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <nav class="topbar">
+    <a href="/" class="brand"><span class="brand-mark">PE</span><span>PCS Express</span></a>
+    <span style="flex:1"></span>
+    <a href="/">Home</a>
+    <a href="/terms.html">Terms</a>
+  </nav>
+  <main>
+    <h1>Privacy Notice</h1>
+    <div class="meta">Effective: pending publication · Operator: PCS Express · Contact: <a href="mailto:contact@pcsexpress.app">contact@pcsexpress.app</a></div>
+
+    <div class="draft-banner">
+      <strong>Draft notice.</strong> This document is in legal review. The data practices described here reflect what the app actually does today. The final published version will be reviewed by counsel before going live.
+    </div>
+
+    <h2>1. What PCS Express is</h2>
+    <p>PCS Express is an independent platform that helps U.S. service members, DoD civilians, and military families navigate Permanent Change of Station (PCS) moves. It is <strong>not endorsed by, affiliated with, sponsored by, or coordinated with the U.S. Department of Defense, the Department of Veterans Affairs, or any military branch.</strong></p>
+
+    <h2>2. What this notice covers</h2>
+    <p>The web app at <strong>pcsexpress.app</strong>, the iOS app, and the Android app (collectively, the "App").</p>
+
+    <h2>3. Information we do NOT collect</h2>
+    <ul>
+      <li>We do <strong>not</strong> require accounts, sign-ups, passwords, or any form of login.</li>
+      <li>We do <strong>not</strong> ask for SSN, date of birth, EDIPI/DoD ID, military rank, orders, GBL number, or any officially identifying document.</li>
+      <li>We do <strong>not</strong> accept document uploads or photographs anywhere in the App.</li>
+      <li>We do <strong>not</strong> use third-party analytics, advertising trackers, or session replay services. (See §7 on advertising for a future-state note.)</li>
+      <li>We do <strong>not</strong> sell, rent, or share any information with data brokers.</li>
+    </ul>
+
+    <h2>4. Information stored on YOUR device only</h2>
+    <p>Stored locally, encrypted at rest using AES-256-GCM with a non-extractable IndexedDB key generated in your browser:</p>
+    <ul>
+      <li>Your PCS profile (first name, branch, component, gaining installation, family composition, EFMP status, religious preference, etc.)</li>
+      <li>Checklist progress, reminders, notes</li>
+      <li>Saved routes, saved translations, inventory and pet-relocation worksheets</li>
+      <li>Audit log of the above (event names + timestamps only, no field content)</li>
+    </ul>
+    <p><strong>Nothing in this list is transmitted to PCS Express servers.</strong> Clearing site data or using "Reset" deletes all of it. There is no server-side backup.</p>
+
+    <h2>5. Information sent off your device</h2>
+    <table>
+      <thead>
+        <tr><th>Feature</th><th>What is sent</th><th>Where</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>AI Assistant</td><td>Your typed question + a non-PII context blob (branch, phase, open-task count)</td><td>Anthropic, Inc. (<code>api.anthropic.com</code>) via our server</td><td>Contextual answers</td></tr>
+        <tr><td>Translation widget (opt-in)</td><td>Page content as you read it</td><td>Google LLC (Google Translate)</td><td>Only when you turn translation on</td></tr>
+        <tr><td>Navigation tab</td><td>Addresses you type, origin/destination pairs</td><td>OpenStreetMap (<code>nominatim.openstreetmap.org</code>, <code>router.project-osrm.org</code>)</td><td>Geocoding + routing</td></tr>
+        <tr><td>Demo / contact form</td><td>Name, email, org, role, message, your request IP</td><td>PCS Express server (ephemeral application logs only — no database)</td><td>Respond to inquiries</td></tr>
+        <tr><td>Push notifications (opt-in)</td><td>Browser push subscription endpoint</td><td>PCS Express server</td><td>Send reminders you requested</td></tr>
+      </tbody>
+    </table>
+    <p>We do not retain server-side copies of AI Assistant or Translation traffic. Anthropic and Google process their respective inputs under their own privacy terms.</p>
+
+    <h2>6. Cookies and similar technologies</h2>
+    <p>PCS Express does not set tracking, fingerprinting, or advertising cookies.</p>
+    <ul>
+      <li>A first-party cookie named <code>googtrans</code> is set <strong>only if you opt into Google Translate</strong>, to remember your language across page loads.</li>
+      <li>Your browser stores AES-encrypted site data as IndexedDB / localStorage entries. These are not cookies and are not sent with HTTP requests.</li>
+    </ul>
+
+    <h2>7. Advertising (future-state notice)</h2>
+    <p>PCS Express publishes an <code>ads.txt</code> file declaring a Google AdSense publisher relationship. <strong>Advertising is not currently served on pcsexpress.app.</strong> If and when it begins, this notice will be updated before any ad code loads, and granular consent controls will be added for users in jurisdictions that require them (California, EU/EEA, UK).</p>
+
+    <h2>8. Data we receive automatically</h2>
+    <p>Your browser/device sends standard HTTP information (IP, user agent, language, request path, status) to our servers, our hosting providers (Vercel, Inc. and Railway Corp.), and CDNs. Used for security and abuse prevention. Not associated with any user identifier. Retained per the hosting providers' platform-level log retention.</p>
+
+    <h2>9. Children</h2>
+    <p>The App is intended for adult service members, DoD civilians, and adult family members. It is not directed at children under 13 (COPPA). If you believe a minor has provided personal information, email <a href="mailto:contact@pcsexpress.app">contact@pcsexpress.app</a> and we will delete it.</p>
+
+    <h2>10. Your rights</h2>
+    <p>Depending on where you live, you may have the right to request a copy of your personal information, request correction or deletion, opt out of any sale or sharing (we don't do either), or withdraw consent for any opt-in feature.</p>
+    <p>For California residents (CCPA/CPRA): the categories of personal information collected are listed in §5. We do not "sell" or "share" personal information as defined.</p>
+    <p>For EU / UK / EEA residents (GDPR Art. 13): the lawful basis for each off-device transfer in §5 is your consent (translation, push notifications, demo form) or our legitimate interest in providing the service you requested (AI Assistant, Navigation).</p>
+    <p>To exercise these rights, email <a href="mailto:contact@pcsexpress.app">contact@pcsexpress.app</a>.</p>
+
+    <h2>11. Security</h2>
+    <ul>
+      <li>HTTPS enforced for every request (HSTS with <code>preload</code>).</li>
+      <li>Strict Content Security Policy (<code>default-src 'self'</code>, no inline scripts under default profile).</li>
+      <li>Push endpoints restricted by hostname allowlist.</li>
+      <li>AI prompts sanitized for prompt-injection and capped in length.</li>
+    </ul>
+
+    <h2>12. International data transfers</h2>
+    <p>Servers in the United States. Data accessed from outside the U.S. is transferred to and processed in the U.S.</p>
+
+    <h2>13. Changes</h2>
+    <p>We will update this notice when practices change. The effective date will be updated and material changes flagged in the Compliance screen.</p>
+
+    <h2>14. Contact</h2>
+    <p>Questions or requests: <a href="mailto:contact@pcsexpress.app">contact@pcsexpress.app</a><br>
+    Security vulnerabilities: see <a href="/.well-known/security.txt">/.well-known/security.txt</a></p>
+
+    <footer class="legal-footer">
+      © PCS Express. Independent platform — not endorsed by or affiliated with the DoD, VA, or any military branch.
+    </footer>
+  </main>
+</body>
+</html>

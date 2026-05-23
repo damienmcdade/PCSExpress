@@ -495,9 +495,9 @@ export default function ImmigrationModule({ theme, profile }) {
                   <div style={{ border: '1px solid #E0E6EE', borderTop: 'none', borderRadius: '0 0 10px 10px', overflow: 'hidden' }}>
                     {items.map((item, idx) => (
                       <div key={item.id} style={{ padding: '12px 14px', borderTop: idx > 0 ? '1px solid #F0F4F8' : 'none', background: checked[item.id] ? '#F0FFF4' : '#FFF', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                        <div onClick={() => toggle(item.id)} style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${checked[item.id] ? theme.primary : '#C8D0DB'}`, background: checked[item.id] ? theme.primary : '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, marginTop: 1 }}>
-                          {checked[item.id] && <span style={{ color: '#FFF', fontSize: 13, fontWeight: 900 }}>✓</span>}
-                        </div>
+                        <button type="button" role="checkbox" aria-checked={!!checked[item.id]} aria-label={item.text} onClick={() => toggle(item.id)} className="pcs-check-item" style={{ width: 22, height: 22, padding: 0, borderRadius: 6, border: `2px solid ${checked[item.id] ? theme.primary : '#C8D0DB'}`, background: checked[item.id] ? theme.primary : '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, marginTop: 1 }}>
+                          {checked[item.id] && <span aria-hidden="true" style={{ color: '#FFF', fontSize: 13, fontWeight: 900 }}>✓</span>}
+                        </button>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 11, fontWeight: 700, color: checked[item.id] ? '#2E7D32' : '#0D1821', marginBottom: 3, textDecoration: checked[item.id] ? 'line-through' : 'none' }}>{item.text}</div>
                           {item.note && <div style={{ fontSize: 10, color: '#56697C', marginBottom: 6, lineHeight: 1.4 }}>{item.note}</div>}

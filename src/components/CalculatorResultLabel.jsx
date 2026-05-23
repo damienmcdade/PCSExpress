@@ -24,7 +24,7 @@
  */
 
 export const PLANNING_AID_DISCLAIMER =
-  'This is a planning aid. Your actual entitlement is determined by your finance office based on your official orders.';
+  'This is a planning aid — informational only, not financial advice. Your actual entitlement is determined by your finance office based on your official orders.';
 
 const TIER_STYLES = {
   official: {

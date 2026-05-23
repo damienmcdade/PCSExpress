@@ -117,11 +117,11 @@ export default function DemoRequestForm({ onClose }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
         <div>
           <Label htmlFor="dr-name" required>Name</Label>
-          <input id="dr-name" type="text" value={form.name} onChange={set('name')} autoComplete="name" maxLength={160} style={FIELD.base} placeholder="Your full name" />
+          <input id="dr-name" type="text" value={form.name} onChange={set('name')} autoComplete="name" maxLength={160} required aria-required="true" aria-invalid={status === 'error' ? 'true' : undefined} aria-describedby={status === 'error' && errorMsg ? 'dr-form-error' : undefined} style={FIELD.base} placeholder="Your full name" />
         </div>
         <div>
           <Label htmlFor="dr-email" required>Email</Label>
-          <input id="dr-email" type="email" value={form.email} onChange={set('email')} autoComplete="email" maxLength={160} style={FIELD.base} placeholder="you@example.com" />
+          <input id="dr-email" type="email" value={form.email} onChange={set('email')} autoComplete="email" maxLength={160} required aria-required="true" aria-invalid={status === 'error' ? 'true' : undefined} aria-describedby={status === 'error' && errorMsg ? 'dr-form-error' : undefined} style={FIELD.base} placeholder="you@example.com" />
         </div>
         <div>
           <Label htmlFor="dr-org">Organization</Label>
@@ -133,19 +133,19 @@ export default function DemoRequestForm({ onClose }) {
         </div>
         <div style={{ gridColumn: '1 / -1' }}>
           <Label htmlFor="dr-interest" required>Interest</Label>
-          <select id="dr-interest" value={form.interest} onChange={set('interest')} style={FIELD.base}>
+          <select id="dr-interest" value={form.interest} onChange={set('interest')} required aria-required="true" style={FIELD.base}>
             {INTERESTS.map(i => <option key={i.value} value={i.value}>{i.label}</option>)}
           </select>
         </div>
         <div style={{ gridColumn: '1 / -1' }}>
           <Label htmlFor="dr-message" required>Message</Label>
-          <textarea id="dr-message" value={form.message} onChange={set('message')} maxLength={1500} rows={5} style={{ ...FIELD.base, fontFamily: 'inherit', resize: 'vertical' }} placeholder="A few sentences about how you'd potentially use or partner with PCS Express." />
+          <textarea id="dr-message" value={form.message} onChange={set('message')} maxLength={1500} rows={5} required aria-required="true" aria-invalid={status === 'error' ? 'true' : undefined} aria-describedby={status === 'error' && errorMsg ? 'dr-form-error' : undefined} style={{ ...FIELD.base, fontFamily: 'inherit', resize: 'vertical' }} placeholder="A few sentences about how you'd potentially use or partner with PCS Express." />
           <div style={{ fontSize: 11, color: '#56697C', marginTop: 6 }}>{form.message.length} / 1500</div>
         </div>
       </div>
 
       {status === 'error' && errorMsg && (
-        <div role="alert" style={{ marginTop: 16, background: '#FFEBEE', border: '1px solid #EF9A9A', color: '#B71C1C', padding: '10px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700 }}>
+        <div id="dr-form-error" role="alert" style={{ marginTop: 16, background: '#FFEBEE', border: '1px solid #EF9A9A', color: '#B71C1C', padding: '10px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700 }}>
           {errorMsg}
         </div>
       )}
@@ -174,7 +174,7 @@ export default function DemoRequestForm({ onClose }) {
           </button>
         )}
         <div style={{ fontSize: 11, color: '#56697C', flex: 1, minWidth: 200 }}>
-          We respond directly. PCS Express does not share your contact information or add you to any list.
+          We respond directly. PCS Express does not share your contact information or add you to any list. Your submission (name, email, organization, role, message) plus your request IP is sent to the PCS Express server and written to ephemeral application logs for spam-prevention and follow-up; it is not persisted in a database.
         </div>
       </div>
     </form>

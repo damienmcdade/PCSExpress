@@ -9,7 +9,7 @@
  * byte-for-byte identical with the LandingPage, ComplianceAttestation, and
  * App.jsx Help-Hub copies.
  */
-import { INDEPENDENCE_DISCLAIMER } from '../config/disclaimer';
+import { INDEPENDENCE_DISCLAIMER, NOT_ADVICE_DISCLAIMER } from '../config/disclaimer';
 
 export default function AppShellFooter() {
   const buildSha = import.meta.env.VITE_BUILD_SHA || 'unknown';
@@ -33,6 +33,9 @@ export default function AppShellFooter() {
     >
       <div style={{ fontWeight: 700, color: '#324050' }}>
         {INDEPENDENCE_DISCLAIMER}
+      </div>
+      <div style={{ marginTop: 4, color: '#56697C' }}>
+        {NOT_ADVICE_DISCLAIMER}
       </div>
       <div
         title="Deployment version"

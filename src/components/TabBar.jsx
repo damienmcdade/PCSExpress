@@ -21,7 +21,10 @@ export default function TabBar({ ariaLabel, children, className = '', style }) {
     const aRect = active.getBoundingClientRect();
     const sRect = scroller.getBoundingClientRect();
     if (aRect.left < sRect.left || aRect.right > sRect.right) {
-      active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      const prefersReducedMotion = typeof window !== 'undefined'
+        && window.matchMedia
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      active.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', inline: 'center', block: 'nearest' });
     }
   });
 
