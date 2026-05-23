@@ -577,7 +577,7 @@ const INSTALLATION_DIRECTORY = {
     tricare: { region: 'East', mtf: 'Naval Hospital Beaufort', phone: '(843) 228-5300', primeAvailable: true, selectAvailable: true },
     schools: { district: 'Beaufort County School District', rating: 4.2, dodea: false, liaison: '(843) 228-7220' },
     contacts: { housing: '(843) 228-7220', transportation: '(843) 228-7220', finance: '(843) 228-7220', acs: '(843) 228-7220' },
-    website: 'https://www.mcasbeaufort.marines.mil',
+    website: 'https://www.beaufort.marines.mil',
   },
   'MCB Hawaii': {
     state: 'HI', branch: 'Marine Corps', city: 'Kaneohe Bay (Oahu)',
@@ -674,7 +674,7 @@ const INSTALLATION_DIRECTORY = {
     tricare: { region: 'West', mtf: '21st Medical Group Peterson / civilian network', phone: '(719) 556-7000', primeAvailable: true, selectAvailable: true },
     schools: { district: 'Falcon SD 49', rating: 4.2, dodea: false, liaison: '(719) 567-0300' },
     contacts: { housing: '(719) 567-0300', transportation: '(719) 567-0300', finance: '(719) 567-0300', acs: '(719) 567-0300' },
-    website: 'https://www.schriever.spaceforce.mil',
+    website: 'https://www.petersonschriever.spaceforce.mil',
   },
   'F.E. Warren AFB': {
     state: 'WY', branch: 'Air Force', city: 'Cheyenne',
@@ -906,7 +906,7 @@ const INSTALLATION_DIRECTORY = {
     tricare: { region: 'West', mtf: 'Tripler Army Medical Center / Naval Health Clinic', phone: '(808) 448-6000', primeAvailable: true, selectAvailable: true },
     schools: { district: 'Hawaii DOE (Statewide)', rating: 4.5, dodea: true, dodealabel: 'Hickam Elementary (DoDEA)', liaison: '(808) 449-6000' },
     contacts: { housing: '(808) 449-6000', transportation: '(808) 449-6000', finance: '(808) 449-6000', acs: '(808) 449-6000' },
-    website: 'https://www.jbphh.jb.mil',
+    website: 'https://www.greatlifehawaii.com',
   },
   'Ramstein AB': {
     state: 'DEU', branch: 'Air Force', city: 'Kaiserslautern, Germany', oconus: true,
@@ -972,7 +972,7 @@ const INSTALLATION_DIRECTORY = {
     tricare: { region: 'West', mtf: 'Fort Hunter Liggett Health Clinic', phone: '(831) 386-2531', primeAvailable: true, selectAvailable: true },
     schools: { district: 'King City Union School District', rating: 3.6, dodea: false, liaison: '(831) 386-2531' },
     contacts: { housing: '(831) 386-2531', transportation: '(831) 386-2531', finance: '(831) 386-2531', acs: '(831) 386-2531' },
-    website: 'https://www.liggett.army.mil',
+    website: 'https://home.army.mil/liggett',
   },
   'Hunter Army Airfield': {
     state: 'GA', branch: 'Army', city: 'Savannah',

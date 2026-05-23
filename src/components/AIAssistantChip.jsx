@@ -135,7 +135,7 @@ const CURATED_KB = [
 
   { tags: ['tricare','health','insurance','medical','enrollment','dental','overseas'], citation: 'In-app: Mission Resources → Help Hub → Healthcare / tricare.mil',
     q: 'How do I enroll in TRICARE or find a provider?',
-    a: 'Mission Resources → Help Hub → Healthcare tab lists TRICARE (tricare.mil), MHS GENESIS Patient Portal (patient.mhsgenesis.health.mil) for records and appointments, TRICARE Pharmacy via Express Scripts, TRICARE Dental Program, TRICARE For Life (Medicare-wraparound), and TRICARE Overseas / TOP for OCONUS beneficiaries. For PCS, update DEERS first (milConnect), then re-enroll TRICARE Prime at the gaining region.' },
+    a: 'Mission Resources → Help Hub → Healthcare tab lists TRICARE (tricare.mil), MHS GENESIS Patient Portal (my.mhsgenesis.health.mil) for records and appointments, TRICARE Pharmacy via Express Scripts, TRICARE Dental Program, TRICARE For Life (Medicare-wraparound), and TRICARE Overseas / TOP for OCONUS beneficiaries. For PCS, update DEERS first (milConnect), then re-enroll TRICARE Prime at the gaining region.' },
 
   { tags: ['onesource','military onesource','counseling','legal','financial','24/7'], citation: 'In-app: Mission Resources → Help Hub → Family / militaryonesource.mil',
     q: 'What does Military OneSource cover?',

@@ -265,7 +265,7 @@ export default function JTRAssistantModule({ theme }) {
       <div style={{ display: 'grid', gap: 8 }}>
         <a href="https://www.travel.dod.mil/Policy-Regulations/Joint-Travel-Regulations/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>Official Joint Travel Regulations (JTR)</a>
         <a href="https://www.gsa.gov/policy-regulations/regulations/federal-travel-regulation" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">Federal Travel Regulation (FTR) — civilians</a>
-        <a href="https://aoprals.state.gov/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">DSSR — overseas allowance rules</a>
+        <a href="https://allowances.state.gov/Default.asp" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">DSSR — overseas allowance rules</a>
         <a href="https://www.irs.gov/forms-pubs/about-publication-3" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">IRS Publication 3 — Armed Forces Tax Guide</a>
       </div>
     </div>

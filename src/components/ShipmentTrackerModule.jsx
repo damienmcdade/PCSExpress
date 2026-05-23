@@ -34,7 +34,7 @@ const MILESTONES = [
   { id: 'pre-move-survey',label: 'Pre-Move Survey Complete',          slaDays:  10, link: '', desc: 'TSP completes the in-home or virtual survey. Weight estimate locks here — request a copy.' },
   { id: 'packing',        label: 'Packing Day',                       slaDays:  14, link: '', desc: 'Packing crew arrives. Check every box label against your inventory before sealing.' },
   { id: 'loaded',         label: 'Loaded / Pickup Complete',          slaDays:  15, link: '', desc: 'Truck loaded, weight ticket signed, DD 1840 / DD 1840R issued. Photograph the truck plate and BOL.' },
-  { id: 'in-transit',     label: 'In Transit',                        slaDays:  30, link: 'https://www.move.mil/customer/login', desc: 'Tracking begins. Most CONUS loads deliver inside the spread window; OCONUS sea-freight runs 60-90 days.' },
+  { id: 'in-transit',     label: 'In Transit',                        slaDays:  30, link: 'https://dps.move.mil/', desc: 'Tracking begins. Most CONUS loads deliver inside the spread window; OCONUS sea-freight runs 60-90 days.' },
   { id: 'arrival-call',   label: 'Notice of Arrival Received',        slaDays:  45, link: '', desc: 'TSP calls 24-48 hours before delivery to schedule. Confirm gaining address and access details.' },
   { id: 'delivered',      label: 'Delivered',                         slaDays:  46, link: '', desc: 'Truck unloaded, items checked off the inventory. Note any pre-existing damage on the DD 1840R BEFORE the driver leaves.' },
   { id: 'claim-loss',     label: 'Loss / Damage Claim Filed',         slaDays:  76, link: 'https://dps.move.mil', desc: 'File the DPS damage claim within 75 days of delivery (DD 1840R supplement). Soft deadline 75; hard deadline 9 months.' },
@@ -225,8 +225,8 @@ export default function ShipmentTrackerModule({ theme, profile: _profile }) {
 
       <div style={{ display: 'grid', gap: 8 }}>
         <a href="https://dps.move.mil" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>DPS / move.mil — Manage shipment</a>
-        <a href="https://www.move.mil/resources" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">Move.mil — Customer Service / SCAC lookup</a>
-        <a href="https://www.move.mil/customer/login" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">Customer portal (rate your TSP)</a>
+        <a href="https://dps.move.mil/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">Move.mil — Customer Service / SCAC lookup</a>
+        <a href="https://dps.move.mil/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">Customer portal (rate your TSP)</a>
       </div>
     </div>
   );

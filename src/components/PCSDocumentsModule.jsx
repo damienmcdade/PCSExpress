@@ -138,7 +138,7 @@ const BRANCH_EXTRA = {
   },
   'Air Force': {
     orders: [
-      { id: 'af_mypers',        name: 'AF PCS Orders via myPers',          form: 'AF Orders',               required: true,  desc: 'Official AF PCS orders from AFPC — verify in myPers portal and print all endorsements', formUrl: 'https://mypers.us.af.mil' },
+      { id: 'af_mypers',        name: 'AF PCS Orders via myPers',          form: 'AF Orders',               required: true,  desc: 'Official AF PCS orders from AFPC — verify in myPers portal and print all endorsements', formUrl: 'https://mypers.af.mil' },
       { id: 'af988_leave',      name: 'Leave Request (AF Form 988)',       form: 'AF Form 988',             required: true,  desc: 'Request and Authority for Leave covering PCS travel days — signed by commander' },
       { id: 'af4380_pcs_plan',  name: 'PCS Travel Planning',               form: 'AF Form 4380',            required: true,  desc: 'AF Form 4380 PCS Travel Planning — completed at Airman & Family Readiness Center before departure' },
     ],
@@ -151,7 +151,7 @@ const BRANCH_EXTRA = {
   },
   'Space Force': {
     orders: [
-      { id: 'sf_mypers',        name: 'Space Force PCS Orders via myPers', form: 'SF Orders',               required: true,  desc: 'Official Space Force PCS orders via myPers (shared AF/SF system)', formUrl: 'https://mypers.us.af.mil' },
+      { id: 'sf_mypers',        name: 'Space Force PCS Orders via myPers', form: 'SF Orders',               required: true,  desc: 'Official Space Force PCS orders via myPers (shared AF/SF system)', formUrl: 'https://mypers.af.mil' },
       { id: 'sf_af988_leave',   name: 'Leave Request (AF Form 988)',       form: 'AF Form 988',             required: true,  desc: 'Space Force uses the AF leave form — request and authority for PCS travel leave, signed by commander' },
     ],
     family: [

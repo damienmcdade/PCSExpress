@@ -37,7 +37,7 @@ export const DATA_VERSIONS = {
     effective: '2026-01-01',
     cadence: 'annual',
     source: 'DSSR §920 (Department of State) + DCPAS LQA Worksheet',
-    url: 'https://aoprals.state.gov/Web920/dssr.asp',
+    url: 'https://allowances.state.gov/Default.asp',
   },
   ppm: {
     label: 'PPM (DITY) calculator',

@@ -181,7 +181,7 @@ export default function MedicalReadinessTab({ theme, profile }) {
       : [
           { name: 'MTF (Military Treatment Facility) Locator', desc: 'Official TRICARE directory of every military hospital and clinic worldwide. Filter by branch, region, and service line.', url: 'https://tricare.mil/mtf', source: 'tricare.mil', badge: 'MTF' },
           { name: 'TRICARE Find a Doctor — Hospital', desc: `${contractor.name} hospital network search by ZIP. Active duty must obtain referral for non-emergency hospital care.`, url: findCareUrl, source: 'tricare.mil', badge: region },
-          { name: 'MHS GENESIS Patient Portal', desc: 'Official Military Health System patient portal: book appointments, message care teams, review medical records.', url: 'https://patient.mhsgenesis.health.mil/', source: 'health.mil' },
+          { name: 'MHS GENESIS Patient Portal', desc: 'Official Military Health System patient portal: book appointments, message care teams, review medical records.', url: 'https://my.mhsgenesis.health.mil/', source: 'health.mil' },
           { name: `Defense Health Agency — Hospitals & Clinics`, desc: 'Authoritative list of DHA-managed military hospitals and clinics worldwide.', url: 'https://www.tricare.mil/mtf', source: 'tricare.mil' },
           { name: `Google Maps — hospital near ${installation}`, desc: 'Civilian hospitals near the gaining installation, useful for after-hours or specialty care not available at the MTF.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`hospital near ${installation}`)}`, source: 'maps.google.com' },
         ],
@@ -248,7 +248,7 @@ export default function MedicalReadinessTab({ theme, profile }) {
       : [
           { name: 'TRICARE Pharmacy — Express Scripts', desc: 'Official TRICARE pharmacy benefit. Find a pharmacy, refill prescriptions, use mail-order delivery.', url: 'https://tricare.mil/CoveredServices/Pharmacy', source: 'tricare.mil', badge: 'ESI' },
           { name: 'Find a Network Pharmacy', desc: 'TRICARE-network retail pharmacy search by ZIP, plus military pharmacy locations.', url: 'https://militaryrx.express-scripts.com/find-pharmacy', source: 'express-scripts.com' },
-          { name: 'MHS GENESIS — Refill Prescriptions', desc: 'Refill MTF pharmacy prescriptions through the MHS GENESIS patient portal.', url: 'https://patient.mhsgenesis.health.mil/', source: 'health.mil' },
+          { name: 'MHS GENESIS — Refill Prescriptions', desc: 'Refill MTF pharmacy prescriptions through the MHS GENESIS patient portal.', url: 'https://my.mhsgenesis.health.mil/', source: 'health.mil' },
           { name: `Google Maps — pharmacy near ${installation}`, desc: 'Civilian retail pharmacies near the gaining installation.', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`pharmacy near ${installation}`)}`, source: 'maps.google.com' },
         ],
     readiness: isCivilian

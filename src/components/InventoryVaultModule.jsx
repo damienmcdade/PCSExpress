@@ -256,7 +256,7 @@ export default function InventoryVaultModule({ theme, profile }) {
           Export DD 1840R-ready claim worksheet (PDF)
         </button>
         <a href="https://dps.move.mil" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">Open DPS — file damage claim</a>
-        <a href="https://www.move.mil/customer/login" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">Move.mil customer portal</a>
+        <a href="https://dps.move.mil/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">Move.mil customer portal</a>
       </div>
     </div>
   );

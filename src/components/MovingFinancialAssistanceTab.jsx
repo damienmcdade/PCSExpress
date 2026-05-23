@@ -146,7 +146,7 @@ const CIVILIAN_RESOURCES = [
     branches: ['DoD Civilian'],
     audience: 'DoD civilians PCSing to OCONUS assignments',
     desc: 'Department of State Standardized Regulations — authoritative LQA, TQSA, Post Allowance, and Education Allowance rates for U.S. government civilians overseas.',
-    url: 'https://aoprals.state.gov',
+    url: 'https://allowances.state.gov/Default.asp',
   },
   {
     name: 'TSP Hardship Withdrawal Guidance',

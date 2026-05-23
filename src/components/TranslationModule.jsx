@@ -203,7 +203,7 @@ export default function TranslationModule({ theme, profile }) {
       name: 'DoD Foreign Language Center (DLIFLC) — public modules',
       audience: 'Service members',
       desc: 'Defense Language Institute Foreign Language Center publishes free self-study survival language modules and culture briefings for service members. No tuition; available worldwide.',
-      url: 'https://www.dliflc.edu/resources/products-and-tools/',
+      url: 'https://www.dliflc.edu/',
     },
     {
       visible: isUniformed,
@@ -247,7 +247,7 @@ export default function TranslationModule({ theme, profile }) {
       name: 'DSSR-related host-nation language assistance',
       audience: 'DoD Civilians (OCONUS)',
       desc: 'OCONUS DoD civilians can request reimbursement for language training under DSSR §240 (TQSA) settling-in expenses. Coordinate with your servicing HR / DCPAS office before paying out-of-pocket.',
-      url: 'https://aoprals.state.gov/content.asp?content_id=204&menu_id=92',
+      url: 'https://allowances.state.gov/Default.asp',
     },
     {
       visible: true,

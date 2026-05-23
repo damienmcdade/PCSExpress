@@ -1926,9 +1926,7 @@ function SchoolsTab({ theme, profile }) {
 
   const handleSearch = () => {
     const _grade = gradeForAge(parseInt(searchAge) || 10);
-    const url = searchZip
-      ? `https://nces.ed.gov/ccd/schoolsearch//search/search.page?zip=${searchZip}`
-      : 'https://nces.ed.gov/ccd/schoolsearch/';
+    const url = 'https://nces.ed.gov/ccd/schoolsearch/';
     window.open(url, '_blank');
   };
 
@@ -2570,7 +2568,7 @@ const INSTALLATION_COLLEGES = {
     { name: 'Virginia Wesleyan University', type: 'Private', degree: '4-Year University', rating: 3.7, desc: 'Liberal arts university in Norfolk/Virginia Beach. Small classes and strong veteran services. Yellow Ribbon certified.', applyUrl: '', siteUrl: 'https://www.vwu.edu' },
   ],
   'Marine Corps Base Camp Lejeune': [
-    { name: 'Coastal Carolina Community College', type: 'Public', degree: '2-Year College', rating: 3.9, desc: 'The primary college for Camp Lejeune Marines. Located in Jacksonville, NC. On-post classes available. TA accepted.', applyUrl: 'https://www.coastalcarolina.cc.nc.us/apply/', siteUrl: 'https://www.coastalcarolina.cc.nc.us' },
+    { name: 'Coastal Carolina Community College', type: 'Public', degree: '2-Year College', rating: 3.9, desc: 'The primary college for Camp Lejeune Marines. Located in Jacksonville, NC. On-post classes available. TA accepted.', applyUrl: 'https://www.carteret.edu/apply/', siteUrl: 'https://www.carteret.edu' },
     { name: 'University of Mount Olive', type: 'Private', degree: '4-Year University', rating: 3.7, desc: 'Veteran-friendly private university with a Jacksonville campus near Camp Lejeune. Business, criminal justice, and education.', applyUrl: 'https://www.umo.edu/admissions/apply/', siteUrl: 'https://www.umo.edu' },
     { name: 'East Carolina University', type: 'Public', degree: '4-Year University', rating: 3.9, desc: 'Major public university in Greenville, NC. Top-ranked business, nursing, and engineering programs. 1 hour from Camp Lejeune.', applyUrl: 'https://admissions.ecu.edu/apply/', siteUrl: 'https://www.ecu.edu' },
   ],
@@ -2782,7 +2780,7 @@ const INSTALLATION_COLLEGES = {
     { name: 'University of Mary Washington', type: 'Public', degree: '4-Year University', rating: 4.0, desc: 'Public liberal arts university in Fredericksburg. Business, computer science, and education. 15 miles from MCB Quantico.', applyUrl: '', siteUrl: 'https://www.umw.edu' },
   ],
   'MCAS New River': [
-    { name: 'Coastal Carolina Community College', type: 'Public', degree: '2-Year College', rating: 3.9, desc: 'Primary college for Jacksonville, NC military community. On-post classes available. TA accepted. Healthcare and IT programs.', applyUrl: 'https://www.coastalcarolina.cc.nc.us/apply/', siteUrl: 'https://www.coastalcarolina.cc.nc.us' },
+    { name: 'Coastal Carolina Community College', type: 'Public', degree: '2-Year College', rating: 3.9, desc: 'Primary college for Jacksonville, NC military community. On-post classes available. TA accepted. Healthcare and IT programs.', applyUrl: 'https://www.carteret.edu/apply/', siteUrl: 'https://www.carteret.edu' },
     { name: 'East Carolina University', type: 'Public', degree: '4-Year University', rating: 3.9, desc: 'Major public university in Greenville. Nursing, business, and engineering. 1 hour from MCAS New River. TA and GI Bill accepted.', applyUrl: 'https://admissions.ecu.edu/apply/', siteUrl: 'https://www.ecu.edu' },
     { name: 'University of Mount Olive', type: 'Private', degree: '4-Year University', rating: 3.7, desc: 'Veteran-friendly private university with Jacksonville campus near MCAS New River. Business, criminal justice, and education.', applyUrl: 'https://www.umo.edu/admissions/apply/', siteUrl: 'https://www.umo.edu' },
   ],
@@ -3719,7 +3717,7 @@ function EducationBenefitsTab({ theme, profile }) {
     Army: {
       portal: 'ArmyIgnitED',
       url: 'https://www.armyignited.army.mil/student/',
-      source: 'https://www.eis.army.mil/programs/armyignited',
+      source: 'https://www.armyignited.com',
       summary: 'Army Tuition Assistance is requested through ArmyIgnitED after the Soldier establishes an education goal and works with an education counselor when required.',
       steps: [
         'Contact your Army Education Center or ArmyIgnitED support if this is your first TA request.',
@@ -4062,7 +4060,7 @@ function ResourcesTab({ theme, profile }) {
   const RESOURCES = {
     healthcare: [
       { name: 'TRICARE', desc: 'Military health insurance — find plans, providers, and enrollment info', url: 'https://www.tricare.mil', tag: 'All Branches' },
-      { name: 'MHS GENESIS Patient Portal', desc: 'Book appointments, view records, and message care teams through the official MHS portal', url: 'https://patient.mhsgenesis.health.mil/', tag: 'All Branches' },
+      { name: 'MHS GENESIS Patient Portal', desc: 'Book appointments, view records, and message care teams through the official MHS portal', url: 'https://my.mhsgenesis.health.mil/', tag: 'All Branches' },
       { name: 'TRICARE Claims', desc: 'Official TRICARE claims, EOB, and claims filing information', url: 'https://www.tricare.mil/PatientResources/Claims', tag: 'All Branches' },
       { name: 'TRICARE For Life', desc: 'Official Medicare-wraparound coverage information for eligible retirees', url: 'https://www.tricare.mil/Plans/HealthPlans/TFL', tag: 'Retirees' },
       { name: 'TRICARE Dental Program (TDP)', desc: 'Dental benefits enrollment, find a provider, and submit claims', url: 'https://www.tricare.mil/CoveredServices/Dental/TDP', tag: 'All Branches' },
@@ -4070,7 +4068,7 @@ function ResourcesTab({ theme, profile }) {
       { name: 'TRICARE Overseas Program (TOP)', desc: 'Managed care option for overseas military beneficiaries', url: 'https://www.tricare-overseas.com/', tag: 'OCONUS' },
       { name: 'TRICARE Pharmacy — ESI', desc: 'Prescription drug benefits managed by Express Scripts for TRICARE', url: 'https://tricare.mil/CoveredServices/Pharmacy', tag: 'All Branches' },
       { name: 'TRICARE East', desc: 'TRICARE East Region managed care, provider search, and benefit management', url: 'https://www.tricare.mil/Plans/HealthPlans/Prime', tag: 'All Branches' },
-      { name: 'My MHS GENESIS', desc: 'Military Health System patient portal — records, appointments, secure messaging', url: 'https://patient.mhsgenesis.health.mil/', tag: 'All Branches' },
+      { name: 'My MHS GENESIS', desc: 'Military Health System patient portal — records, appointments, secure messaging', url: 'https://my.mhsgenesis.health.mil/', tag: 'All Branches' },
       { name: 'Military OneSource Health', desc: 'Free health consultations and wellness referrals for service members', url: 'https://www.militaryonesource.mil/health-wellness', tag: 'All Branches' },
       { name: 'VA Health Care', desc: 'Veteran health benefits, eligibility, and enrollment', url: 'https://www.va.gov/health-care', tag: 'Veterans' },
     ],
@@ -6317,7 +6315,7 @@ function DodCivilianHousingPanel({ theme, profile: _profile, oconus }) {
           <>
             <ResourceCard theme={theme}
               label="DSSR — Standardized Regulations (LQA, TQSA, Post Allowance)"
-              url="https://aoprals.state.gov"
+              url="https://allowances.state.gov/Default.asp"
               desc="Authoritative Department of State allowance rates and eligibility tables for U.S. government civilians stationed overseas." />
             <ResourceCard theme={theme}
               label="LQA Worksheet & Eligibility Guide (DoD Civilian)"

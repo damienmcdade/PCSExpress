@@ -141,7 +141,7 @@ export default function LQACalculatorTab({ theme, profile }) {
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
           {GRADE_GROUPS.find(g => g.value === group)?.label.split(' — ')[0]} · {FAMILY_BUCKETS.find(b => b.value === familySize)?.label} · {post}
         </div>
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 6 }}>≈ {fmt(monthlyLqa)} / month — reference rate, verify on aoprals.state.gov/dssr</div>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 6 }}>≈ {fmt(monthlyLqa)} / month — reference rate, verify on allowances.state.gov</div>
         <CalculatorResultLabel
           tier="estimate"
           note="LQA / TQSA ceilings shown are representative DSSR §920 values not yet confirmed against the current Department of State publication."
@@ -233,21 +233,21 @@ export default function LQACalculatorTab({ theme, profile }) {
 
       {/* Disclaimer */}
       <div style={{ background: '#FFF3E0', border: '1px solid #FFB74D', borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 11, color: '#6D4C00', lineHeight: 1.6 }}>
-        <strong>Disclaimer:</strong> Rates shown are reference estimates derived from published DSSR ceilings. Department of State updates LQA ceilings quarterly and TQSA per-diem caps periodically. Always verify your exact entitlement on aoprals.state.gov/dssr and through the gaining DoD HR / DCPAS office before signing a lease or filing SF-1190.
+        <strong>Disclaimer:</strong> Rates shown are reference estimates derived from published DSSR ceilings. Department of State updates LQA ceilings quarterly and TQSA per-diem caps periodically. Always verify your exact entitlement on allowances.state.gov and through the gaining DoD HR / DCPAS office before signing a lease or filing SF-1190.
       </div>
 
       {/* Official links */}
       <div style={{ display: 'grid', gap: 8 }}>
-        <a href="https://aoprals.state.gov/Web920/dssr.asp" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary || '#244247' }}>
+        <a href="https://allowances.state.gov/Default.asp" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary || '#244247' }}>
           Official DSSR Rate Lookup (Department of State)
         </a>
-        <a href="https://www.dcpas.osd.mil/policy/relocation/lqa" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">
+        <a href="https://www.dcpas.osd.mil/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">
           DCPAS — LQA Worksheet & Eligibility Guide
         </a>
         <a href="https://www.travel.dod.mil/Policy-Regulations/Joint-Travel-Regulations/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">
           DoD JTR Chapter 5 — DoD Civilian Travel
         </a>
-        <a href="https://www.gsa.gov/policy-regulations/regulations/federal-travel-regulation-ftr" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">
+        <a href="https://www.gsa.gov/policy-regulations/regulations" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">
           GSA Federal Travel Regulation (FTR) Chapter 302
         </a>
       </div>
