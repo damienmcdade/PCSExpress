@@ -2277,27 +2277,33 @@ function VeteranBusinessesTab({ theme, profile }) {
       </div>
 
       {/* Active Listings / SBA Resources sub-tabs */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+      <TabBar ariaLabel="Veteran business sections" className="pcs-tabbar--flush">
         {[
           { id: 'listings', label: 'Active Listings' },
           { id: 'resources', label: 'SBA Resources' },
-        ].map(t => (
-          <button
-            key={t.id}
-            onClick={() => setVetTab(t.id)}
-            className={`pcs-tab ${vetTab === t.id ? 'is-active' : ''}`}
-            style={{
-              padding: '8px 16px', borderRadius: 20,
-              border: `1.5px solid ${vetTab === t.id ? theme.primary : '#D6E0EA'}`,
-              background: vetTab === t.id ? theme.primary : '#FFFFFF',
-              color: vetTab === t.id ? '#FFFFFF' : '#243447',
-              fontSize: 12, fontWeight: 800, cursor: 'pointer',
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+        ].map(t => {
+          const isActive = vetTab === t.id;
+          return (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={isActive}
+              data-active={isActive || undefined}
+              onClick={() => setVetTab(t.id)}
+              className={`pcs-tab ${isActive ? 'is-active' : ''}`}
+              style={{
+                padding: '8px 16px', borderRadius: 20,
+                border: `1.5px solid ${isActive ? theme.primary : '#D6E0EA'}`,
+                background: isActive ? theme.primary : '#FFFFFF',
+                color: isActive ? '#FFFFFF' : '#243447',
+                fontSize: 12, fontWeight: 800, cursor: 'pointer',
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </TabBar>
 
       {vetTab === 'resources' && (<>
       {/* National directory quick links */}
@@ -3812,13 +3818,16 @@ function EducationBenefitsTab({ theme, profile }) {
       <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 4 }}>Education</div>
       <div style={{ fontSize: 12, color: '#56697C', marginBottom: 16 }}>Education & scholarship resources for service members and spouses</div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {[{ id: 'colleges', label: 'Colleges' }, { id: 'gibill', label: 'GI Bill Chapters' }, { id: 'mycaa', label: 'MyCAA (Spouses)' }, { id: 'tuition', label: 'Tuition Assistance' }].map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} className={`pcs-tab ${activeTab === t.id ? 'is-active' : ''}`} style={{ padding: '7px 14px', borderRadius: 20, border: `1.5px solid ${activeTab === t.id ? theme.primary : '#E0E6EE'}`, background: activeTab === t.id ? theme.primary : '#FFF', color: activeTab === t.id ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <TabBar ariaLabel="Education sections" className="pcs-tabbar--flush">
+        {[{ id: 'colleges', label: 'Colleges' }, { id: 'gibill', label: 'GI Bill Chapters' }, { id: 'mycaa', label: 'MyCAA (Spouses)' }, { id: 'tuition', label: 'Tuition Assistance' }].map(t => {
+          const isActive = activeTab === t.id;
+          return (
+            <button key={t.id} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setActiveTab(t.id)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ padding: '7px 14px', borderRadius: 20, border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
+              {t.label}
+            </button>
+          );
+        })}
+      </TabBar>
 
       {activeTab === 'gibill' && (
         <div>
@@ -5810,29 +5819,35 @@ function Onboarding({ onComplete }) {
 function CategoryTabShell({ theme, tabs, activeTab, onChange, children }) {
   return (
     <div style={{ padding: 16 }}>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => onChange(tab.id)}
-            className={`pcs-tab ${activeTab === tab.id ? 'is-active' : ''}`}
-            style={{
-              padding: '8px 11px',
-              borderRadius: 8,
-              border: `1.5px solid ${activeTab === tab.id ? theme.primary : '#E0E6EE'}`,
-              background: activeTab === tab.id ? theme.primary : '#FFFFFF',
-              color: activeTab === tab.id ? '#FFFFFF' : '#56697C',
-              fontSize: 10,
-              fontWeight: 800,
-              cursor: 'pointer',
-              letterSpacing: '.04em',
-              textTransform: 'uppercase',
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <TabBar ariaLabel="Category sections" className="pcs-tabbar--flush">
+        {tabs.map(tab => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={isActive}
+              data-active={isActive || undefined}
+              onClick={() => onChange(tab.id)}
+              className={`pcs-tab ${isActive ? 'is-active' : ''}`}
+              style={{
+                padding: '8px 11px',
+                borderRadius: 8,
+                border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`,
+                background: isActive ? theme.primary : '#FFFFFF',
+                color: isActive ? '#FFFFFF' : '#56697C',
+                fontSize: 10,
+                fontWeight: 800,
+                cursor: 'pointer',
+                letterSpacing: '.04em',
+                textTransform: 'uppercase',
+              }}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </TabBar>
       {children}
     </div>
   );
@@ -6054,8 +6069,11 @@ function FamilyFunTab({ theme, profile }) {
 
       {state.status === 'ready' && state.activities.length > 0 && (
         <>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <TabBar ariaLabel="Family activity filters" className="pcs-tabbar--flush">
             <button
+              role="tab"
+              aria-selected={filter === 'all'}
+              data-active={filter === 'all' || undefined}
               onClick={() => setFilter('all')}
               className={`pcs-chip ${filter === 'all' ? 'is-active' : ''}`}
               style={{
@@ -6071,16 +6089,20 @@ function FamilyFunTab({ theme, profile }) {
             {state.categories.map(cat => {
               const count = state.activities.filter(a => a.categoryId === cat.id).length;
               if (!count) return null;
+              const isActive = filter === cat.id;
               return (
                 <button
                   key={cat.id}
+                  role="tab"
+                  aria-selected={isActive}
+                  data-active={isActive || undefined}
                   onClick={() => setFilter(cat.id)}
-                  className={`pcs-chip ${filter === cat.id ? 'is-active' : ''}`}
+                  className={`pcs-chip ${isActive ? 'is-active' : ''}`}
                   style={{
                     padding: '6px 12px', borderRadius: 18,
-                    border: `1.5px solid ${filter === cat.id ? colors.primary : '#D6E0EA'}`,
-                    background: filter === cat.id ? colors.primary : '#FFFFFF',
-                    color: filter === cat.id ? '#FFFFFF' : '#243447',
+                    border: `1.5px solid ${isActive ? colors.primary : '#D6E0EA'}`,
+                    background: isActive ? colors.primary : '#FFFFFF',
+                    color: isActive ? '#FFFFFF' : '#243447',
                     fontSize: 11, fontWeight: 800, cursor: 'pointer',
                   }}
                 >
@@ -6088,7 +6110,7 @@ function FamilyFunTab({ theme, profile }) {
                 </button>
               );
             })}
-          </div>
+          </TabBar>
 
           <div data-dynamic-card="google" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
             {filtered.map(act => (
