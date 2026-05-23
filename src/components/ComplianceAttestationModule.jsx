@@ -112,7 +112,8 @@ const SECTIONS = [
     title: 'ITAR / export-control posture',
     items: [
       { label: 'Data ingested',        value: 'Public installation metadata, public DTMO/GSA reference data, user-entered PCS profile state (kept local). No classified, controlled-unclassified (CUI), or operationally sensitive data is ingested or transmitted.', cite: '' },
-      { label: 'AI/ML routing',         value: 'Optional /api/ai endpoint forwards user-supplied translation text to a vetted external provider with a length cap and an OPSEC banner above the input. Nothing is persisted server-side.',                              cite: '' },
+      { label: 'AI/ML routing',         value: 'AI Assistant + Translation features forward user-typed text plus a non-PII context blob (branch / phase / open-task count) to Anthropic via /api/ai and /api/jtr-assistant with length caps, prompt-injection sanitization, and an OPSEC banner above each input. Nothing is persisted server-side beyond rate-limit counters.', cite: '' },
+      { label: 'Other off-device egress', value: 'Navigation: addresses you type are sent to OpenStreetMap (Nominatim + OSRM) for geocoding and routing. Demo / partner contact form: name, email, org, role, message, plus request IP are POSTed to the server and written to ephemeral logs (no database). Translation widget (opt-in): page contents go to Google when enabled. Future advertising: ads.txt declares a Google AdSense publisher relationship; no ad code currently loads.', cite: '' },
       { label: 'Distribution control', value: 'Source is published on a public GitHub repo (no controlled algorithms or USML Cat XI/XV components). App contains no encryption beyond what is freely exportable under EAR §740.17 (TSU).',                                cite: '' },
       { label: 'Foreign access',       value: 'OCONUS service members (the app’s primary OCONUS audience) are U.S. government personnel; no foreign-national user provisioning.',                                                                                  cite: '' },
     ],
@@ -189,7 +190,7 @@ export default function ComplianceAttestationModule({ theme, profile }) {
         </span>
         <span style={{ background: '#E3F2FD', color: '#0D3B66', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 999 }}>TLS 1.2+ in transit</span>
         <span style={{ background: '#F3E5F5', color: '#4A148C', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 999 }}>U.S.-region hosting only</span>
-        <span style={{ background: '#FFFDE7', color: '#7A4A00', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 999 }}>No server-side PII storage</span>
+        <span style={{ background: '#FFFDE7', color: '#7A4A00', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 999 }}>No PII database (ephemeral demo-form logs only)</span>
         <span style={{ background: '#FBE9E7', color: '#BF360C', fontSize: 11, fontWeight: 800, padding: '6px 10px', borderRadius: 999 }}>Zero-Upload design</span>
       </div>
 

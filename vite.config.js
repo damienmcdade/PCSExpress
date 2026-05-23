@@ -28,7 +28,11 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    // Sourcemaps disabled in prod — they expose full original source
+    // (comments, security-helper internals, internal email addresses)
+    // to anyone who curls /assets/*.js.map. Use 'hidden' if you ever
+    // wire Sentry/Datadog stack-trace decoding out-of-band.
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks(id) {

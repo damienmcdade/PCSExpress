@@ -276,20 +276,55 @@ app.post('/api/push-unsubscribe', pushRateLimit, express.json({ limit: '4kb' }),
 // NOT cleared: cookies — preserves the language-preference cookie set
 // by useAppLanguageRuntime. Anyone hitting this URL accepts losing
 // localStorage progress; surface that warning in the HTML body.
-app.get('/api/reset-site-cache', (req, res) => {
+//
+// HARDENED: POST-only with Sec-Fetch-Site=same-origin + same-origin
+// Origin/Referer fallback + per-IP rate limit. Previously a bare GET,
+// which let any third-party HTML (<img src=…>, <a href=…>) silently
+// wipe a victim's encrypted PCS profile + AES key from their device.
+const _resetCacheHits = new Map() // ip -> { count, windowStart }
+const RESET_CACHE_RATE_LIMIT = 3
+const RESET_CACHE_RATE_WINDOW_MS = 10 * 60_000
+registerRateLimitMap(_resetCacheHits, RESET_CACHE_RATE_WINDOW_MS)
+
+function isSameOriginRequest(req) {
+  const sfs = String(req.headers['sec-fetch-site'] || '').toLowerCase()
+  if (sfs === 'same-origin' || sfs === 'same-site' || sfs === 'none') return true
+  // Fallback for browsers / clients without Sec-Fetch-Site: parse
+  // Origin or Referer host and require it to be in allowedOrigins.
+  const candidate = req.headers.origin || req.headers.referer || ''
+  if (!candidate) return false
+  try {
+    const u = new URL(candidate)
+    return allowedOrigins.includes(u.origin)
+  } catch { return false }
+}
+
+app.post('/api/reset-site-cache', (req, res) => {
+  if (!isSameOriginRequest(req)) {
+    return res.status(403).json({ error: 'cross-origin requests rejected' })
+  }
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const now = Date.now()
+  const entry = _resetCacheHits.get(ip)
+  if (!entry || now - entry.windowStart > RESET_CACHE_RATE_WINDOW_MS) {
+    _resetCacheHits.set(ip, { count: 1, windowStart: now })
+  } else if (entry.count >= RESET_CACHE_RATE_LIMIT) {
+    return res.status(429).json({ error: 'too many reset requests; try again in 10 minutes' })
+  } else {
+    entry.count += 1
+  }
   res.setHeader('Clear-Site-Data', '"cache", "storage"')
   res.setHeader('Cache-Control', 'no-store')
-  res.setHeader('Content-Type', 'text/html; charset=utf-8')
-  res.status(200).send(`<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8" />
-<title>PCS Express — Resetting</title>
-<meta http-equiv="refresh" content="2;url=/" />
-<style>body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:#0A1628;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:24px;text-align:center}main{max-width:480px}h1{font-size:20px;margin:0 0 12px}p{opacity:.8;line-height:1.5}a{color:#3498db}</style>
-</head><body><main>
-<h1>Cache cleared</h1>
-<p>Service worker, Cache Storage, and local storage for this origin have been wiped. You'll be redirected to a fresh load in 2 seconds.</p>
-<p><a href="/">Continue now</a></p>
-</main></body></html>`)
+  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+  return res.status(200).json({ ok: 1, cleared: ['cache', 'storage'] })
+})
+
+// GET fallback returns 405 + Method Not Allowed so legacy bookmarks
+// don't silently 404; this also prevents a bare GET from being treated
+// as a successful destructive trigger.
+app.get('/api/reset-site-cache', (_req, res) => {
+  res.setHeader('Allow', 'POST')
+  res.status(405).json({ error: 'use POST to trigger a reset from the app UI' })
 })
 
 // === API ROUTES (MUST BE BEFORE STATIC/FRONTEND) ===
