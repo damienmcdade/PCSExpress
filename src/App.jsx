@@ -6695,11 +6695,16 @@ function App() {
     const p = normalizeProfile(getSessionDemoProfile() || store.get('pcs_profile'));
     return (p?.demoMode || (p?.firstName === 'Marcus' && p?.lastName === 'Thompson')) ? 0 : -1;
   });
-  const [screenW, setScreenW] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 480);
+  const [screenW, setScreenW] = useState(() => typeof window !== 'undefined' ? Math.max(window.innerWidth, document.documentElement?.clientWidth || 0) : 1024);
   useEffect(() => {
-    const handler = () => setScreenW(window.innerWidth);
+    const handler = () => setScreenW(Math.max(window.innerWidth, document.documentElement?.clientWidth || 0));
+    handler();
     window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
+    window.addEventListener('orientationchange', handler);
+    return () => {
+      window.removeEventListener('resize', handler);
+      window.removeEventListener('orientationchange', handler);
+    };
   }, []);
   useEffect(() => {
     secureLocalStore.get('pcs_profile', null).then(saved => {
@@ -6716,9 +6721,15 @@ function App() {
       if (saved) setChecklistItems(saved);
     });
   }, []);
-  const isDesktop = screenW >= 900;
   // isNative is true only inside the Capacitor iOS/Android shell — never in a web browser
   const isNative = typeof window !== 'undefined' && !!window.Capacitor?.isNativePlatform?.();
+  // Desktop = pointer-fine (mouse/trackpad) device at >=768px, OR any web viewport >=900px.
+  // The pointer-fine clause catches laptops at typical zoom levels; the 900px clause is the
+  // legacy threshold kept for backward compatibility. We force mobile layout inside the
+  // Capacitor shell since those builds ship to phones/tablets, never desktops.
+  const hasFinePointer = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    && window.matchMedia('(pointer: fine)').matches;
+  const isDesktop = !isNative && ((hasFinePointer && screenW >= 768) || screenW >= 900);
 
   const safeProfile = profile && profile.branch ? profile : null;
   const theme = BRANCH_THEMES[safeProfile?.branch] || BRANCH_THEMES.Army;
