@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ data-extraction policy.
+
+  PCS Express persists an encrypted PCS profile + its AES-GCM key in
+  WebView localStorage/IndexedDB. The Privacy Notice published at
+  /privacy.html promises "no server-side backup" of this data — so we
+  must NOT let Google Drive or device-to-device transfer ship that key
+  + envelope to anyone else's Google account.
+
+  Both Cloud Backup (Android Backup Service / Google Drive) and Device
+  Transfer (Pixel migration, etc.) explicitly include="nothing".
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="sharedpref" />
+        <exclude domain="database" />
+        <exclude domain="file" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="sharedpref" />
+        <exclude domain="database" />
+        <exclude domain="file" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>

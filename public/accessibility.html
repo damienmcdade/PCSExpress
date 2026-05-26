@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Accessibility — PCS Express</title>
+  <meta name="robots" content="index, follow" />
+  <meta name="description" content="PCS Express accessibility statement — WCAG 2.1 conformance target, known issues, and how to report a barrier." />
+  <link rel="icon" href="/favicon-v3.ico" sizes="any" />
+  <style>
+    :root { --bg:#F4F6F9;--text:#0D1821;--muted:#56697C;--accent:#C99A3D;--navy:#082A4D;--border:#E0E6EE; }
+    * { box-sizing:border-box; }
+    body { margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.65; }
+    main { max-width:760px;margin:0 auto;padding:40px 24px 80px; }
+    nav.topbar { background:rgba(255,255,255,0.92);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:30; }
+    nav.topbar a { color:var(--navy);text-decoration:none;font-weight:800;font-size:14px; }
+    nav.topbar a:hover { color:var(--accent); }
+    .brand { display:inline-flex;align-items:center;gap:10px;font-weight:950;color:var(--navy); }
+    .brand-mark { width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#0D3B66,#082A4D);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-weight:950; }
+    h1 { font-size:28px;margin:24px 0 8px;color:var(--navy); }
+    h2 { font-size:18px;margin:32px 0 8px;color:var(--navy); }
+    .meta { color:var(--muted);font-size:13px;margin-bottom:18px; }
+    a { color:#0D3B66; }
+    a:hover { color:var(--accent); }
+    .known-issues { background:#FFF8E1;border:1px solid #FFE082;color:#6D4C00;padding:14px 16px;border-radius:12px;font-size:13px;margin:16px 0; }
+    footer.legal-footer { margin-top:60px;padding-top:18px;border-top:1px solid var(--border);font-size:12px;color:var(--muted); }
+  </style>
+</head>
+<body>
+  <nav class="topbar">
+    <a href="/" class="brand"><span class="brand-mark">PE</span><span>PCS Express</span></a>
+    <span style="flex:1"></span>
+    <a href="/">Home</a>
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+  </nav>
+  <main>
+    <h1>Accessibility Statement</h1>
+    <div class="meta">Operator: PCS Express · Contact: <a href="mailto:contact@pcsexpress.app">contact@pcsexpress.app</a></div>
+
+    <h2>1. Our commitment</h2>
+    <p>PCS Express is built to be usable by service members, DoD civilians, and military families with the broadest possible range of abilities and assistive technologies. We aim to conform to the <strong>Web Content Accessibility Guidelines (WCAG) 2.1 at Level AA</strong>, and we treat U.S. Section 508 (Revised 508) and EN 301 549 conformance as the same target.</p>
+
+    <h2>2. What we have done</h2>
+    <ul>
+      <li>Semantic HTML across the app — <code>&lt;main&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;aside&gt;</code>, <code>&lt;header&gt;</code>, <code>&lt;h1&gt;</code>–<code>&lt;h3&gt;</code> in hierarchy.</li>
+      <li>WCAG-conformant tab pattern (<code>role="tab"</code> + <code>aria-selected</code> + <code>aria-controls</code> + paired <code>role="tabpanel"</code> + <code>aria-labelledby</code>) on every navigable tab strip in the app.</li>
+      <li>Keyboard reachability — every interactive control is a real <code>&lt;button&gt;</code> or <code>&lt;a&gt;</code>, focusable with Tab.</li>
+      <li>Focus traps on modal dialogs (navigation drawer, AI Assistant, Security &amp; Data Handling) so screen-reader users can&apos;t accidentally focus content underneath an open dialog.</li>
+      <li><code>.sr-only</code> utility class used to surface page-level landmarks to screen readers without visual clutter.</li>
+      <li>Reduced-motion compatible (no auto-playing animations that violate <code>prefers-reduced-motion: reduce</code>).</li>
+      <li>Form labels — every input in the onboarding flow has an associated <code>&lt;label htmlFor&gt;</code>.</li>
+      <li>RTL support — the entire shell flips direction when the user picks Arabic.</li>
+    </ul>
+
+    <h2>3. Known issues (in active remediation)</h2>
+    <div class="known-issues">
+      <strong>The most recent internal accessibility audit (axe-core) surfaced the following open issues. We list them here so users know what to expect and so we are accountable for fixing them.</strong>
+    </div>
+    <ul>
+      <li><strong>Skip link tab order.</strong> The "Skip to main content" link exists in the DOM but is not the first tabbable element on every screen — the autosave-status chip sometimes precedes it. Targeted fix in progress.</li>
+      <li><strong>Color contrast on muted sidebar text and snooze icons.</strong> Some semi-transparent labels in the dark-themed sidebar fall short of the 4.5:1 contrast target. Being raised in the next polish pass.</li>
+      <li><strong>A small number of unlabeled inputs and icon-only buttons</strong> in the Family Readiness and PCS Operations panes. Tracked for the next a11y sweep.</li>
+      <li><strong>Some content-area sub-tabs use <code>role="tab"</code> without a matching <code>role="tabpanel"</code></strong> when the panel is lazily mounted. Either dropping <code>aria-controls</code> on those tabs or mounting hidden panels is the planned fix.</li>
+      <li><strong>Horizontal tab strips on mobile</strong> clip without a visible scroll affordance on a few mission groups; users can swipe but the affordance is missing. Adding a fade gradient + chevron is queued.</li>
+    </ul>
+
+    <h2>4. Compatibility</h2>
+    <p>PCS Express is tested with:</p>
+    <ul>
+      <li>VoiceOver on iOS (Safari, embedded WebView in the iOS app)</li>
+      <li>TalkBack on Android (Chrome, embedded WebView in the Android app)</li>
+      <li>VoiceOver on macOS (Safari, Chrome)</li>
+      <li>NVDA + Narrator on Windows (Chrome, Edge, Firefox)</li>
+      <li>Keyboard-only operation (no mouse) across the desktop layout</li>
+    </ul>
+    <p>If you use an assistive technology not listed above and run into a barrier, please tell us &mdash; we may not have caught it.</p>
+
+    <h2>5. Report a barrier</h2>
+    <p>Email <a href="mailto:contact@pcsexpress.app">contact@pcsexpress.app</a> with:</p>
+    <ul>
+      <li>The page or screen where the issue occurred (the URL or the tab name)</li>
+      <li>What you were trying to do</li>
+      <li>What happened (or didn&apos;t happen)</li>
+      <li>The assistive technology, browser, and operating system you were using</li>
+    </ul>
+    <p>We aim to acknowledge accessibility reports within 5 business days and target a fix in the next release cycle when feasible. There is no charge to use any feature of PCS Express; there is also no charge to request accommodation.</p>
+
+    <h2>6. Standards we target</h2>
+    <ul>
+      <li>W3C <a href="https://www.w3.org/TR/WCAG21/" target="_blank" rel="noopener noreferrer">WCAG 2.1</a> Level AA</li>
+      <li>U.S. <a href="https://www.access-board.gov/ict/" target="_blank" rel="noopener noreferrer">Revised Section 508</a> (ICT Refresh)</li>
+      <li><a href="https://www.etsi.org/deliver/etsi_en/301500_301599/301549/" target="_blank" rel="noopener noreferrer">EN 301 549</a> (EU)</li>
+    </ul>
+    <p>These targets are engineering best-effort. PCS Express does not hold a formal third-party conformance certificate.</p>
+
+    <footer class="legal-footer">
+      &copy; PCS Express. Independent platform &mdash; not endorsed by or affiliated with the DoD, VA, or any military branch.
+    </footer>
+  </main>
+</body>
+</html>

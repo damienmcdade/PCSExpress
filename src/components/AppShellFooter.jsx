@@ -37,6 +37,25 @@ export default function AppShellFooter() {
       <div style={{ marginTop: 4, color: '#56697C' }}>
         {NOT_ADVICE_DISCLAIMER}
       </div>
+      {/* Persistent legal links — visible on every tab so returning users
+          who bypass the landing page can still reach Privacy / Terms /
+          Accessibility from anywhere in the app. */}
+      <nav
+        aria-label="Legal"
+        style={{
+          marginTop: 8,
+          display: 'flex',
+          gap: 14,
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+          fontSize: 10,
+        }}
+      >
+        <a href="/privacy.html" style={{ color: '#324050', textDecoration: 'underline', fontWeight: 600 }}>Privacy</a>
+        <a href="/terms.html" style={{ color: '#324050', textDecoration: 'underline', fontWeight: 600 }}>Terms</a>
+        <a href="/accessibility.html" style={{ color: '#324050', textDecoration: 'underline', fontWeight: 600 }}>Accessibility</a>
+        <a href="/.well-known/security.txt" style={{ color: '#324050', textDecoration: 'underline', fontWeight: 600 }}>Security</a>
+      </nav>
       <div
         title="Deployment version"
         style={{
