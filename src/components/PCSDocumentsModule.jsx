@@ -534,7 +534,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
             const isActive = activecat === c.id;
             const allReqDone = p.reqTotal === 0 || p.reqDone === p.reqTotal;
             return (
-              <button key={c.id} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setActivecat(c.id)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 20, border: `1.5px solid ${isActive ? c.color : '#CBD5E1'}`, background: isActive ? c.color : '#FFF', color: isActive ? '#FFF' : '#374151', fontSize: 11, fontWeight: isActive ? 800 : 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button key={c.id} id={`doc-tab-${c.id}`} role="tab" aria-selected={isActive} aria-controls={`doc-panel-${c.id}`} data-active={isActive || undefined} onClick={() => setActivecat(c.id)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 20, border: `1.5px solid ${isActive ? c.color : '#CBD5E1'}`, background: isActive ? c.color : '#FFF', color: isActive ? '#FFF' : '#374151', fontSize: 11, fontWeight: isActive ? 800 : 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span>{c.icon}</span>
                 <span>{c.label}</span>
                 <span style={{ background: isActive ? 'rgba(255,255,255,0.25)' : (allReqDone ? '#D1FAE5' : '#FEE2E2'), color: isActive ? '#FFF' : (allReqDone ? '#065F46' : '#991B1B'), fontSize: 10, fontWeight: 900, padding: '1px 6px', borderRadius: 10 }}>
@@ -546,7 +546,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
         </TabBar>
       </div>
 
-      <div style={{ padding: '4px 16px 16px' }}>
+      <div role="tabpanel" id={`doc-panel-${activecat}`} aria-labelledby={`doc-tab-${activecat}`} style={{ padding: '4px 16px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '12px 0 10px' }}>
           <div style={{ width: 32, height: 32, borderRadius: 8, background: `${cat?.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{cat?.icon}</div>
           <div>

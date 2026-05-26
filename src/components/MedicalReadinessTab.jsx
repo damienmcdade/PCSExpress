@@ -347,7 +347,7 @@ export default function MedicalReadinessTab({ theme, profile }) {
         {subTabs.map(s => {
           const isActive = tab === s.id;
           return (
-            <button key={s.id} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setTab(s.id)}
+            <button key={s.id} id={`med-tab-${s.id}`} role="tab" aria-selected={isActive} aria-controls={`med-panel-${s.id}`} data-active={isActive || undefined} onClick={() => setTab(s.id)}
               className={`pcs-tab ${isActive ? 'is-active' : ''}`}
               style={{ flexShrink: 0, padding: '7px 13px', borderRadius: 999, border: `1.5px solid ${isActive ? colors.primary : '#E0E6EE'}`, background: isActive ? colors.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
               {s.label}
@@ -356,7 +356,7 @@ export default function MedicalReadinessTab({ theme, profile }) {
         })}
       </TabBar>
 
-      <div style={{ padding: 16 }}>
+      <div role="tabpanel" id={`med-panel-${tab}`} aria-labelledby={`med-tab-${tab}`} style={{ padding: 16 }}>
         {showEmergencyBanner && <EmergencyBanner theme={theme} />}
         {showCrisisBanner && <CrisisBanner theme={theme} />}
 

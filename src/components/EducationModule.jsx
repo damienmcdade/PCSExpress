@@ -200,8 +200,10 @@ function EducationModule({ theme, profile }) {
           return (
             <button
               key={t.id}
+              id={`edu-tab-${t.id}`}
               role="tab"
               aria-selected={isActive}
+              aria-controls={`edu-panel-${t.id}`}
               data-active={isActive || undefined}
               onClick={() => setActiveTab(t.id)}
               className={`pcs-tab ${isActive ? 'is-active' : ''}`}
@@ -229,7 +231,7 @@ function EducationModule({ theme, profile }) {
           .filter(s => s.type.includes('Elementary') || s.type.includes('Middle') || s.type.includes('High'));
         const showGoogleFallback = k12.length === 0 && installName;
         return (
-        <div>
+        <div role="tabpanel" id="edu-panel-schools" aria-labelledby="edu-tab-schools">
           <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 12 }}>
             K-12 SCHOOLS IN AREA
           </div>
@@ -326,7 +328,7 @@ function EducationModule({ theme, profile }) {
           .filter(s => s.type.includes('University') || s.type.includes('College'));
         const showGoogleFallback = colleges.length === 0 && installName;
         return (
-        <div>
+        <div role="tabpanel" id="edu-panel-universities" aria-labelledby="edu-tab-universities">
           <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 12 }}>
             COLLEGES & UNIVERSITIES
           </div>
@@ -416,7 +418,7 @@ function EducationModule({ theme, profile }) {
 
       {/* SPOUSE EMPLOYMENT */}
       {activeTab === 'spouse' && (
-        <div>
+        <div role="tabpanel" id="edu-panel-spouse" aria-labelledby="edu-tab-spouse">
           <div style={{ background: '#FFFFFF', border: `1px solid #E0E6EE`, borderRadius: 12, padding: '14px', marginBottom: 16 }}>
             <label style={{ fontSize: 11, fontWeight: 700, color: '#56697C', display: 'block', marginBottom: 6 }}>
               JOB TITLE OR POSITION
@@ -577,7 +579,7 @@ function EducationModule({ theme, profile }) {
           { title: 'VR&E (Chapter 31)',                              desc: 'VA Vocational Rehabilitation & Employment for veterans with service-connected disabilities — covers training, education, and job-readiness.', url: 'https://www.va.gov/careers-employment/vocational-rehabilitation/' },
         ];
         return (
-          <div>
+          <div role="tabpanel" id="edu-panel-career" aria-labelledby="edu-tab-career">
             <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 12 }}>
               {civilian
                 ? 'Federal civilian career development resources. All free and run by OPM, DCPAS, DAU, or other DoD agencies.'

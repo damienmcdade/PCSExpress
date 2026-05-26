@@ -592,7 +592,7 @@ function TMinusDashboard({ theme, profile }) {
     <div style={{ background: '#FFFFFF', border: `1px solid ${UI_PALETTE.line}`, borderLeft: `4px solid ${tColor}`, borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 950, color: theme.primary, letterSpacing: '.12em' }}>T-MINUS · REPORT-NLT</div>
+          <h2 style={{ margin: 0, fontSize: 10, fontWeight: 950, color: theme.primary, letterSpacing: '.12em' }}>T-MINUS · REPORT-NLT</h2>
           <div style={{ fontSize: 11, color: UI_PALETTE.muted, marginTop: 2 }}>{target}</div>
         </div>
         <div style={{ fontSize: 28, fontWeight: 950, color: tColor, letterSpacing: '-1px' }}>{tLabel}</div>
@@ -956,7 +956,7 @@ function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
   return (
     <div role="region" aria-label="Mission lanes" aria-live="polite" style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-        <div style={{ fontSize: 11, fontWeight: 950, color: theme.primary, letterSpacing: '.12em' }}>MISSION LANES</div>
+        <h2 style={{ margin: 0, fontSize: 11, fontWeight: 950, color: theme.primary, letterSpacing: '.12em' }}>MISSION LANES</h2>
         <button onClick={onJumpToOps} style={{ fontSize: 10, fontWeight: 800, color: theme.primary, background: 'transparent', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '.06em' }}>
           Full checklist →
         </button>
@@ -1714,7 +1714,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
           const phaseOverdue = daysUntil !== null && PHASE_WINDOWS[phase] && daysUntil < PHASE_WINDOWS[phase].overdueAt && phaseDone < phaseTasks.length;
           const isActive = activePhase === phase;
           return (
-            <button key={phase} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setActivePhase(phase)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${phaseOverdue ? '#EF9A9A' : isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : phaseOverdue ? '#FFF5F5' : '#FFF', color: isActive ? '#FFF' : phaseOverdue ? '#C62828' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: phaseOverdue || isActive ? 800 : 700, whiteSpace: 'nowrap' }}>
+            <button key={phase} id={`phase-tab-${phase.replace(/\s+/g, '-')}`} role="tab" aria-selected={isActive} aria-controls={`phase-panel-${phase.replace(/\s+/g, '-')}`} data-active={isActive || undefined} onClick={() => setActivePhase(phase)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${phaseOverdue ? '#EF9A9A' : isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : phaseOverdue ? '#FFF5F5' : '#FFF', color: isActive ? '#FFF' : phaseOverdue ? '#C62828' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: phaseOverdue || isActive ? 800 : 700, whiteSpace: 'nowrap' }}>
               {phaseOverdue ? '⚠ ' : ''}{phase} ({phaseDone}/{phaseTasks.length})
             </button>
           );
@@ -1756,7 +1756,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
       </div>
 
       {/* Tasks */}
-      <div>
+      <div role="tabpanel" id={`phase-panel-${activePhase.replace(/\s+/g, '-')}`} aria-labelledby={`phase-tab-${activePhase.replace(/\s+/g, '-')}`}>
         {(branchChecklist[activePhase] || []).map((task, i) => {
           const checked = !!checklistItems[`${activePhase}-${i}`];
           const taskOverdue = phaseIsOverdue && !checked;
@@ -2289,8 +2289,10 @@ function VeteranBusinessesTab({ theme, profile }) {
           return (
             <button
               key={t.id}
+              id={`vet-tab-${t.id}`}
               role="tab"
               aria-selected={isActive}
+              aria-controls={`vet-panel-${t.id}`}
               data-active={isActive || undefined}
               onClick={() => setVetTab(t.id)}
               className={`pcs-tab ${isActive ? 'is-active' : ''}`}
@@ -2308,7 +2310,7 @@ function VeteranBusinessesTab({ theme, profile }) {
         })}
       </TabBar>
 
-      {vetTab === 'resources' && (<>
+      {vetTab === 'resources' && (<div role="tabpanel" id="vet-panel-resources" aria-labelledby="vet-tab-resources">
       {/* National directory quick links */}
       <div style={{ background: theme.secondary, borderRadius: 14, padding: 14, marginBottom: 16 }}>
         <div style={{ fontSize: 11, fontWeight: 800, color: theme.accent, marginBottom: 10, letterSpacing: '.08em' }}>NATIONAL DIRECTORIES & RESOURCES</div>
@@ -2322,9 +2324,9 @@ function VeteranBusinessesTab({ theme, profile }) {
         </div>
       </div>
 
-      </>)}
+      </div>)}
 
-      {vetTab === 'listings' && (<>
+      {vetTab === 'listings' && (<div role="tabpanel" id="vet-panel-listings" aria-labelledby="vet-tab-listings">
       {/* Live veteran-owned business listings (SAM.gov proxy) */}
       {liveBiz.status === 'loading' && (
         <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 12, color: '#56697C' }}>
@@ -2434,7 +2436,7 @@ function VeteranBusinessesTab({ theme, profile }) {
         );
       })()}
 
-      </>)}
+      </div>)}
 
       {vetTab === 'resources' && (<>
       {/* Active category link bubbles */}
@@ -3825,7 +3827,7 @@ function EducationBenefitsTab({ theme, profile }) {
         {[{ id: 'colleges', label: 'Colleges' }, { id: 'gibill', label: 'GI Bill Chapters' }, { id: 'mycaa', label: 'MyCAA (Spouses)' }, { id: 'tuition', label: 'Tuition Assistance' }].map(t => {
           const isActive = activeTab === t.id;
           return (
-            <button key={t.id} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setActiveTab(t.id)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ padding: '7px 14px', borderRadius: 20, border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
+            <button key={t.id} id={`edub-tab-${t.id}`} role="tab" aria-selected={isActive} aria-controls={`edub-panel-${t.id}`} data-active={isActive || undefined} onClick={() => setActiveTab(t.id)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ padding: '7px 14px', borderRadius: 20, border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
               {t.label}
             </button>
           );
@@ -3833,7 +3835,7 @@ function EducationBenefitsTab({ theme, profile }) {
       </TabBar>
 
       {activeTab === 'gibill' && (
-        <div>
+        <div role="tabpanel" id="edub-panel-gibill" aria-labelledby="edub-tab-gibill">
           {GI_BILL_CHAPTERS.map((ch, idx) => (
             <div key={idx} style={{ background: '#FFFFFF', border: `1px solid ${ch.best ? theme.accent : '#E0E6EE'}`, borderLeft: `3px solid ${ch.best ? theme.accent : theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
@@ -3854,7 +3856,7 @@ function EducationBenefitsTab({ theme, profile }) {
       )}
 
       {activeTab === 'howto' && (
-        <div>
+        <div role="tabpanel" id="edub-panel-howto" aria-labelledby="edub-tab-howto">
           {HOW_TO_STEPS.map((s) => (
             <div key={s.step} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 12, display: 'flex', gap: 12 }}>
               <div style={{ width: 28, height: 28, borderRadius: '50%', background: theme.primary, color: '#FFF', fontSize: 13, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.step}</div>
@@ -3871,7 +3873,7 @@ function EducationBenefitsTab({ theme, profile }) {
       )}
 
       {activeTab === 'tuition' && (
-        <div>
+        <div role="tabpanel" id="edub-panel-tuition" aria-labelledby="edub-tab-tuition">
           <div style={{ background: '#FFFFFF', border: '1px solid #DDD5C2', borderLeft: `4px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 14, boxShadow: '0 8px 20px rgba(38,53,31,0.08)' }}>
             <div style={{ fontSize: 10, fontWeight: 900, color: theme.primary, letterSpacing: '.14em', marginBottom: 4 }}>{(profile?.branch || 'Army').toUpperCase()} TUITION ASSISTANCE</div>
             <div style={{ fontSize: 16, fontWeight: 900, color: '#111827', marginBottom: 6 }}>{selectedTA.portal}</div>
@@ -3905,7 +3907,7 @@ function EducationBenefitsTab({ theme, profile }) {
       )}
 
       {activeTab === 'colleges' && (
-        <div>
+        <div role="tabpanel" id="edub-panel-colleges" aria-labelledby="edub-tab-colleges">
           {nearbyColleges.length > 0 ? (
             <>
               <div style={{ background: theme.secondary, borderRadius: 12, padding: 12, marginBottom: 14, borderLeft: `3px solid ${theme.accent}` }}>
@@ -3991,7 +3993,7 @@ function EducationBenefitsTab({ theme, profile }) {
       )}
 
       {activeTab === 'schools' && (
-        <div>
+        <div role="tabpanel" id="edub-panel-schools" aria-labelledby="edub-tab-schools">
           <div style={{ background: '#F0F4F8', borderRadius: 12, padding: 14, marginBottom: 14, fontSize: 12, color: '#555', lineHeight: 1.6 }}>
             Use the links below to find VA-approved schools. Make sure any school you attend is on the VA's approved programs list.
           </div>
@@ -4012,7 +4014,7 @@ function EducationBenefitsTab({ theme, profile }) {
       )}
 
       {activeTab === 'mycaa' && (
-        <div>
+        <div role="tabpanel" id="edub-panel-mycaa" aria-labelledby="edub-tab-mycaa">
           <div style={{ background: '#E8F5E9', border: '1px solid #A5D6A7', borderRadius: 12, padding: 14, marginBottom: 14 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#1B5E20', marginBottom: 6 }}>MyCAA — Military Spouse Career Advancement Accounts</div>
             <div style={{ fontSize: 11, color: '#2E7D32', lineHeight: 1.6 }}>Up to $4,000/year (max $16,000 total) for military spouses to pursue education and portable career credentials.</div>
@@ -4141,7 +4143,7 @@ function ResourcesTab({ theme, profile }) {
         {SECTIONS.map(s => {
           const isActive = activeSection === s.id;
           return (
-            <button key={s.id} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setActiveSection(s.id)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
+            <button key={s.id} id={`rsec-tab-${s.id}`} role="tab" aria-selected={isActive} aria-controls={`rsec-panel-${s.id}`} data-active={isActive || undefined} onClick={() => setActiveSection(s.id)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
               {s.icon} {s.label}
             </button>
           );
@@ -4149,6 +4151,7 @@ function ResourcesTab({ theme, profile }) {
       </TabBar>
 
       {/* Resource cards */}
+      <div role="tabpanel" id={`rsec-panel-${activeSection}`} aria-labelledby={`rsec-tab-${activeSection}`}>
       {getVisibleResources(RESOURCES[activeSection] || []).map((r, idx) => {
         const tc = tagColor(r.tag);
         return (
@@ -4162,6 +4165,7 @@ function ResourcesTab({ theme, profile }) {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
@@ -5489,9 +5493,9 @@ function Onboarding({ onComplete }) {
   const SuggestionList = ({ items, onSelect }) => items.length === 0 ? null : (
     <div style={{ marginTop: 4, background: 'rgba(0,0,0,0.5)', borderRadius: 10, maxHeight: 200, overflowY: 'auto', border: '1px solid rgba(255,255,255,0.12)' }}>
       {items.map(b => (
-        <div key={b.name} onClick={() => onSelect(b.name)} style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>
+        <button type="button" key={b.name} onClick={() => onSelect(b.name)} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)', borderLeft: 'none', borderRight: 'none', borderTop: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>
           {b.name} — {b.state} <span style={{ fontSize: 11, color: theme.accent }}>({b.branch})</span>
-        </div>
+        </button>
       ))}
     </div>
   );
@@ -5729,12 +5733,12 @@ function Onboarding({ onComplete }) {
               <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>{ot('familyPreferences')}</div>
 
               {/* Dependent travel */}
-              <div onClick={() => upd('hasDependents', !p.hasDependents)} className={`pcs-chip ${p.hasDependents ? 'is-active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, marginBottom: 10, background: p.hasDependents ? `${theme.accent}20` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${p.hasDependents ? `${theme.accent}66` : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer' }}>
-                <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${p.hasDependents ? theme.accent : 'rgba(255,255,255,0.25)'}`, background: p.hasDependents ? theme.accent : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button type="button" onClick={() => upd('hasDependents', !p.hasDependents)} aria-pressed={p.hasDependents} className={`pcs-chip ${p.hasDependents ? 'is-active' : ''}`} style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, marginBottom: 10, background: p.hasDependents ? `${theme.accent}20` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${p.hasDependents ? `${theme.accent}66` : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer' }}>
+                <span aria-hidden="true" style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${p.hasDependents ? theme.accent : 'rgba(255,255,255,0.25)'}`, background: p.hasDependents ? theme.accent : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {p.hasDependents && <span style={{ color: theme.secondary, fontSize: 13, fontWeight: 900 }}>✓</span>}
-                </div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>{ot('spouseDepsTravel')}</div>
-              </div>
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>{ot('spouseDepsTravel')}</span>
+              </button>
 
               {/* Children ages */}
               <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 14, marginBottom: 12 }}>
@@ -5754,15 +5758,15 @@ function Onboarding({ onComplete }) {
               </div>
 
               {/* Pets toggle (per redesign brief) */}
-              <div onClick={() => upd('hasPets', !p.hasPets)} className={`pcs-chip ${p.hasPets ? 'is-active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, marginBottom: 10, background: p.hasPets ? `${theme.accent}20` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${p.hasPets ? `${theme.accent}66` : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer' }}>
-                <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${p.hasPets ? theme.accent : 'rgba(255,255,255,0.25)'}`, background: p.hasPets ? theme.accent : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button type="button" onClick={() => upd('hasPets', !p.hasPets)} aria-pressed={p.hasPets} className={`pcs-chip ${p.hasPets ? 'is-active' : ''}`} style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, marginBottom: 10, background: p.hasPets ? `${theme.accent}20` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${p.hasPets ? `${theme.accent}66` : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer' }}>
+                <span aria-hidden="true" style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${p.hasPets ? theme.accent : 'rgba(255,255,255,0.25)'}`, background: p.hasPets ? theme.accent : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {p.hasPets && <span style={{ color: theme.secondary, fontSize: 13, fontWeight: 900 }}>✓</span>}
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>{ot('hasPetsLabel')}</div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>{ot('hasPetsHelp')}</div>
-                </div>
-              </div>
+                </span>
+                <span style={{ display: 'block' }}>
+                  <span style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#FFF' }}>{ot('hasPetsLabel')}</span>
+                  <span style={{ display: 'block', fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>{ot('hasPetsHelp')}</span>
+                </span>
+              </button>
 
               {/* Move type segmented control (HHG vs PPM/DITY) */}
               <div style={{ marginBottom: 14 }}>
@@ -5828,8 +5832,10 @@ function CategoryTabShell({ theme, tabs, activeTab, onChange, children }) {
           return (
             <button
               key={tab.id}
+              id={`cat-tab-${tab.id}`}
               role="tab"
               aria-selected={isActive}
+              aria-controls={`cat-panel-${tab.id}`}
               data-active={isActive || undefined}
               onClick={() => onChange(tab.id)}
               className={`pcs-tab ${isActive ? 'is-active' : ''}`}
@@ -5851,7 +5857,9 @@ function CategoryTabShell({ theme, tabs, activeTab, onChange, children }) {
           );
         })}
       </TabBar>
-      {children}
+      <div role="tabpanel" id={`cat-panel-${activeTab}`} aria-labelledby={`cat-tab-${activeTab}`}>
+        {children}
+      </div>
     </div>
   );
 }
@@ -6074,8 +6082,10 @@ function FamilyFunTab({ theme, profile }) {
         <>
           <TabBar ariaLabel="Family activity filters" className="pcs-tabbar--flush">
             <button
+              id="famact-tab-all"
               role="tab"
               aria-selected={filter === 'all'}
+              aria-controls="famact-panel"
               data-active={filter === 'all' || undefined}
               onClick={() => setFilter('all')}
               className={`pcs-chip ${filter === 'all' ? 'is-active' : ''}`}
@@ -6096,8 +6106,10 @@ function FamilyFunTab({ theme, profile }) {
               return (
                 <button
                   key={cat.id}
+                  id={`famact-tab-${cat.id}`}
                   role="tab"
                   aria-selected={isActive}
+                  aria-controls="famact-panel"
                   data-active={isActive || undefined}
                   onClick={() => setFilter(cat.id)}
                   className={`pcs-chip ${isActive ? 'is-active' : ''}`}
@@ -6115,7 +6127,7 @@ function FamilyFunTab({ theme, profile }) {
             })}
           </TabBar>
 
-          <div data-dynamic-card="google" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+          <div id="famact-panel" role="tabpanel" aria-labelledby={`famact-tab-${filter}`} data-dynamic-card="google" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
             {filtered.map(act => (
               // Whole card is the click target — opens the Google Maps
               // search portal for the activity. We surface only the
@@ -7015,7 +7027,7 @@ function App() {
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: 14 }}>{DEMO_TIPS[demoTip].body}</div>
               <div style={{ display: 'flex', gap: 4, marginBottom: 12, justifyContent: 'center' }}>
                 {DEMO_TIPS.map((_, i) => (
-                  <div key={i} onClick={() => { setDemoTip(i); goTo(DEMO_TIPS[i].tab); }} style={{ width: i === demoTip ? 20 : 6, height: 6, borderRadius: 3, background: i <= demoTip ? theme.accent : 'rgba(255,255,255,0.2)', cursor: 'pointer', transition: 'all .2s' }} />
+                  <button type="button" key={i} onClick={() => { setDemoTip(i); goTo(DEMO_TIPS[i].tab); }} aria-label={`Go to step ${i + 1}`} aria-current={i === demoTip ? 'step' : undefined} style={{ width: i === demoTip ? 20 : 6, height: 6, borderRadius: 3, background: i <= demoTip ? theme.accent : 'rgba(255,255,255,0.2)', border: 'none', padding: 0, cursor: 'pointer', transition: 'all .2s' }} />
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -7079,7 +7091,7 @@ function App() {
           <button onClick={() => setShowResetWarning(true)} style={{ width: '100%', padding: '9px', background: 'rgba(255,0,0,0.08)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,100,100,0.85)', fontSize: 10, cursor: 'pointer', fontWeight: 700 }}>{t('reset')}</button>
         </aside>
       )}
-      <div id="pcs-main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <main id="pcs-main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       {/* HEADER — paddingTop uses env(safe-area-inset-top) for notch/Dynamic Island.
           Requires viewport-fit=cover in the HTML meta and contentInsetAdjustmentBehavior=never
           in capacitor.config.json to receive non-zero values from the OS. */}
@@ -7171,18 +7183,18 @@ function App() {
             <button onClick={() => setShowNotifs(false)} aria-label="Close notifications" style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: '#56697C' }}><span aria-hidden="true">✕</span></button>
           </div>
           {pendingAlerts.map((alert, i) => (
-            <div key={i} onClick={() => { goTo('checklist'); }} style={{ padding: '12px 16px', borderBottom: '1px solid #F8F8F8', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: alert.overdue ? '#FFF5F5' : '#FFFDE7' }}>
+            <button type="button" key={i} onClick={() => { goTo('checklist'); }} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: '1px solid #F8F8F8', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: alert.overdue ? '#FFF5F5' : '#FFFDE7' }}>
               <span style={{ fontSize: 20, flexShrink: 0 }}>{alert.overdue ? '⚠️' : '📋'}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: alert.overdue ? '#C62828' : '#E65100' }}>
+              <span style={{ flex: 1 }}>
+                <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: alert.overdue ? '#C62828' : '#E65100' }}>
                   {alert.overdue ? 'Overdue Action' : 'Due Now'}{': '}{alert.phase}
-                </div>
-                <div style={{ fontSize: 11, color: '#56697C', marginTop: 1 }}>
+                </span>
+                <span style={{ display: 'block', fontSize: 11, color: '#56697C', marginTop: 1 }}>
                   {alert.count}{' '}{alert.count !== 1 ? 'tasks remaining' : 'task remaining'}{' · '}{alert.daysUntil < 0 ? `${Math.abs(alert.daysUntil)}d past departure` : `${alert.daysUntil}d until departure`}
-                </div>
-              </div>
+                </span>
+              </span>
               <span style={{ fontSize: 11, color: '#AAA' }}>→</span>
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -7200,6 +7212,7 @@ function App() {
       <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isNative && !isDesktop ? 'calc(58px + env(safe-area-inset-bottom))' : 'env(safe-area-inset-bottom)' }}>
         {activeTab === 'home' && (
           <div style={{ padding: isDesktop ? '24px 28px 32px' : '16px', position: 'relative', overflow: 'hidden', minHeight: '100%', background: `linear-gradient(135deg, ${UI_PALETTE.page} 0%, ${UI_PALETTE.surfaceSoft} 46%, ${UI_PALETTE.pageAlt} 100%)`, borderRadius: isDesktop ? 24 : 0, color: UI_PALETTE.text }}>
+            <h1 className="sr-only">Command Center</h1>
             <div aria-hidden="true" style={{ position: 'absolute', right: isDesktop ? -28 : -52, top: isDesktop ? 112 : 156, fontSize: isDesktop ? 450 : 292, fontWeight: 950, opacity: 0.14, userSelect: 'none', pointerEvents: 'none', color: theme.primary, letterSpacing: isDesktop ? '-18px' : '-12px', lineHeight: 0.82, zIndex: 0 }}>
               {homeInsignia}
             </div>
@@ -7334,7 +7347,7 @@ function App() {
         {activeTab === 'veterans'   && renderCategoryFrame('veterans',   <VeteranBusinessesTab theme={theme} profile={profile} />)}
       </div>
       </div>{/* end body container */}
-      </div>{/* end main column (header + body) — wraps sibling of desktop aside */}
+      </main>{/* end main column (header + body) — wraps sibling of desktop aside */}
 
       {/* AI Assistant modal. Triggered from the sidebar (desktop) +
           the home-page footer (above Security & data handling) so
@@ -7422,7 +7435,7 @@ function App() {
             {/* Step progress dots */}
             <div style={{ display: 'flex', gap: 4, marginBottom: 12, justifyContent: 'center' }}>
               {DEMO_TIPS.map((_, i) => (
-                <div key={i} onClick={() => { setDemoTip(i); goTo(DEMO_TIPS[i].tab); }} style={{ width: i === demoTip ? 20 : 6, height: 6, borderRadius: 3, background: i <= demoTip ? theme.accent : 'rgba(255,255,255,0.2)', cursor: 'pointer', transition: 'all .2s' }} />
+                <button type="button" key={i} onClick={() => { setDemoTip(i); goTo(DEMO_TIPS[i].tab); }} aria-label={`Go to step ${i + 1}`} aria-current={i === demoTip ? 'step' : undefined} style={{ width: i === demoTip ? 20 : 6, height: 6, borderRadius: 3, background: i <= demoTip ? theme.accent : 'rgba(255,255,255,0.2)', border: 'none', padding: 0, cursor: 'pointer', transition: 'all .2s' }} />
               ))}
             </div>
             <div style={{ display: 'flex', gap: 8 }}>

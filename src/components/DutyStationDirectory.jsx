@@ -1545,8 +1545,8 @@ export default function DutyStationDirectory({ theme, profile }) {
               const isCurated = Boolean(INSTALLATION_DIRECTORY[name] || INSTALLATION_DIRECTORY[resolveDirectoryKey(name)]);
               const hasMarket = Boolean(INSTALLATION_MARKETS[name]);
               return (
-                <div key={name} onClick={() => handleSelect(name)}
-                  style={{ padding: '9px 14px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid #F3F4F6', background: name === selected ? '#EEF5FF' : '#FFF', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <button type="button" key={name} onClick={() => handleSelect(name)}
+                  style={{ width: '100%', padding: '9px 14px', cursor: 'pointer', fontSize: 13, borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: '1px solid #F3F4F6', background: name === selected ? '#EEF5FF' : '#FFF', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: name === selected ? 700 : 400, color: '#111827' }}>{name}</span>
                   {isCurated
                     ? <span style={{ fontSize: 9, background: '#E8F5E9', color: '#2E7D32', borderRadius: 4, padding: '2px 5px', fontWeight: 700, flexShrink: 0 }}>Full data</span>
@@ -1554,13 +1554,13 @@ export default function DutyStationDirectory({ theme, profile }) {
                       ? <span style={{ fontSize: 9, background: '#E3F2FD', color: '#1565C0', borderRadius: 4, padding: '2px 5px', fontWeight: 700, flexShrink: 0 }}>Verified DoD source</span>
                       : <span style={{ fontSize: 9, background: '#F3F4F6', color: '#56697C', borderRadius: 4, padding: '2px 5px', fontWeight: 600, flexShrink: 0 }}>Basic</span>
                   }
-                </div>
+                </button>
               );
             })}
             {filtered.length === 0 && <div style={{ padding: 14, color: '#888', fontSize: 12 }}>No installations found</div>}
-            <div onClick={() => setShowPicker(false)} style={{ padding: '8px 14px', fontSize: 11, color: theme.primary, cursor: 'pointer', fontWeight: 700, textAlign: 'center', borderTop: '1px solid #F0F4F8' }}>
+            <button type="button" onClick={() => setShowPicker(false)} style={{ display: 'block', width: '100%', padding: '8px 14px', fontSize: 11, color: theme.primary, cursor: 'pointer', fontWeight: 700, textAlign: 'center', borderTop: '1px solid #F0F4F8', borderLeft: 'none', borderRight: 'none', borderBottom: 'none', background: 'transparent' }}>
               Close
-            </div>
+            </button>
           </div>
         )}
       </div>
@@ -1593,7 +1593,7 @@ export default function DutyStationDirectory({ theme, profile }) {
             {sections.map(s => {
               const isActive = section === s.id;
               return (
-                <button key={s.id} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setSection(s.id)}
+                <button key={s.id} id={`ds-tab-${s.id}`} role="tab" aria-selected={isActive} aria-controls={`ds-panel-${s.id}`} data-active={isActive || undefined} onClick={() => setSection(s.id)}
                   className={`pcs-tab ${isActive ? 'is-active' : ''}`}
                   style={{ flexShrink: 0, padding: '7px 14px', borderRadius: 999, border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                   {s.label}
@@ -1603,7 +1603,7 @@ export default function DutyStationDirectory({ theme, profile }) {
           </TabBar>
 
           {section === 'housing' && (
-            <div style={{ display: 'grid', gap: 10 }}>
+            <div role="tabpanel" id="ds-panel-housing" aria-labelledby="ds-tab-housing" style={{ display: 'grid', gap: 10 }}>
               <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 14, padding: 14 }}>
                 <div style={{ fontSize: 10, fontWeight: 900, color: '#56697C', letterSpacing: '.08em', marginBottom: 6 }}>ON-POST HOUSING WAIT TIME</div>
                 <div style={{ fontSize: 22, fontWeight: 950, color: theme.primary }}>{data.housing.waitTime}</div>
@@ -1637,7 +1637,7 @@ export default function DutyStationDirectory({ theme, profile }) {
           )}
 
           {section === 'tricare' && (
-            <div style={{ display: 'grid', gap: 10 }}>
+            <div role="tabpanel" id="ds-panel-tricare" aria-labelledby="ds-tab-tricare" style={{ display: 'grid', gap: 10 }}>
               <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: '4px solid #1565C0', borderRadius: 14, padding: 14 }}>
                 <div style={{ fontSize: 10, fontWeight: 900, color: '#56697C', marginBottom: 6 }}>TRICARE REGION</div>
                 <div style={{ fontSize: 18, fontWeight: 950, color: '#1565C0', marginBottom: 8 }}>{data.tricare.region}</div>
@@ -1668,7 +1668,7 @@ export default function DutyStationDirectory({ theme, profile }) {
           )}
 
           {section === 'schools' && (
-            <div style={{ display: 'grid', gap: 10 }}>
+            <div role="tabpanel" id="ds-panel-schools" aria-labelledby="ds-tab-schools" style={{ display: 'grid', gap: 10 }}>
               <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: '4px solid #5D4037', borderRadius: 14, padding: 14 }}>
                 <div style={{ fontSize: 10, fontWeight: 900, color: '#56697C', marginBottom: 6 }}>SCHOOL DISTRICT</div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: '#0D1821', marginBottom: 8 }}>{data.schools.district}</div>
@@ -1701,7 +1701,7 @@ export default function DutyStationDirectory({ theme, profile }) {
           )}
 
           {section === 'contacts' && (
-            <div style={{ display: 'grid', gap: 10 }}>
+            <div role="tabpanel" id="ds-panel-contacts" aria-labelledby="ds-tab-contacts" style={{ display: 'grid', gap: 10 }}>
               <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 14, padding: 14 }}>
                 <div style={{ fontSize: 11, fontWeight: 900, color: '#56697C', letterSpacing: '.06em', marginBottom: 10 }}>BASE OFFICE CONTACTS</div>
                 <ContactRow label="Housing Office" value={data.contacts.housing} />

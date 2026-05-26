@@ -634,8 +634,10 @@ function EmploymentModule({ theme, profile }) {
             <button
               key={tab.id}
               type="button"
+              id={`emp-tab-${tab.id}`}
               role="tab"
               aria-selected={isActive}
+              aria-controls={`emp-panel-${tab.id}`}
               data-active={isActive || undefined}
               onClick={() => setActiveTab(tab.id)}
               className={`pcs-tab ${isActive ? 'is-active' : ''}`}
@@ -648,7 +650,7 @@ function EmploymentModule({ theme, profile }) {
       </TabBar>
 
       {activeTab === 'jobSearch' && (
-        <div>
+        <div role="tabpanel" id="emp-panel-jobSearch" aria-labelledby="emp-tab-jobSearch">
           <SectionIntro title={copy.text('tabJobSearch')} lead={copy.text('leadJobSearch')}>
             <label style={{ display: 'block', marginTop: 12, fontSize: 11, fontWeight: 900, color: '#334155' }} htmlFor="employment-keyword">{copy.text('keywordLabel')}</label>
             <input
@@ -727,14 +729,14 @@ function EmploymentModule({ theme, profile }) {
       )}
 
       {activeTab === 'jobResources' && (
-        <div>
+        <div role="tabpanel" id="emp-panel-jobResources" aria-labelledby="emp-tab-jobResources">
           <SectionIntro title={copy.text('tabJobResources')} lead={copy.text('leadJobResources')} />
           {renderCards(RESOURCE_SETS.jobResources)}
         </div>
       )}
 
       {activeTab === 'resume' && (
-        <div>
+        <div role="tabpanel" id="emp-panel-resume" aria-labelledby="emp-tab-resume">
           <SectionIntro title={copy.text('tabResume')} lead={copy.text('leadResume')} />
           <div style={{ background: '#FFFFFF', border: '1px solid #D7E0EA', borderRadius: 8, padding: 14, marginBottom: 12 }}>
             <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821', marginBottom: 8 }}>{copy.text('resumeTipsTitle')}</div>
@@ -753,49 +755,49 @@ function EmploymentModule({ theme, profile }) {
       )}
 
       {activeTab === 'internships' && (
-        <div>
+        <div role="tabpanel" id="emp-panel-internships" aria-labelledby="emp-tab-internships">
           <SectionIntro title={copy.text('tabInternships')} lead={copy.text('leadInternships')} />
           {renderCards(internshipSearches)}
         </div>
       )}
 
       {activeTab === 'workshops' && (
-        <div>
+        <div role="tabpanel" id="emp-panel-workshops" aria-labelledby="emp-tab-workshops">
           <SectionIntro title={copy.text('tabWorkshops')} lead={copy.text('leadWorkshops')} />
           {renderCards(workshopsResources)}
         </div>
       )}
 
       {activeTab === 'certifications' && (
-        <div>
+        <div role="tabpanel" id="emp-panel-certifications" aria-labelledby="emp-tab-certifications">
           <SectionIntro title={copy.text('tabCertifications')} lead={copy.text('leadCertifications')} />
           {renderCards(RESOURCE_SETS.certifications)}
         </div>
       )}
 
       {activeTab === 'mentorship' && (
-        <div>
+        <div role="tabpanel" id="emp-panel-mentorship" aria-labelledby="emp-tab-mentorship">
           <SectionIntro title={copy.text('tabMentorship')} lead={copy.text('leadMentorship')} />
           {renderCards(RESOURCE_SETS.mentorship)}
         </div>
       )}
 
       {activeTab === 'spousePreferred' && (
-        <div>
+        <div role="tabpanel" id="emp-panel-spousePreferred" aria-labelledby="emp-tab-spousePreferred">
           <SectionIntro title={copy.text('tabSpousePreferred')} lead={copy.text('leadSpousePreferred')} />
           {renderCards(RESOURCE_SETS.spousePreferred)}
         </div>
       )}
 
       {activeTab === 'connections' && (
-        <div>
+        <div role="tabpanel" id="emp-panel-connections" aria-labelledby="emp-tab-connections">
           <SectionIntro title={copy.text('tabConnections')} lead={copy.text('leadConnections')} />
           {renderCards(connectionsResources)}
         </div>
       )}
 
       {activeTab === 'linkedin' && (
-        <div>
+        <div role="tabpanel" id="emp-panel-linkedin" aria-labelledby="emp-tab-linkedin">
           <SectionIntro title={copy.text('tabLinkedIn')} lead={copy.text('leadLinkedIn')} />
           <div style={{ background: '#FFFFFF', border: '1px solid #D7E0EA', borderRadius: 8, padding: 14, marginBottom: 12 }}>
             <div style={{ fontSize: 12, fontWeight: 900, color: '#0D1821', marginBottom: 8 }}>{copy.text('linkedinStepsTitle')}</div>
@@ -814,7 +816,7 @@ function EmploymentModule({ theme, profile }) {
       )}
 
       {activeTab === 'entrepreneurship' && (
-        <div>
+        <div role="tabpanel" id="emp-panel-entrepreneurship" aria-labelledby="emp-tab-entrepreneurship">
           <SectionIntro title={copy.text('tabEntrepreneurship')} lead={copy.text('leadEntrepreneurship')} />
           {renderCards(RESOURCE_SETS.entrepreneurship)}
         </div>

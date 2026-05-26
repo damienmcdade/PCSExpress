@@ -189,12 +189,16 @@ export default function EFMPTab({ theme, profile }) {
         {CORE_STEPS.map(section => {
           const active = activePhase === section.phase;
           const phaseDone = section.tasks.filter((_, index) => checks[`${section.phase}-${index}`]).length;
+          const slug = section.phase.replace(/\s+/g, '-');
           return (
             <button
               key={section.phase}
+              id={`efmp-tab-${slug}`}
+              role="tab"
+              aria-controls={`efmp-panel-${slug}`}
               onClick={() => setActivePhase(section.phase)}
               aria-label={`Open ${section.phase} EFMP phase`}
-              aria-pressed={active}
+              aria-selected={active}
               className={`pcs-tab ${active ? 'is-active' : ''}`}
               style={{
                 borderColor: active ? theme.primary : '#E0E6EE',
@@ -208,7 +212,7 @@ export default function EFMPTab({ theme, profile }) {
         })}
       </div>
 
-      <div className="pet-task-list">
+      <div className="pet-task-list" role="tabpanel" id={`efmp-panel-${current.phase.replace(/\s+/g, '-')}`} aria-labelledby={`efmp-tab-${current.phase.replace(/\s+/g, '-')}`}>
         {current.tasks.map((task, index) => {
           const checked = !!checks[`${current.phase}-${index}`];
           return (

@@ -381,7 +381,7 @@ export default function ImmigrationModule({ theme, profile }) {
         {SUB_TABS.map(t => {
           const isActive = subTab === t.id;
           return (
-            <button key={t.id} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setSubTab(t.id)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
+            <button key={t.id} id={`imm-tab-${t.id}`} role="tab" aria-selected={isActive} aria-controls={`imm-panel-${t.id}`} data-active={isActive || undefined} onClick={() => setSubTab(t.id)} className={`pcs-tab ${isActive ? 'is-active' : ''}`} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
               {t.label}
             </button>
           );
@@ -390,7 +390,7 @@ export default function ImmigrationModule({ theme, profile }) {
 
       {/* Green Card Tab */}
       {subTab === 'greencard' && (
-        <div>
+        <div role="tabpanel" id="imm-panel-greencard" aria-labelledby="imm-tab-greencard">
           <div style={{ background: '#E3F2FD', borderRadius: 10, padding: 12, marginBottom: 16, borderLeft: '3px solid #1565C0' }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#1565C0', marginBottom: 4 }}>Immediate Relative — No Annual Cap</div>
             <div style={{ fontSize: 11, color: '#0D47A1', lineHeight: 1.5 }}>As the spouse of a U.S. citizen, you are an <strong>Immediate Relative</strong> under U.S. immigration law. There is no annual numerical limit on immigrant visas — your case moves as soon as USCIS approves the petition.</div>
@@ -417,7 +417,7 @@ export default function ImmigrationModule({ theme, profile }) {
 
       {/* Citizenship Tab */}
       {subTab === 'citizenship' && (
-        <div>
+        <div role="tabpanel" id="imm-panel-citizenship" aria-labelledby="imm-tab-citizenship">
           <div style={{ background: '#E8F5E9', borderRadius: 10, padding: 12, marginBottom: 16, borderLeft: '3px solid #2E7D32' }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#2E7D32', marginBottom: 4 }}>3-Year Benefit for Military Spouses</div>
             <div style={{ fontSize: 11, color: '#1B5E20', lineHeight: 1.5 }}>Military spouses may apply for citizenship after only <strong>3 years</strong> as a permanent resident — compared to the standard 5 years. This benefit applies when married to and living with the U.S. citizen service member throughout those 3 years.</div>
@@ -445,7 +445,7 @@ export default function ImmigrationModule({ theme, profile }) {
 
       {/* Legal Help Tab */}
       {subTab === 'legal' && (
-        <div>
+        <div role="tabpanel" id="imm-panel-legal" aria-labelledby="imm-tab-legal">
           <div style={{ background: `${theme.primary}10`, border: `1px solid ${theme.primary}30`, borderRadius: 10, padding: 12, marginBottom: 16 }}>
             <div style={{ fontSize: 12, fontWeight: 800, color: theme.primary, marginBottom: 4 }}>You Have Free Legal Help Available</div>
             <div style={{ fontSize: 11, color: '#4A5568', lineHeight: 1.5 }}>Active duty service members and their dependents have access to free immigration legal assistance through the Judge Advocate General (JAG) office on every installation. Always start there before paying for outside counsel.</div>
@@ -468,7 +468,7 @@ export default function ImmigrationModule({ theme, profile }) {
 
       {/* Checklist Tab */}
       {subTab === 'checklist' && (
-        <div>
+        <div role="tabpanel" id="imm-panel-checklist" aria-labelledby="imm-tab-checklist">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <div style={{ fontSize: 12, fontWeight: 800, color: '#0D1821' }}>USCIS Requirements Checklist</div>
             <div style={{ background: theme.primary, color: '#FFF', fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 10 }}>{totalDone}/{CHECKLIST_ITEMS.length} Done</div>

@@ -348,13 +348,14 @@ export default function TranslationModule({ theme, profile }) {
             {PHRASE_CATEGORIES.map(c => {
               const isActive = phraseCategory === c.id;
               return (
-                <button key={c.id} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setPhraseCategory(c.id)} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                <button key={c.id} id={`trans-tab-${c.id}`} role="tab" aria-selected={isActive} aria-controls={`trans-panel-${c.id}`} data-active={isActive || undefined} onClick={() => setPhraseCategory(c.id)} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 20, border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`, background: isActive ? theme.primary : '#FFF', color: isActive ? '#FFF' : '#56697C', fontSize: 11, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>
                   {c.icon} {c.label}
                 </button>
               );
             })}
           </TabBar>
 
+          <div role="tabpanel" id={`trans-panel-${phraseCategory}`} aria-labelledby={`trans-tab-${phraseCategory}`}>
           {/* Language columns header */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
             {LANGUAGES.slice(0, 5).map(l => (
@@ -379,6 +380,7 @@ export default function TranslationModule({ theme, profile }) {
               </div>
             </div>
           ))}
+          </div>
         </div>
       )}
 

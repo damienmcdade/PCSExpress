@@ -149,12 +149,16 @@ export default function PetRelocationChecklistTab({ theme, profile }) {
           const tasks = PHASES[phase].map((_, index) => `${phase}-${index}`);
           const phaseDone = tasks.filter(key => checks[key]).length;
           const active = activePhase === phase;
+          const slug = phase.replace(/\s+/g, '-');
           return (
             <button
               key={phase}
+              id={`pet-tab-${slug}`}
+              role="tab"
+              aria-controls={`pet-panel-${slug}`}
               onClick={() => setActivePhase(phase)}
               aria-label={`Open ${phase} pet relocation phase`}
-              aria-pressed={active}
+              aria-selected={active}
               className={`pcs-tab ${active ? 'is-active' : ''}`}
               style={{
                 borderColor: active ? theme.primary : '#E0E6EE',
@@ -168,7 +172,7 @@ export default function PetRelocationChecklistTab({ theme, profile }) {
         })}
       </div>
 
-      <div className="pet-task-list">
+      <div className="pet-task-list" role="tabpanel" id={`pet-panel-${activePhase.replace(/\s+/g, '-')}`} aria-labelledby={`pet-tab-${activePhase.replace(/\s+/g, '-')}`}>
         {PHASES[activePhase].map((task, index) => {
           const key = `${activePhase}-${index}`;
           const checked = !!checks[key];

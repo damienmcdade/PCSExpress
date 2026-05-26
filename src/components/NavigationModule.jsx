@@ -181,8 +181,10 @@ function NavigationModule({ theme, profile }) {
           return (
             <button
               key={t.id}
+              id={`nav-tab-${t.id}`}
               role="tab"
               aria-selected={isActive}
+              aria-controls={`nav-panel-${t.id}`}
               data-active={isActive || undefined}
               onClick={() => setActiveTab(t.id)}
               className={`pcs-tab ${isActive ? 'is-active' : ''}`}
@@ -206,7 +208,7 @@ function NavigationModule({ theme, profile }) {
       <div style={{ padding: '0 16px 16px' }}>
         {/* ROUTE PLANNER */}
         {activeTab === 'routes' && (
-          <div>
+          <div role="tabpanel" id="nav-panel-routes" aria-labelledby="nav-tab-routes">
             {/* Free-form route planner with real geocoding */}
             <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 16, marginBottom: 14 }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: '#0D1821', marginBottom: 12 }}>Plan a Route (Any Address)</div>
@@ -330,13 +332,13 @@ function NavigationModule({ theme, profile }) {
               <>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 10 }}>POPULAR ROUTES</div>
                 {getPopularRoutes().map((route, idx) => (
-                  <div key={idx} onClick={() => { setDepartingFrom(route.from); setDestination(route.to); }} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: '12px 14px', marginBottom: 8, cursor: 'pointer' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 4 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#0D1821' }}>{route.name}</div>
+                  <button type="button" key={idx} onClick={() => { setDepartingFrom(route.from); setDestination(route.to); }} style={{ display: 'block', width: '100%', textAlign: 'left', background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: '12px 14px', marginBottom: 8, cursor: 'pointer' }}>
+                    <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#0D1821' }}>{route.name}</span>
                       <span style={{ fontSize: 10, background: '#E3F2FD', color: '#1565C0', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>{route.type}</span>
-                    </div>
-                    <div style={{ fontSize: 11, color: '#56697C' }}>{route.distance} • {route.duration}</div>
-                  </div>
+                    </span>
+                    <span style={{ display: 'block', fontSize: 11, color: '#56697C' }}>{route.distance} • {route.duration}</span>
+                  </button>
                 ))}
               </>
             )}
@@ -356,7 +358,7 @@ function NavigationModule({ theme, profile }) {
 
         {/* DIRECTIONS TAB */}
         {activeTab === 'directions' && (
-          <div>
+          <div role="tabpanel" id="nav-panel-directions" aria-labelledby="nav-tab-directions">
             {/* Current active directions */}
             {routeInfo && routeSteps.length > 0 ? (
               <div style={{ background: `${theme.primary}15`, border: `1.5px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
@@ -435,7 +437,7 @@ function NavigationModule({ theme, profile }) {
 
         {/* SAVED ROUTES */}
         {activeTab === 'saved' && (
-          <div>
+          <div role="tabpanel" id="nav-panel-saved" aria-labelledby="nav-tab-saved">
             {savedRoutes.length > 0 ? (
               savedRoutes.map((route) => (
                 <div key={route.id} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.primary}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
@@ -468,7 +470,7 @@ function NavigationModule({ theme, profile }) {
 
         {/* BASE MAP */}
         {activeTab === 'baseMap' && (
-          <div style={{ margin: '-16px' }}>
+          <div role="tabpanel" id="nav-panel-baseMap" aria-labelledby="nav-tab-baseMap" style={{ margin: '-16px' }}>
             <BaseMapModule theme={theme} profile={profile} />
           </div>
         )}

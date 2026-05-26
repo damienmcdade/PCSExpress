@@ -251,13 +251,14 @@ export default function BaseIntelligenceReviews({ theme, profile }) {
         {REVIEW_CATEGORIES.map(item => {
           const isActive = category === item;
           return (
-            <button key={item} role="tab" aria-selected={isActive} data-active={isActive || undefined} onClick={() => setCategory(item)} style={{ flexShrink: 0, borderRadius: 999, border: `1.5px solid ${isActive ? theme.primary : '#D6E0EA'}`, background: isActive ? theme.primary : '#FFFFFF', color: isActive ? '#FFFFFF' : '#243447', padding: '8px 14px', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
+            <button key={item} id={`bir-tab-${item}`} role="tab" aria-selected={isActive} aria-controls={`bir-panel-${item}`} data-active={isActive || undefined} onClick={() => setCategory(item)} style={{ flexShrink: 0, borderRadius: 999, border: `1.5px solid ${isActive ? theme.primary : '#D6E0EA'}`, background: isActive ? theme.primary : '#FFFFFF', color: isActive ? '#FFFFFF' : '#243447', padding: '8px 14px', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
               {item}
             </button>
           );
         })}
       </TabBar>
 
+      <div role="tabpanel" id={`bir-panel-${category}`} aria-labelledby={`bir-tab-${category}`}>
       {!hasAnyReviews && (
         <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 14, padding: 16, marginBottom: 14 }}>
           <div style={{ fontSize: 13, fontWeight: 950, color: '#6D4C00', marginBottom: 4 }}>No community reviews yet for {installationName}</div>
@@ -309,6 +310,7 @@ export default function BaseIntelligenceReviews({ theme, profile }) {
 
       <div style={{ background: '#F8FAFC', border: '1px solid #DDE7F0', borderRadius: 14, padding: 14, fontSize: 11, color: '#56697C', lineHeight: 1.6 }}>
         <strong style={{ color: '#0D1821' }}>Data handling:</strong> BaseReviews stores InstallationName, Category, Rating, and UserRank plus verification status. Raw .mil email addresses, uploaded orders, DoD ID numbers, phone numbers, and addresses are intentionally excluded from the public review schema.
+      </div>
       </div>
     </div>
   );

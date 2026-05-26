@@ -2059,6 +2059,22 @@ a:focus-visible,
   transform: translateY(0);
 }
 
+/* Screen-reader-only utility. Keeps content in the accessibility tree
+   for AT users while hiding it visually. Required for headings we add
+   purely to satisfy heading-hierarchy / landmark audits without
+   changing the visual layout. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Global keyboard-focus indicator. :focus-visible fires only on
    keyboard focus (not mouse clicks), so sighted-mouse users don't see
    a ring on every tap but keyboard / screen-reader users get a

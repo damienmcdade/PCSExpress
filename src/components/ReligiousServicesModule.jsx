@@ -482,8 +482,10 @@ function ReligiousServicesModule({ theme, profile }) {
           return (
             <button
               key={t.id}
+              id={`rel-tab-${t.id}`}
               role="tab"
               aria-selected={isActive}
+              aria-controls={`rel-panel-${t.id}`}
               data-active={isActive || undefined}
               onClick={() => setActiveTab(t.id)}
               className={`pcs-tab ${isActive ? 'is-active' : ''}`}
@@ -504,7 +506,7 @@ function ReligiousServicesModule({ theme, profile }) {
         // INSTALLATION_CHAPELS-by-denomination, online resources)
         // gets order 1; the live OSM places-of-worship grid gets
         // order 2.
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div role="tabpanel" id="rel-panel-services" aria-labelledby="rel-tab-services" style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ order: 2 }} aria-label="Live places of worship">
           {/* Live nearby places of worship */}
           {liveServices.status === 'loading' && (
@@ -760,7 +762,7 @@ function ReligiousServicesModule({ theme, profile }) {
       {activeTab === 'chaplains' && (() => {
         const onBaseChaplains = services.filter(s => s.onBase)
         return (
-          <div>
+          <div role="tabpanel" id="rel-panel-chaplains" aria-labelledby="rel-tab-chaplains">
             <div style={{ fontSize: 12, fontWeight: 700, color: '#56697C', marginBottom: 10, letterSpacing: 0.5 }}>
               CHAPLAINS AT {instName.toUpperCase()}
             </div>
