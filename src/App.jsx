@@ -7347,6 +7347,11 @@ function App() {
         {activeTab === 'veterans'   && renderCategoryFrame('veterans',   <VeteranBusinessesTab theme={theme} profile={profile} />)}
       </div>
       </div>{/* end body container */}
+      {/* Persistent app-shell footer — independence disclaimer + build
+          stamp. Lives INSIDE <main> (the column-flex child) so it does
+          not become a row-flex sibling of <aside>/<main> at the root
+          and steal width from the desktop content column. */}
+      <AppShellFooter />
       </main>{/* end main column (header + body) — wraps sibling of desktop aside */}
 
       {/* AI Assistant modal. Triggered from the sidebar (desktop) +
@@ -7455,11 +7460,6 @@ function App() {
           </div>
         </div>
       )}
-
-      {/* Persistent app-shell footer — independence disclaimer +
-          build stamp, visible on every tab. Stays above the iOS
-          bottom tab bar because that bar is position:fixed. */}
-      <AppShellFooter />
 
       {/* First-launch independence acknowledgement. Self-gated: only
           renders when the user has not already tapped "I understand".
