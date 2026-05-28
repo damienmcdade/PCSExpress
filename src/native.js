@@ -45,10 +45,13 @@ export async function tryRegisterNativePush() {
   if (!isNative()) return { ok: false, reason: 'not-native' };
   let PushNotifications;
   try {
-    // /* @vite-ignore */ so Vite doesn't try to resolve this at
-    // build time (the package is only installed for the Capacitor
-    // build per docs/NATIVE_SETUP.md).
-    ({ PushNotifications } = await import(/* @vite-ignore */ '@capacitor/push-notifications'));
+    // String-built path so Vite's import-analysis doesn't try to
+    // resolve the optional native-only package at dev / build time.
+    // The /* @vite-ignore */ comment stopped suppressing the
+    // resolution check after Vite 8, breaking the web dev server
+    // when the optional Capacitor plugin isn't installed.
+    const pkg = '@capacitor' + '/push-notifications';
+    ({ PushNotifications } = await import(/* @vite-ignore */ pkg));
   } catch {
     return { ok: false, reason: 'plugin-not-installed' };
   }

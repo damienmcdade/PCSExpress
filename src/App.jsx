@@ -5112,9 +5112,24 @@ APP_TRANSLATIONS.vi = {
   nav: { home: 'Trang chủ', checklist: 'Danh sách PCS', documents: 'Tài liệu', education: 'Giáo dục', family: 'Sẵn sàng gia đình', 'home-relocation': 'Nhà ở & chuyển nhà', 'medical-readiness': 'Sẵn sàng y tế', nav: 'Điều hướng', resources: 'Tài nguyên', religion: 'Sẵn sàng tâm linh', translation: 'Dịch thuật', veterans: 'Cựu chiến binh' },
 };
 
+// Accept any code from SUPPORTED_LANGUAGES (not just APP_TRANSLATIONS
+// keys). The 8 Google-Translate-only locales (sw/ha/yo/am/zu/ig/so/af)
+// have no entry in APP_TRANSLATIONS — they're served by the runtime
+// translation layer + Google Translate widget — so they must still
+// pass through this normalizer to reach the language/dir setters and
+// the runtime mount gate. Also fold regional variants (pt-BR, zh-Hans,
+// en-US, es-419) back to their base language so a browser-derived
+// preferred-language doesn't silently degrade to English.
+const SUPPORTED_LANGUAGE_CODES = new Set(SUPPORTED_LANGUAGES.map(l => l.code));
+
 function getAppLanguage(language) {
-  const code = String(language || 'en').toLowerCase();
-  return APP_TRANSLATIONS[code] ? code : 'en';
+  const raw = String(language || 'en').toLowerCase().trim();
+  if (!raw) return 'en';
+  if (SUPPORTED_LANGUAGE_CODES.has(raw)) return raw;
+  // Try base language: 'pt-br' -> 'pt', 'zh-hans' -> 'zh'.
+  const base = raw.split(/[-_]/)[0];
+  if (SUPPORTED_LANGUAGE_CODES.has(base)) return base;
+  return 'en';
 }
 
 // Honest disclosure for non-English users: navigation, headers, and short
