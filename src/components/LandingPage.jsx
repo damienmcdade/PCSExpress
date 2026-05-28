@@ -23,10 +23,20 @@
  * inline CSS so the page works fully offline and renders identically
  * in the iOS / Android Capacitor shells if ever shown there.
  */
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import DemoRequestForm from './DemoRequestForm';
 import CrisisLineChip from './CrisisLineChip';
 import { INDEPENDENCE_DISCLAIMER } from '../config/disclaimer';
+
+// v2 — lazy-load the AI Assistant modal exactly the way App.jsx does so
+// the LandingPage's "Need help now" button can open the same multi-
+// turn assistant (with the crisis-line header + curated-KB fallback)
+// that authenticated users get. LandingPage is shown BEFORE App's
+// onboarding state mounts, so we can't rely on App's open-ai-assistant
+// window event — we mount our own modal instance here.
+const AIAssistantModal = lazy(() =>
+  import('./AIAssistantChip').then(m => ({ default: m.AIAssistantModal }))
+);
 
 const PALETTE = {
   navy: '#0D3B66',
@@ -204,6 +214,13 @@ const PARTNER_USE_CASES = [
 
 export default function LandingPage({ onStartPlan, onClose }) {
   const [demoOpen, setDemoOpen] = useState(false);
+  // v3 — AI Assistant modal state. The hero now exposes a prominent
+  // "AI Assistant" button (replaced the Need-Help-Now chip) so users
+  // who land on the marketing page can get tailored answers about
+  // PCS / JTR / FTR / DSSR before signing up. The floating
+  // CrisisLineChip is still rendered globally for users who need
+  // 988 / OneSource directly.
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
   const startPlan = () => { try { onStartPlan?.(); } catch {} };
 
   return (
@@ -212,8 +229,15 @@ export default function LandingPage({ onStartPlan, onClose }) {
         background: PALETTE.bg,
         color: PALETTE.text,
         minHeight: '100vh',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif',
+        // v3 — modern font stack. Inter where available (most modern
+        // browsers ship it), SF Pro Display on Apple devices, then
+        // graceful fallback. -0.011em tracking gives the headers a
+        // cleaner, more professional read at hero sizes.
+        fontFamily: '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, system-ui, sans-serif',
+        fontFeatureSettings: '"cv11", "ss01", "ss03"',
+        letterSpacing: '-0.011em',
         WebkitFontSmoothing: 'antialiased',
+        MozOsxFontSmoothing: 'grayscale',
       }}
     >
       {/* ───── NAV ───── */}
@@ -270,15 +294,16 @@ export default function LandingPage({ onStartPlan, onClose }) {
       </nav>
 
       {/* ───── HERO ───── */}
-      {/* v2 — livened up per user directive: militaristic but
-          professional. Animated radar-sweep + flag-stripe background,
-          stronger uppercase typography on the kicker, and a
-          prominent inline "Need Help Now? 988" emergency CTA so users
-          in distress don't have to find the floating chip. */}
+      {/* v3 — design refresh per user directive: replaced the
+          Need-Help-Now CTA with an AI Assistant button (988 / Crisis
+          access still available via the floating CrisisLineChip), and
+          warmed the hero gradient with a vibrant teal accent so the
+          page reads as "active mission" rather than "static brochure"
+          while staying institutionally appropriate. */}
       <section
         id="top"
         style={{
-          background: `linear-gradient(135deg, ${PALETTE.navy} 0%, ${PALETTE.navyDeep} 100%)`,
+          background: `linear-gradient(135deg, ${PALETTE.navyDeep} 0%, ${PALETTE.navy} 45%, #0F5A8F 100%)`,
           color: PALETTE.paper,
           position: 'relative',
           overflow: 'hidden',
@@ -358,31 +383,35 @@ export default function LandingPage({ onStartPlan, onClose }) {
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <CTAButton onClick={startPlan}>Start Your PCS Plan →</CTAButton>
+            {/* v3 — AI Assistant CTA replaces the Need-Help-Now chip.
+                Opens the same multi-turn assistant authenticated
+                users get (Anthropic-backed when the provider is up,
+                curated JTR / FTR / DSSR KB fallback when offline).
+                Vibrant teal-gold gradient with a glow so it reads as
+                the primary "talk to the platform" entry point. */}
+            <button
+              type="button"
+              onClick={() => setShowAIAssistant(true)}
+              aria-label="Open the AI Assistant — ask any PCS, BAH, or relocation question"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 10,
+                padding: '14px 22px', borderRadius: 14,
+                border: '1px solid rgba(255,255,255,0.35)',
+                background: 'linear-gradient(135deg, #14B8A6 0%, #0E7490 55%, #C99A3D 100%)',
+                color: '#FFFFFF', fontSize: 15, fontWeight: 800,
+                letterSpacing: '-0.005em', cursor: 'pointer',
+                boxShadow: '0 10px 28px rgba(20, 184, 166, 0.32), 0 2px 6px rgba(0,0,0,0.18)',
+                transition: 'transform 120ms ease, box-shadow 120ms ease',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(20, 184, 166, 0.42), 0 2px 6px rgba(0,0,0,0.20)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)';     e.currentTarget.style.boxShadow = '0 10px 28px rgba(20, 184, 166, 0.32), 0 2px 6px rgba(0,0,0,0.18)'; }}
+            >
+              <span aria-hidden="true" style={{ fontSize: 18, lineHeight: 1 }}>🤖</span>
+              AI Assistant
+              <span aria-hidden="true" style={{ fontSize: 11, fontWeight: 700, opacity: 0.85, letterSpacing: '.08em' }}>· ASK ANYTHING</span>
+            </button>
             <CTAButton variant="ghost" onClick={() => scrollTo('demo')}>Request a Demo</CTAButton>
             <CTAButton variant="ghost" onClick={() => scrollTo('features')}>Explore PCS Tools</CTAButton>
-          </div>
-
-          {/* v2 — prominent Need Help Now CTA right in the hero,
-              independent of the floating CrisisLineChip. tel: link so
-              taps go straight to the dialer on phones. Uses the dusk-
-              red palette + pulsing dot to read as 'urgent option'
-              without dominating the hero gradient. */}
-          <div style={{ marginTop: 20, display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 14px', background: 'rgba(127,29,29,0.55)', border: '1px solid rgba(254,202,202,0.55)', borderRadius: 999, color: '#FECACA', fontSize: 12, fontWeight: 800, letterSpacing: '.08em' }}>
-            <span aria-hidden="true" style={{ position: 'relative', display: 'inline-flex', width: 10, height: 10 }}>
-              <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#FECACA' }} />
-              <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#FECACA', animation: 'pcs-pulse 1.4s ease-out infinite' }} />
-            </span>
-            Need help now?
-            <a href="tel:988" style={{ color: '#FFFFFF', fontWeight: 900, textDecoration: 'underline' }}
-               aria-label="Call Military Crisis Line — 988 then 1">
-              Call 988
-            </a>
-            <span style={{ opacity: 0.7 }}>then 1</span>
-            <span aria-hidden="true" style={{ opacity: 0.45 }}>·</span>
-            <a href="tel:18003429647" style={{ color: '#FFFFFF', fontWeight: 700, textDecoration: 'underline' }}
-               aria-label="Call Military OneSource — 1-800-342-9647">
-              OneSource
-            </a>
           </div>
 
           <div style={{ marginTop: 28, display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
@@ -668,6 +697,20 @@ export default function LandingPage({ onStartPlan, onClose }) {
           page — military readers in distress should never have to dig
           through the app to find 988+1 / Military OneSource. */}
       <CrisisLineChip isNative={false} isDesktop={true} />
+
+      {/* AI Assistant modal — mounted at LandingPage level because
+          the App shell short-circuits to <LandingPage /> before its
+          own AIAssistantModal mount runs. Suspense fallback is empty
+          (the modal opens with its own loading state). */}
+      <Suspense fallback={null}>
+        {showAIAssistant && (
+          <AIAssistantModal
+            open={showAIAssistant}
+            onClose={() => setShowAIAssistant(false)}
+            isDesktop={true}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }
