@@ -352,9 +352,9 @@ export default function LandingPage({ onStartPlan, onClose }) {
               </button>
             ))}
           </div>
-          <CTAButton onClick={startPlan} style={{ padding: '10px 16px', minHeight: 40, fontSize: 13 }}>
-            Start Your PCS Plan
-          </CTAButton>
+          {/* Nav-bar "Start Your PCS Plan" removed per user directive
+              — redundant with the prominent animated hero CTA right
+              below. */}
           {onClose && (
             <button
               type="button"
