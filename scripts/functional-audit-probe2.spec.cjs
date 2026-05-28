@@ -1,4 +1,3 @@
-/* eslint-disable */
 // Targeted follow-up probe: drill into Mission Resources, Family
 // Readiness, and Medical Readiness to capture deep page content so we
 // can confirm whether tab clicks actually load the intended panel.
