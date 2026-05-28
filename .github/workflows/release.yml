@@ -1,0 +1,98 @@
+# Synchronous frontend (Vercel) + backend (Railway) production deploy.
+#
+# Runs on every push to main. Vercel and Railway deploy in PARALLEL
+# jobs so the two surfaces don't drift in time — the frontend that
+# users hit and the backend it calls are released within seconds of
+# each other.
+#
+# Required GitHub repo secrets:
+#   VERCEL_TOKEN        — Vercel personal token (Account Settings → Tokens)
+#   VERCEL_ORG_ID       — `vercel link` then read .vercel/project.json
+#   VERCEL_PROJECT_ID   — same file
+#   RAILWAY_TOKEN       — Railway project token (Project Settings → Tokens)
+#
+# Build / test / docker is still handled by deploy.yml; this workflow
+# only owns the platform deploys themselves.
+
+name: Release (Vercel + Railway)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  vercel:
+    name: Vercel (frontend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel project info
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build (Vercel)
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel (prod)
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+  railway:
+    name: Railway (backend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service PCSExpress --ci
+
+  notify:
+    name: Confirm both deploys landed
+    runs-on: ubuntu-latest
+    needs: [vercel, railway]
+    if: always()
+    steps:
+      - name: Summarize
+        run: |
+          echo "Vercel result:  ${{ needs.vercel.result }}"
+          echo "Railway result: ${{ needs.railway.result }}"
+          if [ "${{ needs.vercel.result }}" != "success" ] || [ "${{ needs.railway.result }}" != "success" ]; then
+            echo "::error::Vercel and Railway must both succeed for FE/BE to stay in sync."
+            exit 1
+          fi
+          echo "✓ Frontend (Vercel) and backend (Railway) deployed in sync."

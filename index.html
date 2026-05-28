@@ -30,6 +30,13 @@
     -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Warm the TLS connection to the Railway API origin before the
+         first /api/* fetch fires. Saves ~100-250ms TTFB on first lookup
+         (housing, schools, jobs, veteran-business) by overlapping DNS
+         + TCP + TLS with the rest of the cold-start work. -->
+    <link rel="preconnect" href="https://pcsexpress-production.up.railway.app" crossorigin />
+    <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org" />
+    <link rel="dns-prefetch" href="https://router.project-osrm.org" />
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" />
     <meta name="theme-color" content="#0A1628" />
