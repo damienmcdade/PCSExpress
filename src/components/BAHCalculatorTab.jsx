@@ -175,6 +175,7 @@ export default function BAHCalculatorTab({ theme, profile }) {
         {(!profileGaining || showPicker || dutyStation !== profileGaining) && (
           <div>
             <input
+              aria-label="Search duty station"
               placeholder="Search duty station..."
               value={search || dutyStation}
               onChange={e => { setSearch(e.target.value); setShowPicker(true); }}

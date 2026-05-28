@@ -1211,7 +1211,7 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
   const city = String(req.query.city || '').trim().replace(/[^A-Za-z0-9 .'-]/g, '').slice(0, 60)
   const state = String(req.query.state || '').trim().replace(/[^A-Za-z0-9 .'-]/g, '').slice(0, 16)
   const zip = String(req.query.zip || '').trim().replace(/[^A-Za-z0-9-]/g, '').slice(0, 10)
-  const address = String(req.query.address || '').trim().slice(0, 160)
+  const address = String(req.query.address || '').trim().replace(/[^A-Za-z0-9\s,#.'-]/g, '').slice(0, 160)
   const userLang = String(req.query.lang || 'en').toLowerCase().replace(/[^a-z]/g, '').slice(0, 5) || 'en'
   if (!city && !zip && !address) {
     return res.status(400).json({ error: 'city, zip, or address is required', listings: [], fallback: true })
@@ -1798,7 +1798,7 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
   const city = String(req.query.city || '').trim().slice(0, 80)
   const state = String(req.query.state || '').trim().slice(0, 16)
   const zip = String(req.query.zip || '').trim().slice(0, 10)
-  const address = String(req.query.address || '').trim().slice(0, 160)
+  const address = String(req.query.address || '').trim().replace(/[^A-Za-z0-9\s,#.'-]/g, '').slice(0, 160)
   const radiusMiles = Math.max(5, Math.min(50, parseInt(req.query.radiusMiles, 10) || 25))
   const userLang = String(req.query.lang || 'en').toLowerCase().replace(/[^a-z]/g, '').slice(0, 5) || 'en'
 
@@ -1876,7 +1876,7 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
   const city = String(req.query.city || '').trim().slice(0, 80)
   const state = String(req.query.state || '').trim().slice(0, 16)
   const zip = String(req.query.zip || '').trim().slice(0, 10)
-  const address = String(req.query.address || '').trim().slice(0, 160)
+  const address = String(req.query.address || '').trim().replace(/[^A-Za-z0-9\s,#.'-]/g, '').slice(0, 160)
   const radiusMiles = Math.max(5, Math.min(50, parseInt(req.query.radiusMiles, 10) || 25))
   const userLang = String(req.query.lang || 'en').toLowerCase().replace(/[^a-z]/g, '').slice(0, 5) || 'en'
 
@@ -2171,7 +2171,7 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
   const city = String(req.query.city || '').trim().slice(0, 80)
   const state = String(req.query.state || '').trim().slice(0, 16)
   const zip = String(req.query.zip || '').trim().slice(0, 10)
-  const address = String(req.query.address || '').trim().slice(0, 160)
+  const address = String(req.query.address || '').trim().replace(/[^A-Za-z0-9\s,#.'-]/g, '').slice(0, 160)
   const radiusMiles = Math.max(5, Math.min(75, parseInt(req.query.radiusMiles, 10) || 50))
   const userLang = String(req.query.lang || 'en').toLowerCase().replace(/[^a-z]/g, '').slice(0, 5) || 'en'
 

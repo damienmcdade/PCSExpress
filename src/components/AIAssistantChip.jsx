@@ -386,11 +386,11 @@ function exportConversationAsPdf(messages, language) {
     PCS Express AI Assistant. The conversation was not stored on any PCS Express server — this transcript is the only copy.
   </div>
 </body></html>`;
-  const w = window.open('', '_blank');
-  if (!w) { alert('Pop-up blocked. Allow pop-ups for PCS Express to export the transcript.'); return; }
-  w.document.write(html);
-  w.document.close();
-  setTimeout(() => { try { w.focus(); w.print(); } catch {} }, 300);
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const w = window.open(url, '_blank');
+  if (!w) { URL.revokeObjectURL(url); alert('Pop-up blocked. Allow pop-ups for PCS Express to export the transcript.'); return; }
+  setTimeout(() => { try { w.focus(); w.print(); } catch {} URL.revokeObjectURL(url); }, 600);
 }
 
 function searchKB(query) {

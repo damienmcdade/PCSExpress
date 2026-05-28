@@ -106,16 +106,18 @@ function buildClaimHtml(state, profile) {
 }
 
 function exportToPrintWindow(html) {
-  const w = window.open('', '_blank');
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const w = window.open(url, '_blank');
   if (!w) {
+    URL.revokeObjectURL(url);
     alert('Pop-up blocked. Allow pop-ups for PCS Express to export the worksheet.');
     return;
   }
-  w.document.write(html);
-  w.document.close();
   setTimeout(() => {
     try { w.focus(); w.print(); } catch {}
-  }, 300);
+    URL.revokeObjectURL(url);
+  }, 600);
 }
 
 const inputSt = { width: '100%', border: '1px solid #D8DEE7', borderRadius: 8, padding: '8px 10px', fontSize: 13, color: '#111827', background: '#FFFFFF', boxSizing: 'border-box' };

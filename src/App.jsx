@@ -7058,7 +7058,7 @@ function App() {
         )}
         {isNative && !isDesktop && moreOpen && (
           <>
-            <div onClick={() => setMoreOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 311, background: 'rgba(0,0,0,0.45)' }} />
+            <button type="button" aria-label="Close more menu" onClick={() => setMoreOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 311, background: 'rgba(0,0,0,0.45)', border: 'none', padding: 0, cursor: 'pointer' }} />
             <div style={{ position: 'fixed', bottom: `calc(49px + env(safe-area-inset-bottom))`, left: 0, right: 0, zIndex: 312, background: theme.secondary, borderRadius: '20px 20px 0 0', borderTop: `2px solid ${theme.accent}60`, paddingTop: 8, paddingBottom: 4 }}>
               <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 12px' }} />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, padding: '0 12px' }}>
@@ -7332,7 +7332,7 @@ function App() {
       )}
 
       {/* Backdrop to close nav/notifs/more sheet */}
-      {(navOpen || showNotifs) && <div onClick={() => { setNavOpen(false); setShowNotifs(false); }} style={{ position: 'fixed', inset: 0, zIndex: 150, background: 'transparent' }} />}
+      {(navOpen || showNotifs) && <button type="button" aria-label="Close menu" onClick={() => { setNavOpen(false); setShowNotifs(false); }} style={{ position: 'fixed', inset: 0, zIndex: 150, background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }} />}
 
       {/* BODY: content area only — the desktop persistent sidebar is
           mounted ONCE at the root layout (line ~8507) so it persists
@@ -7639,7 +7639,7 @@ function App() {
       {/* ── iOS MORE BOTTOM SHEET ── */}
       {isNative && !isDesktop && moreOpen && (
         <>
-          <div onClick={() => setMoreOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 311, background: 'rgba(0,0,0,0.45)' }} />
+          <button type="button" aria-label="Close more menu" onClick={() => setMoreOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 311, background: 'rgba(0,0,0,0.45)', border: 'none', padding: 0, cursor: 'pointer' }} />
           <div style={{ position: 'fixed', bottom: `calc(49px + env(safe-area-inset-bottom))`, left: 0, right: 0, zIndex: 312, background: theme.secondary, borderRadius: '20px 20px 0 0', borderTop: `2px solid ${theme.accent}60`, paddingTop: 8, paddingBottom: 4 }}>
             {/* Handle bar */}
             <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 12px' }} />

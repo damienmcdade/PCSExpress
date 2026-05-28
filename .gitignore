@@ -28,3 +28,10 @@ Thumbs.db
 test-results/
 .link-audit/
 .audit/
+
+# Build / CI artifacts and historical backup snapshots
+deployment-logs/
+build-sync-reports/
+language-coverage-backup-*/
+language-action-repetition-backup-*/
+icon-backups/

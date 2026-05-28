@@ -26,7 +26,7 @@ export default function TabBar({ ariaLabel, children, className = '', style }) {
         && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       active.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', inline: 'center', block: 'nearest' });
     }
-  });
+  }, [children]);
 
   const handleKeyDown = (e) => {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
