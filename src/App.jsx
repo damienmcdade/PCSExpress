@@ -18,6 +18,7 @@ import PlatformBanners from './components/PlatformBanners'
 // once the user actually opens the assistant.
 import AIAssistantTrigger from './components/AIAssistantTrigger'
 import AIAssistantFAB from './components/AIAssistantFAB'
+import CrisisLineChip from './components/CrisisLineChip'
 import TabBar from './components/TabBar'
 import { usePullToRefresh } from './hooks/usePullToRefresh'
 import { useFocusTrap } from './hooks/useFocusTrap'
@@ -7500,6 +7501,17 @@ function App() {
           the right visual state during the chunk fetch. */}
       {/* Native-only floating AI trigger; web renders nothing. */}
       <AIAssistantFAB theme={theme} onClick={() => setShowAIAssistant(true)} />
+
+      {/* Crisis-line chip — pinned floating affordance in the
+          authenticated app shell. Users in crisis must always be
+          one tap from 988 (Military Crisis Line) and Military
+          OneSource, regardless of which tab they are on. Previously
+          mounted only inside LandingPage; removing it from the
+          landing per user directive left the authenticated app with
+          NO in-app 988 path. Restored at the App shell level so
+          every dashboard tab gets the chip. Collapsible to a single
+          🆘 icon (cannot be fully dismissed). */}
+      <CrisisLineChip isNative={isNative} isDesktop={isDesktop} />
 
       <Suspense fallback={null}>
       <AIAssistantModal
