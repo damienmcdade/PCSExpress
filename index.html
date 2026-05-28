@@ -19,6 +19,19 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon-v3.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icon-180-v3.png" />
     <link rel="manifest" href="/manifest.json" />
+    <!--
+      Modern type system. Inter (body / UI) + Space Grotesk (display
+      headers) loaded via Google Fonts. preconnect lets the browser
+      open the TLS connection before the stylesheet parses, shaving
+      ~100ms off first-text-paint. `display=swap` avoids the FOIT
+      "invisible text" flash — system-ui shows immediately and the
+      web font swaps in once downloaded. Weight ranges cover everything
+      from regular body (400) to display-weight hero headers (900).
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" />
     <meta name="theme-color" content="#0A1628" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="PCS Express helps service members and military families simplify PCS moves through guided workflows, centralized relocation tools, and military-specific resources. Built for all DoD branches, components, and military families." />

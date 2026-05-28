@@ -8,6 +8,7 @@ import './App.css'
 import { apiUrl } from './config/apiConfig'
 import { INDEPENDENCE_DISCLAIMER } from './config/disclaimer'
 import AppErrorBoundary from './components/AppErrorBoundary'
+import BranchBackdrop from './components/BranchBackdrop'
 import AppShellFooter from './components/AppShellFooter'
 import IndependenceAck from './components/IndependenceAck'
 import CommandPalette from './components/CommandPalette'
@@ -515,6 +516,16 @@ function getHomeBranchInsignia(branch) {
   const theme = BRANCH_THEMES[branch] || BRANCH_THEMES.Army;
   return BRANCH_HOME_INSIGNIA[branch] || theme.insignia || theme.abbr || 'PCS';
 }
+
+// === MODERN TYPE STACK ===
+// Inter (body / UI) + Space Grotesk (display headers, brand mark,
+// numeric stats). Both are loaded via Google Fonts in index.html.
+// Centralizing the strings here so the entire dashboard chrome and
+// the landing share one canonical stack — replaces the prior
+// `fontFamily: APP_FONT` that left the app reading in whatever
+// the OS shipped by default (visibly different per device).
+const APP_FONT     = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, system-ui, sans-serif';
+const DISPLAY_FONT = '"Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI Variable", system-ui, sans-serif';
 
 // === TACTICAL OPERATIONS CENTER (TOC) UI PALETTE ===
 // Dark slate field with subtle grid background, branch-color glow
@@ -1069,6 +1080,7 @@ const BRANCH_THEMES = {
   "Air Force":    { primary: "#1A3A5C", secondary: "#0D2240", accent: "#60A0C8", motto: "AIM HIGH",       tagline: "Fly–Fight–Win",                insignia: "USAF", abbr: "USAF" },
   "Space Force":  { primary: "#1A1A3E", secondary: "#0A0A28", accent: "#7AB0E0", motto: "SEMPER SUPRA",   tagline: "Guardians of the High Ground", insignia: "USSF", abbr: "USSF" },
   "Coast Guard":  { primary: "#005A8E", secondary: "#003D6A", accent: "#FF6B00", motto: "SEMPER PARATUS", tagline: "Always Ready",                 insignia: "USCG", abbr: "USCG" },
+  "DoD Civilian": { primary: "#0D3B66", secondary: "#082A4D", accent: "#C99A3D", motto: "MISSION FIRST",  tagline: "Service to the Nation",        insignia: "DoD",  abbr: "DoD"  },
 };
 
 const BRANCH_RANKS = {
@@ -5501,7 +5513,7 @@ function Onboarding({ onComplete }) {
   );
 
   return (
-    <div lang={onboardingLanguage} dir={onboardingLanguage === 'ar' ? 'rtl' : 'ltr'} style={{ minHeight: '100dvh', background: theme.secondary, display: 'flex', flexDirection: 'column', fontFamily: 'system-ui' }}>
+    <div lang={onboardingLanguage} dir={onboardingLanguage === 'ar' ? 'rtl' : 'ltr'} style={{ minHeight: '100dvh', background: theme.secondary, display: 'flex', flexDirection: 'column', fontFamily: APP_FONT }}>
       {/* Header */}
       <div style={{ padding: 'env(safe-area-inset-top) 0 0', background: theme.secondary }}>
         <div style={{ padding: '20px 16px 12px', textAlign: 'center' }}>
@@ -6949,7 +6961,7 @@ function App() {
 
   if (activeTab === 'translation') {
     return (
-      <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: `${UI_PALETTE.pagePattern}, radial-gradient(circle at top left, ${theme.accent}22, transparent 50%), radial-gradient(circle at bottom right, ${theme.primary}22, transparent 50%), ${UI_PALETTE.page}`, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
+      <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: `${UI_PALETTE.pagePattern}, radial-gradient(circle at top left, ${theme.accent}22, transparent 50%), radial-gradient(circle at bottom right, ${theme.primary}22, transparent 50%), ${UI_PALETTE.page}`, fontFamily: APP_FONT, display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
         <PrivacyShield />
       <SaveStatusIndicator theme={theme} />
       {showResetWarning && (
@@ -7052,7 +7064,7 @@ function App() {
   }
 
   return (
-    <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: `${UI_PALETTE.pagePattern}, radial-gradient(circle at top left, ${theme.accent}22, transparent 50%), radial-gradient(circle at bottom right, ${theme.primary}22, transparent 50%), ${UI_PALETTE.page}`, fontFamily: 'system-ui', display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
+    <div lang={appLanguage} dir={appDir} style={{ maxWidth: isDesktop ? '100%' : 480, width: '100%', margin: '0 auto', minHeight: '100dvh', background: `${UI_PALETTE.pagePattern}, radial-gradient(circle at top left, ${theme.accent}22, transparent 50%), radial-gradient(circle at bottom right, ${theme.primary}22, transparent 50%), ${UI_PALETTE.page}`, fontFamily: APP_FONT, display: 'flex', flexDirection: isDesktop ? 'row' : 'column' }}>
       <a href="#pcs-main-content" className="pcs-skip-link">Skip to main content</a>
       <PlatformBanners />
       <CommandPalette />
@@ -7066,11 +7078,30 @@ function App() {
           the burger menu on screens ≥ 900px. */}
       {isDesktop && (
         <aside style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', minHeight: '100dvh', borderRight: `2px solid ${theme.accent}30`, flexShrink: 0, position: 'sticky', top: 0, alignSelf: 'flex-start' }}>
-          <div style={{ padding: '20px 16px 12px', borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
-            <div style={{ fontSize: 9, letterSpacing: '.18em', color: theme.accent, fontWeight: 900, marginBottom: 2 }}>PCS EXPRESS</div>
-            <div style={{ fontSize: 16, fontWeight: 900, color: theme.accent, letterSpacing: '-1px', lineHeight: 1 }}>{theme.insignia || theme.abbr}</div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>{getRankDisplay(profile.branch, profile.paygrade)} {profile.firstName}</div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>{profile.branch}</div>
+          {/* Branch-tailored backdrop. Renders the abstract pattern
+              for the user's branch (hex grid / orbital rings / wave
+              forms / etc.) behind the sidebar header so the chrome
+              feels distinctly theirs rather than a flat color block. */}
+          <div style={{ position: 'relative' }}>
+            <BranchBackdrop branch={profile.branch} opacity={0.20} />
+            <div style={{ position: 'relative', padding: '22px 16px 14px', borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
+              <div style={{
+                fontSize: 9, letterSpacing: '.22em', color: theme.accent, fontWeight: 700,
+                marginBottom: 4, fontFamily: DISPLAY_FONT,
+                display: 'flex', alignItems: 'center', gap: 6,
+              }}>
+                <span aria-hidden="true" style={{
+                  display: 'inline-block', width: 6, height: 6, borderRadius: '50%',
+                  background: theme.accent,
+                  boxShadow: `0 0 8px ${theme.accent}`,
+                  animation: 'pcs-frame-pulse 2.6s ease-in-out infinite',
+                }} />
+                PCS EXPRESS
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: theme.accent, letterSpacing: '-0.04em', lineHeight: 1, fontFamily: DISPLAY_FONT }}>{theme.insignia || theme.abbr}</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 6, fontFamily: DISPLAY_FONT, letterSpacing: '-0.01em' }}>{getRankDisplay(profile.branch, profile.paygrade)} {profile.firstName}</div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', marginTop: 2, letterSpacing: '.06em' }}>{profile.branch}</div>
+            </div>
           </div>
           <nav aria-label="Mission groups" style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
             {LOCALIZED_BOTTOM_NAV.map(item => (
@@ -7095,13 +7126,30 @@ function App() {
       {/* HEADER — paddingTop uses env(safe-area-inset-top) for notch/Dynamic Island.
           Requires viewport-fit=cover in the HTML meta and contentInsetAdjustmentBehavior=never
           in capacitor.config.json to receive non-zero values from the OS. */}
-      <div style={{ background: theme.secondary, paddingTop: isNative ? 'env(safe-area-inset-top)' : 0, position: 'sticky', top: 0, zIndex: 100, borderBottom: `2px solid ${theme.accent}40` }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px' }}>
+      <div style={{ background: theme.secondary, paddingTop: isNative ? 'env(safe-area-inset-top)' : 0, position: 'sticky', top: 0, zIndex: 100, borderBottom: `2px solid ${theme.accent}40`, overflow: 'hidden' }}>
+        {/* Branch backdrop now sits behind the header on every screen
+            size (was previously sidebar-only on desktop). Low opacity
+            so it never competes with header controls. */}
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
+          <BranchBackdrop branch={profile.branch} opacity={0.14} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {isDesktop && <div style={{ fontSize: 22, fontWeight: 900, color: theme.accent, letterSpacing: '-1px' }}>{theme.insignia || theme.abbr}</div>}
+            {isDesktop && <div style={{ fontSize: 24, fontWeight: 700, color: theme.accent, letterSpacing: '-0.04em', fontFamily: DISPLAY_FONT }}>{theme.insignia || theme.abbr}</div>}
             <div>
-              <div style={{ fontSize: 10, letterSpacing: '.12em', color: theme.accent, fontWeight: 900 }}>PCS EXPRESS</div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#FFFFFF' }}>{profile.firstName} · {isDesktop ? profile.branch : currentLabel}</div>
+              <div style={{
+                fontSize: 10, letterSpacing: '.18em', color: theme.accent, fontWeight: 700,
+                fontFamily: DISPLAY_FONT, display: 'flex', alignItems: 'center', gap: 6,
+              }}>
+                <span aria-hidden="true" style={{
+                  display: 'inline-block', width: 6, height: 6, borderRadius: '50%',
+                  background: theme.accent,
+                  boxShadow: `0 0 8px ${theme.accent}`,
+                  animation: 'pcs-frame-pulse 2.6s ease-in-out infinite',
+                }} />
+                PCS EXPRESS
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#FFFFFF', fontFamily: DISPLAY_FONT, letterSpacing: '-0.015em' }}>{profile.firstName} · {isDesktop ? profile.branch : currentLabel}</div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -7130,6 +7178,43 @@ function App() {
             )}
           </div>
         </div>
+        {/* Branch motto banner — slim metallic-gold rule sitting
+            between the header and the page body. The motto is the
+            branch's published motto from BRANCH_THEMES; the gold
+            stripe shimmers slowly to signal "active mission." */}
+        {theme.motto && (
+          <div style={{
+            position: 'relative', zIndex: 1,
+            background: `linear-gradient(90deg, ${theme.primary} 0%, ${theme.secondary} 100%)`,
+            borderTop: `1px solid ${theme.accent}40`,
+            padding: '5px 16px',
+            display: 'flex', alignItems: 'center', gap: 12,
+            overflow: 'hidden',
+          }}>
+            <span style={{
+              fontSize: 9, fontWeight: 700, color: theme.accent,
+              letterSpacing: '.22em', textTransform: 'uppercase',
+              fontFamily: DISPLAY_FONT,
+            }}>
+              {theme.motto}
+            </span>
+            <span aria-hidden="true" style={{
+              flex: 1, height: 1,
+              background: `linear-gradient(90deg, transparent 0%, ${theme.accent} 50%, transparent 100%)`,
+              backgroundSize: '200% 100%',
+              animation: 'pcs-motto-shimmer 6s linear infinite',
+              opacity: 0.55,
+            }} />
+            {theme.tagline && (
+              <span style={{
+                fontSize: 9, fontStyle: 'italic', color: 'rgba(255,255,255,0.65)',
+                fontFamily: DISPLAY_FONT, letterSpacing: '.02em',
+              }}>
+                {theme.tagline}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* TRANSLATION SCOPE BANNER — appears when user picks a non-English language.

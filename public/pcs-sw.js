@@ -25,12 +25,12 @@
  *     next activate.
  */
 
-// Bumped from pcs-v1 → pcs-v2 to evict every prior cache entry on the
-// next SW activation. Triggered by the "Failed to load module script"
-// errors users hit when a stale cached index.html referenced a Vite
-// chunk hash that had been replaced by a newer deploy. Forcing fresh
-// caches breaks the loop without needing a per-user uninstall.
-const CACHE_VERSION = 'pcs-v2';
+// pcs-v3 bump: users were reporting they still saw the removed SOS
+// chip, "Request a Demo" CTA, and "Explore PCS Tools" CTA on the
+// landing page after we removed them. None of those still ship in
+// the bundle — the SW was serving a prior shell from cache. Bumping
+// the version key evicts every prior cache on the next activation.
+const CACHE_VERSION = 'pcs-v3';
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const TILE_CACHE  = `${CACHE_VERSION}-tiles`;

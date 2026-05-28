@@ -24,8 +24,8 @@
  * in the iOS / Android Capacitor shells if ever shown there.
  */
 import { lazy, Suspense, useState } from 'react';
-import DemoRequestForm from './DemoRequestForm';
-import CrisisLineChip from './CrisisLineChip';
+import BranchBackdrop from './BranchBackdrop';
+import { branchTheme } from '../config/branchTheme';
 import { INDEPENDENCE_DISCLAIMER } from '../config/disclaimer';
 
 // v2 — lazy-load the AI Assistant modal exactly the way App.jsx does so
@@ -51,6 +51,12 @@ const PALETTE = {
   greenSoft: '#E8F5E9',
 };
 
+// Display font for hero headers + section titles + brand mark.
+// Space Grotesk is a geometric sans with a slightly technical /
+// mission-control character that contrasts the neutral Inter body
+// without crossing into stencil-font cosplay. Loaded in index.html.
+const DISPLAY_FONT = '"Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI Variable", system-ui, sans-serif';
+
 const SECTIONS = [
   { id: 'who', label: 'Who we serve' },
   { id: 'features', label: 'Features' },
@@ -58,7 +64,6 @@ const SECTIONS = [
   { id: 'security', label: 'Security' },
   { id: 'partners', label: 'For partners' },
   { id: 'roadmap', label: 'Roadmap' },
-  { id: 'demo', label: 'Request a demo' },
 ];
 
 function scrollTo(id) {
@@ -109,14 +114,23 @@ function CTAButton({ children, onClick, variant = 'primary', style = {} }) {
 
 function SectionHeader({ kicker, title, subtitle, light = false }) {
   return (
-    <div style={{ maxWidth: 820, margin: '0 auto 32px', textAlign: 'center' }}>
+    <div style={{ maxWidth: 820, margin: '0 auto 36px', textAlign: 'center' }}>
       <div style={{
+        display: 'inline-flex', alignItems: 'center', gap: 10,
         fontSize: 11, fontWeight: 900, letterSpacing: '.18em', textTransform: 'uppercase',
-        color: light ? PALETTE.gold : PALETTE.gold, marginBottom: 10,
-      }}>{kicker}</div>
+        color: PALETTE.gold, marginBottom: 12,
+      }}>
+        {/* Decorative leading bar — small gold accent rule so the
+            kicker reads as a labelled section rather than floating
+            uppercase text. */}
+        <span aria-hidden="true" style={{ display: 'inline-block', width: 28, height: 2, background: PALETTE.gold, borderRadius: 2 }} />
+        {kicker}
+        <span aria-hidden="true" style={{ display: 'inline-block', width: 28, height: 2, background: PALETTE.gold, borderRadius: 2 }} />
+      </div>
       <h2 style={{
-        fontSize: 30, fontWeight: 900, color: light ? PALETTE.paper : PALETTE.navy,
-        margin: '0 0 12px', lineHeight: 1.2, letterSpacing: '-0.01em',
+        fontSize: 32, fontWeight: 700, color: light ? PALETTE.paper : PALETTE.navy,
+        margin: '0 0 12px', lineHeight: 1.15, letterSpacing: '-0.025em',
+        fontFamily: DISPLAY_FONT,
       }}>{title}</h2>
       {subtitle && (
         <p style={{
@@ -128,17 +142,29 @@ function SectionHeader({ kicker, title, subtitle, light = false }) {
   );
 }
 
-function Card({ children, style = {} }) {
+function Card({ children, style = {}, accent, className = '' }) {
+  // `accent` (optional) renders a 3px colored stripe along the top of
+  // the card so the eye can group cards by category without copy
+  // alone (used for the Features grid). `className` lets a caller
+  // opt out of the default hover-lift if needed.
   return (
-    <div style={{
+    <div className={`pcs-card ${className}`} style={{
       background: PALETTE.paper,
       border: `1px solid ${PALETTE.border}`,
       borderRadius: 16,
       padding: 22,
       boxShadow: '0 6px 18px rgba(13, 24, 33, 0.04)',
       height: '100%',
+      position: 'relative',
+      overflow: 'hidden',
       ...style,
     }}>
+      {accent && (
+        <div aria-hidden="true" style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 3,
+          background: accent,
+        }} />
+      )}
       {children}
     </div>
   );
@@ -193,7 +219,7 @@ const SECURITY_POINTS = [
   { title: 'Encryption at rest on device', body: 'Profile, checklist, and reminders are encrypted with AES-256-GCM. The key lives in IndexedDB, is non-extractable, and never leaves the device.' },
   { title: 'No document uploads', body: 'PCS Express does not accept, store, or transmit document uploads or photographs anywhere in the product.' },
   { title: 'Minimal on-device profile', body: 'Your PCS profile (name, branch, rank, family info) is stored only on this device under AES-256-GCM. Everything that does leave the device is listed below.' },
-  { title: 'What does leave the device (always disclosed in-app)', body: 'AI Assistant: your typed question + a non-PII context blob (branch / phase / open-task count) to Anthropic. Navigation: addresses you type, to OpenStreetMap (Nominatim + OSRM). Translation widget (opt-in): translated page contents to Google. Demo / partner contact form: name, email, org, role, message + IP, server-logged. Advertising support files (ads.txt) are present for future AdSense; no ad code currently loads.' },
+  { title: 'What does leave the device (always disclosed in-app)', body: 'AI Assistant: your typed question + a non-PII context blob (branch / phase / open-task count) to Anthropic. Navigation: addresses you type, to OpenStreetMap (Nominatim + OSRM). Translation widget (opt-in): translated page contents to Google. AdSense (third-party advertising support) loads non-personalized ads by default.' },
   { title: 'Auditable design', body: 'The codebase follows public standards alignments (NIST SP 800-53 SC-5 rate-limit, OWASP ASVS V4 input handling) and prompt-injection sanitization for the AI surface.' },
   { title: 'Roadmap', body: 'Optional federated identity, audit-log export, federal-readiness control mapping (NIST 800-171 / 800-53 moderate), and SBOM publishing are tracked items for future hardening.' },
 ];
@@ -213,7 +239,6 @@ const PARTNER_USE_CASES = [
 ];
 
 export default function LandingPage({ onStartPlan, onClose }) {
-  const [demoOpen, setDemoOpen] = useState(false);
   // v3 — AI Assistant modal state. The hero now exposes a prominent
   // "AI Assistant" button (replaced the Need-Help-Now chip) so users
   // who land on the marketing page can get tailored answers about
@@ -221,7 +246,13 @@ export default function LandingPage({ onStartPlan, onClose }) {
   // CrisisLineChip is still rendered globally for users who need
   // 988 / OneSource directly.
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  // v4 — preview branch theme on hero. When a visitor hovers / taps a
+  // branch chip, the hero gradient + backdrop SVG shift to that
+  // service's published color scheme. Defaults to null = neutral
+  // navy-teal gradient (the cross-branch view).
+  const [previewBranch, setPreviewBranch] = useState(null);
   const startPlan = () => { try { onStartPlan?.(); } catch {} };
+  const activeTheme = previewBranch ? branchTheme(previewBranch) : null;
 
   return (
     <div
@@ -229,17 +260,61 @@ export default function LandingPage({ onStartPlan, onClose }) {
         background: PALETTE.bg,
         color: PALETTE.text,
         minHeight: '100vh',
-        // v3 — modern font stack. Inter where available (most modern
-        // browsers ship it), SF Pro Display on Apple devices, then
-        // graceful fallback. -0.011em tracking gives the headers a
-        // cleaner, more professional read at hero sizes.
+        // marginal global scope so the keyframes below can be reused
+        // by any block inside the LandingPage tree.
+        position: 'relative',
+        // v5 — Inter is now actually loaded via Google Fonts in
+        // index.html, so this stack no longer silently falls back to
+        // system-ui (which was why the prior "modernization" looked
+        // unchanged). cv11 = single-story 'a', ss01 = open digits,
+        // ss03 = curved 'l' — Inter's recommended UI feature set.
         fontFamily: '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, system-ui, sans-serif',
-        fontFeatureSettings: '"cv11", "ss01", "ss03"',
+        fontFeatureSettings: '"cv11", "ss01", "ss03", "calt"',
         letterSpacing: '-0.011em',
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale',
       }}
     >
+      {/* Page-wide polish stylesheet. Card hover lift, section reveal
+          keyframes, and the trust-strip stat hover. Keeping these in
+          a single inline <style> avoids touching the global CSS file
+          and ensures the rules ship with the LandingPage chunk only. */}
+      <style>{`
+        .pcs-card {
+          transition: transform 220ms cubic-bezier(.2,.7,.25,1),
+                      box-shadow 220ms cubic-bezier(.2,.7,.25,1),
+                      border-color 220ms ease;
+        }
+        .pcs-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 18px 40px rgba(13, 24, 33, 0.10),
+                      0 4px 10px rgba(13, 24, 33, 0.05);
+          border-color: rgba(201, 154, 61, 0.45);
+        }
+        .pcs-trust-stat {
+          transition: transform 200ms ease, color 200ms ease;
+        }
+        .pcs-trust-stat:hover { transform: translateY(-2px); }
+        @keyframes pcs-fade-up {
+          0%   { opacity: 0; transform: translateY(14px); }
+          100% { opacity: 1; transform: translateY(0);    }
+        }
+        @keyframes pcs-pulse-soft {
+          0%, 100% { opacity: 0.55; transform: scale(1);   }
+          50%      { opacity: 1;    transform: scale(1.25); }
+        }
+        .pcs-step-node {
+          transition: transform 200ms ease, box-shadow 200ms ease;
+        }
+        .pcs-card:hover .pcs-step-node {
+          transform: scale(1.06);
+          box-shadow: 0 8px 22px rgba(201,154,61,0.45);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .pcs-card, .pcs-trust-stat, .pcs-step-node { transition: none !important; }
+        }
+      `}</style>
+
       {/* ───── NAV ───── */}
       <nav
         style={{
@@ -263,7 +338,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
               color: PALETTE.gold, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 13, fontWeight: 950, letterSpacing: '.04em',
             }}>PE</span>
-            <span style={{ fontSize: 16, fontWeight: 900, color: PALETTE.navyDeep, letterSpacing: '-0.01em' }}>PCS Express</span>
+            <span style={{ fontSize: 17, fontWeight: 700, color: PALETTE.navyDeep, letterSpacing: '-0.02em', fontFamily: DISPLAY_FONT }}>PCS Express</span>
           </button>
           <div style={{ flex: 1 }} />
           <div style={{ display: 'none', gap: 22 }} className="pe-nav-links">
@@ -303,12 +378,19 @@ export default function LandingPage({ onStartPlan, onClose }) {
       <section
         id="top"
         style={{
-          background: `linear-gradient(135deg, ${PALETTE.navyDeep} 0%, ${PALETTE.navy} 45%, #0F5A8F 100%)`,
+          // v4 — gradient swaps to the previewed branch's published
+          // palette on hover / tap so visitors can see the platform
+          // adapt to their service before signing up.
+          background: activeTheme
+            ? activeTheme.bgGradient
+            : `linear-gradient(135deg, ${PALETTE.navyDeep} 0%, ${PALETTE.navy} 45%, #0F5A8F 100%)`,
           color: PALETTE.paper,
           position: 'relative',
           overflow: 'hidden',
+          transition: 'background 280ms ease',
         }}
       >
+        {previewBranch && <BranchBackdrop branch={previewBranch} opacity={0.28} />}
         {/* Inline keyframes — Vite doesn't transform <style> children
             but the browser does, and this keeps the animation
             self-contained in the LandingPage without touching the
@@ -329,6 +411,69 @@ export default function LandingPage({ onStartPlan, onClose }) {
           @keyframes pcs-stripe-shift {
             0%   { background-position: 0 0;   }
             100% { background-position: 200px 0; }
+          }
+          /* "Start Your PCS Plan" active-effects bundle:
+             - cta-attention: gentle scale + glow breath so the button
+               draws the eye even before hover.
+             - cta-glow: secondary gold drop-shadow pulse layered on top
+               of the breath.
+             - cta-shimmer: a diagonal highlight band that travels across
+               the button face every few seconds.
+             - cta-arrow-pulse: the trailing → nudges right then
+               settles, signalling "this leads somewhere."
+             Reduced-motion users get a flat, static button. */
+          @keyframes pcs-cta-attention {
+            0%, 100% { transform: translateY(0)    scale(1);    }
+            50%      { transform: translateY(-2px) scale(1.015); }
+          }
+          @keyframes pcs-cta-glow {
+            0%, 100% { box-shadow: 0 10px 26px rgba(201,154,61,0.38), 0 0 0  0   rgba(201,154,61,0.55); }
+            50%      { box-shadow: 0 14px 34px rgba(201,154,61,0.55), 0 0 0 12px rgba(201,154,61,0);     }
+          }
+          @keyframes pcs-cta-shimmer {
+            0%   { transform: translateX(-130%) skewX(-18deg); }
+            70%  { transform: translateX(160%)  skewX(-18deg); }
+            100% { transform: translateX(160%)  skewX(-18deg); }
+          }
+          @keyframes pcs-cta-arrow {
+            0%, 100% { transform: translateX(0);   }
+            50%      { transform: translateX(4px); }
+          }
+          .pcs-cta-hero {
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+            animation: pcs-cta-attention 3.6s ease-in-out infinite,
+                       pcs-cta-glow      3.6s ease-in-out infinite;
+          }
+          .pcs-cta-hero:hover {
+            animation-play-state: paused;
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 18px 44px rgba(201,154,61,0.55),
+                        0 4px 10px rgba(0,0,0,0.20);
+          }
+          .pcs-cta-hero:active {
+            transform: translateY(0) scale(0.985);
+            box-shadow: 0 6px 14px rgba(201,154,61,0.30);
+          }
+          .pcs-cta-hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; height: 100%; width: 55%;
+            background: linear-gradient(110deg,
+              rgba(255,255,255,0)    0%,
+              rgba(255,255,255,0.55) 50%,
+              rgba(255,255,255,0)    100%);
+            animation: pcs-cta-shimmer 3.8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+          }
+          .pcs-cta-hero > * { position: relative; z-index: 2; }
+          .pcs-cta-hero-arrow { display: inline-block; animation: pcs-cta-arrow 1.8s ease-in-out infinite; }
+          @media (prefers-reduced-motion: reduce) {
+            .pcs-cta-hero,
+            .pcs-cta-hero::before,
+            .pcs-cta-hero-arrow { animation: none !important; }
           }
         `}</style>
 
@@ -375,14 +520,51 @@ export default function LandingPage({ onStartPlan, onClose }) {
             </span>
             Military relocation readiness platform
           </div>
-          <h1 style={{ fontSize: 44, fontWeight: 950, margin: '0 0 18px', lineHeight: 1.1, letterSpacing: '-0.02em', maxWidth: 880, marginLeft: 'auto', marginRight: 'auto' }}>
-            PCS Express helps service members and military families simplify PCS moves through guided workflows, centralized relocation tools, and military-specific resources.
+          {/* Cinematic hero. A short, punchy display headline carries
+              the brand promise; the operative copy moves into the
+              subhead. Replaces the prior paragraph-length <h1>, which
+              read as marketing prose rather than a hero. */}
+          <h1 style={{
+            fontSize: 'clamp(44px, 8vw, 84px)',
+            fontWeight: 700, margin: '0 0 18px',
+            lineHeight: 0.95, letterSpacing: '-0.045em',
+            maxWidth: 980, marginLeft: 'auto', marginRight: 'auto',
+            fontFamily: DISPLAY_FONT,
+            textShadow: '0 2px 24px rgba(0,0,0,0.25)',
+          }}>
+            Your PCS,<br />
+            <span style={{ color: PALETTE.gold }}>engineered.</span>
           </h1>
-          <p style={{ fontSize: 17, lineHeight: 1.6, color: 'rgba(255,255,255,0.85)', margin: '0 auto 28px', maxWidth: 720 }}>
-            Built for all DoD branches, components, and military families. Designed to reduce confusion, save time, and improve relocation readiness.
+          <p style={{ fontSize: 18, lineHeight: 1.55, color: 'rgba(255,255,255,0.88)', margin: '0 auto 32px', maxWidth: 720, fontWeight: 500 }}>
+            Branch-aware planning, encrypted on your device, every entitlement and timeline at hand — for active duty, reserve, guard, civilian, and the families who carry the move.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <CTAButton onClick={startPlan}>Start Your PCS Plan →</CTAButton>
+            {/* Hero "Start Your PCS Plan" — animated attention button.
+                Idle breath + gold glow pulse + shimmer sweep + nudging
+                arrow signal "this is the primary path." Hover/active
+                states pause the idle motion so the visitor's intent is
+                respected. Falls back to a static button under
+                prefers-reduced-motion. */}
+            <button
+              type="button"
+              onClick={startPlan}
+              className="pcs-cta-hero"
+              aria-label="Start your PCS plan — begin onboarding"
+              style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                border: 'none', cursor: 'pointer',
+                padding: '14px 26px', borderRadius: 14,
+                fontSize: 15, fontWeight: 800, letterSpacing: '-0.005em',
+                minHeight: 50,
+                background: `linear-gradient(135deg, ${PALETTE.gold} 0%, #E0B45A 50%, #B5832B 100%)`,
+                color: PALETTE.navyDeep,
+                transition: 'transform 160ms ease, box-shadow 160ms ease',
+                fontFamily: 'inherit',
+              }}
+            >
+              Start Your PCS Plan
+              <span aria-hidden="true" className="pcs-cta-hero-arrow" style={{ fontSize: 17, fontWeight: 900 }}>→</span>
+            </button>
             {/* v3 — AI Assistant CTA replaces the Need-Help-Now chip.
                 Opens the same multi-turn assistant authenticated
                 users get (Anthropic-backed when the provider is up,
@@ -410,13 +592,91 @@ export default function LandingPage({ onStartPlan, onClose }) {
               AI Assistant
               <span aria-hidden="true" style={{ fontSize: 11, fontWeight: 700, opacity: 0.85, letterSpacing: '.08em' }}>· ASK ANYTHING</span>
             </button>
-            <CTAButton variant="ghost" onClick={() => scrollTo('demo')}>Request a Demo</CTAButton>
-            <CTAButton variant="ghost" onClick={() => scrollTo('features')}>Explore PCS Tools</CTAButton>
           </div>
 
-          <div style={{ marginTop: 28, display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-            {['Army', 'Navy', 'Marine Corps', 'Air Force', 'Space Force', 'Coast Guard', 'DoD Civilian'].map(b => (
-              <span key={b} style={{ fontSize: 10, fontWeight: 800, padding: '5px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.85)', letterSpacing: '.08em', textTransform: 'uppercase' }}>{b}</span>
+          {/* Mission-profile branch selector. Renders as a HUD-style
+              labelled selector with a leading status glyph so the
+              "tap to preview" affordance reads as an active control,
+              not a passive chip row. */}
+          <div style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
+            <div style={{
+              fontSize: 10, color: 'rgba(255,255,255,0.65)',
+              letterSpacing: '.22em', textTransform: 'uppercase',
+              width: '100%', textAlign: 'center', marginBottom: 10,
+              fontFamily: DISPLAY_FONT, fontWeight: 600,
+            }}>
+              <span aria-hidden="true" style={{
+                display: 'inline-block', width: 6, height: 6, borderRadius: '50%',
+                background: PALETTE.gold, marginRight: 10, verticalAlign: 'middle',
+                animation: 'pcs-pulse-soft 2.4s ease-in-out infinite',
+                boxShadow: `0 0 10px ${PALETTE.gold}`,
+              }} />
+              Mission profile · select your branch
+            </div>
+            {['Army', 'Navy', 'Marine Corps', 'Air Force', 'Space Force', 'Coast Guard', 'DoD Civilian'].map(b => {
+              const isActive = previewBranch === b;
+              const bt = branchTheme(b);
+              return (
+                <button
+                  key={b}
+                  type="button"
+                  onMouseEnter={() => setPreviewBranch(b)}
+                  onFocus={() => setPreviewBranch(b)}
+                  onClick={() => setPreviewBranch(isActive ? null : b)}
+                  aria-pressed={isActive}
+                  aria-label={`Preview ${b} branch theme`}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 900,
+                    padding: '7px 14px',
+                    borderRadius: 999,
+                    background: isActive ? bt.primary : 'rgba(255,255,255,0.08)',
+                    color: isActive ? bt.secondary : 'rgba(255,255,255,0.92)',
+                    border: isActive ? `1px solid ${bt.secondary}` : '1px solid rgba(255,255,255,0.18)',
+                    letterSpacing: '.08em',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                    transition: 'background 160ms ease, color 160ms ease, border 160ms ease, transform 120ms ease',
+                    transform: isActive ? 'translateY(-1px)' : 'translateY(0)',
+                  }}
+                >
+                  {b}
+                </button>
+              );
+            })}
+            {activeTheme && (
+              <div style={{ width: '100%', textAlign: 'center', marginTop: 4 }}>
+                <span style={{ display: 'inline-block', fontSize: 12, fontStyle: 'italic', color: activeTheme.secondary, letterSpacing: '.04em' }}>
+                  “{activeTheme.motto}” · {activeTheme.label}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Trust strip — four high-signal capability claims under
+              the hero. Each is factual (matches the in-product
+              experience) so we never tip into vapor-marketing. Uses
+              Space Grotesk for the numeric "value" line so the digits
+              read distinct from the body copy. */}
+          <div style={{
+            marginTop: 44, paddingTop: 28, borderTop: '1px solid rgba(255,255,255,0.10)',
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 18,
+            maxWidth: 880, marginLeft: 'auto', marginRight: 'auto',
+          }}>
+            {[
+              { value: '7',          label: 'Branches & components tailored' },
+              { value: 'AES-256',    label: 'On-device encryption' },
+              { value: '90 / 180',   label: 'Day CONUS / OCONUS timelines' },
+              { value: '0 uploads',  label: 'Documents leave your device' },
+            ].map(s => (
+              <div key={s.label} className="pcs-trust-stat" style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 26, fontWeight: 700, color: PALETTE.gold, lineHeight: 1, letterSpacing: '-0.02em', fontFamily: DISPLAY_FONT }}>
+                  {s.value}
+                </div>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', letterSpacing: '.14em', textTransform: 'uppercase', marginTop: 8, lineHeight: 1.35 }}>
+                  {s.label}
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -446,16 +706,41 @@ export default function LandingPage({ onStartPlan, onClose }) {
           title="One workflow. Every phase of the PCS."
           subtitle="A coherent set of tools — not a folder of links. Each feature retunes to the user's branch, component, paygrade, dependents, and CONUS vs OCONUS status."
         />
-        <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-          {FEATURES.map(f => (
-            <Card key={f.title} style={{ background: PALETTE.bg }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <span aria-hidden="true" style={{ width: 36, height: 36, borderRadius: 10, background: PALETTE.navy, color: PALETTE.gold, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 950, fontSize: 16 }}>{f.icon}</span>
-                <div style={{ fontSize: 14, fontWeight: 900, color: PALETTE.navyDeep, lineHeight: 1.3 }}>{f.title}</div>
-              </div>
-              <div style={{ fontSize: 13, color: PALETTE.muted, lineHeight: 1.6 }}>{f.body}</div>
-            </Card>
-          ))}
+        <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 18 }}>
+          {FEATURES.map((f, i) => {
+            // Cycle the accent color so the 3x3 grid reads as visually
+            // varied rather than a wall of identical cards. The order
+            // intentionally clusters by category role: navy = workflow,
+            // gold = financial / entitlements, teal = AI / data.
+            const accents = [
+              PALETTE.navy,   // checklist
+              PALETTE.navy,   // housing
+              PALETTE.gold,   // benefits
+              PALETTE.navy,   // documents
+              PALETTE.gold,   // timeline
+              '#14B8A6',      // installation research
+              '#14B8A6',      // family readiness
+              '#14B8A6',      // AI
+              PALETTE.navy,   // personalized workflow
+            ];
+            const accent = accents[i] || PALETTE.navy;
+            return (
+              <Card key={f.title} accent={accent} style={{ background: PALETTE.paper }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 10 }}>
+                  <span aria-hidden="true" style={{
+                    width: 40, height: 40, borderRadius: 10,
+                    background: `linear-gradient(135deg, ${accent} 0%, ${accent}CC 100%)`,
+                    color: '#FFFFFF',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: 950, fontSize: 18, flexShrink: 0,
+                    boxShadow: `0 4px 12px ${accent}40`,
+                  }}>{f.icon}</span>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: PALETTE.navyDeep, lineHeight: 1.3, paddingTop: 6, fontFamily: DISPLAY_FONT, letterSpacing: '-0.015em' }}>{f.title}</div>
+                </div>
+                <div style={{ fontSize: 13, color: PALETTE.muted, lineHeight: 1.6 }}>{f.body}</div>
+              </Card>
+            );
+          })}
         </div>
       </section>
 
@@ -466,14 +751,41 @@ export default function LandingPage({ onStartPlan, onClose }) {
           title="Four steps from orders to in-processing"
           subtitle="No accounts to create, no documents to upload. Your profile stays encrypted on your device."
         />
-        <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          {HOW_IT_WORKS.map(step => (
-            <Card key={step.n}>
-              <div style={{ fontSize: 36, fontWeight: 950, color: PALETTE.gold, lineHeight: 1, marginBottom: 10 }}>{step.n}</div>
-              <div style={{ fontSize: 16, fontWeight: 900, color: PALETTE.navyDeep, marginBottom: 8 }}>{step.title}</div>
-              <div style={{ fontSize: 13, color: PALETTE.muted, lineHeight: 1.6 }}>{step.body}</div>
-            </Card>
-          ))}
+        {/* Connected timeline. On wide screens (≥980px) a dashed
+            gold rule visually links the four step nodes; on narrow
+            screens the cards stack and the rule is hidden because
+            the link no longer corresponds to layout. The step number
+            node lifts on card hover via .pcs-step-node. */}
+        <div style={{ maxWidth: 1180, margin: '0 auto', position: 'relative' }}>
+          <div aria-hidden="true" style={{
+            position: 'absolute', top: 56, left: '8%', right: '8%', height: 2,
+            background: `repeating-linear-gradient(90deg, ${PALETTE.gold} 0 8px, transparent 8px 16px)`,
+            opacity: 0.5,
+            display: 'none',
+          }} className="pcs-how-line" />
+          <style>{`
+            @media (min-width: 980px) {
+              .pcs-how-line { display: block !important; }
+            }
+          `}</style>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 18 }}>
+            {HOW_IT_WORKS.map(step => (
+              <Card key={step.n} style={{ paddingTop: 28, textAlign: 'center' }}>
+                <div className="pcs-step-node" style={{
+                  width: 56, height: 56, borderRadius: '50%',
+                  background: `linear-gradient(135deg, ${PALETTE.gold} 0%, #B5832B 100%)`,
+                  color: PALETTE.navyDeep,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 22, fontWeight: 800, fontFamily: DISPLAY_FONT,
+                  boxShadow: '0 4px 14px rgba(201,154,61,0.35)',
+                  marginBottom: 14,
+                  border: `3px solid ${PALETTE.paper}`,
+                }}>{step.n}</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: PALETTE.navyDeep, marginBottom: 8, fontFamily: DISPLAY_FONT, letterSpacing: '-0.02em' }}>{step.title}</div>
+                <div style={{ fontSize: 13, color: PALETTE.muted, lineHeight: 1.6 }}>{step.body}</div>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -484,10 +796,27 @@ export default function LandingPage({ onStartPlan, onClose }) {
           title="The problem we're solving"
           subtitle="Service members and families absorb thousands of hours of administrative load every move cycle. PCS Express centralizes that load and reduces what gets missed."
         />
+        {/* Pain points read as warnings — orange-red left rule + small
+            "▲" glyph differentiate them from the (green) operational
+            benefits section below, so the reader's eye sorts problem
+            vs. solution without re-reading every headline. */}
         <div style={{ maxWidth: 980, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
           {PAIN_POINTS.map(p => (
-            <div key={p.headline} style={{ background: PALETTE.bg, borderLeft: `4px solid ${PALETTE.gold}`, padding: '14px 18px', borderRadius: 12 }}>
-              <div style={{ fontSize: 14, fontWeight: 900, color: PALETTE.navyDeep, marginBottom: 6 }}>{p.headline}</div>
+            <div key={p.headline} className="pcs-card" style={{
+              background: '#FEF7F0',
+              borderLeft: `4px solid #E07A1F`,
+              border: `1px solid #FAD6B5`,
+              borderLeftWidth: 4,
+              padding: '14px 18px', borderRadius: 12,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span aria-hidden="true" style={{
+                  width: 22, height: 22, borderRadius: 6, background: '#E07A1F', color: '#FFFFFF',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: 950,
+                }}>▲</span>
+                <div style={{ fontSize: 14, fontWeight: 800, color: PALETTE.navyDeep }}>{p.headline}</div>
+              </div>
               <div style={{ fontSize: 13, color: PALETTE.muted, lineHeight: 1.6 }}>{p.detail}</div>
             </div>
           ))}
@@ -500,10 +829,20 @@ export default function LandingPage({ onStartPlan, onClose }) {
           kicker="Operational benefits"
           title="What gets better when the right tool is in hand"
         />
+        {/* Benefits use a positive green accent — paired visually
+            with the orange-red pain-points block above so the
+            "problem → improvement" narrative is legible at a glance. */}
         <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
           {OPERATIONAL_BENEFITS.map(b => (
-            <Card key={b.title}>
-              <div style={{ fontSize: 14, fontWeight: 900, color: PALETTE.navyDeep, marginBottom: 8 }}>{b.title}</div>
+            <Card key={b.title} accent="#2E7D32">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span aria-hidden="true" style={{
+                  width: 22, height: 22, borderRadius: 6, background: '#2E7D32', color: '#FFFFFF',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 12, fontWeight: 950,
+                }}>✓</span>
+                <div style={{ fontSize: 14, fontWeight: 800, color: PALETTE.navyDeep }}>{b.title}</div>
+              </div>
               <div style={{ fontSize: 13, color: PALETTE.muted, lineHeight: 1.6 }}>{b.body}</div>
             </Card>
           ))}
@@ -576,20 +915,44 @@ export default function LandingPage({ onStartPlan, onClose }) {
           title="What's shipping, what's in flight, and what's planned"
           subtitle="Items listed under Planned roadmap are not yet implemented and should not be relied on for current decisions."
         />
-        <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-          {ROADMAP.map(p => (
-            <Card key={p.phase}>
-              <div style={{ fontSize: 11, fontWeight: 900, color: p.phase === 'Live today' ? PALETTE.green : (p.phase === 'In development' ? PALETTE.gold : PALETTE.muted), letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 10 }}>{p.phase}</div>
-              <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                {p.items.map(item => (
-                  <li key={item} style={{ fontSize: 13, color: PALETTE.text, lineHeight: 1.65, marginBottom: 6, paddingLeft: 18, position: 'relative' }}>
-                    <span aria-hidden="true" style={{ position: 'absolute', left: 0, top: 0, color: PALETTE.gold, fontWeight: 950 }}>›</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          ))}
+        {/* Roadmap cards now lead with a colored badge + a thin
+            progress bar that reflects each phase's maturity (full /
+            partial / planned). Gives the section visual rhythm and
+            sets honest expectations: "Planned" is clearly less
+            advanced than "Live today" before a reader scans copy. */}
+        <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 18 }}>
+          {ROADMAP.map(p => {
+            const cfg = p.phase === 'Live today'
+              ? { color: PALETTE.green, bar: 100, bg: '#E8F5E9', accent: PALETTE.green }
+              : p.phase === 'In development'
+              ? { color: PALETTE.gold,  bar: 55,  bg: 'rgba(201,154,61,0.10)', accent: PALETTE.gold }
+              : { color: PALETTE.muted, bar: 18,  bg: 'rgba(86,105,124,0.10)', accent: PALETTE.muted };
+            return (
+              <Card key={p.phase} accent={cfg.accent}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    fontSize: 10, fontWeight: 900, color: cfg.color, letterSpacing: '.12em', textTransform: 'uppercase',
+                    background: cfg.bg, padding: '4px 10px', borderRadius: 999,
+                  }}>
+                    <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: '50%', background: cfg.color, display: 'inline-block' }} />
+                    {p.phase}
+                  </span>
+                </div>
+                <div aria-hidden="true" style={{ height: 4, background: PALETTE.border, borderRadius: 2, marginBottom: 16, overflow: 'hidden' }}>
+                  <div style={{ width: `${cfg.bar}%`, height: '100%', background: cfg.color, borderRadius: 2, transition: 'width 600ms ease' }} />
+                </div>
+                <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                  {p.items.map(item => (
+                    <li key={item} style={{ fontSize: 13, color: PALETTE.text, lineHeight: 1.65, marginBottom: 8, paddingLeft: 22, position: 'relative' }}>
+                      <span aria-hidden="true" style={{ position: 'absolute', left: 0, top: 6, width: 12, height: 12, borderRadius: 3, background: `${cfg.color}22`, color: cfg.color, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 950 }}>›</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            );
+          })}
         </div>
       </section>
 
@@ -616,7 +979,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
       <section style={{ padding: '72px 20px', background: PALETTE.bg }}>
         <div style={{ maxWidth: 820, margin: '0 auto', textAlign: 'center' }}>
           <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 12 }}>Founder & mission</div>
-          <h2 style={{ fontSize: 26, fontWeight: 900, color: PALETTE.navyDeep, margin: '0 0 16px', lineHeight: 1.25 }}>Built from firsthand PCS experience</h2>
+          <h2 style={{ fontSize: 28, fontWeight: 700, color: PALETTE.navyDeep, margin: '0 0 16px', lineHeight: 1.2, letterSpacing: '-0.025em', fontFamily: DISPLAY_FONT }}>Built from firsthand PCS experience</h2>
           <p style={{ fontSize: 15, lineHeight: 1.7, color: PALETTE.text }}>
             PCS Express was founded by a military-connected founder with firsthand experience in the challenges of military relocation and transition. The platform was built to make PCS planning easier, more organized, and more accessible for service members and their families.
           </p>
@@ -624,26 +987,8 @@ export default function LandingPage({ onStartPlan, onClose }) {
             Built to support individual users today, with a roadmap toward organizational and partner support. Designed for future integration with military family-readiness, relocation-assistance, and veteran-support ecosystems.
           </p>
           <div style={{ marginTop: 22 }}>
-            <CTAButton variant="secondary" onClick={() => scrollTo('demo')}>Contact Founder</CTAButton>
+            <CTAButton variant="secondary" onClick={() => { window.location.href = 'mailto:contact@pcsexpress.app'; }}>Contact Founder</CTAButton>
           </div>
-        </div>
-      </section>
-
-      {/* ───── DEMO REQUEST ───── */}
-      <section id="demo" style={{ padding: '72px 20px', background: PALETTE.paper }}>
-        <SectionHeader
-          kicker="Request a demo · contact"
-          title="See PCS Express in your context"
-          subtitle="Tell us a little about who you are and how you'd potentially work with the platform. We'll respond directly — no marketing list, no follow-on automation."
-        />
-        <div style={{ maxWidth: 720, margin: '0 auto' }}>
-          {demoOpen ? (
-            <DemoRequestForm onClose={() => setDemoOpen(false)} />
-          ) : (
-            <div style={{ textAlign: 'center' }}>
-              <CTAButton onClick={() => setDemoOpen(true)}>Open the request form</CTAButton>
-            </div>
-          )}
         </div>
       </section>
 
@@ -666,7 +1011,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
               <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 8 }}>For partners</div>
               <div style={{ lineHeight: 2 }}>
                 <button onClick={() => scrollTo('partners')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Government & partners</button>
-                <button onClick={() => scrollTo('demo')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Request a demo</button>
+                <a href="mailto:contact@pcsexpress.app" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>contact@pcsexpress.app</a>
               </div>
             </div>
             <div>
@@ -680,7 +1025,6 @@ export default function LandingPage({ onStartPlan, onClose }) {
             <div>
               <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 8 }}>Contact</div>
               <div style={{ lineHeight: 2 }}>
-                <button onClick={() => scrollTo('demo')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Demo / partner inquiry</button>
                 <a href="mailto:contact@pcsexpress.app" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>contact@pcsexpress.app</a>
               </div>
             </div>
@@ -693,10 +1037,10 @@ export default function LandingPage({ onStartPlan, onClose }) {
           </div>
         </div>
       </footer>
-      {/* Crisis line is always reachable, even on the public marketing
-          page — military readers in distress should never have to dig
-          through the app to find 988+1 / Military OneSource. */}
-      <CrisisLineChip isNative={false} isDesktop={true} />
+      {/* Per user directive, the floating crisis-line chip no longer
+          renders on the marketing landing — the AI Assistant button is
+          the primary help affordance here. The CrisisLineChip remains
+          mounted globally inside the authenticated app shell. */}
 
       {/* AI Assistant modal — mounted at LandingPage level because
           the App shell short-circuits to <LandingPage /> before its

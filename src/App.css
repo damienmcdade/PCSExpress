@@ -2585,3 +2585,23 @@ textarea:focus-visible,
   85%           { transform: translateX(110%);  opacity: 0.55; }
 }
 
+/* Dashboard chrome status dot — pulses next to the PCS EXPRESS
+   wordmark in the app header so the bar reads as "active mission"
+   rather than a static brand block. Sized small enough that it
+   never competes with the wordmark or alert badges. */
+@keyframes pcs-frame-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1);    }
+  50%      { opacity: 1;    transform: scale(1.35); }
+}
+
+/* Branch motto banner — slow shimmer across the gold rule under the
+   header. Tells the eye "this is yours, this is alive." */
+@keyframes pcs-motto-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcs-frame-pulse, .pcs-motto-shimmer { animation: none !important; }
+}
+
