@@ -981,13 +981,13 @@ export default function LandingPage({ onStartPlan, onClose }) {
           <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 12 }}>Founder & mission</div>
           <h2 style={{ fontSize: 28, fontWeight: 700, color: PALETTE.navyDeep, margin: '0 0 16px', lineHeight: 1.2, letterSpacing: '-0.025em', fontFamily: DISPLAY_FONT }}>Built from firsthand PCS experience</h2>
           <p style={{ fontSize: 15, lineHeight: 1.7, color: PALETTE.text }}>
-            PCS Express was founded by a military-connected founder with firsthand experience in the challenges of military relocation and transition. The platform was built to make PCS planning easier, more organized, and more accessible for service members and their families.
+            PCS Express was founded by a U.S. Army Veteran with firsthand experience in the challenges of military relocation and transition. The platform was built to make PCS planning easier, more organized, and more accessible for service members and their families.
           </p>
           <p style={{ fontSize: 13, lineHeight: 1.7, color: PALETTE.muted, marginTop: 14 }}>
             Built to support individual users today, with a roadmap toward organizational and partner support. Designed for future integration with military family-readiness, relocation-assistance, and veteran-support ecosystems.
           </p>
           <div style={{ marginTop: 22 }}>
-            <CTAButton variant="secondary" aria-label="Contact the founder via email" onClick={() => { window.location.href = 'mailto:contact@pcsexpress.app'; }}>Contact Founder</CTAButton>
+            <CTAButton variant="secondary" aria-label="Contact the founder via email" onClick={() => { window.location.href = 'mailto:info@cyberwaveglobal.com'; }}>Contact Founder</CTAButton>
           </div>
         </div>
       </section>
@@ -1011,7 +1011,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
               <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 8 }}>For partners</div>
               <div style={{ lineHeight: 2 }}>
                 <button type="button" aria-label="Jump to Government and partners section" onClick={() => scrollTo('partners')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Government & partners</button>
-                <a href="mailto:contact@pcsexpress.app" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>contact@pcsexpress.app</a>
+                <a href="mailto:info@cyberwaveglobal.com" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>info@cyberwaveglobal.com</a>
               </div>
             </div>
             <div>
@@ -1025,7 +1025,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
             <div>
               <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 8 }}>Contact</div>
               <div style={{ lineHeight: 2 }}>
-                <a href="mailto:contact@pcsexpress.app" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>contact@pcsexpress.app</a>
+                <a href="mailto:info@cyberwaveglobal.com" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>info@cyberwaveglobal.com</a>
               </div>
             </div>
           </div>

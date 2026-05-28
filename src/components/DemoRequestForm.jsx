@@ -87,11 +87,11 @@ export default function DemoRequestForm({ onClose }) {
       } else {
         const data = await r.json().catch(() => ({}));
         setStatus('error');
-        setErrorMsg(data?.error || `The server returned ${r.status}. Please try again or email contact@pcsexpress.app.`);
+        setErrorMsg(data?.error || `The server returned ${r.status}. Please try again or email info@cyberwaveglobal.com.`);
       }
     } catch {
       setStatus('error');
-      setErrorMsg('Could not reach the server. Please try again, or email contact@pcsexpress.app.');
+      setErrorMsg('Could not reach the server. Please try again, or email info@cyberwaveglobal.com.');
     }
   };
 
