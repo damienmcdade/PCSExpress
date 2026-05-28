@@ -66,9 +66,13 @@ import { AuditLogger, secureLocalStore, readLegacyJson, closeCryptoStoreDB } fro
 // BaseMapModule + Leaflet just to scan an empty list.
 const ALL_BASES = []
 import { resolveMarket } from './data/installationMarkets'
-import { BRANCH_PCS_CHECKLISTS } from './data/branchChecklists'
-import { MILITARY_DUTY_STATIONS } from './data/militaryDutyStations'
-import { INSTALLATION_SCHOOLS } from './data/installationSchools'
+// Three largest data tables (~172 KB raw / ~30 KB gzip) live in a
+// dynamically-imported chunk so the React shell can mount before they
+// finish downloading. useHeavyData() at the App level triggers a
+// re-render once they land. Every consumer below treats missing
+// entries as empty (|| [] / optional chaining) so the brief
+// loading window doesn't throw.
+import { HEAVY, useHeavyData } from './data/lazyHeavy'
 import { VET_BIZ_CITY } from './data/vetBizCities'
 import { DOD_CIVILIAN_CHECKLIST } from './data/dodCivilianChecklist'
 // AppLanguageRuntimeMount wraps both i18n runtimes (dictionary
@@ -375,7 +379,7 @@ function ordersTypeMeta(component, ordersType) {
 // DOD_CIVILIAN_CHECKLIST data tables themselves live in src/data/.
 function getBranchChecklist(branch, component) {
   if (component === 'DoD Civilian') return DOD_CIVILIAN_CHECKLIST;
-  return BRANCH_PCS_CHECKLISTS[branch] || BRANCH_PCS_CHECKLISTS['Army'];
+  return HEAVY.BRANCH_PCS_CHECKLISTS[branch] || HEAVY.BRANCH_PCS_CHECKLISTS['Army'] || [];
 }
 
 // Predicate-based task filtering. A task is shown only when EVERY
@@ -1834,7 +1838,7 @@ function SchoolsTab({ theme, profile }) {
   const [searchZip, setSearchZip] = useState('');
 
   const instName = (profile?.gainingInstallation || '').split(',')[0].trim();
-  const schools = INSTALLATION_SCHOOLS[instName] || [];
+  const schools = HEAVY.INSTALLATION_SCHOOLS[instName] || [];
   const daycares = DAYCARE_DATA[instName] || [];
   const _searchLocation = getInstallationSearchLocation(instName);
   const schoolFinderCards = officialSchoolCards(instName);
@@ -5459,7 +5463,7 @@ function Onboarding({ onComplete }) {
     setP(prev => ({ ...prev, branch, paygrade: gradeValid ? prev.paygrade : 'E-5' }));
   };
   const updGaining = (name) => {
-    const sel = MILITARY_DUTY_STATIONS.find(s => s.name === name);
+    const sel = HEAVY.MILITARY_DUTY_STATIONS.find(s => s.name === name);
     setP(prev => ({ ...prev, gainingInstallation: name, isOverseas: sel?.country ? true : false }));
   };
 
@@ -5488,13 +5492,13 @@ function Onboarding({ onComplete }) {
   };
   const losingSuggestions = losingSearch.length > 1
     ? sortByBranch(
-        MILITARY_DUTY_STATIONS.filter(b => b.name.toLowerCase().includes(losingSearch.toLowerCase())),
+        HEAVY.MILITARY_DUTY_STATIONS.filter(b => b.name.toLowerCase().includes(losingSearch.toLowerCase())),
         p.branch
       ).slice(0, 10)
     : [];
   const gainingSuggestions = gainingSearch.length > 1
     ? sortByBranch(
-        MILITARY_DUTY_STATIONS.filter(b => b.name.toLowerCase().includes(gainingSearch.toLowerCase())),
+        HEAVY.MILITARY_DUTY_STATIONS.filter(b => b.name.toLowerCase().includes(gainingSearch.toLowerCase())),
         p.branch
       ).slice(0, 10)
     : [];
@@ -6763,6 +6767,12 @@ function App() {
   const hasFinePointer = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
     && window.matchMedia('(pointer: fine)').matches;
   const isDesktop = !isNative && ((hasFinePointer && screenW >= 768) || screenW >= 900);
+
+  // Kick off the dynamic load of the heavy data tables on first
+  // mount and trigger a re-render once they're ready. Consumers
+  // throughout this component read HEAVY.* with empty-array /
+  // empty-object fallbacks so the initial render is non-throwing.
+  useHeavyData();
 
   const safeProfile = profile && profile.branch ? profile : null;
   const theme = BRANCH_THEMES[safeProfile?.branch] || BRANCH_THEMES.Army;

@@ -39,9 +39,21 @@ export default defineConfig({
           if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/scheduler/')) {
             return 'react-vendor';
           }
-          // Static data tables get their own chunk so updates to
-          // the rate tables / checklist data don't bust the main
-          // App chunk in the browser cache.
+          // The three biggest data tables are loaded dynamically by
+          // src/data/lazyHeavy.js so the browser can defer their
+          // download past first paint. Keep them in their own chunk
+          // so they don't get pulled into eager modulepreload hints
+          // via the smaller eager data files.
+          if (
+            id.includes('/src/data/branchChecklists') ||
+            id.includes('/src/data/militaryDutyStations') ||
+            id.includes('/src/data/installationSchools')
+          ) {
+            return 'app-data-lazy';
+          }
+          // Smaller data tables (vet biz cities, DoD civilian
+          // checklist, installation markets) stay eager — they're
+          // referenced by helper functions at module-top level.
           if (id.includes('/src/data/')) {
             return 'app-data';
           }

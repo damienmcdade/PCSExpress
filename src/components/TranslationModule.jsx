@@ -112,14 +112,49 @@ const PHRASE_CATEGORIES = [
   },
 ];
 
-async function callAI(system, user) {
+// Streams the assistant response when the server supports SSE and falls
+// back to JSON when it doesn't. Returns the final concatenated text (or
+// null on error). Translations are short, but streaming lets the
+// network round-trip overlap with text decoding so first-byte feels
+// faster than waiting for the full JSON payload.
+async function callAI(system, user, onDelta) {
   try {
     const res = await fetch(apiUrl('/api/ai'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ system, user }),
+      headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
+      body: JSON.stringify({ system, user, stream: true }),
     });
     if (!res.ok) throw new Error('API error');
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('text/event-stream') && res.body) {
+      const decoder = new TextDecoder('utf-8');
+      const reader = res.body.getReader();
+      let buffer = '';
+      let acc = '';
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let nlIdx;
+        while ((nlIdx = buffer.indexOf('\n\n')) !== -1) {
+          const frame = buffer.slice(0, nlIdx);
+          buffer = buffer.slice(nlIdx + 2);
+          for (const line of frame.split('\n')) {
+            if (!line.startsWith('data:')) continue;
+            const payload = line.slice(5).trim();
+            if (!payload || payload === '[DONE]') continue;
+            try {
+              const obj = JSON.parse(payload);
+              if (obj?.type === 'content_block_delta' && obj?.delta?.text) {
+                acc += obj.delta.text;
+                if (typeof onDelta === 'function') onDelta(acc);
+              }
+            } catch { /* ignore malformed frames */ }
+          }
+        }
+      }
+      return acc;
+    }
     const data = await res.json();
     return data.text || '';
   } catch {
@@ -157,7 +192,8 @@ export default function TranslationModule({ theme, profile }) {
     setResult('');
     const aiResult = await callAI(
       `You are a military translation assistant. Translate the following text from English to ${selectedLang.name}. Respond with ONLY the translated text — no explanations, no labels, no quotation marks.`,
-      inputText.trim()
+      inputText.trim(),
+      (partial) => setResult(partial),
     );
     if (aiResult) {
       setResult(aiResult);

@@ -552,6 +552,7 @@ app.post('/api/ai', aiRateLimit, async (req, res) => {
   }
   try {
     const { system, user } = req.body || {}
+    const wantStream = !!req.body?.stream
 
     if (typeof system !== 'string' || typeof user !== 'string') {
       return res.status(400).json({ error: 'system and user must be strings' })
@@ -570,6 +571,47 @@ app.post('/api/ai', aiRateLimit, async (req, res) => {
       return res.status(500).json({ error: 'API key not configured' })
     }
 
+    const anthropicBody = {
+      model: 'claude-sonnet-4-6',
+      max_tokens: 256,
+      system,
+      messages: [{ role: 'user', content: user }],
+      ...(wantStream ? { stream: true } : {}),
+    }
+
+    // Streaming branch — proxy Anthropic's SSE through verbatim. Mirrors
+    // the /api/jtr-assistant pattern so the client can consume both
+    // endpoints with the same delta-parsing code.
+    if (wantStream) {
+      const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY,
+          'anthropic-version': '2023-06-01',
+          'accept': 'text/event-stream',
+        },
+        body: JSON.stringify(anthropicBody),
+        signal: AbortSignal.timeout(20_000),
+      })
+      if (!upstream.ok || !upstream.body) {
+        console.error(`[API] Anthropic stream error: ${upstream.status}`)
+        return res.status(502).json({ error: 'Anthropic API error' })
+      }
+      res.status(200)
+      res.setHeader('Content-Type', 'text/event-stream; charset=utf-8')
+      res.setHeader('Cache-Control', 'no-cache, no-transform')
+      res.setHeader('Connection', 'keep-alive')
+      try {
+        for await (const chunk of upstream.body) {
+          res.write(chunk)
+        }
+      } catch (err) {
+        console.error(`[API] stream pipe ${err.message}`)
+      }
+      return res.end()
+    }
+
     const signal = AbortSignal.timeout(15000)
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -578,12 +620,7 @@ app.post('/api/ai', aiRateLimit, async (req, res) => {
         'x-api-key': API_KEY,
         'anthropic-version': '2023-06-01',
       },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 256,
-        system,
-        messages: [{ role: 'user', content: user }],
-      }),
+      body: JSON.stringify(anthropicBody),
       signal,
     })
 
