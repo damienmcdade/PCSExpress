@@ -25,7 +25,12 @@
  *     next activate.
  */
 
-const CACHE_VERSION = 'pcs-v1';
+// Bumped from pcs-v1 → pcs-v2 to evict every prior cache entry on the
+// next SW activation. Triggered by the "Failed to load module script"
+// errors users hit when a stale cached index.html referenced a Vite
+// chunk hash that had been replaced by a newer deploy. Forcing fresh
+// caches breaks the loop without needing a per-user uninstall.
+const CACHE_VERSION = 'pcs-v2';
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const TILE_CACHE  = `${CACHE_VERSION}-tiles`;
