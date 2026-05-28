@@ -4440,6 +4440,10 @@ const APP_TRANSLATIONS = {
 
 APP_TRANSLATIONS.es = {
   ...APP_TRANSLATIONS.en,
+  pendingActions: 'Acciones pendientes',
+  overdueAction: 'Acción vencida',
+  dueNow: 'Vencida ahora',
+  tasksRemaining: 'tareas restantes',
   tagline: 'Su mudanza, simplificada.',
   branchProfile: 'Rama y perfil',
   yourBases: 'Sus bases',
@@ -4524,6 +4528,10 @@ APP_TRANSLATIONS.es = {
 
 APP_TRANSLATIONS.de = {
   ...APP_TRANSLATIONS.en,
+  pendingActions: 'Ausstehende Aktionen',
+  overdueAction: 'Überfällige Aktion',
+  dueNow: 'Jetzt fällig',
+  tasksRemaining: 'Aufgaben verbleibend',
   tagline: 'Ihr Umzug, vereinfacht.',
   branchProfile: 'Teilstreitkraft und Profil',
   yourBases: 'Ihre Standorte',
@@ -4583,6 +4591,10 @@ APP_TRANSLATIONS.de = {
 
 APP_TRANSLATIONS.fr = {
   ...APP_TRANSLATIONS.en,
+  pendingActions: 'Actions en attente',
+  overdueAction: 'Action en retard',
+  dueNow: 'À échéance maintenant',
+  tasksRemaining: 'tâches restantes',
   tagline: 'Votre déménagement, simplifié.',
   branchProfile: 'Branche et profil',
   yourBases: 'Vos bases',
@@ -4642,6 +4654,10 @@ APP_TRANSLATIONS.fr = {
 
 APP_TRANSLATIONS.ko = {
   ...APP_TRANSLATIONS.en,
+  pendingActions: '대기 중인 작업',
+  overdueAction: '기한 초과',
+  dueNow: '지금 처리',
+  tasksRemaining: '남은 작업',
   tagline: '이동 준비를 간단하게.',
   branchProfile: '군별 및 프로필',
   yourBases: '기지 정보',
@@ -4701,6 +4717,10 @@ APP_TRANSLATIONS.ko = {
 
 APP_TRANSLATIONS.ja = {
   ...APP_TRANSLATIONS.en,
+  pendingActions: '保留中のアクション',
+  overdueAction: '期限切れのアクション',
+  dueNow: '今すぐ実行',
+  tasksRemaining: '残りのタスク',
   tagline: 'PCSをわかりやすく。',
   branchProfile: '軍種とプロフィール',
   yourBases: '基地情報',
@@ -4760,6 +4780,10 @@ APP_TRANSLATIONS.ja = {
 
 APP_TRANSLATIONS.tl = {
   ...APP_TRANSLATIONS.en,
+  pendingActions: 'Mga nakabinbing aksyon',
+  overdueAction: 'Lampas-takdang aksyon',
+  dueNow: 'Dapat na ngayon',
+  tasksRemaining: 'natitirang gawain',
   tagline: 'Mas pinadaling PCS move.',
   branchProfile: 'Sangay at Profile',
   yourBases: 'Mga Base',
@@ -4819,6 +4843,10 @@ APP_TRANSLATIONS.tl = {
 
 APP_TRANSLATIONS.ar = {
   ...APP_TRANSLATIONS.en,
+  pendingActions: 'الإجراءات المعلقة',
+  overdueAction: 'إجراء متأخر',
+  dueNow: 'مستحق الآن',
+  tasksRemaining: 'مهام متبقية',
   tagline: 'انتقالك أصبح أسهل.',
   branchProfile: 'الفرع والملف الشخصي',
   yourBases: 'القواعد',
@@ -4878,6 +4906,10 @@ APP_TRANSLATIONS.ar = {
 
 APP_TRANSLATIONS.zh = {
   ...APP_TRANSLATIONS.en,
+  pendingActions: '待处理操作',
+  overdueAction: '逾期操作',
+  dueNow: '现在到期',
+  tasksRemaining: '剩余任务',
   tagline: '让搬迁更简单。',
   branchProfile: '军种与档案',
   yourBases: '基地信息',
@@ -4937,6 +4969,10 @@ APP_TRANSLATIONS.zh = {
 
 APP_TRANSLATIONS.it = {
   ...APP_TRANSLATIONS.en,
+  pendingActions: 'Azioni in sospeso',
+  overdueAction: 'Azione in ritardo',
+  dueNow: 'Da fare ora',
+  tasksRemaining: 'attività rimanenti',
   tagline: 'Il tuo trasferimento, semplificato.',
   branchProfile: 'Forza armata e profilo',
   yourBases: 'Le tue basi',
@@ -4996,6 +5032,10 @@ APP_TRANSLATIONS.it = {
 
 APP_TRANSLATIONS.pt = {
   ...APP_TRANSLATIONS.en,
+  pendingActions: 'Ações pendentes',
+  overdueAction: 'Ação atrasada',
+  dueNow: 'Vence agora',
+  tasksRemaining: 'tarefas restantes',
   tagline: 'Sua mudança, simplificada.',
   branchProfile: 'Ramo e perfil',
   yourBases: 'Suas bases',
@@ -5055,6 +5095,10 @@ APP_TRANSLATIONS.pt = {
 
 APP_TRANSLATIONS.vi = {
   ...APP_TRANSLATIONS.en,
+  pendingActions: 'Hành động đang chờ',
+  overdueAction: 'Hành động quá hạn',
+  dueNow: 'Đến hạn ngay',
+  tasksRemaining: 'nhiệm vụ còn lại',
   tagline: 'Đơn giản hóa PCS của bạn.',
   branchProfile: 'Quân chủng và hồ sơ',
   yourBases: 'Căn cứ của bạn',
