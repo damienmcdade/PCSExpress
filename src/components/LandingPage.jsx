@@ -239,12 +239,9 @@ const PARTNER_USE_CASES = [
 ];
 
 export default function LandingPage({ onStartPlan, onClose }) {
-  // v3 — AI Assistant modal state. The hero now exposes a prominent
-  // "AI Assistant" button (replaced the Need-Help-Now chip) so users
-  // who land on the marketing page can get tailored answers about
-  // PCS / JTR / FTR / DSSR before signing up. The floating
-  // CrisisLineChip is still rendered globally for users who need
-  // 988 / OneSource directly.
+  // AI Assistant modal state. The hero exposes a prominent "AI
+  // Assistant" button so users who land on the marketing page can
+  // get tailored answers about PCS / JTR / FTR / DSSR before signing up.
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   // v4 — preview branch theme on hero. When a visitor hovers / taps a
   // branch chip, the hero gradient + backdrop SVG shift to that
@@ -369,12 +366,6 @@ export default function LandingPage({ onStartPlan, onClose }) {
       </nav>
 
       {/* ───── HERO ───── */}
-      {/* v3 — design refresh per user directive: replaced the
-          Need-Help-Now CTA with an AI Assistant button (988 / Crisis
-          access still available via the floating CrisisLineChip), and
-          warmed the hero gradient with a vibrant teal accent so the
-          page reads as "active mission" rather than "static brochure"
-          while staying institutionally appropriate. */}
       <section
         id="top"
         style={{
@@ -1037,10 +1028,6 @@ export default function LandingPage({ onStartPlan, onClose }) {
           </div>
         </div>
       </footer>
-      {/* Per user directive, the floating crisis-line chip no longer
-          renders on the marketing landing — the AI Assistant button is
-          the primary help affordance here. The CrisisLineChip remains
-          mounted globally inside the authenticated app shell. */}
 
       {/* AI Assistant modal — mounted at LandingPage level because
           the App shell short-circuits to <LandingPage /> before its

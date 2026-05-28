@@ -18,7 +18,6 @@ import PlatformBanners from './components/PlatformBanners'
 // once the user actually opens the assistant.
 import AIAssistantTrigger from './components/AIAssistantTrigger'
 import AIAssistantFAB from './components/AIAssistantFAB'
-import CrisisLineChip from './components/CrisisLineChip'
 import TabBar from './components/TabBar'
 import { usePullToRefresh } from './hooks/usePullToRefresh'
 import { useFocusTrap } from './hooks/useFocusTrap'
@@ -5565,9 +5564,13 @@ function Onboarding({ onComplete }) {
             <>
               <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 16 }}>{ot('branchProfile')}</div>
 
-              {/* Branch buttons */}
+              {/* Branch buttons. DoD Civilian is keyed in BRANCH_THEMES
+                  for theming legacy profiles, but it's a component, not
+                  a service — exclude from branch chips so users pick a
+                  real service here and DoD Civilian via the Component
+                  dropdown below. */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
-                {Object.keys(BRANCH_THEMES).map(b => {
+                {Object.keys(BRANCH_THEMES).filter(b => b !== 'DoD Civilian').map(b => {
                   const t = BRANCH_THEMES[b];
                   const active = p.branch === b;
                   return (
@@ -7046,7 +7049,7 @@ function App() {
           <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 310, background: theme.secondary, borderTop: `1px solid ${theme.accent}35`, display: 'flex', alignItems: 'stretch', paddingBottom: 'env(safe-area-inset-bottom)' }}>
             {IOS_TAB_BAR.map(item => (
               <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-bottom-tab ${activeTab === item.id ? 'is-active' : ''}`} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
-                <span className="pcs-bottom-tab__glyph" style={{ fontSize: 22, lineHeight: 1, filter: activeTab === item.id ? 'none' : 'grayscale(40%) opacity(0.55)' }}>{item.iosIcon}</span>
+                <span className="pcs-bottom-tab__glyph" style={{ fontSize: 22, lineHeight: 1 }}>{item.iosIcon}</span>
                 <span style={{ fontSize: 10, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>{item.label}</span>
               </button>
             ))}
@@ -7293,7 +7296,7 @@ function App() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0 }}>
             {LOCALIZED_BOTTOM_NAV.map(item => (
               <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-side-link ${activeTab === item.id ? 'is-active' : ''}`} style={{ padding: '12px 4px', background: activeTab === item.id ? `${theme.accent}25` : 'transparent', border: 'none', borderBottom: `1px solid rgba(255,255,255,0.07)`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.75)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontSize: 9, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', '--side-accent': theme.accent }}>
-                <span aria-hidden="true" style={{ fontSize: 22, lineHeight: 1, filter: activeTab === item.id ? 'none' : 'grayscale(30%) opacity(0.8)' }}>{item.iosIcon}</span>
+                <span aria-hidden="true" style={{ fontSize: 22, lineHeight: 1 }}>{item.iosIcon}</span>
                 <span style={{ minWidth: 38, height: 14, padding: '0 4px', borderRadius: 6, background: activeTab === item.id ? `${theme.accent}30` : 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 900, letterSpacing: '.08em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.6)', border: activeTab === item.id ? `1px solid ${theme.accent}60` : '1px solid rgba(255,255,255,0.1)' }}>{item.icon}</span>
                 {item.label}
               </button>
@@ -7503,17 +7506,6 @@ function App() {
       {/* Native-only floating AI trigger; web renders nothing. */}
       <AIAssistantFAB theme={theme} onClick={() => setShowAIAssistant(true)} />
 
-      {/* Crisis-line chip — pinned floating affordance in the
-          authenticated app shell. Users in crisis must always be
-          one tap from 988 (Military Crisis Line) and Military
-          OneSource, regardless of which tab they are on. Previously
-          mounted only inside LandingPage; removing it from the
-          landing per user directive left the authenticated app with
-          NO in-app 988 path. Restored at the App shell level so
-          every dashboard tab gets the chip. Collapsible to a single
-          🆘 icon (cannot be fully dismissed). */}
-      <CrisisLineChip isNative={isNative} isDesktop={isDesktop} />
-
       <Suspense fallback={null}>
       <AIAssistantModal
         open={showAIAssistant}
@@ -7624,7 +7616,7 @@ function App() {
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 310, background: theme.secondary, borderTop: `1px solid ${theme.accent}35`, display: 'flex', alignItems: 'stretch', paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {IOS_TAB_BAR.map(item => (
             <button key={item.id} onClick={() => { goTo(item.id); setMoreOpen(false); }} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
-              <span style={{ fontSize: 22, lineHeight: 1, filter: activeTab === item.id ? 'none' : 'grayscale(40%) opacity(0.55)' }}>{item.iosIcon}</span>
+              <span style={{ fontSize: 22, lineHeight: 1 }}>{item.iosIcon}</span>
               <span style={{ fontSize: 10, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>{item.label}</span>
               {activeTab === item.id && <div style={{ position: 'absolute', bottom: 'calc(env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', width: 4, height: 4, borderRadius: '50%', background: theme.accent }} />}
             </button>
@@ -7646,7 +7638,7 @@ function App() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, padding: '0 12px' }}>
               {LOCALIZED_BOTTOM_NAV.map(item => (
                 <button key={item.id} onClick={() => { goTo(item.id); setMoreOpen(false); }} className={`pcs-bottom-tab ${activeTab === item.id ? 'is-active' : ''}`} style={{ padding: '10px 4px 8px', background: activeTab === item.id ? `${theme.accent}20` : 'rgba(255,255,255,0.05)', border: `1px solid ${activeTab === item.id ? theme.accent + '50' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, color: 'white', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                  <span className="pcs-bottom-tab__glyph" style={{ fontSize: 20, lineHeight: 1, filter: activeTab === item.id ? 'none' : 'grayscale(30%) opacity(0.7)' }}>{item.iosIcon}</span>
+                  <span className="pcs-bottom-tab__glyph" style={{ fontSize: 20, lineHeight: 1 }}>{item.iosIcon}</span>
                   <span style={{ fontSize: 9, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.65)', letterSpacing: '.02em', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
                 </button>
               ))}
