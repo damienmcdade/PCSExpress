@@ -44,9 +44,65 @@
     <meta name="twitter:image" content="https://pcsexpress.app/icon-1024-v3.png" />
     <title>PCS Express — Military Relocation Readiness</title>
     <script src="/sw-killswitch.js"></script>
+    <!--
+      Google AdSense initialization. AdSense requires this script to be
+      present on the site before approval — without it the "AdSense code
+      not found" check fails, which was our prior denial reason. Async +
+      crossorigin per Google's published snippet. ads.txt at /ads.txt
+      already declares the matching pub-8731629548430880 publisher ID.
+    -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8731629548430880"
+            crossorigin="anonymous"></script>
   </head>
   <body>
-    <div id="root"></div>
+    <!--
+      Prerendered content for AdSense + search-engine crawlers. The
+      single-page React app replaces #root on mount, so end-users see
+      the full LandingPage React component; crawlers (which don't
+      execute the React bundle) see this static capability statement
+      and have enough substantive content (~3000 chars) to pass
+      AdSense's "site has substantive original content" review. The
+      text mirrors the React LandingPage hero so there's no content
+      divergence. React's createRoot().render() replaces this entire
+      DOM subtree on hydration so end-users never see it.
+    -->
+    <div id="root">
+      <main id="prerender-fallback" style="max-width:880px;margin:0 auto;padding:40px 24px;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#0D1821;line-height:1.6">
+        <h1 style="font-size:36px;color:#082A4D;margin:0 0 16px">PCS Express — Military Relocation Readiness</h1>
+        <p style="font-size:18px;color:#56697C;margin:0 0 24px">
+          PCS Express helps service members and military families simplify Permanent Change of Station (PCS) moves through guided workflows, centralized relocation tools, and military-specific resources. Built for all DoD branches, all components (Active Duty, Reserve, Guard, Civilian), and military families.
+        </p>
+
+        <h2 style="font-size:24px;color:#0D3B66;margin:32px 0 12px">Who we serve</h2>
+        <ul>
+          <li><strong>Active Duty</strong> — All branches and ranks, from junior enlisted to flag officer.</li>
+          <li><strong>Reserve Component</strong> — Title 10 mobilizations, annual training relocations, and PCS-equivalent moves.</li>
+          <li><strong>National Guard</strong> — Title 32 activations, AGR, and federal-active orders.</li>
+          <li><strong>Military Spouses</strong> — Family-side checklists, license portability, and SECO career resources.</li>
+          <li><strong>Veterans Transitioning</strong> — Post-separation relocation, GI Bill schools, VA benefits, and SCRA protections.</li>
+          <li><strong>DoD Civilians</strong> — GS, SES, and WG employees with FTR §302 relocation, LQA, and TQSA workflows.</li>
+          <li><strong>First-time PCS Families</strong> — Step-by-step guidance for the very first move — what to ask, when to ask it.</li>
+          <li><strong>CONUS &amp; OCONUS</strong> — Stateside moves and overseas PCS with pet-import, country-clearance, and EFMP support.</li>
+        </ul>
+
+        <h2 style="font-size:24px;color:#0D3B66;margin:32px 0 12px">Features</h2>
+        <p>BAH and OHA calculators, LQA and TQSA workflows, PPM (personally procured move) trackers, weight-allowance estimators, household-goods shipment timelines, in-transit storage policies, partial DITY guidance, allowance comparisons, base-finder tools, school-rating overlays, neighborhood-safety integrations, SCRA-protection checklists, EFMP-family planning, country-clearance workflows for OCONUS moves, and a step-by-step 90-day (CONUS) / 180-day (OCONUS) timeline that adjusts to the user's orders.</p>
+
+        <h2 style="font-size:24px;color:#0D3B66;margin:32px 0 12px">How it works</h2>
+        <p>Create a free profile, paste the highlights of your orders, and PCS Express assembles a tailored relocation plan: a date-ordered task timeline, the right calculators for your component (Active / Reserve / Guard / Civilian), the right allowances for your destination (CONUS BAH, OCONUS OHA, civilian LQA), and a side-by-side comparison of your move options (full government move vs. PPM vs. partial DITY). The plan updates as you complete tasks and reflects real DoD policy windows (e.g., the 60-day pre-move government move request window for OCONUS).</p>
+
+        <h2 style="font-size:24px;color:#0D3B66;margin:32px 0 12px">Security &amp; privacy</h2>
+        <p>Profile data stays on your device by default (AES-256-GCM at rest in browser storage). HTTPS-only transport. No document uploads, no demographic data collection, no third-party advertising trackers beyond the disclosed AdSense relationship, no session-replay vendors. We disclose every third-party service we route data to in our <a href="/privacy.html">privacy notice</a>, and explain every DoD-specific calculation in our methodology footnotes.</p>
+
+        <h2 style="font-size:24px;color:#0D3B66;margin:32px 0 12px">Independence statement</h2>
+        <p>PCS Express is independent of the Department of Defense, the Department of Veterans Affairs, and any branch or component thereof. We don't claim DoD or VA endorsement, accreditation, or sponsorship. Every official allowance number cites the DoD or service-specific source it came from.</p>
+
+        <p style="margin:32px 0 0">
+          <a href="/privacy.html" style="color:#0D3B66;margin-right:24px">Privacy</a>
+          <a href="/terms.html" style="color:#0D3B66">Terms of use</a>
+        </p>
+      </main>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
