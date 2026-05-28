@@ -71,7 +71,7 @@ function scrollTo(id) {
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function CTAButton({ children, onClick, variant = 'primary', style = {} }) {
+function CTAButton({ children, onClick, variant = 'primary', style = {}, 'aria-label': ariaLabel }) {
   const base = {
     display: 'inline-flex',
     alignItems: 'center',
@@ -106,7 +106,7 @@ function CTAButton({ children, onClick, variant = 'primary', style = {} }) {
     },
   };
   return (
-    <button type="button" onClick={onClick} style={{ ...base, ...variants[variant] }}>
+    <button type="button" onClick={onClick} aria-label={ariaLabel} style={{ ...base, ...variants[variant] }}>
       {children}
     </button>
   );
@@ -987,7 +987,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
             Built to support individual users today, with a roadmap toward organizational and partner support. Designed for future integration with military family-readiness, relocation-assistance, and veteran-support ecosystems.
           </p>
           <div style={{ marginTop: 22 }}>
-            <CTAButton variant="secondary" onClick={() => { window.location.href = 'mailto:contact@pcsexpress.app'; }}>Contact Founder</CTAButton>
+            <CTAButton variant="secondary" aria-label="Contact the founder via email" onClick={() => { window.location.href = 'mailto:contact@pcsexpress.app'; }}>Contact Founder</CTAButton>
           </div>
         </div>
       </section>
@@ -1002,22 +1002,22 @@ export default function LandingPage({ onStartPlan, onClose }) {
             <div>
               <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 8 }}>Product</div>
               <div style={{ lineHeight: 2 }}>
-                <button onClick={() => scrollTo('features')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Features</button>
-                <button onClick={() => scrollTo('how')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>How it works</button>
-                <button onClick={() => scrollTo('roadmap')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Roadmap</button>
+                <button type="button" aria-label="Jump to Features section" onClick={() => scrollTo('features')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Features</button>
+                <button type="button" aria-label="Jump to How it works section" onClick={() => scrollTo('how')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>How it works</button>
+                <button type="button" aria-label="Jump to Roadmap section" onClick={() => scrollTo('roadmap')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Roadmap</button>
               </div>
             </div>
             <div>
               <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 8 }}>For partners</div>
               <div style={{ lineHeight: 2 }}>
-                <button onClick={() => scrollTo('partners')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Government & partners</button>
+                <button type="button" aria-label="Jump to Government and partners section" onClick={() => scrollTo('partners')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Government & partners</button>
                 <a href="mailto:contact@pcsexpress.app" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>contact@pcsexpress.app</a>
               </div>
             </div>
             <div>
               <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 8 }}>Trust</div>
               <div style={{ lineHeight: 2 }}>
-                <button onClick={() => scrollTo('security')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Security & privacy</button>
+                <button type="button" aria-label="Jump to Security and privacy section" onClick={() => scrollTo('security')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Security & privacy</button>
                 <a href="/privacy.html" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>Privacy notice</a>
                 <a href="/terms.html" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>Terms of use</a>
               </div>
@@ -1032,7 +1032,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
           <div style={{ marginTop: 26, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,0.12)', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: 'rgba(255,255,255,0.6)' }}>
             <div>© {new Date().getFullYear()} PCS Express. All rights reserved.</div>
             <div style={{ display: 'flex', gap: 14 }}>
-              <button onClick={startPlan} style={{ background: 'none', border: 'none', color: PALETTE.gold, fontWeight: 800, cursor: 'pointer', padding: 0, fontSize: 11 }}>Start Your PCS Plan →</button>
+              <button type="button" aria-label="Start your PCS plan — begin onboarding" onClick={startPlan} style={{ background: 'none', border: 'none', color: PALETTE.gold, fontWeight: 800, cursor: 'pointer', padding: 0, fontSize: 11 }}>Start Your PCS Plan →</button>
             </div>
           </div>
         </div>

@@ -24,9 +24,17 @@
  *   <BranchBackdrop branch="Marine Corps" opacity={0.18} />
  */
 
+import { memo } from 'react';
 import { branchTheme } from '../config/branchTheme';
 
-export default function BranchBackdrop({ branch, opacity = 0.22, style = {} }) {
+// memo() — mounted 4× across the app shell (sidebar header, main
+// header, Command Center background, every category-tab frame). The
+// parent <App /> re-renders on activeTab changes, demoTip ticks,
+// screen-width changes, and notification ticks — none of which
+// should re-run the (cheap but non-trivial) SVG pattern code. memo
+// short-circuits when `branch` is stable, which it is for the entire
+// authenticated session.
+function BranchBackdrop({ branch, opacity = 0.22, style = {} }) {
   const theme = branchTheme(branch);
   const stroke = theme.secondary;
   const fill   = theme.accent;
@@ -55,6 +63,8 @@ export default function BranchBackdrop({ branch, opacity = 0.22, style = {} }) {
     </div>
   );
 }
+
+export default memo(BranchBackdrop);
 
 // All keyframes scoped to the SVG <style> so they don't leak into
 // the global stylesheet. Movement is slow (10–24s) and subtle —

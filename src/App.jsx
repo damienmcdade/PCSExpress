@@ -511,6 +511,7 @@ const BRANCH_HOME_INSIGNIA = {
   'Air Force': 'USAF',
   'Space Force': 'USSF',
   'Coast Guard': 'USCG',
+  'DoD Civilian': 'DoD',
 };
 
 function getHomeBranchInsignia(branch) {
@@ -7129,7 +7130,7 @@ function App() {
               forms / etc.) behind the sidebar header so the chrome
               feels distinctly theirs rather than a flat color block. */}
           <div style={{ position: 'relative' }}>
-            <BranchBackdrop branch={profile.branch} opacity={0.20} />
+            <BranchBackdrop branch={profile?.branch} opacity={0.20} />
             <div style={{ position: 'relative', padding: '22px 16px 14px', borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
               <div style={{
                 fontSize: 9, letterSpacing: '.22em', color: theme.accent, fontWeight: 700,
@@ -7177,7 +7178,7 @@ function App() {
             size (was previously sidebar-only on desktop). Low opacity
             so it never competes with header controls. */}
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-          <BranchBackdrop branch={profile.branch} opacity={0.14} />
+          <BranchBackdrop branch={profile?.branch} opacity={0.14} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
