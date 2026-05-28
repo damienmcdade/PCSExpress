@@ -85,8 +85,20 @@ export default function CrisisLineChip({ isNative, isDesktop }) {
         flexWrap: 'wrap',
       }}
     >
+      {/* v2 — header "Need help now?" was a plain text label, which
+          users naturally tapped expecting it to call 988. It now wraps
+          the chip's primary tel: link so tapping anywhere on the label
+          dials the crisis line. The two stacked tel: links remain
+          individually tappable for keyboard / screen-reader users
+          and for users who want OneSource specifically. */}
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 140 }}>
-        <div style={{ fontSize: 9, fontWeight: 900, color: '#FECACA', letterSpacing: '.10em', textTransform: 'uppercase', marginBottom: 2 }}>Need help now?</div>
+        <a
+          href="tel:988"
+          style={{ fontSize: 9, fontWeight: 900, color: '#FECACA', letterSpacing: '.10em', textTransform: 'uppercase', marginBottom: 2, textDecoration: 'none', cursor: 'pointer' }}
+          aria-label="Call Military Crisis Line — 988 then 1"
+        >
+          Need help now? Tap to call 988
+        </a>
         <a
           href="tel:988"
           style={{ color: '#FFFFFF', fontSize: 12, fontWeight: 900, textDecoration: 'none', lineHeight: 1.25 }}

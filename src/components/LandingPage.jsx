@@ -270,10 +270,84 @@ export default function LandingPage({ onStartPlan, onClose }) {
       </nav>
 
       {/* ───── HERO ───── */}
-      <section id="top" style={{ background: `linear-gradient(135deg, ${PALETTE.navy} 0%, ${PALETTE.navyDeep} 100%)`, color: PALETTE.paper }}>
-        <div style={{ maxWidth: 1180, margin: '0 auto', padding: '72px 20px 64px', textAlign: 'center' }}>
+      {/* v2 — livened up per user directive: militaristic but
+          professional. Animated radar-sweep + flag-stripe background,
+          stronger uppercase typography on the kicker, and a
+          prominent inline "Need Help Now? 988" emergency CTA so users
+          in distress don't have to find the floating chip. */}
+      <section
+        id="top"
+        style={{
+          background: `linear-gradient(135deg, ${PALETTE.navy} 0%, ${PALETTE.navyDeep} 100%)`,
+          color: PALETTE.paper,
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Inline keyframes — Vite doesn't transform <style> children
+            but the browser does, and this keeps the animation
+            self-contained in the LandingPage without touching the
+            global stylesheet. */}
+        <style>{`
+          @keyframes pcs-radar-sweep {
+            0%   { transform: translate(-50%,-50%) rotate(0deg);   }
+            100% { transform: translate(-50%,-50%) rotate(360deg); }
+          }
+          @keyframes pcs-grid-drift {
+            0%   { background-position: 0 0; }
+            100% { background-position: 60px 60px; }
+          }
+          @keyframes pcs-pulse {
+            0%, 100% { transform: scale(1);   opacity: 0.9; }
+            50%      { transform: scale(1.6); opacity: 0;   }
+          }
+          @keyframes pcs-stripe-shift {
+            0%   { background-position: 0 0;   }
+            100% { background-position: 200px 0; }
+          }
+        `}</style>
+
+        {/* Tactical grid overlay drifting diagonally — adds depth
+            without competing with the foreground copy. */}
+        <div aria-hidden="true" style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.18,
+          backgroundImage:
+            'linear-gradient(rgba(201,154,61,0.25) 1px, transparent 1px),' +
+            'linear-gradient(90deg, rgba(201,154,61,0.25) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
+          animation: 'pcs-grid-drift 22s linear infinite',
+        }} />
+
+        {/* Radar sweep — radial gradient rotating slowly behind the
+            hero copy. Capped to 60% width so it reads as ambience,
+            not a UI element. */}
+        <div aria-hidden="true" style={{
+          position: 'absolute', top: '50%', left: '50%',
+          width: '60vmax', height: '60vmax', pointerEvents: 'none',
+          background: 'conic-gradient(from 0deg, rgba(201,154,61,0.0) 0deg, rgba(201,154,61,0.18) 28deg, rgba(201,154,61,0.0) 60deg, rgba(201,154,61,0) 360deg)',
+          mixBlendMode: 'screen',
+          filter: 'blur(8px)',
+          animation: 'pcs-radar-sweep 12s linear infinite',
+          transformOrigin: 'center',
+          willChange: 'transform',
+        }} />
+
+        {/* Flag-stripe strip along the bottom edge — uses navy +
+            white + gold (PCS palette) rather than RGB so it reads
+            as 'institutional' not 'July 4th'. */}
+        <div aria-hidden="true" style={{
+          position: 'absolute', left: 0, right: 0, bottom: 0, height: 6,
+          background: `repeating-linear-gradient(90deg, ${PALETTE.gold} 0 40px, ${PALETTE.navyDeep} 40px 80px, ${PALETTE.paper} 80px 120px, ${PALETTE.navy} 120px 160px)`,
+          opacity: 0.85,
+          animation: 'pcs-stripe-shift 18s linear infinite',
+        }} />
+
+        <div style={{ maxWidth: 1180, margin: '0 auto', padding: '72px 20px 80px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(201,154,61,0.16)', border: '1px solid rgba(201,154,61,0.35)', color: PALETTE.gold, padding: '6px 14px', borderRadius: 999, fontSize: 11, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase', marginBottom: 22 }}>
-            <span aria-hidden="true">●</span>
+            <span aria-hidden="true" style={{ position: 'relative', display: 'inline-flex', width: 8, height: 8 }}>
+              <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: PALETTE.gold }} />
+              <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: PALETTE.gold, animation: 'pcs-pulse 1.8s ease-out infinite' }} />
+            </span>
             Military relocation readiness platform
           </div>
           <h1 style={{ fontSize: 44, fontWeight: 950, margin: '0 0 18px', lineHeight: 1.1, letterSpacing: '-0.02em', maxWidth: 880, marginLeft: 'auto', marginRight: 'auto' }}>
@@ -287,6 +361,30 @@ export default function LandingPage({ onStartPlan, onClose }) {
             <CTAButton variant="ghost" onClick={() => scrollTo('demo')}>Request a Demo</CTAButton>
             <CTAButton variant="ghost" onClick={() => scrollTo('features')}>Explore PCS Tools</CTAButton>
           </div>
+
+          {/* v2 — prominent Need Help Now CTA right in the hero,
+              independent of the floating CrisisLineChip. tel: link so
+              taps go straight to the dialer on phones. Uses the dusk-
+              red palette + pulsing dot to read as 'urgent option'
+              without dominating the hero gradient. */}
+          <div style={{ marginTop: 20, display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 14px', background: 'rgba(127,29,29,0.55)', border: '1px solid rgba(254,202,202,0.55)', borderRadius: 999, color: '#FECACA', fontSize: 12, fontWeight: 800, letterSpacing: '.08em' }}>
+            <span aria-hidden="true" style={{ position: 'relative', display: 'inline-flex', width: 10, height: 10 }}>
+              <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#FECACA' }} />
+              <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#FECACA', animation: 'pcs-pulse 1.4s ease-out infinite' }} />
+            </span>
+            Need help now?
+            <a href="tel:988" style={{ color: '#FFFFFF', fontWeight: 900, textDecoration: 'underline' }}
+               aria-label="Call Military Crisis Line — 988 then 1">
+              Call 988
+            </a>
+            <span style={{ opacity: 0.7 }}>then 1</span>
+            <span aria-hidden="true" style={{ opacity: 0.45 }}>·</span>
+            <a href="tel:18003429647" style={{ color: '#FFFFFF', fontWeight: 700, textDecoration: 'underline' }}
+               aria-label="Call Military OneSource — 1-800-342-9647">
+              OneSource
+            </a>
+          </div>
+
           <div style={{ marginTop: 28, display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
             {['Army', 'Navy', 'Marine Corps', 'Air Force', 'Space Force', 'Coast Guard', 'DoD Civilian'].map(b => (
               <span key={b} style={{ fontSize: 10, fontWeight: 800, padding: '5px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.85)', letterSpacing: '.08em', textTransform: 'uppercase' }}>{b}</span>
