@@ -6940,20 +6940,65 @@ function App() {
 
   const renderCategoryFrame = (tabId, children) => {
     const item = LOCALIZED_BOTTOM_NAV.find(n => n.id === tabId) || activeNavItem;
+    // Branch insignia next to the tab mark — pulls from BRANCH_THEMES
+    // so the chrome reads as the user's service (USA / USN / USMC /
+    // USAF / USSF / USCG / DoD) on every tab, not just Command Center.
+    const insignia = theme.insignia || theme.abbr || 'PCS';
     return (
-      <section className="category-screen" style={{ '--category-color': item?.color || theme.primary }}>
-        <div className="category-screen__header" style={{ borderColor: `${theme.accent}55` }}>
-          <div className="category-screen__mark" style={{ background: `${item?.color || theme.primary}14`, borderColor: `${item?.color || theme.primary}35`, color: item?.color || theme.primary }}>
-            {item?.icon || theme.abbr}
-          </div>
-          <div>
-            <div className="category-screen__eyebrow">{t('categoryEyebrow')}</div>
-            <h1>{item?.label || currentLabel}</h1>
-            <p>{CATEGORY_DESCRIPTIONS[tabId] || t('defaultCategoryDescription')}</p>
-          </div>
+      <section className="category-screen" style={{ '--category-color': item?.color || theme.primary, position: 'relative' }}>
+        {/* Branch-themed animated backdrop for every category tab.
+            Pattern + colors keyed to the user's onboarding selection
+            (Army hex grid, Navy waves, Marines globe, etc.). Low
+            opacity so it never competes with the content cards. */}
+        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.55 }}>
+          <BranchBackdrop branch={profile?.branch} opacity={0.18} />
         </div>
-        <div className="category-screen__body">
-          {children}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div className="category-screen__header" style={{ borderColor: `${theme.accent}55` }}>
+            {/* Tab mark + branch insignia stacked. Tab mark stays the
+                category color (so users can tell tabs apart at a
+                glance); the smaller insignia underneath reinforces
+                "this is your service." */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+              <div className="category-screen__mark" style={{ background: `${item?.color || theme.primary}14`, borderColor: `${item?.color || theme.primary}35`, color: item?.color || theme.primary, fontFamily: DISPLAY_FONT, letterSpacing: '.08em' }}>
+                {item?.icon || theme.abbr}
+              </div>
+              <div style={{
+                fontSize: 9, fontWeight: 700, color: theme.primary, letterSpacing: '.10em',
+                fontFamily: DISPLAY_FONT, opacity: 0.78,
+              }}>
+                {insignia}
+              </div>
+            </div>
+            <div>
+              <div className="category-screen__eyebrow" style={{ fontFamily: DISPLAY_FONT, letterSpacing: '.20em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span aria-hidden="true" style={{
+                  display: 'inline-block', width: 5, height: 5, borderRadius: '50%',
+                  background: item?.color || theme.primary,
+                  boxShadow: `0 0 6px ${item?.color || theme.primary}`,
+                  animation: 'pcs-frame-pulse 2.6s ease-in-out infinite',
+                }} />
+                {t('categoryEyebrow')}
+              </div>
+              <h1 style={{ fontFamily: DISPLAY_FONT, letterSpacing: '-0.025em', fontWeight: 700, fontSize: 20 }}>{item?.label || currentLabel}</h1>
+              <p>{CATEGORY_DESCRIPTIONS[tabId] || t('defaultCategoryDescription')}</p>
+              {theme.motto && (
+                <div style={{
+                  marginTop: 8, paddingTop: 7,
+                  borderTop: `1px dashed ${theme.accent}55`,
+                  fontSize: 9, fontWeight: 700, color: theme.primary,
+                  letterSpacing: '.22em', textTransform: 'uppercase',
+                  fontFamily: DISPLAY_FONT, opacity: 0.85,
+                }}>
+                  {theme.motto}
+                  {theme.tagline && <span style={{ opacity: 0.55, marginLeft: 8, fontWeight: 500, fontStyle: 'italic', letterSpacing: '.02em', textTransform: 'none' }}>{theme.tagline}</span>}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="category-screen__body">
+            {children}
+          </div>
         </div>
       </section>
     );
@@ -7298,7 +7343,15 @@ function App() {
         {activeTab === 'home' && (
           <div style={{ padding: isDesktop ? '24px 28px 32px' : '16px', position: 'relative', overflow: 'hidden', minHeight: '100%', background: `linear-gradient(135deg, ${UI_PALETTE.page} 0%, ${UI_PALETTE.surfaceSoft} 46%, ${UI_PALETTE.pageAlt} 100%)`, borderRadius: isDesktop ? 24 : 0, color: UI_PALETTE.text }}>
             <h1 className="sr-only">Command Center</h1>
-            <div aria-hidden="true" style={{ position: 'absolute', right: isDesktop ? -28 : -52, top: isDesktop ? 112 : 156, fontSize: isDesktop ? 450 : 292, fontWeight: 950, opacity: 0.14, userSelect: 'none', pointerEvents: 'none', color: theme.primary, letterSpacing: isDesktop ? '-18px' : '-12px', lineHeight: 0.82, zIndex: 0 }}>
+            {/* Branch-themed animated insignia backdrop. Layered
+                BEHIND the giant text insignia so we keep the bold
+                wordmark feel while adding the service-specific
+                pattern (hex grid / orbital rings / wave forms /
+                etc.) as a second readable layer. */}
+            <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
+              <BranchBackdrop branch={profile?.branch} opacity={0.22} />
+            </div>
+            <div aria-hidden="true" style={{ position: 'absolute', right: isDesktop ? -28 : -52, top: isDesktop ? 112 : 156, fontSize: isDesktop ? 450 : 292, fontWeight: 700, opacity: 0.12, userSelect: 'none', pointerEvents: 'none', color: theme.primary, letterSpacing: isDesktop ? '-18px' : '-12px', lineHeight: 0.82, zIndex: 0, fontFamily: DISPLAY_FONT }}>
               {homeInsignia}
             </div>
             <div style={{ position: 'relative', zIndex: 1 }}>

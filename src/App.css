@@ -947,17 +947,20 @@ body {
 .category-screen__eyebrow {
   color: #667587;
   font-size: 9px;
-  font-weight: 900;
-  letter-spacing: .16em;
-  margin-bottom: 3px;
+  font-weight: 700;
+  letter-spacing: .20em;
+  margin-bottom: 5px;
+  font-family: "Space Grotesk", "Inter", system-ui, sans-serif;
 }
 
 .category-screen__header h1 {
   color: #0d1821;
-  font-size: 18px;
-  font-weight: 900;
-  line-height: 1.15;
-  margin: 0 0 5px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0 0 6px;
+  letter-spacing: -0.025em;
+  font-family: "Space Grotesk", "Inter", system-ui, sans-serif;
 }
 
 .category-screen__header p {
