@@ -71,8 +71,12 @@ import { MILITARY_DUTY_STATIONS } from './data/militaryDutyStations'
 import { INSTALLATION_SCHOOLS } from './data/installationSchools'
 import { VET_BIZ_CITY } from './data/vetBizCities'
 import { DOD_CIVILIAN_CHECKLIST } from './data/dodCivilianChecklist'
-import { useAppLanguageRuntime } from './i18n/useAppLanguageRuntime'
-import { applyGoogleTranslateLanguage } from './i18n/googleTranslateRuntime'
+// AppLanguageRuntimeMount wraps both i18n runtimes (dictionary
+// MutationObserver + Google Translate bootstrap). React.lazy keeps the
+// ~90 KB i18n payload off the cold-start path for English users; the
+// mount is gated below on `appLanguage !== 'en'` so the chunk only
+// downloads when a non-English locale is actually selected.
+const AppLanguageRuntimeMount = lazy(() => import('./i18n/AppLanguageRuntimeMount'))
 
 const store = {
   get: (k) => readLegacyJson(k, null),
@@ -6769,14 +6773,9 @@ function App() {
   );
   const appDir = appLanguage === 'ar' ? 'rtl' : 'ltr';
   const t = (key) => trFrom(appLanguage, key);
-  useAppLanguageRuntime(appLanguage);
   useEffect(() => {
     document.documentElement.lang = appLanguage;
     document.documentElement.dir = appDir;
-    // Google Website Translator covers strings the dictionary-based
-    // runtime missed. Activates only for non-English preferred
-    // languages; for 'en' the widget remains dormant.
-    applyGoogleTranslateLanguage(appLanguage);
   }, [appLanguage, appDir]);
 
   // Compute pending alerts based on departure date and checklist completion
@@ -6844,28 +6843,42 @@ function App() {
   // partner contacts). Bypassed for any user with an existing profile.
   if (!profile?.branch && !landingDismissed) {
     return (
-      <Suspense fallback={<LazyTabFallback />}>
-        <LandingPage
-          onStartPlan={() => {
-            setLandingDismissed(true);
-            try { localStorage.setItem('pcs_landing_dismissed', '1'); } catch {}
-            // Strip the force-show param so a refresh returns to the
-            // expected onboarding/dashboard route.
-            try {
-              const url = new URL(window.location.href);
-              if (url.searchParams.has('landing')) {
-                url.searchParams.delete('landing');
-                window.history.replaceState({}, '', url.pathname + (url.search || '') + url.hash);
-              }
-            } catch {}
-          }}
-        />
-      </Suspense>
+      <>
+        {appLanguage !== 'en' && (
+          <Suspense fallback={null}>
+            <AppLanguageRuntimeMount lang={appLanguage} />
+          </Suspense>
+        )}
+        <Suspense fallback={<LazyTabFallback />}>
+          <LandingPage
+            onStartPlan={() => {
+              setLandingDismissed(true);
+              try { localStorage.setItem('pcs_landing_dismissed', '1'); } catch {}
+              // Strip the force-show param so a refresh returns to the
+              // expected onboarding/dashboard route.
+              try {
+                const url = new URL(window.location.href);
+                if (url.searchParams.has('landing')) {
+                  url.searchParams.delete('landing');
+                  window.history.replaceState({}, '', url.pathname + (url.search || '') + url.hash);
+                }
+              } catch {}
+            }}
+          />
+        </Suspense>
+      </>
     );
   }
 
   if (!profile?.branch) {
-    return <Onboarding onComplete={(p) => {
+    return (
+      <>
+        {appLanguage !== 'en' && (
+          <Suspense fallback={null}>
+            <AppLanguageRuntimeMount lang={appLanguage} />
+          </Suspense>
+        )}
+        <Onboarding onComplete={(p) => {
       const normalized = normalizeProfile(p);
       setProfile(normalized);
       if (normalized?.demoMode) {
@@ -6883,7 +6896,9 @@ function App() {
           try { localStorage.setItem('pcs_user_language', normalized.language); } catch {}
         }
       }
-    }} />;
+    }} />
+      </>
+    );
   }
 
   // Mission-group walkthrough demo. Each entry routes to the actual
@@ -7505,6 +7520,15 @@ function App() {
           the right visual state during the chunk fetch. */}
       {/* Native-only floating AI trigger; web renders nothing. */}
       <AIAssistantFAB theme={theme} onClick={() => setShowAIAssistant(true)} />
+
+      {/* i18n runtime mount — only loaded + executed for non-English
+          locales. Lazy import keeps ~90 KB of dictionary code off the
+          cold-start path for the default English user. */}
+      {appLanguage !== 'en' && (
+        <Suspense fallback={null}>
+          <AppLanguageRuntimeMount lang={appLanguage} />
+        </Suspense>
+      )}
 
       <Suspense fallback={null}>
       <AIAssistantModal

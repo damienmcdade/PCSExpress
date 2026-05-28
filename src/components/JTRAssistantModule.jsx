@@ -166,11 +166,14 @@ export default function JTRAssistantModule({ theme }) {
     setAskState({ status: 'loading', answer: '', source: '' });
     try {
       askAbort.current = new AbortController();
-      const timer = setTimeout(() => askAbort.current?.abort(), 15000);
+      const timer = setTimeout(() => askAbort.current?.abort(), 30000);
+      // Request streaming so the answer renders progressively. Backend
+      // falls back to JSON if streaming is unavailable (curated-KB
+      // provider) and we handle both paths.
       const r = await fetch(apiUrl('/api/jtr-assistant'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ q: text }),
+        headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
+        body: JSON.stringify({ q: text, stream: true }),
         signal: askAbort.current.signal,
       });
       clearTimeout(timer);
@@ -184,6 +187,39 @@ export default function JTRAssistantModule({ theme }) {
       }
       if (!r.ok) {
         setAskState({ status: 'error', answer: 'Could not reach the assistant. Try again in a minute.', source: '' });
+        return;
+      }
+      const contentType = r.headers.get('content-type') || '';
+      if (contentType.includes('text/event-stream') && r.body) {
+        const source = r.headers.get('x-source') || 'anthropic';
+        const decoder = new TextDecoder('utf-8');
+        const reader = r.body.getReader();
+        let buffer = '';
+        let acc = '';
+        setAskState({ status: 'streaming', answer: '', source });
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let nlIdx;
+          while ((nlIdx = buffer.indexOf('\n\n')) !== -1) {
+            const frame = buffer.slice(0, nlIdx);
+            buffer = buffer.slice(nlIdx + 2);
+            for (const line of frame.split('\n')) {
+              if (!line.startsWith('data:')) continue;
+              const payload = line.slice(5).trim();
+              if (!payload || payload === '[DONE]') continue;
+              try {
+                const obj = JSON.parse(payload);
+                if (obj?.type === 'content_block_delta' && obj?.delta?.text) {
+                  acc += obj.delta.text;
+                  setAskState({ status: 'streaming', answer: acc, source });
+                }
+              } catch { /* ignore malformed frames */ }
+            }
+          }
+        }
+        setAskState({ status: 'ready', answer: acc, source });
         return;
       }
       const data = await r.json();
@@ -247,8 +283,8 @@ export default function JTRAssistantModule({ theme }) {
           style={{ width: '100%', border: '1px solid #D8DEE7', borderRadius: 8, padding: '10px 12px', fontSize: 13, color: '#111827', background: '#FFFFFF', boxSizing: 'border-box', resize: 'vertical' }}
         />
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-          <button onClick={submitFreeText} disabled={askState.status === 'loading' || !askText.trim()} style={{ padding: '10px 14px', background: askText.trim() ? theme.primary : '#BDBDBD', color: '#FFF', border: 'none', borderRadius: 10, fontWeight: 800, fontSize: 12, cursor: askText.trim() ? 'pointer' : 'not-allowed' }}>
-            {askState.status === 'loading' ? 'Asking…' : 'Ask the assistant'}
+          <button onClick={submitFreeText} disabled={askState.status === 'loading' || askState.status === 'streaming' || !askText.trim()} style={{ padding: '10px 14px', background: askText.trim() ? theme.primary : '#BDBDBD', color: '#FFF', border: 'none', borderRadius: 10, fontWeight: 800, fontSize: 12, cursor: askText.trim() ? 'pointer' : 'not-allowed' }}>
+            {askState.status === 'loading' ? 'Asking…' : askState.status === 'streaming' ? 'Streaming…' : 'Ask the assistant'}
           </button>
           <span style={{ fontSize: 10, color: '#56697C', alignSelf: 'center' }}>{askText.length}/1000 chars</span>
         </div>
