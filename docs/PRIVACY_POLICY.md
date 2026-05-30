@@ -1,15 +1,8 @@
-# PCS Express — Privacy Notice (DRAFT)
+# PCS Express — Privacy Notice
 
-> ⚠️ **DRAFT — REVIEW WITH COUNSEL BEFORE PUBLIC POSTING.**
-> This document was assembled from a code-level inventory of what the
-> app actually does. It has not been reviewed by an attorney. Do not
-> publish at `/privacy` until counsel has reviewed and adapted it for
-> the operating entity, applicable jurisdictions, and any planned
-> changes (e.g., ad-serving go-live, account creation, payment).
-
-**Effective date:** _to be set when published_
-**Operator:** _PCS Express (operating entity to be confirmed)_
-**Contact:** contact@pcsexpress.app
+**Effective date:** May 30, 2026
+**Operator:** PCS Express, operated by CyberWave Global LLC (cyberwaveglobal.com)
+**Contact:** info@cyberwaveglobal.com
 
 ---
 
@@ -107,7 +100,7 @@ their privacy notices for current retention windows).
 PCS Express is intended for adult service members, DoD civilians, and
 adult family members. It is not directed at children under 13. If you
 believe a minor has provided personal information through the App,
-contact us at contact@pcsexpress.app and we will delete it. The App
+contact us at info@cyberwaveglobal.com and we will delete it. The App
 does not require, collect, or accept information knowingly from
 children under 13 (COPPA).
 
@@ -132,7 +125,7 @@ service you requested (AI Assistant, Navigation). Anthropic, Google,
 Vercel, and Railway each maintain their own Standard Contractual Clauses
 or equivalent transfer mechanisms.
 
-To exercise any of these rights, email contact@pcsexpress.app from the
+To exercise any of these rights, email info@cyberwaveglobal.com from the
 email address associated with your inquiry.
 
 ## 11. Security
@@ -160,6 +153,6 @@ flagged in the App's Compliance screen.
 
 ## 14. Contact
 
-Questions, requests, or complaints: **contact@pcsexpress.app**
+Questions, requests, or complaints: **info@cyberwaveglobal.com**
 
 Security vulnerabilities: see `https://pcsexpress.app/.well-known/security.txt`

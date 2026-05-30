@@ -1,12 +1,8 @@
-# PCS Express — Terms of Use (DRAFT)
+# PCS Express — Terms of Use
 
-> ⚠️ **DRAFT — REVIEW WITH COUNSEL BEFORE PUBLIC POSTING.**
-> Liability framing, dispute resolution, and warranty disclaimers are
-> jurisdiction-sensitive and should be tailored by an attorney before
-> publishing at `/terms`.
-
-**Effective date:** _to be set when published_
-**Operator:** _PCS Express (operating entity to be confirmed)_
+**Effective date:** May 30, 2026
+**Operator:** PCS Express, operated by CyberWave Global LLC (cyberwaveglobal.com)
+**Contact:** info@cyberwaveglobal.com
 
 By accessing or using the PCS Express web app, iOS app, or Android app
 (collectively, the "App"), you agree to these Terms of Use. If you do
@@ -131,11 +127,12 @@ users, or its third-party providers.
 
 ## 12. Governing law
 
-These Terms are governed by the laws of the State of _[to be set by
-counsel based on operating entity]_, without regard to its conflict of
-laws principles. Any dispute will be brought exclusively in the state
-or federal courts located in _[venue to be set by counsel]_.
+These Terms are governed by the laws of the State of California,
+without regard to its conflict of laws principles. Any dispute will be
+brought exclusively in the state or federal courts located in
+California, and you consent to the personal jurisdiction of those
+courts.
 
 ## 13. Contact
 
-Questions: **contact@pcsexpress.app**
+Questions: **info@cyberwaveglobal.com**

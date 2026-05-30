@@ -1011,6 +1011,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
                 <button type="button" aria-label="Jump to Security and privacy section" onClick={() => scrollTo('security')} style={{ background: 'none', border: 'none', color: 'inherit', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'block', fontSize: 12 }}>Security & privacy</button>
                 <a href="/privacy.html" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>Privacy notice</a>
                 <a href="/terms.html" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>Terms of use</a>
+                <a href="/accessibility.html" style={{ color: 'inherit', textDecoration: 'none', display: 'block', fontSize: 12 }}>Accessibility</a>
               </div>
             </div>
             <div>
@@ -1021,7 +1022,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
             </div>
           </div>
           <div style={{ marginTop: 26, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,0.12)', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: 'rgba(255,255,255,0.6)' }}>
-            <div>© {new Date().getFullYear()} PCS Express. All rights reserved.</div>
+            <div>© {new Date().getFullYear()} PCS Express, operated by CyberWave Global LLC. All rights reserved.</div>
             <div style={{ display: 'flex', gap: 14 }}>
               <button type="button" aria-label="Start your PCS plan — begin onboarding" onClick={startPlan} style={{ background: 'none', border: 'none', color: PALETTE.gold, fontWeight: 800, cursor: 'pointer', padding: 0, fontSize: 11 }}>Start Your PCS Plan →</button>
             </div>

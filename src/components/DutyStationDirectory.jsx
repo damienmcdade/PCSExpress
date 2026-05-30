@@ -2,7 +2,7 @@
  * Duty Station Directory — all installations in the app, with full data for major ones.
  * Auto-populates from profile.gainingInstallation. Remaining installations link to official sources.
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { resolveInstallation } from '../lib/bahCalculator';
 import { INSTALLATION_MARKETS } from '../data/installationMarkets';
 import TabBar from './TabBar';
@@ -1472,6 +1472,16 @@ export default function DutyStationDirectory({ theme, profile }) {
   const [search, setSearch] = useState('');
   const [showPicker, setShowPicker] = useState(false);
   const [section, setSection] = useState('housing');
+
+  // The profile loads asynchronously (decrypted after first paint), so
+  // the useState initializer above can run before gainingInstallation is
+  // known. Back-fill `selected` once it resolves — but only while the
+  // user hasn't picked anything yet, so we never clobber a manual choice.
+  useEffect(() => {
+    if (!selected && (autoResolved || profileGaining)) {
+      setSelected(autoResolved || profileGaining);
+    }
+  }, [autoResolved, profileGaining, selected]);
 
   const isAutoFilled = Boolean(autoResolved && selected === (autoResolved || profileGaining));
 

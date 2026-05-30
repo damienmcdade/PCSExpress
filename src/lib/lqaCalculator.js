@@ -229,10 +229,15 @@ export function calculateMonthlyLQA({ post, group, familySize }) {
 export function calculateTQSARows({ post, adultDeps = 0, childDeps = 0 }) {
   const postData = LQA_POSTS[post];
   const tqsaBase = postData?.tqsaDailyMax || 0;
+  // Dependent counts can never be negative or fractional; clamp so a bad
+  // caller can't produce a negative daily total (the UI dropdowns are
+  // bounded, but this function is exported and reused).
+  const safeAdultDeps = Math.max(0, Math.floor(Number(adultDeps) || 0));
+  const safeChildDeps = Math.max(0, Math.floor(Number(childDeps) || 0));
   return TQSA_TIERS.map(tier => {
     const occupant = Math.round(tqsaBase * tier.occupant);
-    const adults = Math.round(tqsaBase * tier.adultDep) * adultDeps;
-    const children = Math.round(tqsaBase * tier.childDep) * childDeps;
+    const adults = Math.round(tqsaBase * tier.adultDep) * safeAdultDeps;
+    const children = Math.round(tqsaBase * tier.childDep) * safeChildDeps;
     const total = occupant + adults + children;
     return { label: tier.label, occupant, adults, children, total };
   });

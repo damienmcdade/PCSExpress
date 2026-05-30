@@ -24,7 +24,7 @@
  * supplement.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
 import CopyableText from './CopyableText';
 
@@ -124,40 +124,52 @@ const inputSt = { width: '100%', border: '1px solid #D8DEE7', borderRadius: 8, p
 
 export default function InventoryVaultModule({ theme, profile }) {
   const [state, setState] = useState(defaultState());
+  const [loaded, setLoaded] = useState(false);
+  // Hydration guard: secureLocalStore.get is async (AES decrypt), so the
+  // component first renders with the empty defaultState. Writing in that
+  // window would persist the empty default OVER the user's saved
+  // inventory. loadedRef blocks every write until the initial decrypt
+  // resolves, and persist() takes a functional updater so it always
+  // builds on the freshest state rather than a stale closure.
+  const loadedRef = useRef(false);
   const [draft, setDraft] = useState({ name: '', room: ROOMS[0], value: '', condition: 'Good', notes: '' });
 
   useEffect(() => {
     let mounted = true;
     secureLocalStore.get(STORAGE_KEY, defaultState()).then(saved => {
-      if (mounted) setState(saved || defaultState());
+      if (mounted) { setState(saved || defaultState()); loadedRef.current = true; setLoaded(true); }
     });
     return () => { mounted = false; };
   }, []);
 
-  const persist = async (next) => {
-    setState(next);
-    await secureLocalStore.set(STORAGE_KEY, next);
-    AuditLogger.record('inventory_vault_change', { itemCount: next.items.length, phase: next.phase });
+  const persist = (updater) => {
+    if (!loadedRef.current) return; // never clobber saved data before it loads
+    setState(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      secureLocalStore.set(STORAGE_KEY, next);
+      AuditLogger.record('inventory_vault_change', { itemCount: next.items.length, phase: next.phase });
+      return next;
+    });
   };
 
   const totalDeclared = useMemo(() => state.items.reduce((s, it) => s + (parseFloat(it.value) || 0), 0), [state.items]);
   const damagedCount = useMemo(() => state.items.filter(it => it.condition === 'Damaged' || it.condition === 'Poor').length, [state.items]);
 
-  const addItem = async () => {
-    if (!draft.name.trim()) return;
+  const addItem = () => {
+    if (!draft.name.trim() || !loaded) return;
     const item = {
       id: `it-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       capturedAt: todayIso(),
       ...draft,
     };
-    await persist({ ...state, items: [item, ...state.items] });
+    persist(prev => ({ ...prev, items: [item, ...prev.items] }));
     setDraft({ name: '', room: draft.room, value: '', condition: 'Good', notes: '' });
   };
 
-  const removeItem = (id) => persist({ ...state, items: state.items.filter(it => it.id !== id) });
-  const updItem = (id, patch) => persist({ ...state, items: state.items.map(it => it.id === id ? { ...it, ...patch } : it) });
-  const updMeta = (k, v) => persist({ ...state, meta: { ...state.meta, [k]: v } });
-  const setPhase = (p) => persist({ ...state, phase: p });
+  const removeItem = (id) => persist(prev => ({ ...prev, items: prev.items.filter(it => it.id !== id) }));
+  const updItem = (id, patch) => persist(prev => ({ ...prev, items: prev.items.map(it => it.id === id ? { ...it, ...patch } : it) }));
+  const updMeta = (k, v) => persist(prev => ({ ...prev, meta: { ...prev.meta, [k]: v } }));
+  const setPhase = (p) => persist(prev => ({ ...prev, phase: p }));
 
   return (
     <div style={{ padding: 16 }}>

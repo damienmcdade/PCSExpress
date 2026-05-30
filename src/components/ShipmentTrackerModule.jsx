@@ -17,7 +17,7 @@
  * stored profile artifact (AES-256-GCM via cryptoStore).
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
 import CopyableText from './CopyableText';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
@@ -65,6 +65,12 @@ function daysBetween(isoA, isoB) {
 export default function ShipmentTrackerModule({ theme, profile: _profile }) {
   const [state, setState] = useState({ fields: {}, milestones: {}, startedOn: '', notifyOnOverdue: false });
   const [permission, setPermission] = useState(() => (typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'));
+  // Hydration guard: the store decrypts asynchronously, so the first render
+  // holds the empty default. Writing in that window would persist the empty
+  // object OVER saved milestones/fields. loadedRef blocks writes until the
+  // initial decrypt resolves; persist() takes a functional updater so it
+  // never builds on a stale closure.
+  const loadedRef = useRef(false);
 
   const reload = useCallback(async (isMounted = () => true) => {
     const saved = await secureLocalStore.get(
@@ -73,6 +79,7 @@ export default function ShipmentTrackerModule({ theme, profile: _profile }) {
     );
     if (!isMounted()) return;
     setState(saved || { fields: {}, milestones: {}, startedOn: '', notifyOnOverdue: false });
+    loadedRef.current = true;
   }, []);
 
   useEffect(() => {
@@ -90,18 +97,20 @@ export default function ShipmentTrackerModule({ theme, profile: _profile }) {
     await new Promise(r => setTimeout(r, 600));
   });
 
-  const persist = async (next) => {
-    setState(next);
-    await secureLocalStore.set(STORAGE_KEY, next);
-    AuditLogger.record('shipment_tracker_change', { hasGbl: !!next.fields?.gbl, completedCount: Object.values(next.milestones || {}).filter(Boolean).length });
+  const persist = (updater) => {
+    if (!loadedRef.current) return; // never clobber saved data before it loads
+    setState(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      secureLocalStore.set(STORAGE_KEY, next);
+      AuditLogger.record('shipment_tracker_change', { hasGbl: !!next.fields?.gbl, completedCount: Object.values(next.milestones || {}).filter(Boolean).length });
+      return next;
+    });
   };
 
-  const updField = (id, val) => persist({ ...state, fields: { ...state.fields, [id]: val } });
-  const startTracking = () => persist({ ...state, startedOn: state.startedOn || todayIso() });
+  const updField = (id, val) => persist(prev => ({ ...prev, fields: { ...prev.fields, [id]: val } }));
+  const startTracking = () => persist(prev => ({ ...prev, startedOn: prev.startedOn || todayIso() }));
   const toggleMilestone = (id) => {
-    const cur = state.milestones[id];
-    const next = cur ? null : todayIso();
-    persist({ ...state, milestones: { ...state.milestones, [id]: next } });
+    persist(prev => ({ ...prev, milestones: { ...prev.milestones, [id]: prev.milestones[id] ? null : todayIso() } }));
   };
 
   const overdueMap = useMemo(() => {
@@ -127,7 +136,7 @@ export default function ShipmentTrackerModule({ theme, profile: _profile }) {
       const r = await Notification.requestPermission();
       setPermission(r);
     }
-    persist({ ...state, notifyOnOverdue: !state.notifyOnOverdue });
+    persist(prev => ({ ...prev, notifyOnOverdue: !prev.notifyOnOverdue }));
   };
 
   return (

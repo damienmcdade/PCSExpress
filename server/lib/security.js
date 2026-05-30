@@ -48,6 +48,19 @@ export function isAllowedPushEndpoint(endpoint) {
   return PUSH_ENDPOINT_HOST_ALLOWLIST.some(allowed => u.hostname === allowed || u.hostname.endsWith('.' + allowed));
 }
 
+// Truncate + redact upstream error bodies before they hit platform
+// logs. Keeps enough signal to debug (status + first 50 chars) without
+// leaking the LLM provider's internal error-keys / hint text into the
+// Vercel / Railway log stream where a reader could correlate them to
+// queries or pivot on the response shape.
+export function redactUpstreamError(body) {
+  const s = String(body == null ? '' : body)
+    .replace(/[\x00-\x1F\x7F]+/g, ' ')
+    .replace(/"(message|hint|error_type|type|param)"\s*:\s*"[^"]*"/gi, '"$1":"<redacted>"')
+    .slice(0, 50);
+  return s;
+}
+
 export function isValidPushSubscription(sub) {
   if (!sub || typeof sub !== 'object') return false;
   if (!isAllowedPushEndpoint(sub.endpoint)) return false;

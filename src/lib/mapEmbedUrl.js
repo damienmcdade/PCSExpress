@@ -36,8 +36,11 @@ export function publicMapSearchUrl(label) {
  * zoomed in. ~0.06 deg fits a typical large CONUS installation.
  */
 export function osmBoundingBoxEmbedUrl(lat, lng, spanDeg = 0.06) {
-  if (typeof lat !== 'number' || typeof lng !== 'number') return null;
-  const half = spanDeg / 2;
+  // Number.isFinite (not typeof === 'number') so NaN/±Infinity don't
+  // produce "bbox=NaN,NaN,..." URLs that silently break the iframe.
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const span = Number.isFinite(spanDeg) ? spanDeg : 0.06;
+  const half = span / 2;
   const bbox = [lng - half, lat - half, lng + half, lat + half].join(',');
   return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
 }

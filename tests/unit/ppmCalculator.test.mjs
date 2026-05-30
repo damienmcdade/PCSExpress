@@ -35,10 +35,29 @@ test('getAuthorizedWeightAllowance returns a positive integer for every rank', (
 });
 
 test('calculateGovernmentConstructiveCost yields a positive number for a typical move', () => {
-  const input = { rank: 'E-5', actualWeightLbs: 5000, distanceMiles: 1000 };
+  const input = { rank: 'E-5', estimatedWeightLbs: 5000, distanceMiles: 1000 };
   const gcc = calculateGovernmentConstructiveCost(input);
   assert.equal(typeof gcc.governmentConstructiveCost, 'number');
   assert.ok(gcc.governmentConstructiveCost > 0);
+  assert.equal(gcc.reimbursableWeightLbs, 5000, 'weight must flow into the GCC, not collapse to 0');
+});
+
+test('GCC scales with shipment weight (guards the weight-key contract)', () => {
+  const light = calculateGovernmentConstructiveCost({ rank: 'E-5', estimatedWeightLbs: 2000, distanceMiles: 1000 });
+  const heavy = calculateGovernmentConstructiveCost({ rank: 'E-5', estimatedWeightLbs: 8000, distanceMiles: 1000 });
+  assert.ok(heavy.governmentConstructiveCost > light.governmentConstructiveCost, 'heavier move must cost more');
+});
+
+test('calculator accepts both estimatedWeightLbs and the actualWeightLbs alias', () => {
+  const a = calculateGovernmentConstructiveCost({ rank: 'E-5', estimatedWeightLbs: 5000, distanceMiles: 1000 });
+  const b = calculateGovernmentConstructiveCost({ rank: 'E-5', actualWeightLbs: 5000, distanceMiles: 1000 });
+  assert.equal(a.governmentConstructiveCost, b.governmentConstructiveCost);
+});
+
+test('comma-formatted weight/distance strings parse instead of collapsing to 0', () => {
+  const r = calculatePPMEstimate({ rank: 'E-5', estimatedWeightLbs: '7,500', distanceMiles: '1,200' });
+  assert.equal(r.reimbursableWeightLbs, 7500, '"7,500" must parse to 7500');
+  assert.equal(r.distanceMiles, 1200, '"1,200" must parse to 1200');
 });
 
 test('estimateRentalTruckAndFuelCosts adds at least one cost component', () => {
