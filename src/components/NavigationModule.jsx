@@ -1,4 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
+
+// Collision-proof id: Date.now() alone repeats within the same millisecond
+// (e.g. a route + its directions saved in one tick), which made delete-by-id
+// remove the wrong entry. Suffix with randomness.
+const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 import BaseMapModule from './BaseMapModule'
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
 import TabBar from './TabBar'
@@ -20,9 +25,14 @@ function NavigationModule({ theme, profile }) {
   })
   const [expandedDirectionId, setExpandedDirectionId] = useState(null)
 
+  // Don't let the async hydrate clobber directions the user saved/deleted
+  // during the load window (the legacy sync read returns [] for an
+  // encrypted envelope, so this async read is the real source of truth —
+  // but only until the user touches the list).
+  const directionsDirtyRef = useRef(false)
   useEffect(() => {
     secureLocalStore.get('pcs_saved_directions', null).then(saved => {
-      if (Array.isArray(saved)) setSavedDirections(saved)
+      if (Array.isArray(saved) && !directionsDirtyRef.current) setSavedDirections(saved)
     })
   }, [])
   // Official base map data is rendered by BaseMapModule. Mock placeholder map data has been removed.
@@ -49,9 +59,12 @@ function NavigationModule({ theme, profile }) {
 
   // Save directions to localStorage
   const saveDirectionsToStorage = (directions) => {
-    const updated = [directions, ...savedDirections].slice(0, 20);
-    setSavedDirections(updated);
-    secureLocalStore.set('pcs_saved_directions', updated);
+    directionsDirtyRef.current = true;
+    setSavedDirections(prev => {
+      const updated = [directions, ...prev].slice(0, 20);
+      secureLocalStore.set('pcs_saved_directions', updated);
+      return updated;
+    });
   };
 
   // Plan route using OSRM
@@ -93,7 +106,7 @@ function NavigationModule({ theme, profile }) {
 
       // Save to routes
       const newRoute = {
-        id: Date.now(),
+        id: uid(),
         from: freeFormFrom,
         to: freeFormTo,
         distance: `${miles} mi`,
@@ -106,7 +119,7 @@ function NavigationModule({ theme, profile }) {
 
       // Also save to directions
       saveDirectionsToStorage({
-        id: Date.now() + 1,
+        id: uid(),
         name: `${fromLabel} → ${toLabel}`,
         from: fromLabel,
         to: toLabel,
@@ -131,16 +144,19 @@ function NavigationModule({ theme, profile }) {
   };
 
   const deleteDirection = (id) => {
-    const updated = savedDirections.filter(d => d.id !== id);
-    setSavedDirections(updated);
-    secureLocalStore.set('pcs_saved_directions', updated);
+    directionsDirtyRef.current = true;
+    setSavedDirections(prev => {
+      const updated = prev.filter(d => d.id !== id);
+      secureLocalStore.set('pcs_saved_directions', updated);
+      return updated;
+    });
     if (expandedDirectionId === id) setExpandedDirectionId(null);
   };
 
   const saveCurrentDirections = () => {
     if (!routeInfo || routeSteps.length === 0) return;
     saveDirectionsToStorage({
-      id: Date.now(),
+      id: uid(),
       name: `${routeInfo.from} → ${routeInfo.to}`,
       from: routeInfo.from,
       to: routeInfo.to,

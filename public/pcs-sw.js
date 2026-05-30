@@ -30,7 +30,10 @@
 // landing page after we removed them. None of those still ship in
 // the bundle — the SW was serving a prior shell from cache. Bumping
 // the version key evicts every prior cache on the next activation.
-const CACHE_VERSION = 'pcs-v3';
+// pcs-v4 bump: fixes navigation cache poisoning (sub-pages like
+// /privacy.html were overwriting the /index.html shell), so the prior
+// shell cache must be evicted.
+const CACHE_VERSION = 'pcs-v4';
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const TILE_CACHE  = `${CACHE_VERSION}-tiles`;
@@ -79,16 +82,24 @@ self.addEventListener('fetch', (event) => {
   // Navigation / HTML requests — network-first, cache fallback.
   if (isNavigationRequest(req) || url.pathname === '/' || url.pathname === '/index.html') {
     event.respondWith((async () => {
+      // The SPA shell is keyed by /index.html. Real standalone HTML pages
+      // (privacy/terms/accessibility) must cache under THEIR OWN path —
+      // otherwise visiting /privacy.html overwrites the shell and every
+      // offline navigation then renders the privacy page.
+      const isShell = url.pathname === '/' || url.pathname === '/index.html';
+      const cacheKey = isShell ? '/index.html' : url.pathname;
       try {
         const resp = await fetch(req);
         if (resp && resp.ok) {
           const cache = await caches.open(SHELL_CACHE);
-          cache.put('/index.html', resp.clone()).catch(() => {});
+          cache.put(cacheKey, resp.clone()).catch(() => {});
         }
         return resp;
       } catch {
         const cache = await caches.open(SHELL_CACHE);
-        const cached = await cache.match('/index.html');
+        // Prefer the exact page; fall back to the SPA shell so the app can
+        // still client-route while offline.
+        const cached = (await cache.match(cacheKey)) || (await cache.match('/index.html'));
         if (cached) return cached;
         return new Response('Offline and no cached shell available.', { status: 503, headers: { 'Content-Type': 'text/plain' } });
       }

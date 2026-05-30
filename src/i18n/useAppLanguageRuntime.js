@@ -25,6 +25,14 @@ const SUPPORTED = new Set([
 
 const tr = (es, de, fr, ko, ja, tl, ar, zh, it, pt, vi) => ({ es, de, fr, ko, ja, tl, ar, zh, it, pt, vi });
 
+// Languages that have a curated in-app dictionary (the args of tr()). The
+// other SUPPORTED locales (the African set: sw/ha/yo/am/zu/ig/so/af) have
+// NO dictionary, so the runtime must not rewrite their text — otherwise
+// chooseFallback()/localizedSentence() fall through to GENERIC.es and a
+// Swahili user is shown Spanish. Those languages are handled entirely by
+// the Google Translate layer; the runtime leaves the source English in place.
+const CURATED = new Set(['es', 'de', 'fr', 'ko', 'ja', 'tl', 'ar', 'zh', 'it', 'pt', 'vi']);
+
 const GENERIC = {
   en: {
     section: 'Official information',
@@ -769,6 +777,12 @@ function applyRuntimeLanguage(lang) {
   document.documentElement.setAttribute('translate', 'no');
   root.setAttribute('data-pcs-language-runtime', lang);
   root.setAttribute('data-pcs-language-mode', lang === 'en' ? 'source' : 'app-wide-static-content');
+
+  // Non-curated languages: leave the English source text untouched and let
+  // Google Translate handle the page. Running the dictionary passes here
+  // would inject Spanish fallbacks. ('en' still runs below to restore
+  // originals when switching back from a curated language.)
+  if (lang !== 'en' && !CURATED.has(lang)) return;
 
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {

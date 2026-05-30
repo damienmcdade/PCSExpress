@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
 import TabBar from './TabBar'
 
@@ -334,16 +334,23 @@ export default function ImmigrationModule({ theme, profile }) {
   // JAG legal assistance. The civilian banner makes these limitations
   // explicit so users do not file petitions assuming the benefits apply.
   const isCivilian = profile?.component === 'DoD Civilian';
+  // The sync init read returns {} for an encrypted envelope, so this async
+  // read is the real load. Don't let it overwrite a box the user toggled
+  // during the load window.
+  const checkedDirtyRef = useRef(false);
   useEffect(() => {
     secureLocalStore.get('immi_checklist', null).then(saved => {
-      if (saved) setChecked(saved);
+      if (saved && !checkedDirtyRef.current) setChecked(saved);
     });
   }, []);
 
   const toggle = (id) => {
-    const next = { ...checked, [id]: !checked[id] };
-    setChecked(next);
-    store.set('immi_checklist', next);
+    checkedDirtyRef.current = true;
+    setChecked(prev => {
+      const next = { ...prev, [id]: !prev[id] };
+      store.set('immi_checklist', next);
+      return next;
+    });
   };
 
   const totalDone = Object.values(checked).filter(Boolean).length;

@@ -52,9 +52,9 @@ const REGIONAL_CONTRACTOR = {
   },
   West: {
     name: 'TriWest Healthcare Alliance (TRICARE West)',
-    findCare: 'https://tricare.mil/west',
-    enroll: 'https://tricare.mil/west',
-    site: 'https://tricare.mil/west',
+    findCare: 'https://www.tricare-west.com/content/hnfs/home/tw/bene/res/find-a-doctor.html',
+    enroll: 'https://www.tricare-west.com/content/hnfs/home/tw/bene/enrollment.html',
+    site: 'https://www.tricare-west.com/',
   },
   Overseas: {
     name: 'International SOS (TRICARE Overseas Program)',

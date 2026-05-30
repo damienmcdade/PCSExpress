@@ -180,7 +180,11 @@ function EducationModule({ theme, profile }) {
   };
 
   const getEducationInstitutions = () => {
-    const baseKey = profile?.gainingInstallation?.split(',')[0] + ' ' + profile?.gainingInstallation?.split(',')[1];
+    // Build "Installation ST" from "Installation, ST" — trim each part and
+    // join with a single space. The old `[0] + ' ' + [1]` produced a
+    // double space ("Fort Liberty  NC") or "...undefined" when there was no
+    // comma, so the lookup never matched any key.
+    const baseKey = (profile?.gainingInstallation || '').split(',').map(s => s.trim()).filter(Boolean).join(' ');
     return SCHOOLS_DATABASE[baseKey] || [];
   };
 
@@ -295,25 +299,31 @@ function EducationModule({ theme, profile }) {
                 </div>
 
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <a
-                    href={school.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      flex: 1,
-                      padding: '8px',
-                      borderRadius: 6,
-                      background: theme.primary,
-                      color: '#FFFFFF',
-                      textDecoration: 'none',
-                      textAlign: 'center',
-                      fontWeight: 700,
-                      fontSize: 10,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Visit Website
-                  </a>
+                  {school.website ? (
+                    <a
+                      href={school.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        flex: 1,
+                        padding: '8px',
+                        borderRadius: 6,
+                        background: theme.primary,
+                        color: '#FFFFFF',
+                        textDecoration: 'none',
+                        textAlign: 'center',
+                        fontWeight: 700,
+                        fontSize: 10,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Visit Website
+                    </a>
+                  ) : (
+                    <span style={{ flex: 1, padding: '8px', borderRadius: 6, background: '#E0E6EE', color: '#56697C', textAlign: 'center', fontWeight: 700, fontSize: 10 }}>
+                      Website unavailable
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
@@ -390,25 +400,31 @@ function EducationModule({ theme, profile }) {
                 </div>
 
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <a
-                    href={school.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      flex: 1,
-                      padding: '8px',
-                      borderRadius: 6,
-                      background: theme.primary,
-                      color: '#FFFFFF',
-                      textDecoration: 'none',
-                      textAlign: 'center',
-                      fontWeight: 700,
-                      fontSize: 10,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Learn More
-                  </a>
+                  {school.website ? (
+                    <a
+                      href={school.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        flex: 1,
+                        padding: '8px',
+                        borderRadius: 6,
+                        background: theme.primary,
+                        color: '#FFFFFF',
+                        textDecoration: 'none',
+                        textAlign: 'center',
+                        fontWeight: 700,
+                        fontSize: 10,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Learn More
+                    </a>
+                  ) : (
+                    <span style={{ flex: 1, padding: '8px', borderRadius: 6, background: '#E0E6EE', color: '#56697C', textAlign: 'center', fontWeight: 700, fontSize: 10 }}>
+                      Website unavailable
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
@@ -516,26 +532,32 @@ function EducationModule({ theme, profile }) {
                   <strong>Required Skills:</strong> {job.skills.join(', ')}
                 </div>
 
-                <a
-                  href={job.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    padding: '10px',
-                    borderRadius: 8,
-                    background: '#2196F3',
-                    color: '#FFFFFF',
-                    textDecoration: 'none',
-                    textAlign: 'center',
-                    fontWeight: 700,
-                    fontSize: 11,
-                    cursor: 'pointer',
-                  }}
-                >
-                  View & Apply →
-                </a>
+                {job.url ? (
+                  <a
+                    href={job.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      padding: '10px',
+                      borderRadius: 8,
+                      background: '#2196F3',
+                      color: '#FFFFFF',
+                      textDecoration: 'none',
+                      textAlign: 'center',
+                      fontWeight: 700,
+                      fontSize: 11,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    View & Apply →
+                  </a>
+                ) : (
+                  <div style={{ width: '100%', padding: '10px', borderRadius: 8, background: '#E0E6EE', color: '#56697C', textAlign: 'center', fontWeight: 700, fontSize: 11 }}>
+                    Link unavailable
+                  </div>
+                )}
               </div>
             ))
           ) : spouseSearch ? (

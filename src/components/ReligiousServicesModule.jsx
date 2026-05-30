@@ -531,10 +531,10 @@ function ReligiousServicesModule({ theme, profile }) {
                 {filteredLive.slice(0, 24).map(s => (
                   <a
                     key={s.id}
-                    href={s.website || s.mapUrl}
+                    href={s.website || s.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name || 'place of worship')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={`Open ${s.name} information (${s.distanceMiles} miles away)`}
+                    aria-label={`Open ${s.name} information${s.distanceMiles != null ? ` (${s.distanceMiles} miles away)` : ''}`}
                     style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 10, padding: 12, textDecoration: 'none', color: '#0D1821', display: 'block', cursor: 'pointer' }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>

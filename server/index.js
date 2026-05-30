@@ -2224,7 +2224,9 @@ async function geocodeNominatim(input) {
     } catch (err) {
       // One variant fails — keep trying the next. Only surface the
       // error if every variant fails (caller will throw separately).
-      console.error(`[geocode] variant "${v}" failed: ${err.message}`)
+      // Log the variant LENGTH, not its text: `v` can contain a
+      // user-typed street address, which we don't want in platform logs.
+      console.error(`[geocode] variant (len ${v ? String(v).length : 0}) failed: ${err.message}`)
     }
   }
   return null
