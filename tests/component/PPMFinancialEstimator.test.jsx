@@ -18,8 +18,7 @@ describe('PPMFinancialEstimator', () => {
     render(<PPMFinancialEstimator theme={theme} profile={{ paygrade: 'E-5' }} />);
     expect(screen.getByText(/PPM FINANCIAL ESTIMATOR/i)).toBeInTheDocument();
     expect(screen.getByText(/PROFIT METER/i)).toBeInTheDocument();
-    // Exact-case match to dodge the lowercase mention in the header copy.
-    expect(screen.getByText('95% GCC estimate')).toBeInTheDocument();
+    expect(screen.getByText('PPM incentive (100% GCC)')).toBeInTheDocument();
     expect(screen.getByText('Tax withholding')).toBeInTheDocument();
     expect(screen.getByText('Truck and fuel')).toBeInTheDocument();
     expect(screen.getByText('Official weight cap')).toBeInTheDocument();

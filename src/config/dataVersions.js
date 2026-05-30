@@ -41,9 +41,9 @@ export const DATA_VERSIONS = {
   },
   ppm: {
     label: 'PPM (DITY) calculator',
-    effective: '2026-01-01',
-    source: 'JTR §050302 + DTMO PPM Worksheet',
-    url: 'https://www.travel.dod.mil/Allowances/Dislocation-Allowance/',
+    effective: '2026-05-01',
+    source: 'PPM incentive = 100% of Government Constructive Cost — DTR 4500.9-R Part IV (Best Value) + USTRANSCOM PPM guidance',
+    url: 'https://www.ustranscom.mil/dtr/part-iv/dtr_part_iv_411.pdf',
   },
   ppm_config: {
     // Planning estimates for truck / fuel / labor / GCC inputs to the PPM calc.
@@ -52,9 +52,9 @@ export const DATA_VERSIONS = {
     // the `ppm` entry above so refreshing market estimates does not appear to
     // imply the entitlement formula itself changed.
     label: 'PPM planning estimates (truck / fuel / labor / GCC)',
-    effective: '2026-01-01',
-    source: 'Planning estimates aligned to JTR §050302 + DTMO GCC methodology; market inputs (fuel, truck, labor) are national averages',
-    url: 'https://www.travel.dod.mil/Allowances/Dislocation-Allowance/',
+    effective: '2026-05-01',
+    source: 'Market inputs: EIA national regular-gasoline average ($4.475/gal, wk ending 2026-05-25) + commercial one-way truck-rental composites; GCC approximated from the DTR Part IV "Best Value" methodology (~$0.00075/lb-mile)',
+    url: 'https://www.eia.gov/petroleum/gasdiesel/',
   },
   malt: {
     label: 'MALT (POV mileage) rate',

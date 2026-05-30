@@ -88,6 +88,22 @@ test('calculatePPMEstimate exposes the full breakdown', () => {
   }
 });
 
+test('PPM incentive is 100% of GCC (DoD raised it from 95% in 2021)', () => {
+  const r = calculatePPMEstimate({ rank: 'E-6', estimatedWeightLbs: 8500, distanceMiles: 2775 });
+  // grossIncentive must equal the GCC exactly (rate = 1.0), not 95%.
+  assert.equal(Math.round(r.grossIncentive), Math.round(r.governmentConstructiveCost));
+});
+
+test('GCC model stays calibrated to the published real-world example', () => {
+  // E-6, 8,500 lb, 2,775 mi -> published GCC ≈ $17,700. Guard against a
+  // coefficient edit silently drifting the dollar figure out of band.
+  const gcc = calculateGovernmentConstructiveCost({ rank: 'E-6', estimatedWeightLbs: 8500, distanceMiles: 2775 });
+  assert.ok(
+    gcc.governmentConstructiveCost > 16500 && gcc.governmentConstructiveCost < 19000,
+    `GCC ${Math.round(gcc.governmentConstructiveCost)} should sit near the $17,700 calibration point`,
+  );
+});
+
 test('formatCurrency renders USD with no fractional digits', () => {
   assert.equal(formatCurrency(2500), '$2,500');
   assert.equal(formatCurrency(0), '$0');

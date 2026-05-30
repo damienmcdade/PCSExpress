@@ -90,7 +90,7 @@ export default function PPMFinancialEstimator({ theme, profile }) {
 
       {isCivilian && (
         <div style={{ background: '#FFF3E0', border: '1.5px solid #FFB74D', borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 12, color: '#6D4C00', lineHeight: 1.55 }}>
-          <strong>DoD Civilian planning estimate.</strong> Civilian PPM reimbursement follows the Federal Travel Regulation §302-7 — 95% of the constructed government cost against your 18,000 lb weight allowance. The rank field below maps to a military E/O paygrade for math purposes only; your actual reimbursement is calculated by your servicing DCPAS / TMO office at the gaining activity. Use this as a planning order-of-magnitude only.
+          <strong>DoD Civilian planning estimate.</strong> Civilian PPM reimbursement follows the Federal Travel Regulation §302-7 against your 18,000 lb weight allowance; the exact basis differs from the military rate, so this figure is only a planning proxy. The rank field below maps to a military E/O paygrade for math purposes only; your actual reimbursement is calculated by your servicing DCPAS / TMO office at the gaining activity. Use this as a planning order-of-magnitude only.
         </div>
       )}
 
@@ -144,7 +144,7 @@ export default function PPMFinancialEstimator({ theme, profile }) {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-        <MetricCard label="95% GCC estimate" value={formatCurrency(estimate.grossIncentive)} note={`${estimate.reimbursableWeightLbs.toLocaleString()} reimbursable lbs of ${estimate.estimatedWeightLbs.toLocaleString()} entered`} tone={theme.primary} />
+        <MetricCard label="PPM incentive (100% GCC)" value={formatCurrency(estimate.grossIncentive)} note={`${estimate.reimbursableWeightLbs.toLocaleString()} reimbursable lbs of ${estimate.estimatedWeightLbs.toLocaleString()} entered`} tone={theme.primary} />
         <MetricCard label="Tax withholding" value={formatCurrency(estimate.estimatedTaxWithholding)} note={`${Math.round(estimate.federalTaxWithholdingRate * 100)}% planning holdback`} tone="#7A4A00" />
         <MetricCard label="Truck and fuel" value={formatCurrency(estimate.rentalTruckAndFuelCost)} note={`${estimate.travelDays} travel day estimate`} tone="#455A64" />
         <MetricCard label="Official weight cap" value={`${estimate.authorizedWeightLbs.toLocaleString()} lbs`} note={estimate.excessWeightLbs > 0 ? `${estimate.excessWeightLbs.toLocaleString()} lbs may be excess` : 'No excess weight shown'} tone={estimate.excessWeightLbs > 0 ? '#B71C1C' : '#1B5E20'} />
