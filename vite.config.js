@@ -3,10 +3,12 @@ import react from '@vitejs/plugin-react'
 import { execSync } from 'node:child_process'
 
 // Best-effort embed of the current git SHA + a build timestamp so the
-// app can display a deployment-version stamp. Falls back to empty
-// strings if the build environment doesn't have git (Vercel etc. do).
-let _sha = '';
-try { _sha = execSync('git rev-parse --short HEAD').toString().trim(); } catch {}
+// app can display a deployment-version stamp. Prefer Vercel's injected
+// env var (no .git in the build sandbox); fall back to local git.
+let _sha = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7);
+if (!_sha) {
+  try { _sha = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch {}
+}
 const BUILD_SHA = _sha;
 const BUILD_TIME = new Date().toISOString();
 

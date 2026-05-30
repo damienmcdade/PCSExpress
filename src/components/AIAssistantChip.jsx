@@ -299,13 +299,18 @@ const TAB_LABELS = {
   'inventory-claims':  'Inventory & Claims',
   'home-locator':      'Home Locator',
 };
-function parseAIActions(text) {
+// The system prompt instructs the model to emit at most 3 markers.
+// We enforce the cap here too so a jailbroken or runaway model can't
+// render 50 buttons in the chat surface.
+const MAX_AI_ACTIONS = 3;
+export function parseAIActions(text) {
   if (typeof text !== 'string' || !text) return { cleanText: '', actions: [] };
   const actions = [];
   const cleanText = text.replace(
     /\[action:\s*(open_tab|ask_followup)\s+([^\]]+)\]/gi,
     (_, verb, argsRaw) => {
       const args = String(argsRaw).trim();
+      if (actions.length >= MAX_AI_ACTIONS) return '';
       if (verb.toLowerCase() === 'open_tab') {
         if (TAB_LABELS[args]) actions.push({ verb: 'open_tab', tab: args, label: TAB_LABELS[args] });
       } else if (verb.toLowerCase() === 'ask_followup') {
@@ -320,7 +325,7 @@ function parseAIActions(text) {
   return { cleanText, actions };
 }
 
-function parseInappCitation(message) {
+export function parseInappCitation(message) {
   if (!message) return null;
   const candidates = [];
   if (typeof message.source === 'string') candidates.push(message.source);
@@ -345,8 +350,8 @@ function parseInappCitation(message) {
 // in a new window with the print dialog cued. The user prints to PDF
 // the same way they export PCS Binder and Inventory worksheets.
 // No external PDF library — keeps the dependency footprint flat.
-function escapeHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+export function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 function exportConversationAsPdf(messages, language) {
   if (!messages || messages.length === 0) return;
@@ -393,7 +398,7 @@ function exportConversationAsPdf(messages, language) {
   setTimeout(() => { try { w.focus(); w.print(); } catch {} URL.revokeObjectURL(url); }, 600);
 }
 
-function searchKB(query) {
+export function searchKB(query) {
   const tokens = String(query || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
   if (tokens.length === 0) return null;
   let best = null;
@@ -429,7 +434,7 @@ function searchKB(query) {
 // to teach it a schema. The curated-KB fallback also reads it directly
 // to answer "what's overdue" / "what should I do this week" without
 // needing a configured LLM provider.
-function formatUserContextForPrompt(ctx) {
+export function formatUserContextForPrompt(ctx) {
   if (!ctx) return null;
   const parts = [
     `branch=${ctx.branch || '—'}`,
@@ -451,7 +456,7 @@ function formatUserContextForPrompt(ctx) {
 // Curated answers for the highest-traffic context-aware questions.
 // Used by the KB fallback (no LLM provider configured) so the user
 // gets a tailored answer even without an API key.
-function curatedContextAnswer(question, ctx) {
+export function curatedContextAnswer(question, ctx) {
   if (!ctx) return null;
   const q = question.toLowerCase();
   const overdueAsk    = /overdue|past due|behind|missed/i.test(q);

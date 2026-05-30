@@ -3,7 +3,7 @@
  * Third-party dependencies: React, Leaflet through child map modules, Capacitor bridge when running native.
  */
 
-import { Suspense, lazy, useState, useEffect, useRef } from 'react'
+import { Suspense, lazy, useState, useEffect, useRef, useReducer } from 'react'
 import './App.css'
 import { apiUrl } from './config/apiConfig'
 import { INDEPENDENCE_DISCLAIMER } from './config/disclaimer'
@@ -236,6 +236,7 @@ function ResetWarningModal({ theme: _theme, onConfirm, onCancel }) {
 function SaveStatusIndicator({ theme }) {
   const [lastSave, setLastSave] = useState(null);
   const [open, setOpen] = useState(false);
+  const [, tickRelativeTime] = useReducer(x => x + 1, 0);
   useEffect(() => {
     const seed = () => {
       try {
@@ -257,9 +258,12 @@ function SaveStatusIndicator({ theme }) {
     if (ms < 86_400_000) return `Saved ${Math.floor(ms / 3_600_000)}h ago`;
     return `Saved ${Math.floor(ms / 86_400_000)}d ago`;
   })();
-  // Force re-render every 30s so the relative time stays accurate
+  // Force re-render every 30s so the relative time stays accurate. Use a
+  // dedicated tick counter — mutating lastSave with `v + ''` returns an
+  // identical string, so React bails out of the update and nothing
+  // re-renders (the relative label would go stale).
   useEffect(() => {
-    const id = setInterval(() => setLastSave(v => v ? v + '' : v), 30_000);
+    const id = setInterval(tickRelativeTime, 30_000);
     return () => clearInterval(id);
   }, []);
   return (
@@ -1598,6 +1602,14 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
     isOverseas:    !!profile?.isOverseas,
   });
   const [activePhase, setActivePhase] = useState(Object.keys(branchChecklist)[0]);
+  // branchChecklist is {} during the lazy data-load window, so the
+  // useState initializer above can be undefined. Back-fill the first
+  // phase once the checklist tables resolve (or if the user's branch
+  // initially had none), so the tab recovers instead of staying blank.
+  const firstPhase = Object.keys(branchChecklist)[0];
+  useEffect(() => {
+    if (!activePhase && firstPhase) setActivePhase(firstPhase);
+  }, [firstPhase, activePhase]);
   // Reminders: { 'phase-idx': 'YYYY-MM-DDTHH:MM' }
   const [reminders, setReminders] = useState({});
   useEffect(() => {
@@ -1679,6 +1691,13 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
   const pct = allTasks.length ? Math.round((done / allTasks.length) * 100) : 0;
 
   const phaseIsOverdue = daysUntil !== null && PHASE_WINDOWS[activePhase] && daysUntil < PHASE_WINDOWS[activePhase].overdueAt;
+
+  // Guard the lazy-load window: until a phase is known, several render
+  // paths below dereference activePhase (e.g. activePhase.replace(...)),
+  // which would throw on undefined. Show a lightweight placeholder.
+  if (!activePhase) {
+    return <div style={{ padding: 24, color: '#56697C', fontSize: 13 }}>Loading your PCS checklist…</div>;
+  }
 
   return (
     <div style={{ padding: 16 }}>

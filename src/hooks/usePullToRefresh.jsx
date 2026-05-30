@@ -69,6 +69,12 @@ export function usePullToRefresh(onRefresh) {
   const containerRef = useRef(null);
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  // Mirror pull/refreshing into refs so the touch listeners read the
+  // live value without the attach-effect depending on them (which would
+  // tear down and re-add listeners on every setPull during a drag and
+  // leave onTouchEnd reading a stale `pull`).
+  const pullRef = useRef(0);
+  const refreshingRef = useRef(false);
   const startY = useRef(0);
   const tracking = useRef(false);
   const passedThreshold = useRef(false);
@@ -89,8 +95,12 @@ export function usePullToRefresh(onRefresh) {
     const scrollEl = surface || document.scrollingElement || document.documentElement;
     const target = surface || window;
 
+    // Update both the ref (read synchronously by the next touch event)
+    // and the state (drives the indicator render).
+    const setPullBoth = (v) => { pullRef.current = v; setPull(v); };
+
     const onTouchStart = (e) => {
-      if (refreshing) return;
+      if (refreshingRef.current) return;
       if (scrollEl.scrollTop > 0) return;
       tracking.current = true;
       passedThreshold.current = false;
@@ -98,15 +108,15 @@ export function usePullToRefresh(onRefresh) {
     };
 
     const onTouchMove = (e) => {
-      if (!tracking.current || refreshing) return;
+      if (!tracking.current || refreshingRef.current) return;
       const dy = e.touches[0].clientY - startY.current;
       if (dy <= 0) {
-        setPull(0);
+        setPullBoth(0);
         return;
       }
       if (scrollEl.scrollTop > 0) {
         tracking.current = false;
-        setPull(0);
+        setPullBoth(0);
         return;
       }
       // Suppress native overscroll-bounce while we drive the gesture.
@@ -118,26 +128,28 @@ export function usePullToRefresh(onRefresh) {
       } else if (passedThreshold.current && offset < TRIGGER) {
         passedThreshold.current = false;
       }
-      setPull(offset);
+      setPullBoth(offset);
     };
 
     const onTouchEnd = async () => {
       if (!tracking.current) return;
       tracking.current = false;
-      if (pull >= TRIGGER) {
+      if (pullRef.current >= TRIGGER) {
+        refreshingRef.current = true;
         setRefreshing(true);
-        setPull(TRIGGER);
+        setPullBoth(TRIGGER);
         light();
         try {
           await onRefreshRef.current?.();
         } catch {
           // Caller is responsible for surfacing its own error state.
         } finally {
+          refreshingRef.current = false;
           setRefreshing(false);
-          setPull(0);
+          setPullBoth(0);
         }
       } else {
-        setPull(0);
+        setPullBoth(0);
       }
     };
 
@@ -151,9 +163,8 @@ export function usePullToRefresh(onRefresh) {
       target.removeEventListener('touchend', onTouchEnd);
       target.removeEventListener('touchcancel', onTouchEnd);
     };
-    // `pull` and `refreshing` are read inside listeners; tearing down
-    // and re-attaching per state change is acceptable here.
-  }, [pull, refreshing]);
+    // Listeners read live values via refs, so they attach exactly once.
+  }, []);
 
   const indicatorStyle = {
     height: pull,

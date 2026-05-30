@@ -80,5 +80,5 @@ The AI Assistant feature forwards user prompts to:
 ## How to report a missing attribution
 
 If you believe an attribution is missing or incorrect, please email
-contact@pcsexpress.app or open an issue at
+info@cyberwaveglobal.com or open an issue at
 https://github.com/damienmcdade/PCSExpress/issues.

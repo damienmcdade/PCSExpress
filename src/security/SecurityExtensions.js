@@ -103,10 +103,13 @@ export const secureLocalStore = {
           const envelope = await encryptJSON(value);
           payload = safeSerialize(envelope);
         } catch (e) {
-          // Encryption failed unexpectedly — fall back to plain JSON.
-          // Better to persist than to drop user data. Audit the event.
-          payload = safeSerialize(value);
+          // Encryption is available but failed unexpectedly. Do NOT fall
+          // back to plaintext: persisting PII in the clear while the app
+          // reports "encrypted at rest" is worse than dropping the write.
+          // Surface the failure and refuse to persist so the caller can
+          // retry or warn the user.
           window.dispatchEvent(new CustomEvent('pcs-local-storage-error', { detail: { key, reason: 'encrypt-failed' } }));
+          return false;
         }
       } else {
         payload = safeSerialize(value);
@@ -126,6 +129,15 @@ export const secureLocalStore = {
 };
 
 export class AuditLogger {
+  // Serialize writes through a single promise chain so back-to-back
+  // record() calls don't race on read-modify-write. Without this, two
+  // record() invocations in the same tick both read the pre-write log,
+  // both prepend their entry, both write — and the second write
+  // clobbers the first. The chain guarantees prior persistence
+  // finishes before the next read starts. The chain catches and
+  // swallows errors so one failed write never poisons the queue.
+  static _writeQueue = Promise.resolve();
+
   static record(action, details = {}) {
     const entry = {
       id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -134,18 +146,21 @@ export class AuditLogger {
       timestamp: new Date().toISOString(),
       deviceMode: navigator.onLine ? 'online' : 'comms-dark-ready',
     };
-
-    try {
-      secureLocalStore.get(AUDIT_KEY, []).then(current => {
+    AuditLogger._writeQueue = AuditLogger._writeQueue.then(async () => {
+      try {
+        const current = await secureLocalStore.get(AUDIT_KEY, []);
         const safeCurrent = Array.isArray(current) ? current : [];
-        secureLocalStore.set(AUDIT_KEY, [entry, ...safeCurrent].slice(0, 250));
-      });
-      window.dispatchEvent(new CustomEvent('pcs-audit-log', { detail: entry }));
-    } catch {}
+        await secureLocalStore.set(AUDIT_KEY, [entry, ...safeCurrent].slice(0, 250));
+      } catch {}
+    });
+    try { window.dispatchEvent(new CustomEvent('pcs-audit-log', { detail: entry })); } catch {}
     return entry;
   }
 
   static async list() {
+    // Wait for any in-flight write so list() always reflects the most
+    // recent record() call from the caller's perspective.
+    await AuditLogger._writeQueue;
     return (await secureLocalStore.get(AUDIT_KEY, []));
   }
 }

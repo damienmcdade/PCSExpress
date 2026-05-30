@@ -16,6 +16,7 @@ import {
   isAllowedPushEndpoint,
   isValidPushSubscription,
   PUSH_ENDPOINT_HOST_ALLOWLIST,
+  redactUpstreamError,
 } from '../../server/lib/security.js';
 
 // ── sanitizeForPrompt ────────────────────────────────────────────────
@@ -198,6 +199,32 @@ test('isValidPushSubscription: rejects when auth too short', () => {
 test('isValidPushSubscription: rejects when keys is not an object', () => {
   assert.equal(isValidPushSubscription({ ...VALID_SUB, keys: 'oops' }), false);
   assert.equal(isValidPushSubscription({ ...VALID_SUB, keys: null }), false);
+});
+
+// ── redactUpstreamError ──────────────────────────────────────────────
+
+test('redactUpstreamError: caps output at 50 chars', () => {
+  assert.equal(redactUpstreamError('x'.repeat(500)).length, 50);
+});
+
+test('redactUpstreamError: null / undefined → empty string', () => {
+  assert.equal(redactUpstreamError(null), '');
+  assert.equal(redactUpstreamError(undefined), '');
+});
+
+test('redactUpstreamError: strips ASCII control characters', () => {
+  assert.ok(!redactUpstreamError('safe\x00\x1F\x7Fboundary').includes('\x00'));
+});
+
+test('redactUpstreamError: redacts message / hint / error_type fields in JSON', () => {
+  const evil = '{"type":"invalid_request_error","message":"Internal API quota exceeded for org_XYZ123"}';
+  const out = redactUpstreamError(evil);
+  assert.ok(out.includes('<redacted>'));
+  assert.ok(!out.includes('org_XYZ123'));
+});
+
+test('redactUpstreamError: short safe text passes through (still truncated by length)', () => {
+  assert.equal(redactUpstreamError('ok'), 'ok');
 });
 
 test('isValidPushSubscription: rejects extra attacker-supplied attempted privileges', () => {

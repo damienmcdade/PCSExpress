@@ -114,7 +114,10 @@ export const HHG_WEIGHT_ALLOWANCE_WITH_DEPENDENTS_LBS = Object.freeze({
 });
 
 const toNumber = (value, fallback = 0) => {
-  const n = Number(value);
+  // Strip thousands separators and surrounding whitespace so free-text
+  // fields like "7,500" parse instead of silently collapsing to the
+  // fallback (Number("7,500") is NaN). Mirrors MoveBudgetTracker.parseNum.
+  const n = typeof value === 'string' ? Number(value.replace(/[,\s]/g, '')) : Number(value);
   return Number.isFinite(n) ? n : fallback;
 };
 
@@ -127,7 +130,7 @@ export function getAuthorizedWeightAllowance(rank = 'E-5') {
 export function calculateGovernmentConstructiveCost(input = {}, config = PPM_CONFIG) {
   const rank = input.rank || 'E-5';
   const distanceMiles = clamp(toNumber(input.distanceMiles, 0), 0, 12000);
-  const estimatedWeightLbs = clamp(toNumber(input.estimatedWeightLbs, 0), 0, 24000);
+  const estimatedWeightLbs = clamp(toNumber(input.estimatedWeightLbs ?? input.actualWeightLbs, 0), 0, 24000);
   const yearsOfService = clamp(toNumber(input.yearsOfService, 0), 0, 40);
   const authorizedWeightLbs = getAuthorizedWeightAllowance(rank);
   const reimbursableWeightLbs = Math.min(estimatedWeightLbs, authorizedWeightLbs);
@@ -156,7 +159,7 @@ export function calculateGovernmentConstructiveCost(input = {}, config = PPM_CON
 
 export function estimateRentalTruckAndFuelCosts(input = {}, config = PPM_CONFIG) {
   const distanceMiles = clamp(toNumber(input.distanceMiles, 0), 0, 12000);
-  const estimatedWeightLbs = clamp(toNumber(input.estimatedWeightLbs, 0), 0, 24000);
+  const estimatedWeightLbs = clamp(toNumber(input.estimatedWeightLbs ?? input.actualWeightLbs, 0), 0, 24000);
   const travelDays = Math.max(1, Math.ceil(distanceMiles / 420));
   const fuelCost = (distanceMiles / config.truckMilesPerGallon) * config.fuelPricePerGallon;
   const truckRental = travelDays * config.truckDailyRate + distanceMiles * config.truckPerMileRate;

@@ -83,10 +83,32 @@ const sanitizeForPrompt = (s, maxLen) => String(s || '')
   .trim()
   .slice(0, maxLen);
 
+// 64 KB matches the Express per-endpoint cap on /api/jtr-assistant so
+// both surfaces enforce the same ceiling. The Vercel platform default
+// is far more generous (multi-MB), which is enough payload room to
+// burn parsing CPU even though q / userContext / history are
+// re-trimmed downstream — defense-in-depth.
+const MAX_BODY_BYTES = 64 * 1024;
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'method-not-allowed' });
+  }
+
+  // Reject oversized payloads before doing any work. Content-Length is
+  // advisory but Vercel sets it on parsed JSON bodies; if a client
+  // strips it we still cap on the post-parse JSON-stringify size below.
+  const contentLength = Number(req.headers?.['content-length'] || 0);
+  if (contentLength > MAX_BODY_BYTES) {
+    return res.status(413).json({ error: 'payload-too-large' });
+  }
+  if (req.body && typeof req.body === 'object') {
+    let bodyBytes = 0;
+    try { bodyBytes = JSON.stringify(req.body).length; } catch { bodyBytes = 0; }
+    if (bodyBytes > MAX_BODY_BYTES) {
+      return res.status(413).json({ error: 'payload-too-large' });
+    }
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -146,7 +168,14 @@ export default async function handler(req, res) {
 
     if (!upstream.ok) {
       const detail = await upstream.text().catch(() => '');
-      console.error(`[jtr-assistant] anthropic ${upstream.status} ${detail.slice(0, 200)}`);
+      // Truncate + redact upstream body before logging so platform logs
+      // don't leak provider-internal error keys / hint text. 50 chars
+      // is enough to spot patterns without becoming a soft exfil channel.
+      const safeDetail = String(detail || '')
+        .replace(/[\x00-\x1F\x7F]+/g, ' ')
+        .replace(/"(message|hint|error_type|type|param)"\s*:\s*"[^"]*"/gi, '"$1":"<redacted>"')
+        .slice(0, 50);
+      console.error(`[jtr-assistant] anthropic ${upstream.status} ${safeDetail}`);
       return res.status(502).json({
         error: 'upstream-error',
         answer: `The live AI provider returned an error (HTTP ${upstream.status}). Try the JTR Assistant tab inside Movement & Logistics for a curated answer, or check Mission Resources → Help Hub for the official source.`,

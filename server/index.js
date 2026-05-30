@@ -9,7 +9,12 @@ import {
   sanitizeForPrompt,
   isAllowedPushEndpoint,
   isValidPushSubscription,
+  redactUpstreamError,
 } from './lib/security.js'
+import {
+  containsLikelyPii,
+  sanitizeQueryParam,
+} from './lib/validators.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -56,6 +61,19 @@ const distPath = path.join(__dirname, '..', 'dist')
 // and only relax for the explicit opt-in. The user has to set their
 // language preference twice: first stores the cookie + reloads, the
 // reload then comes back with the relaxed CSP and the widget loads.
+// CSP architecture: this app has two HTTP surfaces with two separate
+// CSP policies, on purpose.
+//   1. Vercel edge (`vercel.json`) serves the SPA bundle to web users.
+//      Its CSP must allow the AdSense / Google Translate widget hosts
+//      that the served HTML depends on, so it's more permissive.
+//   2. This Express server (Railway) serves the same SPA fallback to
+//      the Capacitor mobile WebView and to anyone hitting the Railway
+//      origin directly for ops/debugging. That audience does NOT need
+//      ad-tech relaxations, so the policy here is stricter — no
+//      'unsafe-inline' in script-src, no ad-network origins, and a
+//      cookie-conditional Translate relaxation that only fires after
+//      the user explicitly opts into a non-English language.
+// Keep both. They are not duplicates; they cover different surfaces.
 const CSP_STRICT_BASE = [
   "default-src 'self'",
   "script-src 'self'",
@@ -247,6 +265,22 @@ function registerRateLimitMap(map, windowMs) {
   _rateLimitRegistry.push({ map, windowMs });
 }
 
+// Upstream response caches (vet-biz, housing, market-stats, jobs,
+// religious, schools, family-activities) are keyed on user-influenced
+// strings, so an attacker could enumerate distinct keys to grow them
+// without bound — the TTL only prevents *serving* stale data, not
+// *storing* it. Route every cache write through cacheSet() so each Map
+// is capped and evicts its oldest entry (V8 Map iteration is insertion
+// order) once full, the same eviction the push-subscription Map uses.
+const UPSTREAM_CACHE_MAX = 2_000;
+function cacheSet(map, key, value) {
+  if (!map.has(key) && map.size >= UPSTREAM_CACHE_MAX) {
+    const oldest = map.keys().next().value;
+    if (oldest !== undefined) map.delete(oldest);
+  }
+  map.set(key, value);
+}
+
 // Per-IP rate limit for /api/push-subscribe + /api/push-unsubscribe.
 // Tight budget — a legitimate client only needs to subscribe once
 // per device; anything beyond a handful per minute is automation /
@@ -394,11 +428,6 @@ const BASE_REVIEW_SCHEMA = Object.freeze({
   piiExcluded: ['raw_email', 'orders', 'dod_id', 'phone', 'home_address', 'documents'],
 });
 
-function containsLikelyPii(value) {
-  const text = JSON.stringify(value || {});
-  return /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(text) || /\b\d{10}\b/.test(text) || /\b\d{3}-\d{2}-\d{4}\b/.test(text);
-}
-
 app.get('/api/base-reviews/schema', (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   res.status(200).json(BASE_REVIEW_SCHEMA);
@@ -468,7 +497,7 @@ function demoRateLimit(req, res, next) {
     return next();
   }
   if (entry.count >= DEMO_LIMIT) {
-    return res.status(429).json({ error: 'Too many requests from your network. Please email contact@pcsexpress.app or try again later.' });
+    return res.status(429).json({ error: 'Too many requests from your network. Please email info@cyberwaveglobal.com or try again later.' });
   }
   entry.count += 1;
   return next();
@@ -540,7 +569,11 @@ function aiRateLimit(req, res, next) {
 // the existing containsLikelyPii helper).
 const AI_MAX_LEN = 4_000;
 
-app.post('/api/ai', aiRateLimit, async (req, res) => {
+// 64kb is well above the documented 4000-char input cap on this
+// endpoint and ~16x the realistic payload, while shutting down
+// cost-abuse where an attacker POSTs the global 1MB allowance worth
+// of JSON to a paid-LLM endpoint.
+app.post('/api/ai', aiRateLimit, express.json({ limit: '64kb' }), async (req, res) => {
   // Cost-abuse gate: this endpoint hits a paid third-party LLM. Reject
   // POSTs that arrive with no Origin header from anything other than
   // the mobile shells. isSameOriginRequest already returns true for
@@ -607,7 +640,12 @@ app.post('/api/ai', aiRateLimit, async (req, res) => {
           res.write(chunk)
         }
       } catch (err) {
+        // The 200 + SSE headers are already committed, so we can't change
+        // the status. Emit a terminal error event so the client can tell a
+        // truncated/aborted stream apart from a clean completion instead of
+        // silently treating a partial answer as final.
         console.error(`[API] stream pipe ${err.message}`)
+        try { res.write('event: error\ndata: {"error":"stream-interrupted"}\n\n') } catch { /* socket already gone */ }
       }
       return res.end()
     }
@@ -670,14 +708,6 @@ function vetBizRateLimit(req, res, next) {
   }
   entry.count += 1
   return next()
-}
-
-function sanitizeQueryParam(value, maxLen = 60) {
-  // Strip anything other than letters, digits, spaces, hyphen, period,
-  // apostrophe. Forward-only validation - SAM.gov rejects most exotic
-  // characters anyway, but defense-in-depth prevents accidental URL
-  // injection into the upstream query.
-  return String(value || '').trim().replace(/[^A-Za-z0-9 .'-]/g, '').slice(0, maxLen)
 }
 
 function isVeteranBusinessEntity(entity) {
@@ -968,7 +998,7 @@ app.get('/api/vet-businesses', vetBizRateLimit, async (req, res) => {
       // Always include Google Maps discovery cards so the user gets a
       // ~50-mile-radius supplement to USASpending's exact-city match.
       const businesses = [...entityRecords, ...conusGoogleMapsCards]
-      VET_BIZ_CACHE.set(cacheKey, { businesses, fetchedAt: Date.now() })
+      cacheSet(VET_BIZ_CACHE, cacheKey, { businesses, fetchedAt: Date.now() })
       return res.status(200).json({ businesses, fallback: entityRecords.length === 0, source: 'usaspending.gov+google-maps', fetchedAt: Date.now() })
     } catch (err) {
       console.error(`[vet-businesses] usaspending ${err.message}`)
@@ -1016,7 +1046,7 @@ app.get('/api/vet-businesses', vetBizRateLimit, async (req, res) => {
     // user gets supplemental local businesses alongside the SAM.gov
     // federal-contractor records.
     const businesses = [...entityRecords, ...conusGoogleMapsCards]
-    VET_BIZ_CACHE.set(cacheKey, { businesses, fetchedAt: Date.now() })
+    cacheSet(VET_BIZ_CACHE, cacheKey, { businesses, fetchedAt: Date.now() })
     return res.status(200).json({ businesses, fallback: entityRecords.length === 0, source: 'sam.gov+google-maps', fetchedAt: Date.now() })
   } catch (err) {
     console.error(`[vet-businesses] ${err.message}`)
@@ -1326,7 +1356,7 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
   // Skip caching empty results so transient upstream failures do not
   // poison the cache for 24 hours.
   if (combined.length > 0) {
-    HOUSING_CACHE.set(cacheKey, { listings: combined, fetchedAt: Date.now() })
+    cacheSet(HOUSING_CACHE, cacheKey, { listings: combined, fetchedAt: Date.now() })
   }
 
   res.status(200).json({
@@ -1514,7 +1544,7 @@ app.get('/api/market-stats', marketStatsRateLimit, async (req, res) => {
   } : null
   const hasAnyData = Object.values(stats).some(v => v && (v.value != null || v.areaName)) || !!oconusHousing
   if (hasAnyData) {
-    MARKET_STATS_CACHE.set(cacheKey, { stats, oconusHousing, fetchedAt: Date.now() })
+    cacheSet(MARKET_STATS_CACHE, cacheKey, { stats, oconusHousing, fetchedAt: Date.now() })
   }
   res.status(200).json({
     stats,
@@ -1540,7 +1570,7 @@ app.get('/api/market-stats', marketStatsRateLimit, async (req, res) => {
 // fallback:true} so the frontend can keep the existing static search-
 // portal links visible.
 const USAJOBS_API_KEY = process.env.USAJOBS_API_KEY || ''
-const USAJOBS_USER_AGENT = process.env.USAJOBS_USER_AGENT || 'damienmcdade17@gmail.com'
+const USAJOBS_USER_AGENT = process.env.USAJOBS_USER_AGENT || 'info@cyberwaveglobal.com'
 const JOBS_CACHE = new Map()
 const JOBS_TTL_MS = 60 * 60 * 1000   // 1h - listings move fast
 const JOBS_RATE_LIMIT = 30
@@ -1798,7 +1828,7 @@ app.get('/api/job-listings', jobsRateLimit, async (req, res) => {
   // Skip caching empty results so transient upstream failures (e.g.,
   // RemoteOK 403 from datacenter IPs) do not poison the cache.
   if (finalListings.length > 0) {
-    JOBS_CACHE.set(cacheKey, { listings: finalListings, sources, fetchedAt: Date.now() })
+    cacheSet(JOBS_CACHE, cacheKey, { listings: finalListings, sources, fetchedAt: Date.now() })
   }
 
   res.status(200).json({
@@ -1870,7 +1900,7 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
     return res.status(200).json({ services: [], origin, fallback: true, reason: 'no-locality', source: 'google-maps-search' })
   }
 
-  RELIGIOUS_CACHE.set(cacheKey, { services: cards, origin, fetchedAt: Date.now() })
+  cacheSet(RELIGIOUS_CACHE, cacheKey, { services: cards, origin, fetchedAt: Date.now() })
 
   res.status(200).json({
     services: cards,
@@ -1948,7 +1978,7 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
     return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: [], origin, fallback: true, reason: 'no-locality', source: 'google-maps-search' })
   }
 
-  SCHOOL_CACHE.set(cacheKey, { schools: cards, origin, fetchedAt: Date.now() })
+  cacheSet(SCHOOL_CACHE, cacheKey, { schools: cards, origin, fetchedAt: Date.now() })
 
   res.status(200).json({
     categories: SCHOOL_CATEGORIES,
@@ -2263,7 +2293,7 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
     })
   }
 
-  FAMILY_CACHE.set(cacheKey, { activities: cards, origin, fetchedAt: Date.now() })
+  cacheSet(FAMILY_CACHE, cacheKey, { activities: cards, origin, fetchedAt: Date.now() })
 
   res.status(200).json({
     categories: FAMILY_CATEGORIES,
@@ -2291,8 +2321,8 @@ function jtrAssistantRateLimit(req, res, next) {
   const ip = req.ip || 'unknown'
   const now = Date.now()
   const entry = _jtrHits.get(ip)
-  if (!entry || now - entry.start > 60_000) {
-    _jtrHits.set(ip, { start: now, count: 1 })
+  if (!entry || now - entry.windowStart > 60_000) {
+    _jtrHits.set(ip, { windowStart: now, count: 1 })
     return next()
   }
   if (entry.count >= 10) return res.status(429).json({ error: 'rate-limited' })
@@ -2357,7 +2387,10 @@ Rules:
    The client strips these markers from the visible text and renders
    tap-to-execute buttons. Only include them when truly useful.`;
 
-app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
+// 64kb covers q (1000) + userContext (1000) + history (10×1500) + JSON
+// overhead with headroom. Per-endpoint cap so the global 1MB ceiling
+// can't be used to stuff a paid-LLM call with garbage tokens.
+app.post('/api/jtr-assistant', jtrAssistantRateLimit, express.json({ limit: '64kb' }), async (req, res) => {
   // Cost-abuse gate: same posture as /api/ai. Reject missing-Origin
   // POSTs unless the request originates from a mobile WebView shell
   // or carries an allowlisted Sec-Fetch-Site signal.
@@ -2460,7 +2493,7 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
         });
         if (!upstream.ok || !upstream.body) {
           const detail = await upstream.text().catch(() => '');
-          console.error(`[jtr-assistant] anthropic stream ${upstream.status} ${detail.slice(0, 200)}`);
+          console.error(`[jtr-assistant] anthropic stream ${upstream.status} ${redactUpstreamError(detail)}`);
           return res.status(502).json({ error: 'upstream', source: 'anthropic' });
         }
         res.status(200);
@@ -2492,7 +2525,7 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, async (req, res) => {
       })
       if (!r.ok) {
         const detail = await r.text().catch(() => '')
-        console.error(`[jtr-assistant] anthropic ${r.status} ${detail.slice(0, 200)}`)
+        console.error(`[jtr-assistant] anthropic ${r.status} ${redactUpstreamError(detail)}`)
         return res.status(502).json({ error: 'upstream', source: 'anthropic' })
       }
       const data = await r.json()

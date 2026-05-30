@@ -28,7 +28,7 @@ itself.
    ```
    VAPID_PUBLIC_KEY=BPxc... (long base64url string)
    VAPID_PRIVATE_KEY=Hsd... (shorter base64url string — KEEP SECRET)
-   VAPID_SUBJECT=mailto:ops@pcsexpress.app
+   VAPID_SUBJECT=mailto:info@cyberwaveglobal.com
    ```
 
 3. **Install the `web-push` library and add a dispatch endpoint.** Suggested shape (add to `server/index.js`):
