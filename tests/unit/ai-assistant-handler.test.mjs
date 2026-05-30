@@ -18,8 +18,20 @@ import handler from '../../api/jtr-assistant.js';
 
 // ── Test harness ─────────────────────────────────────────────────────
 
-function makeReq({ method = 'POST', body = {} } = {}) {
-  return { method, body, headers: {} };
+// Each request gets a UNIQUE source IP so the handler's in-memory
+// rate limiter (10 req/min/IP, keyed on x-forwarded-for) never trips
+// across the suite, and a default allowed Origin so the origin gate
+// passes. Tests that exercise the gate/limiter pass explicit headers.
+let _reqSeq = 0;
+function makeReq({ method = 'POST', body = {}, headers } = {}) {
+  _reqSeq += 1;
+  return {
+    method,
+    body,
+    headers: headers !== undefined
+      ? headers
+      : { origin: 'https://pcsexpress.app', 'x-forwarded-for': `test-ip-${_reqSeq}` },
+  };
 }
 
 function makeRes() {
@@ -71,7 +83,7 @@ function withApiKey(key, fn) {
 test('body cap: Content-Length above 64KB returns 413 before parsing', async () => {
   await withApiKey('sk-test', async () => {
     const res = makeRes();
-    const req = { method: 'POST', body: { q: 'hi' }, headers: { 'content-length': String(70 * 1024) } };
+    const req = { method: 'POST', body: { q: 'hi' }, headers: { origin: 'https://pcsexpress.app', 'x-forwarded-for': 'test-ip-bodycap', 'content-length': String(70 * 1024) } };
     await handler(req, res);
     assert.equal(res.statusCode, 413);
     assert.equal(res.body.error, 'payload-too-large');
@@ -199,7 +211,7 @@ test('body: q with numeric type still returns 400 (coerced empty after sanitize?
 test('body: non-object body (string) is rejected as missing q', async () => {
   await withApiKey('sk-test', async () => {
     const res = makeRes();
-    await handler({ method: 'POST', body: 'oops', headers: {} }, res);
+    await handler({ method: 'POST', body: 'oops', headers: { origin: 'https://pcsexpress.app', 'x-forwarded-for': 'test-ip-str' } }, res);
     assert.equal(res.statusCode, 400);
   });
 });
@@ -207,7 +219,7 @@ test('body: non-object body (string) is rejected as missing q', async () => {
 test('body: null body is rejected as missing q', async () => {
   await withApiKey('sk-test', async () => {
     const res = makeRes();
-    await handler({ method: 'POST', body: null, headers: {} }, res);
+    await handler({ method: 'POST', body: null, headers: { origin: 'https://pcsexpress.app', 'x-forwarded-for': 'test-ip-null' } }, res);
     assert.equal(res.statusCode, 400);
   });
 });
@@ -215,7 +227,7 @@ test('body: null body is rejected as missing q', async () => {
 test('body: array body has no q (Array is typeof object but body.q is undefined)', async () => {
   await withApiKey('sk-test', async () => {
     const res = makeRes();
-    await handler({ method: 'POST', body: [1, 2, 3], headers: {} }, res);
+    await handler({ method: 'POST', body: [1, 2, 3], headers: { origin: 'https://pcsexpress.app', 'x-forwarded-for': 'test-ip-arr' } }, res);
     assert.equal(res.statusCode, 400);
   });
 });
@@ -647,5 +659,54 @@ test('happy path: well-formed request → 200 with answer + source', async () =>
       assert.equal(typeof res.body.answer, 'string');
       assert.ok(res.body.answer.length > 0);
     });
+  });
+});
+
+// ── Origin gate + rate limit (added with the security hardening) ─────
+
+test('origin gate: no Origin and no Referer is rejected 403', async () => {
+  await withApiKey('sk-test', async () => {
+    const res = makeRes();
+    await handler({ method: 'POST', body: { q: 'hi' }, headers: { 'x-forwarded-for': 'gate-ip-1' } }, res);
+    assert.equal(res.statusCode, 403);
+    assert.equal(res.body.error, 'origin-not-allowed');
+  });
+});
+
+test('origin gate: cross-origin Origin is rejected 403', async () => {
+  await withApiKey('sk-test', async () => {
+    const res = makeRes();
+    await handler({ method: 'POST', body: { q: 'hi' }, headers: { origin: 'https://evil.example', 'x-forwarded-for': 'gate-ip-2' } }, res);
+    assert.equal(res.statusCode, 403);
+  });
+});
+
+test('origin gate: allowed Origin passes the gate (reaches body validation)', async () => {
+  await withApiKey('sk-test', async () => {
+    const res = makeRes();
+    await handler({ method: 'POST', body: {}, headers: { origin: 'https://pcsexpress.app', 'x-forwarded-for': 'gate-ip-3' } }, res);
+    assert.equal(res.statusCode, 400); // passed gate, failed on missing q
+    assert.equal(res.body.error, 'q is required');
+  });
+});
+
+test('origin gate: same-origin via Referer (no Origin header) passes', async () => {
+  await withApiKey('sk-test', async () => {
+    const res = makeRes();
+    await handler({ method: 'POST', body: {}, headers: { referer: 'https://pcsexpress.app/app', 'x-forwarded-for': 'gate-ip-4' } }, res);
+    assert.equal(res.statusCode, 400); // passed gate, failed on missing q
+  });
+});
+
+test('rate limit: an 11th request from the same IP within the window returns 429', async () => {
+  await withApiKey('sk-test', async () => {
+    const headers = { origin: 'https://pcsexpress.app', 'x-forwarded-for': 'flood-ip' };
+    let last;
+    for (let i = 0; i < 11; i++) {
+      last = makeRes();
+      await handler({ method: 'POST', body: {}, headers }, last);
+    }
+    assert.equal(last.statusCode, 429);
+    assert.equal(last.body.error, 'rate-limited');
   });
 });
