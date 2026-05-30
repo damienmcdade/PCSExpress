@@ -26,6 +26,11 @@
  *   ANTHROPIC_MODEL — override default model
  *
  * Security parity with server/index.js:
+ *   - Origin gate: rejects requests whose Origin isn't an allowed web /
+ *     native origin (and no-Origin requests that can't prove same-origin
+ *     via Referer), so this can't be driven as an open billing endpoint.
+ *   - Rate limit: best-effort 10 req/min/IP in-memory (per warm instance;
+ *     see note at the limiter — durable limiting needs Vercel KV/Upstash).
  *   - q, userContext, and every history message are sanitized via
  *     sanitizeForPrompt() to strip ASCII control chars and collapse
  *     whitespace before being inlined into the system prompt.
@@ -90,10 +95,79 @@ const sanitizeForPrompt = (s, maxLen) => String(s || '')
 // re-trimmed downstream — defense-in-depth.
 const MAX_BODY_BYTES = 64 * 1024;
 
+// Origin gate — parity with server/index.js. Without this the function is
+// an unauthenticated Anthropic-billing endpoint (a bare `curl -X POST`
+// reaches Anthropic on our key). Web app calls carry Origin/Referer for
+// pcsexpress.app; native shells hit Railway directly, not this function.
+const ALWAYS_ALLOWED_ORIGINS = new Set([
+  'capacitor://localhost',
+  'https://localhost',
+  'http://localhost:5173',
+  'http://localhost:3001',
+]);
+const DEFAULT_WEB_ORIGINS = new Set([
+  'https://pcsexpress.app',
+  'https://www.pcsexpress.app',
+]);
+const EXTRA_ORIGINS = (process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+function isOriginAllowed(origin) {
+  return ALWAYS_ALLOWED_ORIGINS.has(origin) || DEFAULT_WEB_ORIGINS.has(origin) || EXTRA_ORIGINS.includes(origin);
+}
+function isSameOriginByReferer(req) {
+  const ref = req.headers?.referer || req.headers?.referrer;
+  if (!ref) return false;
+  try { return isOriginAllowed(new URL(ref).origin); } catch { return false; }
+}
+function passesOriginGate(req) {
+  const origin = req.headers?.origin;
+  if (origin) return isOriginAllowed(origin);
+  // No Origin header (some same-origin POSTs / older browsers): accept only
+  // when the Referer proves same-origin. A bare request with neither is
+  // rejected — that's the abuse path.
+  return isSameOriginByReferer(req);
+}
+
+// Best-effort in-memory rate limit (10 req/min/IP), mirroring the Express
+// limiter. NOTE: Vercel Fluid Compute reuses instances but does not share
+// memory across them, so this throttles a single warm instance, not the
+// whole fleet — durable limiting needs Vercel KV / Upstash. It still blunts
+// the common single-source flood. Map is pruned opportunistically.
+const RATE_LIMIT = 10;
+const RATE_WINDOW_MS = 60_000;
+const _hits = new Map(); // ip -> { windowStart, count }
+function clientIp(req) {
+  const xff = req.headers?.['x-forwarded-for'];
+  if (typeof xff === 'string' && xff) return xff.split(',')[0].trim();
+  return req.headers?.['x-real-ip'] || 'unknown';
+}
+function rateLimited(req) {
+  const ip = clientIp(req);
+  const now = Date.now();
+  if (_hits.size > 5000) { // opportunistic prune so the Map can't grow unbounded
+    for (const [k, v] of _hits) { if (now - v.windowStart > RATE_WINDOW_MS) _hits.delete(k); }
+  }
+  const entry = _hits.get(ip);
+  if (!entry || now - entry.windowStart > RATE_WINDOW_MS) {
+    _hits.set(ip, { windowStart: now, count: 1 });
+    return false;
+  }
+  if (entry.count >= RATE_LIMIT) return true;
+  entry.count += 1;
+  return false;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'method-not-allowed' });
+  }
+
+  if (!passesOriginGate(req)) {
+    return res.status(403).json({ error: 'origin-not-allowed' });
+  }
+
+  if (rateLimited(req)) {
+    return res.status(429).json({ error: 'rate-limited' });
   }
 
   // Reject oversized payloads before doing any work. Content-Length is
