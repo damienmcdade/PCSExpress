@@ -171,6 +171,22 @@ function forceWidgetReTranslate(targetLang) {
  * @param {string} lang  ISO 639-1 code from the onboarding language
  *                        picker. 'en' or unsupported codes are no-ops.
  */
+// Reload the page at most ONCE per browser session for a given reason.
+// Guards the CSP-relaxation reload: if cookies are blocked (private mode,
+// SameSite/Secure rejection), the boot-cookie check never flips true, so an
+// unguarded reload would loop on every call. Returns true if it reloaded.
+function reloadOncePerSession(flag) {
+  try {
+    if (sessionStorage.getItem(flag)) return false;
+    sessionStorage.setItem(flag, '1');
+  } catch {
+    // sessionStorage blocked too — reloading would risk a loop, so don't.
+    return false;
+  }
+  window.location.reload();
+  return true;
+}
+
 export function applyGoogleTranslateLanguage(lang) {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
@@ -209,11 +225,13 @@ export function applyGoogleTranslateLanguage(lang) {
     // the reload when the cookie was already present on initial load
     // (returning user) — in that case the strict-vs-relaxed switch
     // already happened upstream and the script can load normally.
-    if (!hadTranslateCookieAtBoot()) {
-      window.location.reload();
+    if (!hadTranslateCookieAtBoot() && reloadOncePerSession('pcs_gt_csp_reload')) {
       return;
     }
-
+    // Either the cookie was already present at boot, OR we already did the
+    // CSP reload once this session and the cookie still isn't sticking
+    // (blocked / private mode). In the latter case DON'T reload again —
+    // that would loop forever — just load the widget best-effort.
     installInitCallback();
     loadGoogleTranslateScript();
     return;

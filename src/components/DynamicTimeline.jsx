@@ -4,8 +4,14 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
+import { notifyReminderOncePerDay, notificationsGranted } from '../lib/localReminders';
 
 const TIMELINE_STORAGE_KEY = 'pcs_dynamic_timeline_notifications';
+
+// CONUS and OCONUS milestone sets reuse ids ('hhg', 'final-out'), so the
+// per-id `enabled` map must be namespaced by set — otherwise toggling HHG
+// while CONUS silently flips the unrelated OCONUS HHG reminder.
+const nsId = (isOverseas, id) => `${isOverseas ? 'oconus' : 'conus'}:${id}`;
 
 // CONUS PCS milestones — 90-day backward plan from RNLTD.
 const MILESTONES_CONUS = [
@@ -99,12 +105,28 @@ export default function DynamicTimeline({ theme, profile }) {
   }), [rnltDate, today, milestones]);
   const headerWindow = profile?.isOverseas ? 'DYNAMIC 180-DAY OCONUS TIMELINE' : 'DYNAMIC 90-DAY TIMELINE';
 
+  // Fire a foreground reminder for any opted-in milestone that is now
+  // overdue, at most once per day per item. True background push isn't
+  // possible (milestones live encrypted on-device), so this delivers the
+  // reminder when the user next opens the app.
+  useEffect(() => {
+    if (!notificationsGranted()) return;
+    const isOverseas = !!profile?.isOverseas;
+    timeline.forEach(item => {
+      const key = nsId(isOverseas, item.id);
+      if (enabled[key] && item.daysUntilDue !== null && item.daysUntilDue < 0) {
+        notifyReminderOncePerDay(`timeline:${key}`, 'PCS Express reminder', `Overdue: ${item.title}`);
+      }
+    });
+  }, [timeline, enabled, profile?.isOverseas]);
+
   const toggle = async (id) => {
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
       const result = await Notification.requestPermission();
       setPermission(result);
     }
-    setEnabled(prev => ({ ...prev, [id]: !prev[id] }));
+    const key = nsId(profile?.isOverseas, id);
+    setEnabled(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
   return (
@@ -118,7 +140,7 @@ export default function DynamicTimeline({ theme, profile }) {
           </div>
         </div>
         <span style={{ background: permission === 'granted' ? '#E8F5E9' : '#F3F4F6', color: permission === 'granted' ? '#1B5E20' : '#56697C', borderRadius: 999, padding: '5px 9px', fontSize: 10, fontWeight: 900 }}>
-          {permission === 'granted' ? 'Push ready' : 'In-app reminders'}
+          {permission === 'granted' ? 'Reminders on' : 'In-app reminders'}
         </span>
       </div>
 
@@ -136,8 +158,8 @@ export default function DynamicTimeline({ theme, profile }) {
                     Due {formatDate(item.dueDate)}{item.daysUntilDue !== null ? ` · ${overdue ? Math.abs(item.daysUntilDue) + ' days overdue' : item.daysUntilDue + ' days left'}` : ''}
                   </div>
                 </div>
-                <button onClick={() => toggle(item.id)} style={{ width: 48, height: 28, borderRadius: 999, border: 'none', background: enabled[item.id] ? theme.primary : '#CBD5E1', padding: 3, cursor: 'pointer', flexShrink: 0 }}>
-                  <span style={{ display: 'block', width: 22, height: 22, borderRadius: '50%', background: '#FFFFFF', transform: enabled[item.id] ? 'translateX(20px)' : 'translateX(0)', transition: 'transform .18s ease' }} />
+                <button aria-label={`${enabled[nsId(profile?.isOverseas, item.id)] ? 'Disable' : 'Enable'} reminder for ${item.title}`} onClick={() => toggle(item.id)} style={{ width: 48, height: 28, borderRadius: 999, border: 'none', background: enabled[nsId(profile?.isOverseas, item.id)] ? theme.primary : '#CBD5E1', padding: 3, cursor: 'pointer', flexShrink: 0 }}>
+                  <span style={{ display: 'block', width: 22, height: 22, borderRadius: '50%', background: '#FFFFFF', transform: enabled[nsId(profile?.isOverseas, item.id)] ? 'translateX(20px)' : 'translateX(0)', transition: 'transform .18s ease' }} />
                 </button>
               </div>
             </div>

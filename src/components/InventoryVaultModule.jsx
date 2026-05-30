@@ -26,6 +26,7 @@
 
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
+import { escapeHtml } from '../lib/escapeHtml';
 import CopyableText from './CopyableText';
 
 const STORAGE_KEY = 'pcs_inventory_vault';
@@ -43,9 +44,6 @@ function defaultState() {
   return { items: [], phase: 'pre-packout', meta: { gbl: '', tsp: '', deliveredOn: '' } };
 }
 
-function escapeHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
 
 function buildClaimHtml(state, profile) {
   const itemsByRoom = state.items.reduce((acc, it) => {

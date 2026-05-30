@@ -19,6 +19,7 @@
 
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
+import { notifyReminderOncePerDay, notificationsGranted } from '../lib/localReminders';
 import CopyableText from './CopyableText';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 
@@ -129,6 +130,19 @@ export default function ShipmentTrackerModule({ theme, profile: _profile }) {
   const completed = MILESTONES.filter(m => state.milestones[m.id]).length;
   const overdueCount = Object.values(overdueMap).filter(Boolean).length;
   const pct = Math.round((completed / MILESTONES.length) * 100);
+
+  // When the user has opted into overdue alerts, fire a foreground
+  // reminder for each overdue milestone (once per day per milestone) when
+  // they open the tracker. Background push isn't possible — the milestone
+  // data is encrypted on-device and never reaches the server.
+  useEffect(() => {
+    if (!state.notifyOnOverdue || !notificationsGranted()) return;
+    for (const m of MILESTONES) {
+      if (overdueMap[m.id]) {
+        notifyReminderOncePerDay(`shipment:${m.id}`, 'PCS Express shipment reminder', `Overdue: ${m.label}`);
+      }
+    }
+  }, [overdueMap, state.notifyOnOverdue]);
 
   const askNotify = async () => {
     if (typeof Notification === 'undefined') return;
