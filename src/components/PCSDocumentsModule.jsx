@@ -5,6 +5,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions';
+import { escapeHtml } from '../lib/escapeHtml';
 import TabBar from './TabBar';
 
 // ─── Document categories ─────────────────────────────────────────────────────
@@ -349,9 +350,6 @@ function cleanupLegacyFiles() {
 // status so the user can hand the printout to the gaining S1 /
 // civilian HR / VA along with the physical paperwork they assembled
 // themselves. We never accept, store, or render uploaded user files.
-function escapeHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
 
 function buildBinderHtml(profile, allDocs, states, branch, isOconus) {
   const rows = [];

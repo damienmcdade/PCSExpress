@@ -2,7 +2,7 @@
  * Move Budget Tracker — entitlement estimates vs. actual out-of-pocket spending.
  * Helps families track the avg $5,000 unreimbursed PCS cost gap.
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import DataFreshnessFooter from './DataFreshnessFooter';
 import { CalculatorResultLabel, PlanningAidDisclaimer } from './CalculatorResultLabel';
 
@@ -135,6 +135,19 @@ export default function MoveBudgetTracker({ theme, profile }) {
   const [expenses, setExpenses] = useState(() =>
     Object.fromEntries(EXPENSE_CATEGORIES.map(c => [c.id, '']))
   );
+
+  // EXPENSE_CATEGORIES changes when the profile flips CONUS<->OCONUS, but
+  // the useState initializer above only ran once. Seed any newly-added
+  // category ids (e.g. the OCONUS rows) so their inputs stay controlled
+  // and don't throw React's controlled/uncontrolled warning. Existing
+  // values are preserved, so toggling back keeps what the user entered.
+  useEffect(() => {
+    setExpenses(prev => {
+      const missing = EXPENSE_CATEGORIES.filter(c => !(c.id in prev));
+      if (!missing.length) return prev;
+      return { ...prev, ...Object.fromEntries(missing.map(c => [c.id, ''])) };
+    });
+  }, [EXPENSE_CATEGORIES]);
 
   const totalEntitlements = useMemo(() =>
     ENTITLEMENT_CATEGORIES.reduce((sum, c) => sum + parseNum(entitlements[c.id]), 0),

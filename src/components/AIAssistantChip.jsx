@@ -31,6 +31,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { apiUrl } from '../config/apiConfig';
 import { AuditLogger } from '../security/SecurityExtensions';
+import { escapeHtml } from '../lib/escapeHtml';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 
 // Curated knowledge base — same content as JTRAssistantModule's KB but
@@ -350,9 +351,9 @@ export function parseInappCitation(message) {
 // in a new window with the print dialog cued. The user prints to PDF
 // the same way they export PCS Binder and Inventory worksheets.
 // No external PDF library — keeps the dependency footprint flat.
-export function escapeHtml(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
+// Re-exported for backward compatibility; the implementation now lives in
+// lib/escapeHtml so the binder / inventory / transcript exporters share one.
+export { escapeHtml };
 function exportConversationAsPdf(messages, language) {
   if (!messages || messages.length === 0) return;
   const rows = messages.map(m => {
