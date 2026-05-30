@@ -1849,6 +1849,40 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
   );
 }
 
+// Several curated school datasets are keyed by an older/short installation
+// name (e.g. "NS San Diego") that doesn't match the canonical
+// MILITARY_DUTY_STATIONS name the profile stores ("Naval Base San Diego"),
+// so the direct lookup silently returned []. Map the canonical station name
+// → the school-data key(s). "Joint Base San Antonio" merges the Lackland +
+// Randolph datasets; the two USAG Italy garrisons share one dataset.
+const SCHOOL_KEY_ALIASES = {
+  'Naval Air Station Jacksonville': ['NAS Jacksonville'],
+  'USAG Bavaria (Grafenwöhr)': ['USAG Bavaria'],
+  'USAG Italy (Vicenza)': ['USAG Italy'],
+  'USAG Italy (Livorno)': ['USAG Italy'],
+  'Naval Base Kitsap': ['NS Bremerton'],
+  'Naval Base Coronado': ['NAS North Island'],
+  'Naval Base San Diego': ['NS San Diego'],
+  'Naval Air Station Lemoore': ['NAS Lemoore'],
+  'Naval Station Everett': ['NS Everett'],
+  'Joint Base Langley-Eustis': ['Langley AFB'],
+  'Joint Base San Antonio': ['Lackland AFB', 'Randolph AFB'],
+  'MCB Hawaii Kaneohe Bay': ['MCAS Kaneohe Bay'],
+  'USAG Japan (Camp Zama)': ['Camp Zama'],
+  'Naval Station Rota': ['NS Rota'],
+};
+
+function resolveInstallationSchools(instName) {
+  const direct = HEAVY.INSTALLATION_SCHOOLS[instName];
+  if (direct && direct.length) return direct;
+  const aliasKeys = SCHOOL_KEY_ALIASES[instName];
+  if (aliasKeys) {
+    const merged = aliasKeys.flatMap(k => HEAVY.INSTALLATION_SCHOOLS[k] || []);
+    if (merged.length) return merged;
+  }
+  return direct || [];
+}
+
 function SchoolsTab({ theme, profile }) {
   const [section, setSection] = useState('schools');
   const [sortBy, setSortBy] = useState('rating');
@@ -1857,7 +1891,7 @@ function SchoolsTab({ theme, profile }) {
   const [searchZip, setSearchZip] = useState('');
 
   const instName = (profile?.gainingInstallation || '').split(',')[0].trim();
-  const schools = HEAVY.INSTALLATION_SCHOOLS[instName] || [];
+  const schools = resolveInstallationSchools(instName);
   const daycares = DAYCARE_DATA[instName] || [];
   const _searchLocation = getInstallationSearchLocation(instName);
   const schoolFinderCards = officialSchoolCards(instName);
