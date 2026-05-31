@@ -212,7 +212,7 @@ export const OHA_REGIONS = {
     },
     miha: { moving: 2100, onetime: 900 },
     utilityRate: 380,
-    notes: 'NOTE: Guam is a non-foreign OCONUS location and is paid BAH, NOT OHA — use the BAH calculator for the authoritative figure; the values here are rough housing-cost estimates only. High housing costs and limited inventory. Apply early — wait lists are common.',
+    notes: 'Guam is a non-foreign OCONUS U.S. territory and is paid OHA (Overseas Housing Allowance), set by DoD/DTMO — NOT BAH, which covers only the 50 states. The figures here are planning estimates; verify your exact rank/dependency rate at the official DTMO OHA Rate Lookup. High housing costs and limited inventory. Apply early — wait lists are common.',
   },
 };
 
