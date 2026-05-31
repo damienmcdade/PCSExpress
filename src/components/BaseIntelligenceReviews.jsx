@@ -200,13 +200,15 @@ const INSTALLATION_REVIEWS = {
   ],
 };
 
+// These cards are EDITORIAL SUMMARIES paraphrased from public community
+// channels (see file header) — they are NOT individually verified user
+// submissions, so the badge must not claim "verified". It only indicates the
+// source class of the summarized sentiment.
 function VerifiedBadge({ review }) {
-  if (!review.verified) {
-    return <span style={{ background: '#F3F4F6', color: '#56697C', borderRadius: 999, padding: '4px 8px', fontSize: 10, fontWeight: 900 }}>Community review</span>;
-  }
+  const label = review.verified ? 'Mil-community sourced' : 'Community sourced';
   return (
-    <span style={{ background: '#E8F5E9', color: '#1B5E20', border: '1px solid #A5D6A7', borderRadius: 999, padding: '4px 8px', fontSize: 10, fontWeight: 950 }}>
-      Military Family Verified
+    <span style={{ background: '#F3F4F6', color: '#56697C', borderRadius: 999, padding: '4px 8px', fontSize: 10, fontWeight: 900 }}>
+      {label}
     </span>
   );
 }
@@ -243,7 +245,7 @@ export default function BaseIntelligenceReviews({ theme, profile }) {
         <div style={{ fontSize: 10, fontWeight: 950, color: theme.accent, letterSpacing: '.16em', marginBottom: 6 }}>BASE INTELLIGENCE</div>
         <div style={{ fontSize: 17, fontWeight: 950, marginBottom: 6 }}>{installationName}</div>
         <div style={{ fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,0.78)' }}>
-          Community review cards are separated from official public installation data. Verification badges identify reviews tied to authenticated .mil email status or verified orders without displaying raw email, order numbers, phone numbers, or other PII.
+          These cards are editorial summaries of public community feedback, paraphrased from forums and ACS/MCCS sessions — they are not individually verified user submissions. They're kept separate from official installation data. No raw email, order numbers, DoD IDs, phone numbers, or other PII are stored.
         </div>
       </div>
 
@@ -263,7 +265,7 @@ export default function BaseIntelligenceReviews({ theme, profile }) {
         <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 14, padding: 16, marginBottom: 14 }}>
           <div style={{ fontSize: 13, fontWeight: 950, color: '#6D4C00', marginBottom: 4 }}>No community reviews yet for {installationName}</div>
           <div style={{ fontSize: 12, color: '#6D4C00', lineHeight: 1.55, marginBottom: 12 }}>
-            PCS Express only displays reviews submitted by verified service members and dependents. We don't auto-generate placeholder reviews. In the meantime, use the verified DoD-wide feedback and information channels below — they have current housing, school, and family-support details for every installation worldwide.
+            Where available, PCS Express shows editorial summaries of public community feedback (paraphrased from forums and ACS/MCCS sessions) — not individually verified user submissions. We don't have a summary for this installation yet. Use the official DoD-wide feedback and information channels below — they have current housing, school, and family-support details for every installation worldwide.
           </div>
           <div style={{ display: 'grid', gap: 8 }}>
             <a href="https://ice.disa.mil/" target="_blank" rel="noopener noreferrer"
@@ -303,7 +305,7 @@ export default function BaseIntelligenceReviews({ theme, profile }) {
             </div>
             <div style={{ marginBottom: 8 }}><StarRow rating={review.rating} /></div>
             <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>{review.text}</div>
-            {review.verified && <div style={{ fontSize: 10, color: '#1B5E20', fontWeight: 900, marginTop: 8 }}>Verified through {review.verification}; raw PII is not shown in the app.</div>}
+            <div style={{ fontSize: 10, color: '#56697C', fontWeight: 700, marginTop: 8 }}>Editorial summary of public {review.verification} feedback — not an individually verified submission.</div>
           </div>
         ))}
       </div>

@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import { applyGoogleTranslateLanguage } from './i18n/googleTranslateRuntime'
 import { bootstrapNative } from './native'
+import { installGlobalErrorReporting } from './lib/errorReporter'
+
+installGlobalErrorReporting()
 
 // Native (Capacitor) bootstrap. No-op on web; on the iOS / Android
 // shell, registers native push + wires notification-click deep links.

@@ -65,14 +65,13 @@
     <title>PCS Express — Military Relocation Readiness</title>
     <script src="/sw-killswitch.js"></script>
     <!--
-      Google AdSense initialization. AdSense requires this script to be
-      present on the site before approval — without it the "AdSense code
-      not found" check fails, which was our prior denial reason. Async +
-      crossorigin per Google's published snippet. ads.txt at /ads.txt
-      already declares the matching pub-8731629548430880 publisher ID.
+      Google AdSense is loaded CONDITIONALLY by /ads-init.js: web only (never
+      in the native Capacitor apps — AdSense isn't permitted in mobile apps)
+      and only after ads/cookie consent (no CMP is wired yet, so ads are OFF
+      by default — compliant with Google's EU consent policy + ePrivacy).
+      ads.txt at /ads.txt declares the matching pub-8731629548430880 ID.
     -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8731629548430880"
-            crossorigin="anonymous"></script>
+    <script src="/ads-init.js"></script>
   </head>
   <body>
     <!--

@@ -18,6 +18,7 @@
  * unit-test independently of the monolithic shell.
  */
 import { Component } from 'react';
+import { reportClientError } from '../lib/errorReporter';
 
 function clearSessionDemoProfile() {
   try { sessionStorage.removeItem('pcs_demo_profile'); } catch {}
@@ -44,6 +45,11 @@ export default class AppErrorBoundary extends Component {
 
   componentDidCatch(error, info) {
     console.error('PCS Express startup error', error, info);
+    // Surface the crash to the server so it's observable (not just console).
+    try {
+      const where = info?.componentStack ? String(info.componentStack).split('\n')[1]?.trim() : 'render';
+      reportClientError(error?.name || 'RenderError', error?.message, where);
+    } catch { /* never let reporting break the boundary */ }
   }
 
   resetAppState = () => {
