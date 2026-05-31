@@ -275,6 +275,7 @@ export default function JTRAssistantModule({ theme }) {
           OPSEC: never enter classified, FOUO, CUI, sponsor names, GBL numbers, exact dates, or any data that, if combined, could identify a unit, mission, or movement schedule. Treat this as an unclassified planning conversation.
         </div>
         <textarea
+          aria-label="Ask the JTR assistant a question"
           value={askText}
           onChange={e => setAskText(e.target.value)}
           placeholder="e.g. I'm an O-3 PCSing from Fort Bliss to USAG Stuttgart, what allowances should I expect?"

@@ -100,10 +100,11 @@ function buildSuggestedRanges(profile, distanceMiles = 900) {
   };
 }
 
-function CurrencyInput({ value, onChange, placeholder }) {
+function CurrencyInput({ value, onChange, placeholder, ariaLabel }) {
   return (
     <input
       inputMode="decimal"
+      aria-label={ariaLabel}
       placeholder={placeholder || '0'}
       value={value}
       onChange={e => onChange(e.target.value)}
@@ -227,6 +228,7 @@ export default function MoveBudgetTracker({ theme, profile }) {
                     value={entitlements[cat.id]}
                     onChange={v => updateEntitlement(cat.id, v)}
                     placeholder="Amount $"
+                    ariaLabel={`${cat.label} amount in dollars`}
                   />
                 </div>
               </div>
@@ -262,6 +264,7 @@ export default function MoveBudgetTracker({ theme, profile }) {
                       value={expenses[cat.id]}
                       onChange={v => updateExpense(cat.id, v)}
                       placeholder="Amount $"
+                      ariaLabel={`${cat.label} amount in dollars`}
                     />
                   </div>
                 </div>
