@@ -127,7 +127,7 @@ export default function OHACalculatorTab({ theme, profile }) {
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 6 }}>Reference rate — verify exact amount at DTMO</div>
             <CalculatorResultLabel
               tier="estimate"
-              note="OHA rates publish quarterly; the values shown are FY 2025/2026 references not yet confirmed against the current DTMO publication."
+              note="Planning reference only. Unlike BAH, OHA rent caps are set per specific locality (not the regional group shown) and change monthly/quarterly with rent surveys and exchange rates. DTMO does not publish OHA as a verifiable bulk table — the interactive DTMO OHA Rate Lookup is the only authoritative source. Confirm your exact current cap there."
             />
           </div>
 
