@@ -145,7 +145,7 @@ const SECTIONS = [
     title: 'Public-standard alignment (engineering best-effort)',
     items: [
       { label: 'NIST SP 800-53',  value: 'AC-2, AC-7, IA-5, SC-12, SC-13, SC-28, SI-10, SI-11, AU-2 (audit log), AU-12 — controls implemented or N/A by design.',           cite: 'SECURITY.md' },
-      { label: 'NIST SP 800-171', value: 'CUI-handling problem removed at the source — no document upload anywhere in the app.',                                            cite: 'grep -r \'type="file"\' src/  →  0 hits' },
+      { label: 'NIST SP 800-171', value: 'No document upload to any server. The only file input is a local-only JSON backup restore that is read in-browser (FileReader) and never transmitted off-device.',                                            cite: 'restore picker is client-side only' },
       { label: 'DISA ASD STIG',   value: 'Input validation, security headers, server fingerprint reduction implemented per the Application Security & Development STIG.',  cite: 'SECURITY.md' },
       { label: 'OWASP ASVS 4.0',  value: 'V2 auth, V3 session, V8 data-protection, V13 API verifications passed in spot-review (formal verification still needed).',        cite: 'SECURITY.md' },
       { label: 'CMMC 2.0',         value: 'Independent application — not a DoD CMMC-assessed contractor. Architecture is CMMC-Level-2-compatible if onboarded to a defense prime.', cite: '' },

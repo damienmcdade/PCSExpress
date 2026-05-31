@@ -226,7 +226,12 @@ app.use((req, res, next) => {
   if (/Capacitor|CapacitorWebView|PCSExpress/i.test(ua)) return next()
   return res.status(403).json({ error: 'missing Origin on write method' })
 })
-app.use(express.json({ limit: '1mb' }))
+// NOTE: JSON body parsing is attached PER ROUTE (with a route-specific size
+// limit) rather than globally. A global express.json() runs first and sets
+// req._body=true, which makes body-parser short-circuit every later per-route
+// parser — silently defeating the smaller 4kb/8kb/64kb caps and letting the
+// expensive AI endpoints accept the full global allowance. Keeping the parser
+// per-route makes those cost-abuse limits actually enforced.
 
 // === HEALTH ENDPOINTS ===
 // CRITICAL for Railway: Must respond with 200 OK
@@ -260,7 +265,7 @@ function clientErrRateLimit(req, res, next) {
   if (e.count >= 10) return res.status(429).end()
   e.count += 1; next()
 }
-app.post('/api/client-error', clientErrRateLimit, (req, res) => {
+app.post('/api/client-error', clientErrRateLimit, express.json({ limit: '8kb' }), (req, res) => {
   res.setHeader('Cache-Control', 'no-store')
   const b = req.body || {}
   const clip = (v, n) => String(v == null ? '' : v).replace(/[\r\n]+/g, ' ').slice(0, n)
@@ -508,7 +513,7 @@ function baseReviewRateLimit(req, res, next) {
   return next();
 }
 
-app.post('/api/base-reviews/validate', baseReviewRateLimit, (req, res) => {
+app.post('/api/base-reviews/validate', baseReviewRateLimit, express.json({ limit: '8kb' }), (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   const { InstallationName, Category, Rating, UserRank } = req.body || {};
   if (containsLikelyPii(req.body)) return res.status(400).json({ error: 'Raw PII is not accepted by this endpoint.' });
@@ -2689,7 +2694,17 @@ if (fs.existsSync(distPath)) {
 app.use((err, req, res, next) => {
   console.error(`[SERVER] unhandled route error ${req.method} ${req.path}: ${err && err.message ? err.message : err}`)
   if (res.headersSent) return next(err)
-  res.status(500).json({ error: 'internal-server-error' })
+  // Honor client-error statuses thrown by middleware (e.g. body-parser raises
+  // a 413 'entity.too.large' when a POST exceeds the per-route size cap, and a
+  // 400 on malformed JSON). Without this, those surface as a misleading 500.
+  const status = Number(err && (err.status || err.statusCode)) || 500
+  if (status === 413) return res.status(413).json({ error: 'payload-too-large' })
+  if (status === 400 && err && err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'invalid-json' })
+  }
+  res.status(status >= 400 && status < 500 ? status : 500).json({
+    error: status >= 400 && status < 500 ? 'bad-request' : 'internal-server-error',
+  })
 })
 
 // === START SERVER ===

@@ -6,6 +6,35 @@ All notable changes to PCS Express. Dates are the release date. The
 while native build numbers (`CFBundleVersion` / `versionCode`) increment per
 store submission.
 
+## [1.1.1] — 2026-05-31
+
+### Fixed — from end-to-end audit
+- **Per-route request body-size limits are now actually enforced.** A global
+  `express.json({limit:'1mb'})` ran before every per-route parser and set
+  `req._body`, silently short-circuiting the smaller 4kb/8kb/64kb caps — so the
+  AI cost-abuse defense was inert and every endpoint accepted 1 MB. The global
+  parser was removed and parsers attached per route; oversized bodies now return
+  **413** and malformed JSON returns **400** (previously a misleading 500).
+- **PPM estimator labeling contradiction resolved.** The UI prose claimed "95
+  percent of GCC" while the code, metric card, and tests used 100% — the screen
+  showed both numbers. Prose corrected to 100% (standing Best-Value rate; the
+  temporary 130% rate expired 30 Sep 2025).
+- **Removed the PPM "years of service" GCC multiplier.** It had no JTR basis,
+  inflated the incentive up to ~4% at 20 YOS, and broke the documented ±0.3%
+  calibration. The vestigial Years-of-Service input was removed from the UI.
+- **Corrected the Guam OHA note** — Guam is a non-foreign OCONUS location paid
+  **BAH, not OHA**; the note now redirects to the BAH calculator.
+- **Compliance attestation accuracy.** The NIST 800-171 line (and two module
+  comments) claimed `grep 'type="file"' → 0 hits` / "no upload anywhere"; this
+  was false given the local-only JSON restore picker. Text now accurately
+  describes the client-side-only, never-transmitted restore.
+
+### Changed — hardening
+- `.gitignore` now covers `*.jks`/`*.keystore`/`*.p8`/`*.pem`/`key.properties`
+  so a signing keystore can't be committed by accident.
+- `release.yml` passes `VERCEL_TOKEN` via step `env:` instead of the
+  `--token=` CLI flag (keeps it out of the process argument list).
+
 ## [1.1.0] — 2026-05-31
 
 ### Fixed — data accuracy (high impact)

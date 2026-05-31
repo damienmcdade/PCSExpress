@@ -11,8 +11,9 @@
  * hits localStorage. The inventory never leaves the device.
  *
  * Zero-Upload baseline: this module intentionally has NO file input,
- * NO photo capture, and NO upload surface (verifiable:
- * `grep -r 'type="file"' src/` returns zero). PCS Express does not
+ * NO photo capture, and NO upload surface. (The app's only file input
+ * is a local-only JSON backup restore that is read in-browser and never
+ * transmitted to any server.) PCS Express does not
  * have the security posture to accept user-uploaded images of
  * household goods — users should keep their own photos in their
  * device's camera roll outside the app.

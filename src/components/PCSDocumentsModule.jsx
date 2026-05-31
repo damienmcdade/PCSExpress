@@ -343,9 +343,9 @@ function cleanupLegacyFiles() {
   } catch {}
 }
 
-// PCS Binder — checklist-only export. The app intentionally has NO
-// file input or photo-capture surface anywhere (verifiable:
-// `grep -r 'type="file"' src/` returns zero). The binder PDF lists
+// PCS Binder — checklist-only export. This module has NO file input or
+// photo-capture surface. (The app's only file input is a local-only JSON
+// backup restore that is read in-browser and never uploaded.) The binder PDF lists
 // each document name, form number, required flag, and gathered
 // status so the user can hand the printout to the gaining S1 /
 // civilian HR / VA along with the physical paperwork they assembled
