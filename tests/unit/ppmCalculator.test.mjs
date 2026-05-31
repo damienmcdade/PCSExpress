@@ -110,3 +110,31 @@ test('formatCurrency renders USD with no fractional digits', () => {
   assert.equal(formatCurrency(null), '$0');
   assert.equal(formatCurrency(undefined), '$0');
 });
+
+// Dependency-status weight allowance (JTR Table 5-37). A single member's
+// cap is lower than a member with dependents, so the PPM incentive must
+// not use the with-dependents table for everyone.
+test('weight allowance is lower without dependents (JTR 5-37)', () => {
+  for (const rank of ['E-1', 'E-5', 'E-7', 'O-4']) {
+    const withDeps = getAuthorizedWeightAllowance(rank, true);
+    const noDeps = getAuthorizedWeightAllowance(rank, false);
+    assert.ok(noDeps < withDeps, `${rank}: without-deps ${noDeps} should be < with-deps ${withDeps}`);
+  }
+  // Senior officers (O-6+) share the 18,000 cap regardless of dependents.
+  assert.equal(getAuthorizedWeightAllowance('O-6', false), getAuthorizedWeightAllowance('O-6', true));
+  // Spot-check a known JTR value.
+  assert.equal(getAuthorizedWeightAllowance('E-5', false), 7000);
+  assert.equal(getAuthorizedWeightAllowance('E-5', true), 9000);
+});
+
+test('a single member gets a smaller reimbursable cap + incentive than one with dependents', () => {
+  const base = { rank: 'E-5', distanceMiles: 850, estimatedWeightLbs: 12000 };
+  const single = calculatePPMEstimate({ ...base, withDependents: false });
+  const family = calculatePPMEstimate({ ...base, withDependents: true });
+  assert.equal(single.reimbursableWeightLbs, 7000);
+  assert.equal(family.reimbursableWeightLbs, 9000);
+  assert.ok(single.grossIncentive < family.grossIncentive,
+    `single incentive ${Math.round(single.grossIncentive)} should be < family ${Math.round(family.grossIncentive)}`);
+  // Omitting the flag preserves the legacy with-dependents default.
+  assert.equal(calculatePPMEstimate(base).reimbursableWeightLbs, 9000);
+});

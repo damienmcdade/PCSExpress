@@ -6,6 +6,26 @@ All notable changes to PCS Express. Dates are the release date. The
 while native build numbers (`CFBundleVersion` / `versionCode`) increment per
 store submission.
 
+## [1.1.14] — 2026-05-31
+
+### Fixed — data-accuracy audit (confirmed entitlement bugs)
+- **PPM weight allowance now respects dependency status (JTR Table 5-37).**
+  `getAuthorizedWeightAllowance` previously used the with-dependents table for
+  everyone, so a single member was given the higher cap (e.g. E-5 9,000 lb
+  instead of 7,000), overstating reimbursable weight and the PPM incentive.
+  Added `HHG_WEIGHT_ALLOWANCE_WITHOUT_DEPENDENTS_LBS`, select by status, and
+  thread the member's real `hasDependents` from `PPMFinancialEstimator`. Caller
+  default stays with-dependents so existing reference tests are unchanged; added
+  unit tests covering the lower single-member cap + incentive.
+- **Puerto Rico installations now classified OCONUS → OHA, not BAH.** Fort
+  Buchanan (Army + Army Reserve) and the two PR Coast Guard stations had
+  `state:'PR'` but no `country`, and `isOCONUSInstallation` had no PR keywords —
+  so they were treated as CONUS (wrong housing calculator + CONUS checklist).
+  US territories are outside the 50 states → OHA. Added `country:'Puerto Rico'`
+  to all four entries and PR keywords (`puerto rico`/`buchanan`/`borinquen`/
+  `san juan`) to the classifier. (Same class as the previously-fixed Guam bug;
+  Guam remains correct.)
+
 ## [1.1.13] — 2026-05-31
 
 ### Performance — Tier 2 (investigated; one change, rest already-optimal)

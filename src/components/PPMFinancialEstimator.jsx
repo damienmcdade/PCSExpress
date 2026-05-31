@@ -67,11 +67,16 @@ export default function PPMFinancialEstimator({ theme, profile }) {
   // accordingly when the profile signals civilian status.
   const [estimatedWeightLbs, setEstimatedWeightLbs] = useState(isCivilian ? '18000' : '7500');
 
+  // Weight allowance is dependency-tied (JTR Table 5-37): a member without
+  // dependents has a lower cap, so pass the real status instead of always
+  // defaulting to the with-dependents table.
+  const withDependents = !!profile?.hasDependents;
   const estimate = useMemo(() => calculatePPMEstimate({
     rank,
     distanceMiles,
     estimatedWeightLbs,
-  }), [rank, distanceMiles, estimatedWeightLbs]);
+    withDependents,
+  }), [rank, distanceMiles, estimatedWeightLbs, withDependents]);
 
   const meterWidth = `${Math.max(0, estimate.profitMeterPercent)}%`;
   const isProfit = estimate.estimatedCashInPocket >= 0;
