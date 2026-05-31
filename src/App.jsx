@@ -4414,6 +4414,8 @@ function isOCONUSInstallation(name) {
     'vilseck','baumholder','ansbach','stuttgart','torii','kadena','misawa','camp zama','yokosuka',
     'sasebo','naples','vicenza','aviano','sigonella','rota','moron','incirlik','lemonier','osan',
     'yokota','atsugi','iwakuni','futenma','foster','butler','courtney','hansen','schwab','andersen',
+    // US territories are OCONUS (OHA, not BAH): Puerto Rico installations.
+    'puerto rico','buchanan','borinquen','san juan',
   ].some(kw => lower.includes(kw));
 }
 

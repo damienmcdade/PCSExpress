@@ -118,6 +118,38 @@ export const HHG_WEIGHT_ALLOWANCE_WITH_DEPENDENTS_LBS = Object.freeze({
   'O-10': 18000,
 });
 
+// JTR Table 5-37 HHG weight allowances for a member WITHOUT dependents.
+// These are materially lower than the with-dependents caps (e.g. E-5
+// 7,000 vs 9,000), so applying the with-dependents table to a single
+// member overstates the reimbursable weight and the PPM incentive.
+// Selected by dependency status via getAuthorizedWeightAllowance().
+export const HHG_WEIGHT_ALLOWANCE_WITHOUT_DEPENDENTS_LBS = Object.freeze({
+  'E-1': 5000,
+  'E-2': 5000,
+  'E-3': 5000,
+  'E-4': 7000,
+  'E-5': 7000,
+  'E-6': 8000,
+  'E-7': 11000,
+  'E-8': 12000,
+  'E-9': 13000,
+  'W-1': 10000,
+  'W-2': 12500,
+  'W-3': 13000,
+  'W-4': 14000,
+  'W-5': 16000,
+  'O-1': 10000,
+  'O-2': 12500,
+  'O-3': 13000,
+  'O-4': 14000,
+  'O-5': 16000,
+  'O-6': 18000,
+  'O-7': 18000,
+  'O-8': 18000,
+  'O-9': 18000,
+  'O-10': 18000,
+});
+
 const toNumber = (value, fallback = 0) => {
   // Strip thousands separators and surrounding whitespace so free-text
   // fields like "7,500" parse instead of silently collapsing to the
@@ -128,15 +160,22 @@ const toNumber = (value, fallback = 0) => {
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
-export function getAuthorizedWeightAllowance(rank = 'E-5') {
-  return HHG_WEIGHT_ALLOWANCE_WITH_DEPENDENTS_LBS[rank] || HHG_WEIGHT_ALLOWANCE_WITH_DEPENDENTS_LBS['E-5'];
+export function getAuthorizedWeightAllowance(rank = 'E-5', withDependents = true) {
+  const table = withDependents
+    ? HHG_WEIGHT_ALLOWANCE_WITH_DEPENDENTS_LBS
+    : HHG_WEIGHT_ALLOWANCE_WITHOUT_DEPENDENTS_LBS;
+  return table[rank] || table['E-5'];
 }
 
 export function calculateGovernmentConstructiveCost(input = {}, config = PPM_CONFIG) {
   const rank = input.rank || 'E-5';
+  // Default to with-dependents when the caller doesn't specify, so existing
+  // callers/reference tests are unchanged; the UI passes the member's real
+  // dependency status (input.withDependents === false → lower single-member cap).
+  const withDependents = input.withDependents !== false;
   const distanceMiles = clamp(toNumber(input.distanceMiles, 0), 0, 12000);
   const estimatedWeightLbs = clamp(toNumber(input.estimatedWeightLbs ?? input.actualWeightLbs, 0), 0, 24000);
-  const authorizedWeightLbs = getAuthorizedWeightAllowance(rank);
+  const authorizedWeightLbs = getAuthorizedWeightAllowance(rank, withDependents);
   const reimbursableWeightLbs = Math.min(estimatedWeightLbs, authorizedWeightLbs);
   const excessWeightLbs = Math.max(estimatedWeightLbs - authorizedWeightLbs, 0);
   const hundredWeight = reimbursableWeightLbs / 100;
