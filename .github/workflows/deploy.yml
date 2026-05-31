@@ -106,21 +106,23 @@ jobs:
             -e NODE_ENV=production \
             -p 3001:3001 \
             pcs-express:test
-          # The server takes a few seconds to bind in CI; poll the health
-          # endpoint with a timeout instead of a fixed sleep that races the
-          # startup and intermittently hits "connection refused".
+          # Poll the health endpoint with a timeout instead of a fixed sleep
+          # that races the server's ~5s startup. Use curl (explicitly
+          # installed in the Dockerfile) against /health — the same tool and
+          # path the image's own HEALTHCHECK uses — rather than wget, which
+          # isn't guaranteed in the runtime image.
           ok=0
-          for i in $(seq 1 20); do
-            if docker exec test wget -q -O- http://localhost:3001/api/health >/dev/null 2>&1; then
+          for i in $(seq 1 30); do
+            if docker exec test curl -fsS http://127.0.0.1:3001/health >/dev/null 2>&1; then
               ok=1
-              echo "✓ /api/health responded after ~$((i))s"
+              echo "✓ /health responded after ~${i}s"
               break
             fi
             sleep 1
           done
           docker logs test || true
           if [ "$ok" != "1" ]; then
-            echo "::error::Container health check never passed within 20s."
+            echo "::error::Container health check never passed within 30s."
             docker stop test; docker rm test
             exit 1
           fi
