@@ -73,11 +73,11 @@ that one reflects our market inputs and will legitimately drift.
 
 | # | Scenario | Field pinned | Expected | Verified on | Notes |
 |---|---|---|---|---|---|
-| 1 | E-5 / 6 YOS / 850 mi / 7,500 lb         | `grossIncentive`         | _TODO_ | _TODO_ | _TODO_ |
-| 2 | E-5 / 6 YOS / 850 mi / 7,500 lb         | `netIncentiveAfterTaxes` | _TODO_ | _TODO_ | _TODO_ |
-| 3 | E-7 / 14 YOS / 1500 mi / 13,000 lb      | `grossIncentive`         | _TODO_ | _TODO_ | _TODO_ |
-| 4 | O-3 / 8 YOS / 1200 mi / 12,000 lb       | `grossIncentive`         | _TODO_ | _TODO_ | _TODO_ |
-| 5 | E-4 / 3 YOS / 400 mi / 5,000 lb         | `authorizedWeightLbs`    | _TODO_ | _TODO_ | _TODO_ |
+| 1 | E-5 / 850 mi / 7,500 lb         | `grossIncentive`         | _TODO_ | _TODO_ | _TODO_ |
+| 2 | E-5 / 850 mi / 7,500 lb         | `netIncentiveAfterTaxes` | _TODO_ | _TODO_ | _TODO_ |
+| 3 | E-7 / 1500 mi / 13,000 lb      | `grossIncentive`         | _TODO_ | _TODO_ | _TODO_ |
+| 4 | O-3 / 1200 mi / 12,000 lb       | `grossIncentive`         | _TODO_ | _TODO_ | _TODO_ |
+| 5 | E-4 / 400 mi / 5,000 lb         | `authorizedWeightLbs`    | _TODO_ | _TODO_ | _TODO_ |
 
 ---
 
@@ -101,9 +101,12 @@ sources. Outcome:
   travel.dod.mil) and confirm the app's `MHA_RATES` are the current 1-Jan-2026
   rates, not a prior year.
 - **OHA — still skipped.** Rates rotate quarterly with FX; only the interactive
-  DTMO OHA lookup is authoritative. Also note: **Guam is a BAH location, not an
-  OHA location** — the "Guam" OHA reference case is mis-categorized and should
-  be re-scoped or removed.
+  DTMO OHA lookup is authoritative. Note on Guam: it **is** an OHA location and
+  is correctly categorized here. Guam is a non-foreign OCONUS U.S. territory, so
+  "outside the 50 states → OHA" applies (only the 50 states — including Alaska
+  and Hawaii — get BAH). An earlier note claiming "Guam is a BAH location" was
+  WRONG and has been corrected; verified 2026-05-31 against official .mil benefit
+  sources (myAirForceBenefits / myArmyBenefits restating the JTR rule).
 - **LQA — still skipped (structural).** The app derives every LQA figure from a
   single per-post `baseAnnual` × invented family multipliers × grade tiers. The
   real DSSR §920 publishes discrete per-(post × group × family-size) ceilings

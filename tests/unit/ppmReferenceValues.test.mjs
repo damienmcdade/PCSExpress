@@ -26,32 +26,32 @@ import { calculatePPMEstimate } from '../../src/lib/ppmCalculator.js';
 
 const CASES = [
   {
-    name: 'E-5 / 6 YOS / 850 mi / 7,500 lb — gross incentive (100% GCC)',
-    inputs: { rank: 'E-5', yearsOfService: 6, distanceMiles: 850, estimatedWeightLbs: 7500 },
+    name: 'E-5 / 850 mi / 7,500 lb — gross incentive (100% GCC)',
+    inputs: { rank: 'E-5', distanceMiles: 850, estimatedWeightLbs: 7500 },
     field: 'grossIncentive',
     expected: null,
   },
   {
-    name: 'E-5 / 6 YOS / 850 mi / 7,500 lb — net incentive after 22% withholding',
-    inputs: { rank: 'E-5', yearsOfService: 6, distanceMiles: 850, estimatedWeightLbs: 7500 },
+    name: 'E-5 / 850 mi / 7,500 lb — net incentive after 22% withholding',
+    inputs: { rank: 'E-5', distanceMiles: 850, estimatedWeightLbs: 7500 },
     field: 'netIncentiveAfterTaxes',
     expected: null,
   },
   {
-    name: 'E-7 / 14 YOS / 1500 mi / 13,000 lb — gross incentive (100% GCC)',
-    inputs: { rank: 'E-7', yearsOfService: 14, distanceMiles: 1500, estimatedWeightLbs: 13000 },
+    name: 'E-7 / 1500 mi / 13,000 lb — gross incentive (100% GCC)',
+    inputs: { rank: 'E-7', distanceMiles: 1500, estimatedWeightLbs: 13000 },
     field: 'grossIncentive',
     expected: null,
   },
   {
-    name: 'O-3 / 8 YOS / 1200 mi / 12,000 lb — gross incentive (100% GCC)',
-    inputs: { rank: 'O-3', yearsOfService: 8, distanceMiles: 1200, estimatedWeightLbs: 12000 },
+    name: 'O-3 / 1200 mi / 12,000 lb — gross incentive (100% GCC)',
+    inputs: { rank: 'O-3', distanceMiles: 1200, estimatedWeightLbs: 12000 },
     field: 'grossIncentive',
     expected: null,
   },
   {
-    name: 'E-4 / 3 YOS / 400 mi / 5,000 lb — authorized weight cap (lbs)',
-    inputs: { rank: 'E-4', yearsOfService: 3, distanceMiles: 400, estimatedWeightLbs: 5000 },
+    name: 'E-4 / 400 mi / 5,000 lb — authorized weight cap (lbs)',
+    inputs: { rank: 'E-4', distanceMiles: 400, estimatedWeightLbs: 5000 },
     field: 'authorizedWeightLbs',
     // VERIFIED 2026-05-31: E-4 with-dependents HHG weight allowance is
     // 8,000 lb per the JTR (Table 5-37 / DTMO weight-allowance table) — a
