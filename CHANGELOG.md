@@ -6,6 +6,24 @@ All notable changes to PCS Express. Dates are the release date. The
 while native build numbers (`CFBundleVersion` / `versionCode`) increment per
 store submission.
 
+## [1.1.10] — 2026-05-31
+
+### Refactor — Tier 1b PR-A (enable per-tab code-splitting)
+Behavior-identical structural move (no runtime/perf change yet) that unblocks
+splitting the inline tabs out of the 7,939-line `App.jsx`.
+- **New leaf module `src/lib/installationSources.js`** holding the cross-tab
+  shared helpers — `getInstallationSearchLocation`, `googleSearchUrl`,
+  `officialSchoolSearchUrl`, `official{School,College}Cards`,
+  `veteranBusiness{BubbleLinks,DiscoveryCards}`. These were defined in `App.jsx`
+  and used by `SchoolsTab`, `VeteranBusinessesTab`, and `EducationBenefitsTab`,
+  so extracting any one tab would have created a circular import — now resolved.
+- Removed the dead `ALL_BASES` placeholder and the now-unused `VET_BIZ_CITY`
+  import from `App.jsx` (both live in the new leaf module).
+- No chunk-size change yet: the helpers are still imported eagerly by `App.jsx`.
+  The eager `index` bundle shrinks in the follow-up PRs when each consuming tab
+  is moved to its own `lazy()` chunk (verifiable via the demo-profile + `?go=`
+  deep-link Playwright path established this session).
+
 ## [1.1.9] — 2026-05-31
 
 ### Performance — Tier 1a (safe React.memo on the heaviest tabs)
