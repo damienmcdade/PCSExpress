@@ -2,12 +2,15 @@
  * Vercel serverless function: /api/jtr-assistant
  *
  * Mirrors the same endpoint in server/index.js, but runs directly on
- * Vercel so the live AI Assistant stays operational even when the
- * Railway service is down (which has been the case for an extended
- * period). When Railway is back, the same endpoint also exists there;
- * Vercel's filesystem-routing precedence ensures THIS file handles
- * the request first, so the Railway copy becomes redundant rather
- * than conflicting.
+ * Vercel so the live AI Assistant keeps working even during a Railway
+ * outage. This Vercel function is the PRIMARY handler for
+ * /api/jtr-assistant: Vercel's filesystem-routing precedence means it
+ * serves the request, AND vercel.json now explicitly excludes
+ * `jtr-assistant` from the Railway proxy rewrite (negative lookahead)
+ * so the routing is unambiguous and robust rather than relying on
+ * precedence alone. The identical endpoint still exists on Railway
+ * (reached by native / direct API callers and as a fallback); the two
+ * do not conflict.
  *
  * Non-streaming on purpose: keeps the function simple, sidesteps any
  * Vercel runtime / Anthropic SSE pass-through gotchas, and the client
