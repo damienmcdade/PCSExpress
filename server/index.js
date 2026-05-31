@@ -171,7 +171,17 @@ const ALWAYS_ALLOWED_ORIGINS = new Set([
   'http://localhost:5173',
   'http://localhost:3001',
 ])
-const allowedOrigins = (process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)
+// Production web origins are allowed BY DEFAULT so the deployed SPA's
+// POST /api/* (which arrives at Railway with Origin: https://pcsexpress.app
+// via the Vercel rewrite) is never rejected just because CORS_ORIGINS was
+// left unset. CORS_ORIGINS (comma-separated) ADDS further origins (e.g. a
+// preview/staging domain). This mirrors the hardcoded allowlist in
+// api/jtr-assistant.js and removes a single-point-of-failure env var.
+const DEFAULT_WEB_ORIGINS = ['https://pcsexpress.app', 'https://www.pcsexpress.app']
+const allowedOrigins = [
+  ...DEFAULT_WEB_ORIGINS,
+  ...(process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean),
+]
 // Write methods (POST, PUT, PATCH, DELETE) require a known Origin so a
 // drive-by HTML page or no-CORS curl can't trigger a state-changing
 // request just because it didn't set an Origin header. Safe methods
@@ -225,7 +235,37 @@ app.get('/health', (req, res) => {
 })
 
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ ok: 1, service: 'express-api', port: PORT })
+  const body = { ok: 1, service: 'express-api', port: PORT }
+  // ?deep=1 surfaces enough to catch a "green deploy, broken AI" — a missing
+  // ANTHROPIC_API_KEY is the most common silent prod misconfig.
+  if (req.query.deep) {
+    body.aiConfigured = !!process.env.ANTHROPIC_API_KEY
+    body.uptimeSec = Math.round(process.uptime())
+  }
+  res.status(200).json(body)
+})
+
+// === CLIENT ERROR CAPTURE (interim observability) ===
+// The SPA POSTs uncaught errors here so client crashes are at least visible in
+// the server logs. This is NOT a substitute for an error-tracking SDK with
+// alerting (Sentry/etc.) — it's the wiring to make crashes observable until a
+// DSN is added. PII-cautious: only a truncated name/message/location are
+// logged; no request body or stack with user content is retained.
+const _clientErrHits = new Map()
+function clientErrRateLimit(req, res, next) {
+  const ip = req.ip || 'unknown'; const now = Date.now()
+  if (_clientErrHits.size > 5000) { for (const [k, v] of _clientErrHits) if (now - v.windowStart > 60_000) _clientErrHits.delete(k) }
+  const e = _clientErrHits.get(ip)
+  if (!e || now - e.windowStart > 60_000) { _clientErrHits.set(ip, { windowStart: now, count: 1 }); return next() }
+  if (e.count >= 10) return res.status(429).end()
+  e.count += 1; next()
+}
+app.post('/api/client-error', clientErrRateLimit, (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  const b = req.body || {}
+  const clip = (v, n) => String(v == null ? '' : v).replace(/[\r\n]+/g, ' ').slice(0, n)
+  console.error(`[client-error] ${clip(b.name, 60)}: ${clip(b.message, 200)} @ ${clip(b.where, 100)}`)
+  res.status(204).end()
 })
 
 // === WEB PUSH READINESS ===
@@ -547,7 +587,26 @@ const AI_RATE_LIMIT = 20;          // 20 requests
 const AI_RATE_WINDOW_MS = 60_000;  // per 60 seconds
 registerRateLimitMap(_aiHits, AI_RATE_WINDOW_MS);
 
+// Global AI request ceiling — caps TOTAL Anthropic-billed calls per window
+// across ALL IPs on this instance, so an attacker rotating source IPs can't
+// run up an unbounded bill past the per-IP limit. Single-instance backstop;
+// durable fleet-wide limiting needs a shared store (Vercel KV / Upstash).
+// Tune via AI_GLOBAL_HOURLY_CAP (default 1000/hr).
+const AI_GLOBAL_WINDOW_MS = 60 * 60_000;
+const AI_GLOBAL_CAP = Number(process.env.AI_GLOBAL_HOURLY_CAP) || 1000;
+let _aiGlobal = { windowStart: Date.now(), count: 0 };
+function aiGlobalCapExceeded() {
+  const now = Date.now();
+  if (now - _aiGlobal.windowStart > AI_GLOBAL_WINDOW_MS) _aiGlobal = { windowStart: now, count: 0 };
+  if (_aiGlobal.count >= AI_GLOBAL_CAP) return true;
+  _aiGlobal.count += 1;
+  return false;
+}
+
 function aiRateLimit(req, res, next) {
+  if (aiGlobalCapExceeded()) {
+    return res.status(429).json({ error: 'The assistant is at capacity right now. Please try again shortly.' });
+  }
   const ip = req.ip || 'unknown';
   const now = Date.now();
   const entry = _aiHits.get(ip);
@@ -2232,6 +2291,41 @@ async function geocodeNominatim(input) {
   return null
 }
 
+// Public, cached geocode proxy. The browser should NOT call Nominatim
+// directly — OSM's usage policy wants a single, identified (User-Agent),
+// rate-limited, cached backend rather than uncontrolled per-client requests.
+// Used by the route planner (NavigationModule) and base map (BaseMapModule).
+const GEOCODE_PROXY_CACHE = new Map()
+const _geoProxyHits = new Map()
+registerRateLimitMap(_geoProxyHits, 60_000)
+function geocodeProxyRateLimit(req, res, next) {
+  const ip = req.ip || 'unknown'; const now = Date.now()
+  const e = _geoProxyHits.get(ip)
+  if (!e || now - e.windowStart > 60_000) { _geoProxyHits.set(ip, { windowStart: now, count: 1 }); return next() }
+  if (e.count >= 30) return res.status(429).json({ error: 'rate-limited' })
+  e.count += 1; next()
+}
+app.get('/api/geocode', geocodeProxyRateLimit, async (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=86400')
+  // Light sanitize only: cap length + strip control chars. Commas/letters are
+  // legitimate in addresses and the value is encodeURIComponent'd upstream.
+  const q = String(req.query.q || '').replace(/[\x00-\x1F\x7F]+/g, ' ').trim().slice(0, 200)
+  if (!q) return res.status(400).json({ error: 'q required' })
+  const cached = GEOCODE_PROXY_CACHE.get(q)
+  if (cached && Date.now() - cached.fetchedAt < 24 * 60 * 60 * 1000) return res.json(cached.result)
+  try {
+    const hit = await geocodeNominatimOnce(q)
+    const result = (hit && Number.isFinite(hit.lat) && Number.isFinite(hit.lng))
+      ? { lat: hit.lat, lng: hit.lng, display: hit.displayName }
+      : null
+    if (result) cacheSet(GEOCODE_PROXY_CACHE, q, { result, fetchedAt: Date.now() })
+    return res.json(result || { error: 'not-found' })
+  } catch (err) {
+    console.error(`[geocode-proxy] ${err.message}`)
+    return res.status(502).json({ error: 'geocode-failed' })
+  }
+})
+
 // Mirrors with persistent 4xx in the last 60s are temporarily skipped.
 // Keeps overpass-api.de's "406 Not Acceptable" responses from costing
 // us a fetch round-trip every request.
@@ -2320,6 +2414,9 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
 const _jtrHits = new Map()
 registerRateLimitMap(_jtrHits, 60_000)
 function jtrAssistantRateLimit(req, res, next) {
+  if (aiGlobalCapExceeded()) {
+    return res.status(429).json({ error: 'The assistant is at capacity right now. Please try again shortly.' })
+  }
   const ip = req.ip || 'unknown'
   const now = Date.now()
   const entry = _jtrHits.get(ip)
@@ -2584,6 +2681,16 @@ if (fs.existsSync(distPath)) {
   console.log('[SERVER] Frontend: MISSING (build not run)')
 }
 
+// Terminal error-handling middleware (4-arg). Without this, an error thrown
+// outside a route's own try/catch falls to Express's default handler, which
+// leaks a stack trace and returns unstructured HTML. This returns a clean
+// JSON 500 and logs the error (message only — no request body, to avoid PII).
+app.use((err, req, res, next) => {
+  console.error(`[SERVER] unhandled route error ${req.method} ${req.path}: ${err && err.message ? err.message : err}`)
+  if (res.headersSent) return next(err)
+  res.status(500).json({ error: 'internal-server-error' })
+})
+
 // === START SERVER ===
 // CRITICAL: Listen on 0.0.0.0 for Railway
 const server = app.listen(PORT, HOST, () => {
@@ -2599,25 +2706,35 @@ server.keepAliveTimeout = 65000
 server.headersTimeout = 66000
 
 // === GRACEFUL SHUTDOWN ===
-process.on('SIGTERM', () => {
-  console.log('[SERVER] SIGTERM received, shutting down gracefully...')
+function gracefulShutdown(signal) {
+  console.log(`[SERVER] ${signal} received, shutting down gracefully...`)
+  // Force-exit if open connections (e.g. a long-lived SSE stream) keep
+  // server.close() from completing, so Railway doesn't have to SIGKILL us.
+  const force = setTimeout(() => {
+    console.error('[SERVER] shutdown timed out after 10s, forcing exit')
+    process.exit(1)
+  }, 10_000)
+  force.unref()
   server.close(() => {
+    clearTimeout(force)
     console.log('[SERVER] Server closed')
     process.exit(0)
   })
-})
+}
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
+process.on('SIGINT', () => gracefulShutdown('SIGINT'))
 
-process.on('SIGINT', () => {
-  console.log('[SERVER] SIGINT received, shutting down gracefully...')
-  server.close(() => {
-    console.log('[SERVER] Server closed')
-    process.exit(0)
-  })
-})
-
-// Handle unhandled promise rejections
+// Handle unhandled promise rejections (log; don't crash — handlers wrap their work)
 process.on('unhandledRejection', (reason, promise) => {
   console.error('[SERVER] Unhandled Rejection at:', promise, 'reason:', reason)
+})
+
+// A truly uncaught synchronous exception leaves the process in an undefined
+// state. Log it and exit so Railway restarts a clean process (restartPolicy:
+// on_failure) rather than serving from a corrupted one.
+process.on('uncaughtException', (err) => {
+  console.error('[SERVER] Uncaught Exception:', err && err.stack ? err.stack : err)
+  process.exit(1)
 })
 
 export default app

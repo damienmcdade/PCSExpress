@@ -167,7 +167,7 @@
     </ul>
 
     <h2>7. Advertising (Google AdSense)</h2>
-    <p>PCS Express has applied for the Google AdSense program and uses the standard AdSense initialization script on its public pages. Our publisher ID is declared in our <code>ads.txt</code> file. While AdSense is loaded, no third-party ad-personalization cookies are set unless and until you explicitly opt in to personalized ads in a future consent control. Google may use cookies to serve non-personalized ads based on the page content and your general (IP-derived) location. Google's use of advertising cookies in this context is described in Google's <a href="https://policies.google.com/technologies/ads" rel="noopener noreferrer" target="_blank">Advertising Privacy &amp; Terms</a> notice. Users in California, the EU/EEA, and the UK can decline cookies via their browser settings; non-personalized ads will continue to be served.</p>
+    <p>PCS Express has applied for the Google AdSense program and our publisher ID is declared in our <code>ads.txt</code> file, but <strong>advertising is not currently served</strong> on the web app, and never inside the iOS/Android apps. The AdSense script does not load and sets no advertising cookies until you grant consent through a Consent Management Platform — which is not yet enabled. Before any ads are served, we will: (a) require prior consent in the EU/EEA and the UK via a Google-certified consent banner, (b) default to non-personalized ads, and (c) update this notice with the data Google receives. Google's use of advertising cookies is described in Google's <a href="https://policies.google.com/technologies/ads" rel="noopener noreferrer" target="_blank">Advertising Privacy &amp; Terms</a> notice.</p>
     <p>If we ever introduce personalized ads, a granular consent banner will be added before personalization is enabled — including a clearly-labelled opt-out for users covered by CCPA / CPRA / GDPR / ePrivacy.</p>
 
     <h2>8. Data we receive automatically</h2>
@@ -185,7 +185,7 @@
     <h2>11. Security</h2>
     <ul>
       <li>HTTPS enforced for every request (HSTS with <code>preload</code>).</li>
-      <li>Strict Content Security Policy (<code>default-src 'self'</code>, no inline scripts under default profile).</li>
+      <li>Content Security Policy with <code>default-src 'self'</code>, <code>object-src 'none'</code>, <code>frame-ancestors 'self'</code>, and an explicit allowlist of the few third-party script/frame origins required for maps and (when enabled) advertising.</li>
       <li>Push endpoints restricted by hostname allowlist.</li>
       <li>AI prompts sanitized for prompt-injection and capped in length.</li>
     </ul>

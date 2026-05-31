@@ -1684,7 +1684,7 @@ export default function DutyStationDirectory({ theme, profile }) {
                 <div style={{ fontSize: 10, fontWeight: 900, color: '#56697C', marginBottom: 6 }}>SCHOOL DISTRICT</div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: '#0D1821', marginBottom: 8 }}>{data.schools.district}</div>
                 <RatingStars rating={data.schools.rating} />
-                <div style={{ fontSize: 11, color: '#56697C', marginTop: 4 }}>Community satisfaction rating</div>
+                <div style={{ fontSize: 11, color: '#56697C', marginTop: 4 }}>Editorial summary rating — a rough planning reference, <strong>not</strong> sourced from GreatSchools, Niche, or U.S. News. Verify with the district and <a href="https://nces.ed.gov/ccd/schoolsearch/" target="_blank" rel="noopener noreferrer" style={{ color: '#0D3B66' }}>NCES</a> before deciding.</div>
               </div>
               {data.schools.dodea && (
                 <div style={{ background: '#E8F5E9', border: '1px solid #A5D6A7', borderRadius: 12, padding: '10px 14px' }}>

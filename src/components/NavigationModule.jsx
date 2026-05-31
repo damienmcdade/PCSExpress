@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from 'react'
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 import BaseMapModule from './BaseMapModule'
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
+import { apiUrl } from '../config/apiConfig'
 import TabBar from './TabBar'
 
 function NavigationModule({ theme, profile }) {
@@ -39,14 +40,17 @@ function NavigationModule({ theme, profile }) {
   const BASE_MAPS = {};
   const POPULAR_ROUTES = {};
 
-  // Geocode helper using Nominatim
+  // Geocode via the server proxy (cached, rate-limited, properly identified to
+  // OSM) instead of calling Nominatim directly from the browser.
   const geocode = async (address) => {
-    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`, {
-      headers: { 'Accept-Language': 'en' }
+    const r = await fetch(apiUrl(`/api/geocode?q=${encodeURIComponent(address)}`), {
+      headers: { Accept: 'application/json' }
     });
     const d = await r.json();
-    if (!d.length) throw new Error(`Address not found: "${address}"`);
-    return { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon), display: d[0].display_name };
+    if (!d || d.error || !Number.isFinite(d.lat) || !Number.isFinite(d.lng)) {
+      throw new Error(`Address not found: "${address}"`);
+    }
+    return { lat: d.lat, lng: d.lng, display: d.display };
   };
 
   // Format duration from seconds

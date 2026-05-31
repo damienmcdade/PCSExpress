@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { publicMapEmbedUrl, publicMapSearchUrl } from '../lib/mapEmbedUrl';
 import { findKnownMarket } from '../data/installationMarkets';
+import { apiUrl } from '../config/apiConfig';
 
 const OFFICIAL_INSTALLATION_DIRECTORY = 'https://installations.militaryonesource.mil/';
 const MILITARY_ONESOURCE_OVERVIEW = 'https://www.militaryonesource.mil/resources/network/militaryinstallations/';
@@ -157,19 +158,20 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
       for (const q of candidates) {
         if (cancelled) return;
         try {
-          const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`, {
+          // Geocode via the server proxy (cached + identified to OSM) rather
+          // than calling Nominatim directly from the browser.
+          const r = await fetch(apiUrl(`/api/geocode?q=${encodeURIComponent(q)}`), {
             headers: { Accept: 'application/json' },
           });
           if (!r.ok) continue;
-          const data = await r.json();
-          const hit = Array.isArray(data) && data[0];
-          if (hit) {
+          const hit = await r.json();
+          if (hit && !hit.error) {
             if (cancelled) return;
-            const lat = parseFloat(hit.lat);
-            const lng = parseFloat(hit.lon);
+            const lat = Number(hit.lat);
+            const lng = Number(hit.lon ?? hit.lng);
             // Only treat as 'ready' when both coords are finite — a
-            // malformed Nominatim row would otherwise build a NaN,NaN
-            // embed URL and skip the text-query fallback.
+            // malformed row would otherwise build a NaN,NaN embed URL and
+            // skip the text-query fallback.
             if (Number.isFinite(lat) && Number.isFinite(lng)) {
               setGeo({ status: 'ready', lat, lng });
               return;

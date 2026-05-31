@@ -131,8 +131,9 @@ email address associated with your inquiry.
 ## 11. Security
 
 - HTTPS is enforced for every request (HSTS with `preload`).
-- A strict Content Security Policy is applied (`default-src 'self'`,
-  no `unsafe-inline` in script-src under the default profile).
+- A Content Security Policy is applied (`default-src 'self'`, `object-src
+  'none'`, `frame-ancestors 'self'`) with an explicit allowlist of the few
+  third-party script/frame origins required for maps and (when enabled) ads.
 - Push-notification endpoints are restricted by hostname allowlist.
 - AI prompts are sanitized for prompt-injection and capped in length
   before being forwarded.

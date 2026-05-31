@@ -2116,6 +2116,11 @@ function SchoolsTab({ theme, profile }) {
             </div>
           )}
           {!instName && <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 20, textAlign: 'center', color: '#666', fontSize: 12 }}>Complete onboarding to see schools near your installation.</div>}
+          {filteredSchools.length > 0 && (
+            <div style={{ fontSize: 10, color: '#6D4C00', background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 8, padding: '8px 10px', lineHeight: 1.5, marginBottom: 10 }}>
+              ⚠️ Star ratings are <strong>editorial planning estimates</strong>, not sourced from GreatSchools, Niche, or U.S. News. Verify each school on <a href="https://nces.ed.gov/ccd/schoolsearch/" target="_blank" rel="noopener noreferrer" style={{ color: '#0D3B66' }}>NCES SchoolSearch</a> or the school's website before making decisions.
+            </div>
+          )}
           {filteredSchools.map((school, idx) => (
             <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
