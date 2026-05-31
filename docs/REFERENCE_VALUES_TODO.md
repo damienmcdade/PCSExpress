@@ -112,3 +112,15 @@ sources. Outcome:
   To make LQA reference-verifiable, the model would need to store real §920
   cells. Until then these stay skipped and the UI's planning-estimate
   disclaimer carries the caveat.
+
+---
+
+## 2026-05-31 UPDATE — BAH fully reconciled to authoritative source
+
+The "BAH staleness signal" was confirmed: the hand-entered table was wrong for
+**106 of 109 MHAs**. The full table has been **reconciled to the official DTMO
+2026 BAH rates** (see docs/BAH_RECONCILIATION.md), and all **5 BAH reference
+cases now PASS** (no longer skipped). 107/109 MHAs are authoritative; the 2
+without a published CONUS row (San Juan PR, Red River/Texarkana) remain
+estimates. OHA and LQA remain skipped (interactive-only sources / structural
+model — unchanged).

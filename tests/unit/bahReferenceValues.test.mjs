@@ -3,8 +3,9 @@
  *
  * Each case below pins a known scenario to an expected dollar amount the
  * maintainer hand-verified against an authoritative DTMO publication on a
- * specific date. Cases with `expected: null` are PLACEHOLDERS — they skip
- * (not pass, not fail) until a human fills in the verified value.
+ * specific date. These values were verified 2026-05-31 against the official DTMO 2026 BAH
+ * full-rate tables (effective 1 Jan 2026), the same source the app's table
+ * was reconciled to. See scripts/bah-reconcile/ and docs/REFERENCE_VALUES_TODO.md.
  *
  * To verify a case:
  *   1) Open https://www.travel.dod.mil/Allowances/Basic-Allowance-for-Housing/BAH-Rate-Lookup/
@@ -22,35 +23,35 @@ const CASES = [
     installation: 'Fort Liberty',
     payGrade: 'E-5',
     withDeps: true,
-    expected: null,
+    expected: 1806, // DTMO 2026 official table (verified 2026-05-31)
   },
   {
     name: 'Fort Liberty, E-5, no dependents',
     installation: 'Fort Liberty',
     payGrade: 'E-5',
     withDeps: false,
-    expected: null,
+    expected: 1527, // DTMO 2026 official table (verified 2026-05-31)
   },
   {
     name: 'Naval Station Norfolk, E-7, with dependents',
     installation: 'Naval Station Norfolk',
     payGrade: 'E-7',
     withDeps: true,
-    expected: null,
+    expected: 2604, // DTMO 2026 official table (verified 2026-05-31)
   },
   {
     name: 'Joint Base Lewis-McChord, O-3, with dependents',
     installation: 'Joint Base Lewis-McChord',
     payGrade: 'O-3',
     withDeps: true,
-    expected: null,
+    expected: 3123, // DTMO 2026 official table (verified 2026-05-31)
   },
   {
     name: 'Fort Carson, E-4, no dependents',
     installation: 'Fort Carson',
     payGrade: 'E-4',
     withDeps: false,
-    expected: null,
+    expected: 1689, // DTMO 2026 official table (verified 2026-05-31)
   },
 ];
 
