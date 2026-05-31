@@ -6,6 +6,36 @@ All notable changes to PCS Express. Dates are the release date. The
 while native build numbers (`CFBundleVersion` / `versionCode`) increment per
 store submission.
 
+## [1.1.6] — 2026-05-31
+
+### Added
+- **Web push sender wired end to end.** The client (`src/pushNotifications.js`)
+  and service worker (`public/pcs-sw.js`) were already complete; this adds the
+  missing server dispatcher. `web-push` is now a dependency, `setVapidDetails`
+  is configured at boot (guarded — a half-configured deploy stays in
+  subscribe-only mode instead of crashing), and a new authenticated
+  `POST /api/push-dispatch` broadcasts a `{ title, body, tab, tag }`
+  notification to every stored subscription.
+  - **Auth:** requires the `PUSH_DISPATCH_KEY` shared secret via
+    `Authorization: Bearer …` or `X-Push-Dispatch-Key` (header, not body, so it
+    never lands in body logs), compared in constant time (`secretsMatch`,
+    SHA-256 + `timingSafeEqual`). No key configured ⇒ `503` (a fresh deploy
+    can't be made to spam users); wrong key ⇒ `403`. Dedicated per-IP rate
+    limit (10/min). Exempted from the Origin-on-write CSRF guard since the
+    Bearer secret is the stronger guarantee and machine callers send no Origin.
+  - **Payload safety:** `buildPushPayload` strips control chars, collapses
+    whitespace, length-caps title/body, and slug-restricts `tab` so it can't
+    inject path/query/scheme into the `/?go=<tab>` deep link.
+  - **Self-healing store:** subscriptions that return `404`/`410` (gone) are
+    pruned from the in-memory map; the response reports `sent`/`failed`/`pruned`.
+  - 10 new unit tests cover `buildPushPayload` + `secretsMatch`. Docs refreshed
+    (`docs/PUSH_SETUP.md`, `.env.example`).
+
+### Ops (not code)
+- **`PUSH_DISPATCH_KEY` provisioned** on Railway (alongside the VAPID keypair),
+  so `/api/push-dispatch` is live and authorized. Retrieve the value from the
+  Railway service Variables to send a broadcast.
+
 ## [1.1.5] — 2026-05-31
 
 ### Fixed — from end-to-end audit

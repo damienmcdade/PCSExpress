@@ -5,10 +5,13 @@ import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs'
+import webpush from 'web-push'
 import {
   sanitizeForPrompt,
   isAllowedPushEndpoint,
   isValidPushSubscription,
+  buildPushPayload,
+  secretsMatch,
   redactUpstreamError,
 } from './lib/security.js'
 import {
@@ -214,6 +217,13 @@ app.use(cors({
 app.use((req, res, next) => {
   if (SAFE_METHODS.has(req.method)) return next()
   if (req.path === '/health' || req.path === '/api/health') return next()
+  // /api/push-dispatch is a server-to-server (operator / cron) endpoint
+  // authenticated by the PUSH_DISPATCH_KEY Bearer secret, which is a
+  // stronger anti-CSRF guarantee than an Origin header — and legitimate
+  // machine callers send no Origin. The Origin guard would otherwise 403
+  // it before its own auth runs, so exempt it here; the route enforces
+  // the token (and 503s when no key is configured).
+  if (req.path === '/api/push-dispatch') return next()
   const origin = req.headers.origin
   if (origin) {
     if (ALWAYS_ALLOWED_ORIGINS.has(origin)) return next()
@@ -273,25 +283,79 @@ app.post('/api/client-error', clientErrRateLimit, express.json({ limit: '8kb' })
   res.status(204).end()
 })
 
-// === WEB PUSH READINESS ===
+// === WEB PUSH ===
 // Until VAPID_PUBLIC_KEY is set in env, /api/push-config returns null
 // and the client treats push as unavailable. The operator generates
 // the keypair once (web-push generate-vapid-keys), pins the public
 // key to VAPID_PUBLIC_KEY and the private key to VAPID_PRIVATE_KEY,
-// then push subscribe / dispatch work end to end. See
-// docs/PUSH_SETUP.md.
+// then subscribe + dispatch work end to end. See docs/PUSH_SETUP.md.
 const VAPID_PUBLIC_KEY  = process.env.VAPID_PUBLIC_KEY  || ''
-// VAPID private key reserved for the future push-sender wiring (Phase
-// 15 shipped readiness; the signing endpoint has not landed yet).
-// Underscore-prefix so the env contract is documented without being
-// flagged as unused.
-const _VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || ''
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || ''
+// VAPID requires a contact `sub` (mailto: or https:) so a push service
+// can reach the sender about deliverability problems. Defaults to a
+// mailto if the operator didn't pin one.
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:info@cyberwaveglobal.com'
+// Shared secret that authorizes a broadcast via POST /api/push-dispatch.
+// If unset, the dispatch endpoint is hard-disabled (503) — broadcasting
+// to every subscribed device is a powerful capability and must never be
+// reachable without an explicitly configured secret.
+const PUSH_DISPATCH_KEY = process.env.PUSH_DISPATCH_KEY || ''
 
-// In-memory subscription store. Per-deploy ephemeral — fine for a
-// readiness baseline; persistent storage (Redis, Postgres) is the
-// next step when push is actually wired. We deliberately don't tie
+// Configure web-push only when BOTH keys are present. setVapidDetails
+// throws on a malformed/empty key, so guard it — a half-configured
+// deploy (public key only) stays in "subscribe works, dispatch is a
+// no-op" mode rather than crashing the server on boot.
+let PUSH_ENABLED = false
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  try {
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
+    PUSH_ENABLED = true
+  } catch (err) {
+    console.error(`[push] VAPID config rejected; dispatch disabled: ${err.message}`)
+  }
+}
+console.log(`[push] enabled=${PUSH_ENABLED} dispatch=${PUSH_DISPATCH_KEY ? 'authorized' : 'disabled (no PUSH_DISPATCH_KEY)'}`)
+
+// In-memory subscription store. Per-deploy ephemeral — acceptable
+// because Railway runs a single instance (no cross-replica fan-out
+// needed) and push here delivers *general* PCS reminders, not
+// per-user state; a restart simply re-collects subscriptions as
+// clients reconnect. Swap for Redis/Postgres if durability across
+// deploys becomes a requirement. We deliberately don't tie
 // subscriptions to user identity so the server stays metadata-only.
 const PUSH_SUBSCRIPTIONS = new Map()
+
+// Fan a single notification out to every stored subscription (or one
+// target endpoint). Stale subscriptions — a push service replies 404
+// (unknown) or 410 (Gone, user revoked) — are pruned from the Map so
+// the store self-heals and we stop re-sending to dead endpoints.
+// Returns a summary; never throws (individual failures are isolated
+// via allSettled) so a caller can always respond 200 with counts.
+async function dispatchPush(rawPayload, { onlyEndpoint = null } = {}) {
+  if (!PUSH_ENABLED) return { enabled: false, sent: 0, failed: 0, pruned: 0, total: 0 }
+  const payload = JSON.stringify(buildPushPayload(rawPayload))
+  const targets = onlyEndpoint
+    ? [PUSH_SUBSCRIPTIONS.get(onlyEndpoint)].filter(Boolean)
+    : Array.from(PUSH_SUBSCRIPTIONS.values())
+  let sent = 0, failed = 0, pruned = 0
+  const results = await Promise.allSettled(
+    targets.map(sub => webpush.sendNotification(sub, payload, { TTL: 60 * 60 }))
+  )
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled') { sent += 1; return }
+    failed += 1
+    const code = r.reason?.statusCode
+    if (code === 404 || code === 410) {
+      PUSH_SUBSCRIPTIONS.delete(targets[i].endpoint)
+      pruned += 1
+    } else {
+      // Don't log the endpoint (it's a capability URL) or the body —
+      // just the status so a misconfig is debuggable without leaking.
+      console.warn(`[push] send failed status=${code ?? 'n/a'}`)
+    }
+  })
+  return { enabled: true, sent, failed, pruned, total: targets.length }
+}
 
 app.get('/api/push-config', (req, res) => {
   res.status(200).json({ vapidPublicKey: VAPID_PUBLIC_KEY || null })
@@ -386,6 +450,55 @@ app.post('/api/push-unsubscribe', pushRateLimit, express.json({ limit: '4kb' }),
   }
   PUSH_SUBSCRIPTIONS.delete(endpoint)
   return res.status(200).json({ ok: true })
+})
+
+// Dedicated per-IP limiter for the dispatch endpoint. Separate from the
+// subscribe limiter so a wrong-token caller is throttled on its own
+// budget (slows brute-forcing PUSH_DISPATCH_KEY) without affecting the
+// public subscribe/unsubscribe flow.
+const _dispatchHits = new Map() // ip -> { count, windowStart }
+const DISPATCH_RATE_LIMIT = 10
+const DISPATCH_RATE_WINDOW_MS = 60_000
+registerRateLimitMap(_dispatchHits, DISPATCH_RATE_WINDOW_MS)
+function dispatchRateLimit(req, res, next) {
+  const ip = req.ip || 'unknown'
+  const now = Date.now()
+  const entry = _dispatchHits.get(ip)
+  if (!entry || now - entry.windowStart > DISPATCH_RATE_WINDOW_MS) {
+    _dispatchHits.set(ip, { count: 1, windowStart: now })
+    return next()
+  }
+  if (entry.count >= DISPATCH_RATE_LIMIT) {
+    return res.status(429).json({ error: 'Rate limit exceeded. Try again in a minute.' })
+  }
+  entry.count += 1
+  return next()
+}
+
+// Broadcast a push notification to every subscribed device.
+// AUTH: requires the PUSH_DISPATCH_KEY shared secret, supplied as
+// `Authorization: Bearer <key>` or `X-Push-Dispatch-Key: <key>` — a
+// header, NOT the body, so the secret never lands in request-body
+// logs. The secret is compared in constant time (secretsMatch). With
+// no PUSH_DISPATCH_KEY configured the endpoint is hard-disabled (503),
+// so a fresh deploy can't be made to spam every user. The message
+// body ({ title, body, tab, tag }) is sanitized + length-capped by
+// buildPushPayload inside dispatchPush before it leaves the server.
+app.post('/api/push-dispatch', dispatchRateLimit, express.json({ limit: '4kb' }), async (req, res) => {
+  if (!PUSH_DISPATCH_KEY) {
+    return res.status(503).json({ error: 'push-dispatch not configured' })
+  }
+  const auth = req.headers.authorization || ''
+  const bearer = auth.startsWith('Bearer ') ? auth.slice(7) : ''
+  const provided = bearer || String(req.headers['x-push-dispatch-key'] || '')
+  if (!secretsMatch(provided, PUSH_DISPATCH_KEY)) {
+    return res.status(403).json({ error: 'forbidden' })
+  }
+  if (!PUSH_ENABLED) {
+    return res.status(503).json({ error: 'push not enabled (VAPID keys unset)' })
+  }
+  const summary = await dispatchPush(req.body || {})
+  return res.status(200).json({ ok: true, ...summary })
 })
 
 // Escape hatch: wipe every form of client-side storage for the origin
