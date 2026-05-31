@@ -15,6 +15,8 @@
  * imports automatically).
  */
 
+import { createHash, timingSafeEqual } from 'node:crypto';
+
 // Strip ASCII control characters (0x00–0x1F, 0x7F) and collapse all
 // whitespace runs to a single space before any user-supplied text
 // reaches the LLM system prompt. Defends against prompt-injection
@@ -72,4 +74,41 @@ export function isValidPushSubscription(sub) {
   if (!/^[A-Za-z0-9_-]+$/.test(keys.p256dh)) return false;
   if (!/^[A-Za-z0-9_-]+$/.test(keys.auth))   return false;
   return true;
+}
+
+// Shape + sanitize an operator-supplied push message into exactly the
+// fields the service-worker `push` handler reads ({ title, body, tab,
+// tag }). Everything is control-char-stripped, whitespace-collapsed,
+// and length-capped — the payload is delivered to every subscribed
+// device by the OS push service, so an un-clipped title/body would
+// either be silently truncated by the platform or (worse) let a
+// smuggled newline split the notification. `tab` becomes part of the
+// `/?go=<tab>` deep link the notificationclick handler navigates to,
+// so it's hard-restricted to a slug charset — no path, query, or
+// scheme characters can ride through into the URL. Defaults mirror the
+// service worker's own fallbacks so an empty field degrades cleanly.
+export function buildPushPayload(input) {
+  const o = input && typeof input === 'object' ? input : {};
+  const clip = (v, n) => String(v == null ? '' : v)
+    .replace(/[\x00-\x1F\x7F]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, n);
+  const title = clip(o.title, 100) || 'PCS Express';
+  const body  = clip(o.body, 250)  || 'You have a new PCS update.';
+  const tab   = clip(o.tab, 40).replace(/[^A-Za-z0-9 _-]/g, '');
+  const tag   = clip(o.tag, 40).replace(/[^A-Za-z0-9 _:-]/g, '') || 'pcs-push';
+  return { title, body, tab, tag };
+}
+
+// Constant-time secret comparison for the push-dispatch admin token.
+// Hash both sides to a fixed-width digest first so (a) timingSafeEqual
+// never throws on a length mismatch and (b) the comparison leaks
+// nothing about the secret's length. Empty / non-string inputs always
+// fail — an unset PUSH_DISPATCH_KEY must never authenticate anyone.
+export function secretsMatch(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length === 0 || b.length === 0) return false;
+  const ha = createHash('sha256').update(a).digest();
+  const hb = createHash('sha256').update(b).digest();
+  return timingSafeEqual(ha, hb);
 }

@@ -17,6 +17,8 @@ import {
   isValidPushSubscription,
   PUSH_ENDPOINT_HOST_ALLOWLIST,
   redactUpstreamError,
+  buildPushPayload,
+  secretsMatch,
 } from '../../server/lib/security.js';
 
 // ── sanitizeForPrompt ────────────────────────────────────────────────
@@ -239,4 +241,73 @@ test('isValidPushSubscription: rejects extra attacker-supplied attempted privile
     role: 'system',
     spoofedUserId: 'attacker',
   }), true);
+});
+
+// ── buildPushPayload ─────────────────────────────────────────────────
+
+test('buildPushPayload: empty input falls back to safe defaults', () => {
+  assert.deepEqual(buildPushPayload(undefined), {
+    title: 'PCS Express', body: 'You have a new PCS update.', tab: '', tag: 'pcs-push',
+  });
+  assert.deepEqual(buildPushPayload({}), {
+    title: 'PCS Express', body: 'You have a new PCS update.', tab: '', tag: 'pcs-push',
+  });
+  assert.deepEqual(buildPushPayload('not-an-object'), {
+    title: 'PCS Express', body: 'You have a new PCS update.', tab: '', tag: 'pcs-push',
+  });
+});
+
+test('buildPushPayload: passes through ordinary message', () => {
+  assert.deepEqual(buildPushPayload({ title: 'Orders update', body: 'Your RFO posted.', tab: 'timeline', tag: 'rfo' }), {
+    title: 'Orders update', body: 'Your RFO posted.', tab: 'timeline', tag: 'rfo',
+  });
+});
+
+test('buildPushPayload: strips control chars + collapses whitespace (no newline-split)', () => {
+  const out = buildPushPayload({ title: 'Hi\n\nthere\x00', body: 'a\r\nb\tc' });
+  assert.equal(out.title, 'Hi there');
+  assert.equal(out.body, 'a b c');
+});
+
+test('buildPushPayload: caps title at 100 and body at 250', () => {
+  const out = buildPushPayload({ title: 'T'.repeat(500), body: 'B'.repeat(500) });
+  assert.equal(out.title.length, 100);
+  assert.equal(out.body.length, 250);
+});
+
+test('buildPushPayload: tab is slug-restricted (no path/query/scheme injection)', () => {
+  // A tab that tries to break out of /?go=<tab> into a new path/query
+  // or a javascript: scheme must be stripped down to the slug charset.
+  assert.equal(buildPushPayload({ tab: '../admin?x=1' }).tab, 'adminx1');
+  assert.equal(buildPushPayload({ tab: 'javascript:alert(1)' }).tab, 'javascriptalert1');
+  assert.equal(buildPushPayload({ tab: 'home_screen-2' }).tab, 'home_screen-2');
+});
+
+test('buildPushPayload: tag defaults when emptied by sanitization', () => {
+  assert.equal(buildPushPayload({ tag: '<<<>>>' }).tag, 'pcs-push');
+});
+
+// ── secretsMatch ─────────────────────────────────────────────────────
+
+test('secretsMatch: identical non-empty strings match', () => {
+  assert.equal(secretsMatch('s3cr3t-token', 's3cr3t-token'), true);
+});
+
+test('secretsMatch: different strings do not match', () => {
+  assert.equal(secretsMatch('s3cr3t-token', 's3cr3t-toke'), false);
+  assert.equal(secretsMatch('s3cr3t-token', 'totally-different'), false);
+});
+
+test('secretsMatch: empty / non-string inputs never match (unset key cannot authenticate)', () => {
+  assert.equal(secretsMatch('', ''), false);
+  assert.equal(secretsMatch('', 'anything'), false);
+  assert.equal(secretsMatch('anything', ''), false);
+  assert.equal(secretsMatch(null, null), false);
+  assert.equal(secretsMatch(undefined, 'x'), false);
+  assert.equal(secretsMatch(123, 123), false);
+});
+
+test('secretsMatch: differing lengths do not throw and return false', () => {
+  assert.doesNotThrow(() => secretsMatch('short', 'a-much-longer-secret-value'));
+  assert.equal(secretsMatch('short', 'a-much-longer-secret-value'), false);
 });
