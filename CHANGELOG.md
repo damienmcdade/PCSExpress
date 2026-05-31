@@ -35,6 +35,22 @@ store submission.
 - `release.yml` passes `VERCEL_TOKEN` via step `env:` instead of the
   `--token=` CLI flag (keeps it out of the process argument list).
 
+## [1.1.4] — 2026-05-31
+
+### Fixed — from final production e2e audit
+- **Backup-restore now rejects oversized files before reading them.**
+  `importPersonalDataFromFile` read `file.text()` + `JSON.parse` with no size
+  gate — a mistaken or hostile multi-hundred-MB file could OOM the tab. Now caps
+  at 5 MB (a real export is a few KB) before any read.
+- **Added a per-instance global hourly cap to the Vercel `jtr-assistant`
+  function** (the primary web AI endpoint). It previously had only a per-IP
+  in-memory limiter and no global cost ceiling. The cap is incremented only just
+  before the upstream Anthropic call, so blocked/invalid requests don't burn it.
+  NOTE: this is a per-instance backstop, not fleet-wide — the durable fix is a
+  Vercel KV/Upstash counter, and the real cost controls remain an **Anthropic
+  account spend limit + a Vercel WAF rate-limit** on `/api/jtr-assistant`
+  (operator actions; see DEPLOYMENT runbook).
+
 ## [1.1.3] — 2026-05-31
 
 ### Changed — routing clarity (resolves audit H1)
