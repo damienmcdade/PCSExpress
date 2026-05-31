@@ -6,6 +6,22 @@ All notable changes to PCS Express. Dates are the release date. The
 while native build numbers (`CFBundleVersion` / `versionCode`) increment per
 store submission.
 
+## [1.1.12] — 2026-05-31
+
+### Performance — Tier 1b PR-C (more eager-bundle cuts)
+- **Extracted `VeteranBusinessesTab` and `ResourcesTab` into `lazy()` chunks**
+  (`src/components/{VeteranBusinessesTab,ResourcesTab}.jsx`). Both were clean
+  contiguous blocks; shared helpers come from the PR-A leaf module. The
+  `React.memo` on `VeteranBusinessesTab` is preserved as `memo(lazy(...))`.
+- **Eager `index` bundle: 359 KB → 335 KB (gzip 105.5 → 99.6 KB)** — now under
+  100 KB gzip on the critical path (down from 136 KB at the start of Tier 1b).
+  New on-demand chunks: VeteranBusinessesTab ~13 KB, ResourcesTab ~12 KB.
+- Removed the now-unused `usePullToRefresh` + `veteranBusiness*` imports from
+  `App.jsx`. Verbatim moves; verified via lint, 204 unit + 112 component tests,
+  build (split chunks), isolated render tests for both tabs, and app smoke.
+
+Cumulative Tier 1b: eager `index` 539 KB → 335 KB (gzip 136 → 99.6 KB).
+
 ## [1.1.11] — 2026-05-31
 
 ### Performance — Tier 1b PR-B (first eager-bundle reduction)
