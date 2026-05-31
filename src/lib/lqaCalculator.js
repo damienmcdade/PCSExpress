@@ -204,7 +204,13 @@ function lookupGroupTier(group) {
 }
 
 function lookupFamilyMult(familySize) {
-  return FAMILY_BUCKETS.find(b => b.value === familySize)?.mult ?? 1.00;
+  // FAMILY_BUCKETS values are the UPPER bound of each range (4 = "3–4
+  // persons", 6 = "5–6", 7 = "7+"). Snap an arbitrary head-count to its
+  // bucket so a family of 3 or 5 gets the right multiplier instead of
+  // silently falling through to 1.00.
+  const n = Math.max(1, Math.floor(Number(familySize) || 1));
+  const bucket = FAMILY_BUCKETS.find(b => n <= b.value) || FAMILY_BUCKETS[FAMILY_BUCKETS.length - 1];
+  return bucket.mult;
 }
 
 // Annual LQA ceiling for (post, grade-group, family-size). Mirrors how the

@@ -165,8 +165,15 @@ export default function BaseMapModule({ theme = {}, profile = {} }) {
           const hit = Array.isArray(data) && data[0];
           if (hit) {
             if (cancelled) return;
-            setGeo({ status: 'ready', lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) });
-            return;
+            const lat = parseFloat(hit.lat);
+            const lng = parseFloat(hit.lon);
+            // Only treat as 'ready' when both coords are finite — a
+            // malformed Nominatim row would otherwise build a NaN,NaN
+            // embed URL and skip the text-query fallback.
+            if (Number.isFinite(lat) && Number.isFinite(lng)) {
+              setGeo({ status: 'ready', lat, lng });
+              return;
+            }
           }
         } catch {}
       }

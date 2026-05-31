@@ -61,3 +61,22 @@ for (const c of CASES) {
     assert.equal(actual, c.expected, `${c.name}: expected ${c.expected}, got ${actual}`);
   });
 }
+
+// Family-size snapping: a head-count that isn't an exact FAMILY_BUCKETS
+// value (3, 5, 8+) must snap to the correct tier instead of falling
+// through to the 1.00 multiplier.
+test('LQA family-size snaps non-bucket counts to the right tier', () => {
+  const base = { post: 'Germany (Kaiserslautern / Ramstein)', group: 'g2' };
+  const fam2 = calculateAnnualLQA({ ...base, familySize: 2 });
+  const fam3 = calculateAnnualLQA({ ...base, familySize: 3 });
+  const fam4 = calculateAnnualLQA({ ...base, familySize: 4 });
+  const fam5 = calculateAnnualLQA({ ...base, familySize: 5 });
+  const fam6 = calculateAnnualLQA({ ...base, familySize: 6 });
+  const fam9 = calculateAnnualLQA({ ...base, familySize: 9 });
+  const fam7 = calculateAnnualLQA({ ...base, familySize: 7 });
+  assert.ok(fam3 > fam2, 'family of 3 must exceed family of 2 (was equal when it fell to 1.00)');
+  assert.equal(fam3, fam4, 'family of 3 and 4 share the "3–4" bucket');
+  assert.equal(fam5, fam6, 'family of 5 and 6 share the "5–6" bucket');
+  assert.ok(fam5 > fam4, 'the 5–6 tier exceeds the 3–4 tier');
+  assert.equal(fam9, fam7, 'family of 9 snaps to the 7+ bucket');
+});
