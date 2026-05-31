@@ -35,6 +35,22 @@ store submission.
 - `release.yml` passes `VERCEL_TOKEN` via step `env:` instead of the
   `--token=` CLI flag (keeps it out of the process argument list).
 
+## [1.1.3] — 2026-05-31
+
+### Changed — routing clarity (resolves audit H1)
+- **Made the `/api/jtr-assistant` routing explicit.** `vercel.json` now excludes
+  `jtr-assistant` from the Railway proxy rewrite via a negative lookahead
+  (`/api/((?!jtr-assistant).*)`), so the Vercel serverless function
+  (`api/jtr-assistant.js`) owns that path unambiguously instead of relying on
+  filesystem-precedence-over-rewrites alone. All other `/api/*` still proxy to
+  Railway. Refreshed the function's stale header (Railway is now reliably
+  auto-deployed). Behaviour is unchanged; the routing is just robust and
+  self-documenting now.
+- Confirmed Railway runs a **single instance** (`railway.json` sets no
+  `numReplicas`), so the in-memory per-IP + global AI rate caps are accurate as
+  shipped. A durable shared store (Vercel KV / Upstash) is only required if
+  Railway is scaled to multiple replicas — documented as deferred.
+
 ## [1.1.2] — 2026-05-31
 
 ### Fixed
