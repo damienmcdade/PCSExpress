@@ -167,6 +167,24 @@ function rateLimited(req) {
   return false;
 }
 
+// Per-instance global hourly cap on upstream AI calls — a free backstop so a
+// single warm instance can't make unbounded Anthropic calls even if the Origin
+// gate is spoofed. Like the per-IP limiter this is PER INSTANCE, not fleet-wide;
+// durable fleet-wide capping needs Vercel KV / Upstash, and the real cost
+// controls are an Anthropic account spend limit + a Vercel WAF rate-limit on
+// this path. The counter is incremented only just before the upstream call
+// (after all validation), so malformed/blocked requests never burn the budget.
+const GLOBAL_CAP = Number(process.env.AI_GLOBAL_HOURLY_CAP) || 1000;
+const GLOBAL_WINDOW_MS = 3_600_000;
+let _global = { windowStart: 0, count: 0 };
+function globalCapExceeded() {
+  const now = Date.now();
+  if (now - _global.windowStart > GLOBAL_WINDOW_MS) _global = { windowStart: now, count: 0 };
+  if (_global.count >= GLOBAL_CAP) return true;
+  _global.count += 1;
+  return false;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -233,6 +251,14 @@ export default async function handler(req, res) {
   const ctxLine = userContext
     ? `\n\nThe user's current PCS context (non-PII, drawn from their on-device profile): ${userContext}. Use this to tailor answers ("you have N open tasks in the X phase") and cite the relevant tab in PCS Express when appropriate.`
     : '';
+
+  if (globalCapExceeded()) {
+    return res.status(429).json({
+      error: 'ai-busy',
+      answer: 'The live AI Assistant is handling a lot of requests right now. Try the JTR Assistant tab inside Movement & Logistics for a curated answer, or ask again shortly.',
+      source: 'rate-limited',
+    });
+  }
 
   try {
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {

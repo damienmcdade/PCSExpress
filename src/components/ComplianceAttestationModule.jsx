@@ -71,6 +71,13 @@ async function exportPersonalDataAsFile(profile) {
 // recovery path (e.g. setting up a new phone). Returns the number of keys
 // restored. Throws with a user-facing message on a bad file.
 async function importPersonalDataFromFile(file) {
+  // A real export is a few KB. Reject anything implausibly large BEFORE reading
+  // it into memory, so a mistaken pick (or a hostile "backup") can't OOM the tab
+  // by forcing a multi-hundred-MB file.text() + JSON.parse.
+  const MAX_IMPORT_BYTES = 5_000_000;
+  if (file && typeof file.size === 'number' && file.size > MAX_IMPORT_BYTES) {
+    throw new Error('That file is too large to be a PCS Express export — pick a pcs-express-export-*.json file.');
+  }
   const text = await file.text();
   let payload;
   try { payload = JSON.parse(text); }
