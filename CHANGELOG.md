@@ -6,6 +6,24 @@ All notable changes to PCS Express. Dates are the release date. The
 while native build numbers (`CFBundleVersion` / `versionCode`) increment per
 store submission.
 
+## [1.1.9] — 2026-05-31
+
+### Performance — Tier 1a (safe React.memo on the heaviest tabs)
+- **`React.memo` on `SchoolsTab`, `ChecklistTab`, `VeteranBusinessesTab`.** They
+  receive only referentially-stable props, so they now skip re-renders when
+  `App` re-renders for unrelated reasons (notifications, AI assistant, nav
+  toggles, fetch results) — a direct INP win on the heaviest screens.
+- **Unblocked the memo safely.** `HEAVY` lazy data is subscribed only at the
+  `App` level, so a naive memo would strand a tab on the empty pre-load
+  snapshot. `SchoolsTab` and `ChecklistTab` now call `useHeavyData()` themselves
+  — its internal `forceUpdate` bypasses memo's prop comparison, so they still
+  re-render when the lazy `app-data` chunk lands. `VeteranBusinessesTab` reads no
+  `HEAVY` data, so it's memo-safe as-is.
+
+Tier 1b (extracting the inline tab components out of the 7,939-line `App.jsx`
+into lazy chunks to shrink the 538 KB eager `index` bundle) is tracked
+separately — it's a larger refactor best staged per-tab with manual QA.
+
 ## [1.1.8] — 2026-05-31
 
 ### Performance — Tier 0 (interaction latency / INP)
