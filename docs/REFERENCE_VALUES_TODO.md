@@ -124,3 +124,31 @@ cases now PASS** (no longer skipped). 107/109 MHAs are authoritative; the 2
 without a published CONUS row (San Juan PR, Red River/Texarkana) remain
 estimates. OHA and LQA remain skipped (interactive-only sources / structural
 model — unchanged).
+
+---
+
+## 2026-05-31 — OHA reconciliation ATTEMPTED; not feasible (documented)
+
+Applying the BAH approach to OHA was investigated and is **not feasible** —
+this is a genuine limitation, not "not done yet":
+
+- **No fetchable authoritative source.** Every DTMO/media.defense OHA endpoint
+  bot-blocks (403) to both curl and WebFetch, and — unlike BAH — there is **no
+  bulk mirror** (no military.com-style PDF). Third-party OHA calculators publish
+  no values either; they all redirect to the interactive DTMO OHA Rate Lookup.
+- **High volatility.** OHA rent caps change MONTHLY (currency) and QUARTERLY
+  (rent rebase), so any snapshot is stale within weeks.
+- **Granularity mismatch.** OHA is set per specific locality; the app groups
+  several localities under one region with one rate set, so even authoritative
+  data couldn't be represented exactly without restructuring the regions.
+
+Outcome: OHA rent caps remain clearly-labeled PLANNING ESTIMATES (the OHA tab
+already marks every value `tier="estimate"`, states the caps are per-locality
+and quarter-specific, and links the official DTMO OHA Rate Lookup prominently).
+The source comments and dataVersions entry were corrected to stop implying the
+values are authoritative. The 5 OHA reference-test cases stay skipped (correct —
+no verifiable source). LQA remains skipped for the same class of reasons plus
+its structural model issue.
+
+**BAH vs OHA:** BAH had a published bulk table → reconciled and verified.
+OHA does not → honestly presented as estimates. This distinction is intentional.

@@ -21,9 +21,15 @@ export const OHA_PAY_GRADES = [
   'O-1','O-1E','O-2','O-2E','O-3','O-3E','O-4','O-5','O-6','O-7','O-8','O-9','O-10',
 ];
 
-// Representative OHA monthly rent caps (USD).
-// Source: DTMO published OHA country tables. Values pin to the quarterly drop
-// recorded in DATA_VERSIONS.oha — refresh together when rotating quarters.
+// Representative OHA monthly rent caps (USD) — PLANNING ESTIMATES, not
+// authoritative. Unlike BAH (which was reconciled to DTMO's published bulk
+// table — see docs/BAH_RECONCILIATION.md), OHA is NOT published as a
+// verifiable bulk file: rates are set per specific locality and change
+// monthly/quarterly with rent surveys + exchange rates, and the only
+// authoritative source is DTMO's interactive OHA Rate Lookup (which blocks
+// scraping). These values approximate the regional ceiling for planning; the
+// UI surfaces them as estimates and links the official lookup. See
+// docs/REFERENCE_VALUES_TODO.md.
 // Values shown are rent caps — you may receive up to this amount if your
 // actual rent equals or exceeds it.
 // W/ DEPS = with at least one dependent; W/O DEPS = without dependents.

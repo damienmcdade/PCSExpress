@@ -22,12 +22,16 @@ export const DATA_VERSIONS = {
     url: 'https://www.travel.dod.mil/Allowances/Basic-Allowance-for-Housing/BAH-Rate-Lookup/',
   },
   oha: {
-    // OHA tables are republished by DTMO on a quarterly cycle (Jan / Apr / Jul / Oct).
-    // The `effective` date pins which quarterly drop our hardcoded rent caps reflect.
-    label: 'OHA / MIHA rate tables',
+    // OHA rent caps are set PER LOCALITY and change monthly (currency) and
+    // quarterly (rent rebase). Unlike BAH, DTMO does NOT publish OHA as a
+    // verifiable bulk table — only the interactive Rate Lookup is authoritative
+    // (it bot-blocks scraping). So the in-app rent caps are PLANNING ESTIMATES,
+    // surfaced as such in the UI, with the official lookup linked prominently.
+    // They cannot be auto-reconciled the way BAH was. See docs/REFERENCE_VALUES_TODO.md.
+    label: 'OHA / MIHA rate tables (planning estimates)',
     effective: '2026-01-01',
     cadence: 'quarterly',
-    source: 'DTMO published OHA country tables (Q1 2026)',
+    source: 'Planning estimates aligned to DTMO OHA tables; not bulk-verifiable (interactive lookup only)',
     url: 'https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/OHA-Rate-Lookup/',
   },
   lqa: {
