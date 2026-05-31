@@ -106,9 +106,24 @@ jobs:
             -e NODE_ENV=production \
             -p 3001:3001 \
             pcs-express:test
-          sleep 5
+          # The server takes a few seconds to bind in CI; poll the health
+          # endpoint with a timeout instead of a fixed sleep that races the
+          # startup and intermittently hits "connection refused".
+          ok=0
+          for i in $(seq 1 20); do
+            if docker exec test wget -q -O- http://localhost:3001/api/health >/dev/null 2>&1; then
+              ok=1
+              echo "✓ /api/health responded after ~$((i))s"
+              break
+            fi
+            sleep 1
+          done
           docker logs test || true
-          docker exec test wget -q -O- http://localhost:3001/api/health || exit 1
+          if [ "$ok" != "1" ]; then
+            echo "::error::Container health check never passed within 20s."
+            docker stop test; docker rm test
+            exit 1
+          fi
           docker stop test
           docker rm test
       
