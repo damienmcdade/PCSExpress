@@ -1,0 +1,81 @@
+# Web Push broadcast — manual (on-demand) + a weekly scheduled reminder.
+#
+# Calls POST /api/push-dispatch on the Railway backend, which fans the
+# notification out to every stored subscription. Auth is the
+# PUSH_DISPATCH_KEY repo secret (the SAME value set on the Railway service).
+#
+# Manual:   Actions → "Push Broadcast" → Run workflow → fill title/body/tab.
+# Schedule: Mondays 15:00 UTC — a generic PCS check-in reminder.
+#
+# If PUSH_DISPATCH_KEY isn't configured, the job warns and exits 0 (no-op)
+# rather than failing — mirrors the release.yml "missing creds → skip" design.
+
+name: Push Broadcast
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: 'Notification title'
+        required: true
+        default: 'PCS Express'
+      body:
+        description: 'Notification body'
+        required: true
+        default: 'You have a new PCS update.'
+      tab:
+        description: 'Deep-link tab slug (optional, e.g. timeline)'
+        required: false
+        default: ''
+  schedule:
+    # Weekly, Mondays 15:00 UTC (~10–11am ET).
+    - cron: '0 15 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: push-broadcast
+  cancel-in-progress: false
+
+jobs:
+  broadcast:
+    name: Dispatch push
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Send
+        env:
+          # Inputs flow through env (NOT interpolated into the script) to
+          # avoid shell injection from the free-text title/body fields.
+          PUSH_DISPATCH_KEY: ${{ secrets.PUSH_DISPATCH_KEY }}
+          API: https://pcsexpress-production.up.railway.app
+          EVENT: ${{ github.event_name }}
+          IN_TITLE: ${{ inputs.title }}
+          IN_BODY: ${{ inputs.body }}
+          IN_TAB: ${{ inputs.tab }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PUSH_DISPATCH_KEY:-}" ]; then
+            echo "::warning::PUSH_DISPATCH_KEY not configured — skipping broadcast. Add it with 'gh secret set PUSH_DISPATCH_KEY' (use the same value set on the Railway service)."
+            exit 0
+          fi
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            TITLE="$IN_TITLE"; BODY="$IN_BODY"; TAB="$IN_TAB"
+          else
+            TITLE="PCS Express — weekly check-in"
+            BODY="Review your PCS timeline and any upcoming entitlement deadlines."
+            TAB="timeline"
+          fi
+          payload=$(jq -nc --arg t "$TITLE" --arg b "$BODY" --arg tab "$TAB" '{title:$t, body:$b, tab:$tab}')
+          echo "Dispatching: $payload"
+          code=$(curl -s -o /tmp/resp.json -w '%{http_code}' -X POST "$API/api/push-dispatch" \
+            -H "Authorization: Bearer $PUSH_DISPATCH_KEY" \
+            -H 'Content-Type: application/json' \
+            -d "$payload")
+          echo "HTTP $code"; cat /tmp/resp.json 2>/dev/null || true; echo
+          if [ "$code" != "200" ]; then
+            echo "::error::push-dispatch failed (HTTP $code)"
+            exit 1
+          fi
+          echo "✓ Broadcast dispatched."

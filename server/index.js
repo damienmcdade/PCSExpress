@@ -14,6 +14,7 @@ import {
   secretsMatch,
   redactUpstreamError,
 } from './lib/security.js'
+import { createPushStore } from './lib/pushStore.js'
 import {
   containsLikelyPii,
   sanitizeQueryParam,
@@ -316,44 +317,43 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
 }
 console.log(`[push] enabled=${PUSH_ENABLED} dispatch=${PUSH_DISPATCH_KEY ? 'authorized' : 'disabled (no PUSH_DISPATCH_KEY)'}`)
 
-// In-memory subscription store. Per-deploy ephemeral — acceptable
-// because Railway runs a single instance (no cross-replica fan-out
-// needed) and push here delivers *general* PCS reminders, not
-// per-user state; a restart simply re-collects subscriptions as
-// clients reconnect. Swap for Redis/Postgres if durability across
-// deploys becomes a requirement. We deliberately don't tie
-// subscriptions to user identity so the server stays metadata-only.
-const PUSH_SUBSCRIPTIONS = new Map()
+// Subscription store. Durable Postgres when DATABASE_URL is set (survives
+// deploys + works across replicas), else an in-memory Map (also the
+// automatic fallback if Postgres init fails) — see server/lib/pushStore.js.
+// Push here delivers *general* PCS reminders, not per-user state, and we
+// deliberately don't tie subscriptions to user identity so the server
+// stays metadata-only. The store self-caps + evicts to bound growth.
+const pushStore = createPushStore({ databaseUrl: process.env.DATABASE_URL })
 
 // Fan a single notification out to every stored subscription (or one
 // target endpoint). Stale subscriptions — a push service replies 404
-// (unknown) or 410 (Gone, user revoked) — are pruned from the Map so
-// the store self-heals and we stop re-sending to dead endpoints.
-// Returns a summary; never throws (individual failures are isolated
-// via allSettled) so a caller can always respond 200 with counts.
+// (unknown) or 410 (Gone, user revoked) — are pruned from the store so
+// it self-heals and we stop re-sending to dead endpoints. Returns a
+// summary; never throws (individual sends are isolated via allSettled)
+// so a caller can always respond 200 with counts.
 async function dispatchPush(rawPayload, { onlyEndpoint = null } = {}) {
   if (!PUSH_ENABLED) return { enabled: false, sent: 0, failed: 0, pruned: 0, total: 0 }
   const payload = JSON.stringify(buildPushPayload(rawPayload))
   const targets = onlyEndpoint
-    ? [PUSH_SUBSCRIPTIONS.get(onlyEndpoint)].filter(Boolean)
-    : Array.from(PUSH_SUBSCRIPTIONS.values())
+    ? [await pushStore.get(onlyEndpoint)].filter(Boolean)
+    : await pushStore.all()
   let sent = 0, failed = 0, pruned = 0
   const results = await Promise.allSettled(
     targets.map(sub => webpush.sendNotification(sub, payload, { TTL: 60 * 60 }))
   )
-  results.forEach((r, i) => {
+  await Promise.all(results.map(async (r, i) => {
     if (r.status === 'fulfilled') { sent += 1; return }
     failed += 1
     const code = r.reason?.statusCode
     if (code === 404 || code === 410) {
-      PUSH_SUBSCRIPTIONS.delete(targets[i].endpoint)
+      await pushStore.remove(targets[i].endpoint)
       pruned += 1
     } else {
       // Don't log the endpoint (it's a capability URL) or the body —
       // just the status so a misconfig is debuggable without leaking.
       console.warn(`[push] send failed status=${code ?? 'n/a'}`)
     }
-  })
+  }))
   return { enabled: true, sent, failed, pruned, total: targets.length }
 }
 
@@ -416,40 +416,39 @@ function pushRateLimit(req, res, next) {
 
 // Push endpoint validation is in server/lib/security.js so the
 // security-critical checks are unit-testable without booting Express.
-// PUSH_SUBSCRIPTIONS_MAX stays here because it's tied to the
-// in-memory Map sized below.
-const PUSH_SUBSCRIPTIONS_MAX = 10_000
+// The cap/eviction now lives in the store (server/lib/pushStore.js).
 
-app.post('/api/push-subscribe', pushRateLimit, express.json({ limit: '4kb' }), (req, res) => {
+app.post('/api/push-subscribe', pushRateLimit, express.json({ limit: '4kb' }), async (req, res) => {
   const sub = req.body
   if (!isValidPushSubscription(sub)) {
     return res.status(400).json({ error: 'invalid-subscription' })
   }
-  // Evict the oldest entry if we'd otherwise exceed the cap. Map
-  // iteration order in V8 is insertion order, so .keys().next()
-  // returns the earliest-inserted endpoint.
-  if (!PUSH_SUBSCRIPTIONS.has(sub.endpoint) && PUSH_SUBSCRIPTIONS.size >= PUSH_SUBSCRIPTIONS_MAX) {
-    const oldest = PUSH_SUBSCRIPTIONS.keys().next().value
-    if (oldest) PUSH_SUBSCRIPTIONS.delete(oldest)
+  // Persist ONLY the fields we need (endpoint + keys). Anything else the
+  // client attached is dropped here — defence against a smuggled extra
+  // metadata field the dispatcher might mistakenly forward. The store
+  // upserts (idempotent re-subscribe) and self-caps/evicts.
+  try {
+    await pushStore.upsert({ endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } })
+    const count = await pushStore.size()
+    return res.status(200).json({ ok: true, count })
+  } catch (err) {
+    console.error(`[push] subscribe store error: ${err.message}`)
+    return res.status(503).json({ error: 'subscription-store-unavailable' })
   }
-  // Store ONLY the fields we need (endpoint + keys). Drops anything
-  // else the client tried to attach — defence against an attacker
-  // sneaking in extra metadata fields that a future dispatcher might
-  // mistakenly forward.
-  PUSH_SUBSCRIPTIONS.set(sub.endpoint, {
-    endpoint: sub.endpoint,
-    keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth },
-  })
-  return res.status(200).json({ ok: true, count: PUSH_SUBSCRIPTIONS.size })
 })
 
-app.post('/api/push-unsubscribe', pushRateLimit, express.json({ limit: '4kb' }), (req, res) => {
+app.post('/api/push-unsubscribe', pushRateLimit, express.json({ limit: '4kb' }), async (req, res) => {
   const endpoint = req.body?.endpoint
   if (typeof endpoint !== 'string' || !isAllowedPushEndpoint(endpoint)) {
     return res.status(400).json({ error: 'invalid-endpoint' })
   }
-  PUSH_SUBSCRIPTIONS.delete(endpoint)
-  return res.status(200).json({ ok: true })
+  try {
+    await pushStore.remove(endpoint)
+    return res.status(200).json({ ok: true })
+  } catch (err) {
+    console.error(`[push] unsubscribe store error: ${err.message}`)
+    return res.status(503).json({ error: 'subscription-store-unavailable' })
+  }
 })
 
 // Dedicated per-IP limiter for the dispatch endpoint. Separate from the
@@ -2853,8 +2852,11 @@ function gracefulShutdown(signal) {
     process.exit(1)
   }, 10_000)
   force.unref()
-  server.close(() => {
+  server.close(async () => {
     clearTimeout(force)
+    // Close the push-store pool (no-op for the in-memory backend) so
+    // Postgres connections drain cleanly on redeploy.
+    try { await pushStore.close() } catch { /* best effort */ }
     console.log('[SERVER] Server closed')
     process.exit(0)
   })

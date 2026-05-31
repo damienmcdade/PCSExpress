@@ -6,6 +6,35 @@ All notable changes to PCS Express. Dates are the release date. The
 while native build numbers (`CFBundleVersion` / `versionCode`) increment per
 store submission.
 
+## [1.1.7] — 2026-05-31
+
+### Added — push follow-ups
+- **Durable subscription store (Railway Postgres).** New `server/lib/pushStore.js`
+  with two interchangeable backends behind one async interface: Postgres (when
+  `DATABASE_URL` is set — survives deploys, works across replicas) and an
+  in-memory Map (the no-DB default *and* the automatic fallback if Postgres
+  init fails, so push never hard-breaks on a DB hiccup). Self-caps at 10k,
+  prunes 404/410 (gone) subscriptions, upserts on re-subscribe. The
+  `push-subscribe`/`push-unsubscribe`/dispatch paths are now async over the
+  store. Boot logs `[push-store] backend=postgres|memory`. Adds `pg` dependency;
+  8 new unit tests for the memory backend (Postgres backend verified against the
+  live Railway DB).
+- **Push-reminders UI toggle.** The header-bell notifications dropdown now opens
+  even with no pending alerts and includes a **Push reminders** Enable/Disable
+  toggle (`src/App.jsx`) wired to `enablePushNotifications()` /
+  `disablePushNotifications()`. Auto-hides when the browser can't do push or the
+  server has no VAPID key.
+- **Scheduled + on-demand broadcast.** `.github/workflows/push-broadcast.yml`
+  calls `/api/push-dispatch` weekly (Mondays 15:00 UTC) and via manual
+  `workflow_dispatch` (title/body/tab inputs). Inputs flow through env vars (no
+  shell injection) and JSON is built with `jq`. Uses the `PUSH_DISPATCH_KEY`
+  repo secret.
+
+### Ops (not code)
+- Provisioned **Railway Postgres** and wired `DATABASE_URL` into the PCSExpress
+  service (reference var). Set the `PUSH_DISPATCH_KEY` **GitHub Actions secret**
+  (same value as the Railway service) so the broadcast workflow is authorized.
+
 ## [1.1.6] — 2026-05-31
 
 ### Added
