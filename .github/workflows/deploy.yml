@@ -60,8 +60,8 @@ jobs:
           tags: |
             ghcr.io/damienmcdade/pcs-express:latest
             ghcr.io/damienmcdade/pcs-express:${{ github.sha }}
-          cache-from: type=registry,ref=ghcr.io/damienmcdade/pcs-express:buildcache
-          cache-to: type=registry,ref=ghcr.io/damienmcdade/pcs-express:buildcache,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Wait before retry 2
         if: steps.build_push_1.outcome == 'failure'
@@ -78,8 +78,8 @@ jobs:
           tags: |
             ghcr.io/damienmcdade/pcs-express:latest
             ghcr.io/damienmcdade/pcs-express:${{ github.sha }}
-          cache-from: type=registry,ref=ghcr.io/damienmcdade/pcs-express:buildcache
-          cache-to: type=registry,ref=ghcr.io/damienmcdade/pcs-express:buildcache,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Wait before retry 3
         if: steps.build_push_1.outcome == 'failure' && steps.build_push_2.outcome == 'failure'
@@ -94,8 +94,8 @@ jobs:
           tags: |
             ghcr.io/damienmcdade/pcs-express:latest
             ghcr.io/damienmcdade/pcs-express:${{ github.sha }}
-          cache-from: type=registry,ref=ghcr.io/damienmcdade/pcs-express:buildcache
-          cache-to: type=registry,ref=ghcr.io/damienmcdade/pcs-express:buildcache,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       
       - name: Test image
         if: github.event_name == 'pull_request'
