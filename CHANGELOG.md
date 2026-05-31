@@ -6,6 +6,26 @@ All notable changes to PCS Express. Dates are the release date. The
 while native build numbers (`CFBundleVersion` / `versionCode`) increment per
 store submission.
 
+## [1.1.13] — 2026-05-31
+
+### Performance — Tier 2 (investigated; one change, rest already-optimal)
+- **Installation picker renders a short initial slice.** `DutyStationDirectory`
+  mounted 100 buttons the moment the picker opened, before the user typed.
+  Now it renders 25 until there's a query (then expands to 100), with a
+  "Showing 25 of N — type to search" hint. Dependency-free; cuts on-open render
+  work ~75%. Typing was already `useDeferredValue`-deferred (Tier 0).
+
+### Performance — Tier 2 items verified already-optimal / not worth changing
+- **List virtualization not warranted:** curated schools are max 4 / median 3
+  per installation; live school/daycare cards are capped at 24; `filteredSchools`
+  is tiny. No long lists remain except the picker (handled above) — adding
+  `react-window` would be complexity for no measurable gain.
+- **i18n runtime already lazy for English:** verified the `AppLanguageRuntimeMount`
+  / i18n dictionary chunk (~36 KB gzip) is NOT requested on an English page load
+  (it's `lazy()` + gated on `appLanguage !== 'en'`). Only a 10.9 KB Google-Translate
+  cookie helper is eager (~1 ms parse), applied pre-render by design to avoid a
+  mixed-language flash for the 11+ supported languages — left as-is.
+
 ## [1.1.12] — 2026-05-31
 
 ### Performance — Tier 1b PR-C (more eager-bundle cuts)
