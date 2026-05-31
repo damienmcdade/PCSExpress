@@ -1538,6 +1538,7 @@ export default function DutyStationDirectory({ theme, profile }) {
         )}
 
         <input
+          aria-label="Search all installations"
           placeholder="Search all installations..."
           value={search}
           onChange={e => { setSearch(e.target.value); setShowPicker(true); }}

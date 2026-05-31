@@ -371,6 +371,7 @@ function SpouseDeploymentGuide({ theme, profile: _profile }) {
                   {/* CHECKBOX */}
                   <input
                     type="checkbox"
+                    aria-label={`Mark complete: ${item.title}`}
                     checked={isCompleted}
                     onChange={() => toggleTask(section.key, item.id)}
                     style={{ marginTop: 3, width: 18, height: 18, cursor: 'pointer', flexShrink: 0, accentColor: theme.primary }}

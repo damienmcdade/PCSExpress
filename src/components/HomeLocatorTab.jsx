@@ -277,6 +277,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
       <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 14 }}>
         <label style={{ fontSize: 11, fontWeight: 900, color: colors.muted, letterSpacing: '.08em', textTransform: 'uppercase' }}>Manual location search</label>
         <input
+          aria-label="Search by base, address, city, or ZIP"
           value={manual}
           onChange={event => setManual(event.target.value)}
           placeholder="Base, address, city, or ZIP"
