@@ -1496,6 +1496,12 @@ export default function DutyStationDirectory({ theme, profile }) {
     if (!q) return source;
     return source.filter(s => s.toLowerCase().includes(q));
   }, [deferredSearch]);
+  // Render only a short slice before the user types: opening the picker
+  // shouldn't mount 100 buttons for a list they're about to filter (and
+  // auto-fill already pre-selects their installation). Expand to 100 once
+  // they're actively searching.
+  const hasQuery = deferredSearch.trim().length > 0;
+  const visible = useMemo(() => filtered.slice(0, hasQuery ? 100 : 25), [filtered, hasQuery]);
 
   // Lookup priority: hand-curated INSTALLATION_DIRECTORY > resolved alias >
   // auto-generated from public market data. The third tier ensures every
@@ -1553,7 +1559,7 @@ export default function DutyStationDirectory({ theme, profile }) {
 
         {showPicker && (
           <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, maxHeight: 220, overflowY: 'auto', boxShadow: '0 6px 20px rgba(0,0,0,0.12)', marginTop: 4 }}>
-            {filtered.slice(0, 100).map(name => {
+            {visible.map(name => {
               // Three tiers: hand-curated > auto-generated from market data
               // > unknown. The auto-generated tier shows full housing /
               // TRICARE / schools / contacts tabs with truthful "verify
@@ -1574,6 +1580,11 @@ export default function DutyStationDirectory({ theme, profile }) {
               );
             })}
             {filtered.length === 0 && <div style={{ padding: 14, color: '#888', fontSize: 12 }}>No installations found</div>}
+            {!hasQuery && filtered.length > visible.length && (
+              <div style={{ padding: '8px 14px', color: '#888', fontSize: 11, borderTop: '1px solid #F3F4F6' }}>
+                Showing {visible.length} of {filtered.length} — type to search all installations.
+              </div>
+            )}
             <button type="button" onClick={() => setShowPicker(false)} style={{ display: 'block', width: '100%', padding: '8px 14px', fontSize: 11, color: theme.primary, cursor: 'pointer', fontWeight: 700, textAlign: 'center', borderTop: '1px solid #F0F4F8', borderLeft: 'none', borderRight: 'none', borderBottom: 'none', background: 'transparent' }}>
               Close
             </button>
