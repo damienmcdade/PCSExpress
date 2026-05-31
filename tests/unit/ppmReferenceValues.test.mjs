@@ -53,7 +53,12 @@ const CASES = [
     name: 'E-4 / 3 YOS / 400 mi / 5,000 lb — authorized weight cap (lbs)',
     inputs: { rank: 'E-4', yearsOfService: 3, distanceMiles: 400, estimatedWeightLbs: 5000 },
     field: 'authorizedWeightLbs',
-    expected: null,
+    // VERIFIED 2026-05-31: E-4 with-dependents HHG weight allowance is
+    // 8,000 lb per the JTR (Table 5-37 / DTMO weight-allowance table) — a
+    // regulatory constant, not a market estimate. The four incentive cases
+    // above stay skipped: they are GCC-MODEL outputs, not DPS-confirmed
+    // payouts, so pinning them would only test the code against itself.
+    expected: 8000,
   },
 ];
 

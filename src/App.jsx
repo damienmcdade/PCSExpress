@@ -2245,11 +2245,11 @@ function SchoolsTab({ theme, profile }) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
               <div>
                 <label style={{ fontSize: 11, fontWeight: 700, color: theme.primary, display: 'block', marginBottom: 5 }}>STUDENT AGE</label>
-                <input type="number" min="4" max="18" value={searchAge} onChange={e => setSearchAge(e.target.value)} placeholder="e.g. 9" style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, boxSizing: 'border-box' }} />
+                <input aria-label="Student age" type="number" min="4" max="18" value={searchAge} onChange={e => setSearchAge(e.target.value)} placeholder="e.g. 9" style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, boxSizing: 'border-box' }} />
               </div>
               <div>
                 <label style={{ fontSize: 11, fontWeight: 700, color: theme.primary, display: 'block', marginBottom: 5 }}>ZIP CODE</label>
-                <input type="text" value={searchZip} onChange={e => setSearchZip(e.target.value)} placeholder="e.g. 28310" style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, boxSizing: 'border-box' }} />
+                <input aria-label="ZIP code" type="text" value={searchZip} onChange={e => setSearchZip(e.target.value)} placeholder="e.g. 28310" style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, boxSizing: 'border-box' }} />
               </div>
             </div>
             {searchAge && <div style={{ fontSize: 11, color: '#56697C', marginBottom: 10 }}>Grade level: <strong>{gradeForAge(parseInt(searchAge))}</strong></div>}
@@ -5827,6 +5827,7 @@ function Onboarding({ onComplete }) {
               <div style={{ marginBottom: 14 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('departingFrom')}</label>
                 <input
+                  aria-label={ot('departingFrom')}
                   value={losingSearch || p.losingInstallation}
                   onChange={e => { setLosingSearch(e.target.value); upd('losingInstallation', e.target.value); }}
                   placeholder={ot('typeBaseName')}
@@ -5839,6 +5840,7 @@ function Onboarding({ onComplete }) {
               <div style={{ marginBottom: 14 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>{ot('reportingToLabel')}</label>
                 <input
+                  aria-label={ot('reportingToLabel')}
                   value={gainingSearch || p.gainingInstallation}
                   onChange={e => { setGainingSearch(e.target.value); updGaining(e.target.value); }}
                   placeholder={ot('typeBaseName')}
@@ -6182,6 +6184,7 @@ function FamilyFunTab({ theme, profile }) {
         <label style={{ fontSize: 10, fontWeight: 900, color: colors.muted, letterSpacing: '.08em', textTransform: 'uppercase' }}>Override search center (optional)</label>
         <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
           <input
+            aria-label="Override search center — street, city, state, or ZIP"
             value={customAddress}
             onChange={e => setCustomAddress(e.target.value)}
             placeholder="Street, city, state, or ZIP"
