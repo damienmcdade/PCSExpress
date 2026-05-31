@@ -6,6 +6,28 @@ All notable changes to PCS Express. Dates are the release date. The
 while native build numbers (`CFBundleVersion` / `versionCode`) increment per
 store submission.
 
+## [1.1.16] — 2026-05-31
+
+### Fixed — data-table cleanups (data-accuracy audit, low-severity)
+- **Invalid OCONUS ZIPs removed.** Kadena AB + six Okinawa Marine bases (Camp
+  Butler/Kinser/Courtney/Hansen/Schwab, MCAS Futenma) carried fake 5-digit
+  APO-style ZIPs (963xx) and Lajes Field a truncated `9760` — all non-geocodable
+  in their countries. Blanked them so geocoding falls back to the correct
+  city+country (no fabricated codes; exact local codes can be backfilled later).
+- **`Camp Lemonier` → `Camp Lemonnier`** (official two-n spelling) standardized
+  across the data and all five OCONUS keyword lists (App.jsx, EmploymentModule,
+  DutyStationDirectory, MedicalReadinessTab, bahCalculator) so the spelling fix
+  doesn't break OCONUS detection; matches the colleges data already-correct key.
+- **Fort Barfoot / Fort Pickett / Fort Walker / Fort A.P. Hill** added to the
+  duty-station picker (`militaryDutyStations`). They were in the market alias
+  layer but absent from the dropdown, so users couldn't select them; they now
+  resolve (Barfoot/Pickett → Blackstone VA, Walker/A.P. Hill → Bowling Green VA).
+- **LQA family-size multiplier uses the shared range-snap helper.**
+  `LQACalculatorTab` re-implemented the lookup with exact-match, which would
+  undercount family sizes between bucket bounds (3, 5 → 1.00). Exported and
+  reused `lookupFamilyMult` from the lib; added unit tests. (Latent — the UI
+  only emitted bucket values — but the two code paths now agree.)
+
 ## [1.1.15] — 2026-05-31
 
 ### Fixed — data-accuracy audit (high-confidence follow-ups)

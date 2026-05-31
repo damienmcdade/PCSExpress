@@ -70,7 +70,7 @@ function isOconusFromProfile(profile) {
     return true;
   }
   const g = String(profile?.gainingInstallation || '').toLowerCase();
-  return ['korea','germany','japan','italy','uk','okinawa','guam','bahrain','spain','belgium','kuwait','humphreys','daegu','yongsan','ramstein','kaiserslautern','wiesbaden','grafenwoehr','vilseck','baumholder','stuttgart','torii','kadena','misawa','camp zama','yokosuka','sasebo','naples','vicenza','aviano','sigonella','rota','moron','incirlik','lemonier','andersen','butler'].some(kw => g.includes(kw));
+  return ['korea','germany','japan','italy','uk','okinawa','guam','bahrain','spain','belgium','kuwait','humphreys','daegu','yongsan','ramstein','kaiserslautern','wiesbaden','grafenwoehr','vilseck','baumholder','stuttgart','torii','kadena','misawa','camp zama','yokosuka','sasebo','naples','vicenza','aviano','sigonella','rota','moron','incirlik','lemonnier','andersen','butler'].some(kw => g.includes(kw));
 }
 
 function pickRegion(profile) {
