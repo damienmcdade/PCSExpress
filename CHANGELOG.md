@@ -6,6 +6,22 @@ All notable changes to PCS Express. Dates are the release date. The
 while native build numbers (`CFBundleVersion` / `versionCode`) increment per
 store submission.
 
+## [1.1.11] — 2026-05-31
+
+### Performance — Tier 1b PR-B (first eager-bundle reduction)
+- **Extracted `EducationBenefitsTab` + its ~1,500-line college/OCONUS dataset
+  into a `lazy()` chunk** (`src/components/EducationBenefitsTab.jsx`):
+  `INSTALLATION_COLLEGES`, the 22 OCONUS partner-school bundles, `OCONUS_COLLEGES`,
+  `COLLEGE_ENROLLMENT_LINKS`, `getCollegeEnrollmentLinks`. All were used only by
+  this tab (0 external refs), so the move is clean; shared helpers come from the
+  PR-A leaf module.
+- **Eager `index` bundle: 539 KB → 359 KB (gzip 136 → 105.5 KB)** — ~30 KB off
+  the critical path. The 180 KB Education chunk now downloads only when a user
+  opens that tab, cutting startup parse/execute work.
+- Verbatim move. Verified: lint clean, 204 unit + 112 component tests, build
+  emits the split chunk, isolated render test (OCONUS + CONUS profiles) passes,
+  app smoke (clean mount) ok.
+
 ## [1.1.10] — 2026-05-31
 
 ### Refactor — Tier 1b PR-A (enable per-tab code-splitting)
