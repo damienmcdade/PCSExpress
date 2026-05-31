@@ -322,21 +322,21 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
             </div>
             {hasFred && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginBottom: hasFmr ? 10 : 0 }}>
-                {m && (
+                {typeof m?.value === 'number' && (
                   <div style={{ background: '#F4F7F7', borderLeft: `3px solid ${colors.accent}`, borderRadius: 8, padding: '8px 10px' }}>
                     <div style={{ fontSize: 9, fontWeight: 800, color: colors.muted, letterSpacing: '.06em' }}>30-YR MORTGAGE</div>
                     <div style={{ fontSize: 18, fontWeight: 900, color: colors.text, marginTop: 2 }}>{m.value.toFixed(2)}%</div>
                     <div style={{ fontSize: 9, color: colors.muted, marginTop: 2 }}>as of {fmtDate(m.asOf)} · Freddie Mac via FRED</div>
                   </div>
                 )}
-                {mhp && (
+                {typeof mhp?.value === 'number' && (
                   <div style={{ background: '#F4F7F7', borderLeft: `3px solid ${colors.accent}`, borderRadius: 8, padding: '8px 10px' }}>
                     <div style={{ fontSize: 9, fontWeight: 800, color: colors.muted, letterSpacing: '.06em' }}>MEDIAN HOME PRICE (US)</div>
                     <div style={{ fontSize: 18, fontWeight: 900, color: colors.text, marginTop: 2 }}>{usd(mhp.value * 1000)}</div>
                     <div style={{ fontSize: 9, color: colors.muted, marginTop: 2 }}>as of {fmtDate(mhp.asOf)} · Census/HUD via FRED</div>
                   </div>
                 )}
-                {s.homePriceIndex && (
+                {typeof s.homePriceIndex?.value === 'number' && (
                   <div style={{ background: '#F4F7F7', borderLeft: `3px solid ${colors.accent}`, borderRadius: 8, padding: '8px 10px' }}>
                     <div style={{ fontSize: 9, fontWeight: 800, color: colors.muted, letterSpacing: '.06em' }}>HOME PRICE INDEX</div>
                     <div style={{ fontSize: 18, fontWeight: 900, color: colors.text, marginTop: 2 }}>{s.homePriceIndex.value.toFixed(1)}</div>

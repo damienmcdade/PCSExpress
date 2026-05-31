@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
 import { apiUrl } from '../config/apiConfig'
 import TabBar from './TabBar'
@@ -175,11 +175,16 @@ export default function TranslationModule({ theme, profile }) {
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
   const [phraseCategory, setPhraseCategory] = useState('emergency');
-  const [saved, setSaved] = useState(() => store.get('translations_saved') || []);
+  // store.get (legacy sync) returns null for an encrypted envelope, so the
+  // real list loads async below. Don't seed from the sync read (it would
+  // flash an empty "Saved (0)" and a wrong count), and don't let the async
+  // hydrate clobber a translation the user saved during the load window.
+  const [saved, setSaved] = useState([]);
+  const savedDirtyRef = useRef(false);
 
   useEffect(() => {
     secureLocalStore.get('translations_saved', null).then(savedItems => {
-      if (Array.isArray(savedItems)) setSaved(savedItems);
+      if (Array.isArray(savedItems) && !savedDirtyRef.current) setSaved(savedItems);
     });
   }, []);
 
@@ -198,14 +203,17 @@ export default function TranslationModule({ theme, profile }) {
     if (aiResult) {
       setResult(aiResult);
       const entry = { id: Date.now(), original: inputText.trim(), translated: aiResult, lang: selectedLang.name, flag: selectedLang.flag, ts: new Date().toLocaleString() };
-      const next = [entry, ...saved].slice(0, 50);
-      setSaved(next);
-      store.set('translations_saved', next);
+      savedDirtyRef.current = true;
+      setSaved(prev => {
+        const next = [entry, ...prev].slice(0, 50);
+        store.set('translations_saved', next);
+        return next;
+      });
     } else {
       setResult('Translation service unavailable. Check your connection and try again.');
     }
     setLoading(false);
-  }, [inputText, selectedLang, saved]);
+  }, [inputText, selectedLang]);
 
   const SUB_TABS = [
     { id: 'phrases',   label: 'Common Phrases',         icon: '💬' },
@@ -465,7 +473,7 @@ export default function TranslationModule({ theme, profile }) {
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#0D1821' }}>{saved.length} saved translation{saved.length !== 1 ? 's' : ''}</div>
-                <button onClick={() => { setSaved([]); store.set('translations_saved', []); }} style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(229,57,53,0.08)', border: '1px solid rgba(229,57,53,0.2)', color: '#C62828', fontSize: 10, cursor: 'pointer', fontWeight: 700 }}>Clear All</button>
+                <button onClick={() => { savedDirtyRef.current = true; setSaved([]); store.set('translations_saved', []); }} style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(229,57,53,0.08)', border: '1px solid rgba(229,57,53,0.2)', color: '#C62828', fontSize: 10, cursor: 'pointer', fontWeight: 700 }}>Clear All</button>
               </div>
               {saved.map(t => (
                 <div key={t.id} style={{ background: '#FFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 10, padding: 12, marginBottom: 10 }}>

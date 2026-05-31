@@ -3,7 +3,7 @@
  * Third-party dependencies: React, Leaflet through child map modules, Capacitor bridge when running native.
  */
 
-import { Suspense, lazy, useState, useEffect, useRef, useReducer } from 'react'
+import { Suspense, lazy, useState, useEffect, useRef, useReducer, useMemo } from 'react'
 import './App.css'
 import { apiUrl } from './config/apiConfig'
 import { INDEPENDENCE_DISCLAIMER } from './config/disclaimer'
@@ -683,8 +683,6 @@ function QuickActionsRow({ theme, onJumpTo, onOpenAI, onOpenCompliance }) {
         <button
           key={a.id}
           type="button"
-          role="tab"
-          aria-selected={false}
           onClick={a.onClick}
           aria-label={a.label}
           className="pcs-quick-action"
@@ -6902,37 +6900,35 @@ function App() {
 
   // Compute pending alerts based on departure date and checklist completion
   const daysUntilDeparture = profile?.departingDate ? getDaysUntilDeparture(profile.departingDate) : null;
-  const pendingAlerts = profile?.departingDate
-    ? Object.entries(PHASE_WINDOWS)
-        .filter(([phase, win]) => {
-          if (daysUntilDeparture === null || daysUntilDeparture > win.activeAt) return false;
-          const tailoredAlerts = getTailoredChecklist(profile?.branch || 'Army', {
-            component:     profile?.component || 'Active Duty',
-            ordersType:    profile?.ordersType || '',
-            hasDependents: !!profile?.hasDependents,
-            hasChildren:   !!profile?.hasChildren,
-            hasPets:       !!profile?.hasPets,
-            moveType:      profile?.moveType || 'HHG',
-            isOverseas:    !!profile?.isOverseas,
-          });
-          const tasks = tailoredAlerts[phase] || [];
-          return tasks.some((_, i) => !checklistItems[`${phase}-${i}`]);
-        })
-        .map(([phase, win]) => ({
-          phase,
-          overdue: daysUntilDeparture < win.overdueAt,
-          daysUntil: daysUntilDeparture,
-          count: ((getTailoredChecklist(profile?.branch || 'Army', {
-            component:     profile?.component || 'Active Duty',
-            ordersType:    profile?.ordersType || '',
-            hasDependents: !!profile?.hasDependents,
-            hasChildren:   !!profile?.hasChildren,
-            hasPets:       !!profile?.hasPets,
-            moveType:      profile?.moveType || 'HHG',
-            isOverseas:    !!profile?.isOverseas,
-          })[phase]) || []).filter((_, i) => !checklistItems[`${phase}-${i}`]).length,
-        }))
-    : [];
+  // Memoized: this builds the tailored checklist (getBranchChecklist +
+  // filters over every phase), which previously ran up to ~12x on EVERY
+  // render of this 48-state component (once per phase in .filter AND again
+  // in .map). Now the checklist is built once and only when the inputs
+  // change.
+  const pendingAlerts = useMemo(() => {
+    if (!profile?.departingDate || daysUntilDeparture === null) return [];
+    const tailored = getTailoredChecklist(profile?.branch || 'Army', {
+      component:     profile?.component || 'Active Duty',
+      ordersType:    profile?.ordersType || '',
+      hasDependents: !!profile?.hasDependents,
+      hasChildren:   !!profile?.hasChildren,
+      hasPets:       !!profile?.hasPets,
+      moveType:      profile?.moveType || 'HHG',
+      isOverseas:    !!profile?.isOverseas,
+    });
+    return Object.entries(PHASE_WINDOWS)
+      .filter(([phase, win]) => {
+        if (daysUntilDeparture > win.activeAt) return false;
+        const tasks = tailored[phase] || [];
+        return tasks.some((_, i) => !checklistItems[`${phase}-${i}`]);
+      })
+      .map(([phase, win]) => ({
+        phase,
+        overdue: daysUntilDeparture < win.overdueAt,
+        daysUntil: daysUntilDeparture,
+        count: (tailored[phase] || []).filter((_, i) => !checklistItems[`${phase}-${i}`]).length,
+      }));
+  }, [profile, daysUntilDeparture, checklistItems]);
   const overdueCount = pendingAlerts.filter(a => a.overdue).length;
   const alertCount = pendingAlerts.length;
 
@@ -7174,7 +7170,7 @@ function App() {
         )}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <div style={{ background: theme.secondary, paddingTop: isNative ? 'env(safe-area-inset-top)' : 0, paddingLeft: 16, paddingRight: 16, paddingBottom: 12, borderBottom: `1px solid ${theme.accent}30`, display: 'flex', alignItems: 'center', gap: 12 }}>
-            {!isDesktop && <button onClick={() => setActiveTab('home')} style={{ background: 'none', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', padding: '2px 4px' }}>←</button>}
+            {!isDesktop && <button aria-label="Back to home" onClick={() => setActiveTab('home')} style={{ background: 'none', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', padding: '2px 4px' }}><span aria-hidden="true">←</span></button>}
             <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>{t('nav.translation')}</div>
           </div>
           <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isNative && !isDesktop ? 'calc(58px + env(safe-area-inset-bottom))' : 0 }}>

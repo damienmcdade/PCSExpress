@@ -136,9 +136,17 @@ const RATE_LIMIT = 10;
 const RATE_WINDOW_MS = 60_000;
 const _hits = new Map(); // ip -> { windowStart, count }
 function clientIp(req) {
-  const xff = req.headers?.['x-forwarded-for'];
+  // Prefer headers the Vercel edge SETS and the client cannot overwrite.
+  // `x-vercel-forwarded-for` / `x-real-ip` are platform-controlled, whereas
+  // a raw client-supplied `x-forwarded-for` can be rotated per request to
+  // dodge the per-IP limiter — so it's the last resort, not the first.
+  const h = req.headers || {};
+  const vercel = h['x-vercel-forwarded-for'];
+  if (typeof vercel === 'string' && vercel) return vercel.split(',')[0].trim();
+  if (h['x-real-ip']) return String(h['x-real-ip']);
+  const xff = h['x-forwarded-for'];
   if (typeof xff === 'string' && xff) return xff.split(',')[0].trim();
-  return req.headers?.['x-real-ip'] || 'unknown';
+  return 'unknown';
 }
 function rateLimited(req) {
   const ip = clientIp(req);
