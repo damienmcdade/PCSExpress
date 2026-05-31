@@ -84,7 +84,7 @@ const CURATED_KB = [
   // navigation, not just travel-reg lookup.
   { tags: ['ship','shipment','tracker','track','hhg','gbl','dps','movement','logistics'], citation: 'In-app: Movement & Logistics → Shipment Tracker',
     q: 'Where do I track my HHG shipment in the app?',
-    a: 'Movement & Logistics → Shipment Tracker. The 10-stage milestone ladder mirrors the JTR DPS lifecycle (counseling → TSP assigned → pre-move survey → packing → loaded → in transit → arrival call → delivered → claim filed → claim settled). Enter your GBL/TCN, TSP, and spread windows. Overdue stages flash amber. Optional browser-push alerts.' },
+    a: 'Movement & Logistics → Shipment Tracker. The 10-stage milestone ladder mirrors the JTR DPS lifecycle (counseling → TSP assigned → pre-move survey → packing → loaded → in transit → arrival call → delivered → claim filed → claim settled). Enter your GBL/TCN, TSP, and spread windows. Overdue stages flash amber, with optional local reminders when you open the app.' },
   { tags: ['inventory','worksheet','dd 1840','claim','items','rooms','add item'], citation: 'In-app: Movement & Logistics → Inventory & Claims',
     q: 'How do I record an HHG inventory in the app?',
     a: 'Movement & Logistics → Inventory & Claims. Walk every room before pack-out, add each item (name, room, declared value, condition, notes). Switch to "post-delivery" phase at arrival and re-walk. Export the DD 1840R-ready PDF for DPS damage claims. Text-only — PCS Express does not accept uploads.' },
