@@ -6,6 +6,30 @@ All notable changes to PCS Express. Dates are the release date. The
 while native build numbers (`CFBundleVersion` / `versionCode`) increment per
 store submission.
 
+## [1.1.5] — 2026-05-31
+
+### Fixed — from end-to-end audit
+- **Self-hosted web fonts (Inter + Space Grotesk).** The app loaded its font
+  stylesheet from `fonts.googleapis.com`, which intermittently returned
+  `503`/`ERR_ABORTED` on production, dropping visitors to the system-font
+  fallback. The font CSS and its variable `woff2` files are now served
+  same-origin from `/public/fonts`, removing the third-party dependency,
+  eliminating the per-visit Google request (consistent with the "data stays on
+  device" posture), and adding immutable long-cache headers for the hashed
+  `woff2` files. The Google Translate widget's own font hosts remain allowed in
+  CSP since that widget still loads them on the non-English opt-in path.
+- **Housing-listings fallback no longer logged as an error.** When the optional
+  RapidAPI rentals lookup exceeds its 8s wall-clock budget (or aborts), the
+  graceful degradation to synthetic search-portal cards was logged via
+  `console.error`, polluting error-level logs/alerting for an expected path. It
+  now logs at `warn`; genuine upstream failures (DNS/TLS/malformed JSON) stay at
+  `error`.
+
+### Ops (not code)
+- **Web push VAPID keypair provisioned.** `VAPID_PUBLIC_KEY` /
+  `VAPID_PRIVATE_KEY` are now set on the Railway service, so `/api/push-config`
+  serves a real key and clients can subscribe (previously returned `null`).
+
 ## [1.1.1] — 2026-05-31
 
 ### Fixed — from end-to-end audit

@@ -21,15 +21,17 @@
     <link rel="manifest" href="/manifest.json" />
     <!--
       Modern type system. Inter (body / UI) + Space Grotesk (display
-      headers) loaded via Google Fonts. preconnect lets the browser
-      open the TLS connection before the stylesheet parses, shaving
-      ~100ms off first-text-paint. `display=swap` avoids the FOIT
-      "invisible text" flash — system-ui shows immediately and the
-      web font swaps in once downloaded. Weight ranges cover everything
-      from regular body (400) to display-weight hero headers (900).
-    -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+      headers), SELF-HOSTED from /public/fonts. We previously loaded
+      these from fonts.googleapis.com, but that CDN intermittently
+      returned 503/ERR_ABORTED on the stylesheet, leaving the page on
+      its system-font fallback. Self-hosting removes the third-party
+      dependency, eliminates the per-visit Google request (privacy —
+      consistent with the "0 uploads / data stays on device" posture),
+      and serves same-origin from our own cache headers. `display=swap`
+      lives in the @font-face blocks so system-ui still paints first
+      and the web font swaps in once downloaded. The variable woff2
+      files cover the full 400–900 weight range. -->
+    <link rel="stylesheet" href="/fonts/fonts.css" />
     <!-- Warm the TLS connection to the Railway API origin before the
          first /api/* fetch fires. Saves ~100-250ms TTFB on first lookup
          (housing, schools, jobs, veteran-business) by overlapping DNS
@@ -37,8 +39,6 @@
     <link rel="preconnect" href="https://pcsexpress-production.up.railway.app" crossorigin />
     <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org" />
     <link rel="dns-prefetch" href="https://router.project-osrm.org" />
-    <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" />
     <meta name="theme-color" content="#0A1628" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="PCS Express helps service members and military families simplify PCS moves through guided workflows, centralized relocation tools, and military-specific resources. Built for all DoD branches, components, and military families." />
