@@ -1,6 +1,6 @@
 {
   "name": "pcs-express",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "private": true,
   "type": "module",
   "description": "PCS Express helps service members and military families simplify PCS moves through guided workflows, centralized relocation tools, and military-specific resources. Built for all DoD branches, components, and military families.",

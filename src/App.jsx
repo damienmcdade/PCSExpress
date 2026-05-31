@@ -3,7 +3,7 @@
  * Third-party dependencies: React, Leaflet through child map modules, Capacitor bridge when running native.
  */
 
-import { Suspense, lazy, useState, useEffect, useRef, useReducer, useMemo } from 'react'
+import { Suspense, lazy, useState, useEffect, useRef, useReducer, useMemo, memo } from 'react'
 import './App.css'
 import { apiUrl } from './config/apiConfig'
 import { enablePushNotifications, disablePushNotifications } from './pushNotifications'
@@ -1591,6 +1591,10 @@ function StarRating({ rating }) {
 }
 
 function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
+  // Subscribe to the lazy HEAVY tables directly so that — now wrapped in
+  // React.memo — this tab still re-renders when BRANCH_PCS_CHECKLISTS
+  // lands (useHeavyData's forceUpdate bypasses memo's prop comparison).
+  useHeavyData();
   // Memoized so toggling a checkbox (which changes checklistItems and
   // re-renders this tab) doesn't re-tailor the whole branch checklist.
   // heavyChecklists is bound from HEAVY (empty {} until the lazy table
@@ -1921,6 +1925,12 @@ function fuzzyCuratedRating(name, schools) {
 }
 
 function SchoolsTab({ theme, profile }) {
+  // Subscribe to the lazy HEAVY tables directly so that — now that this
+  // component is wrapped in React.memo — it still re-renders when the
+  // data lands (memo blocks parent-prop re-renders, but useHeavyData's
+  // internal forceUpdate bypasses memo). Without this, a memo'd SchoolsTab
+  // mounted before the lazy chunk resolves would show empty schools.
+  useHeavyData();
   const [section, setSection] = useState('schools');
   const [sortBy, setSortBy] = useState('rating');
   const [showAll, setShowAll] = useState(false);
@@ -6058,7 +6068,7 @@ function FamilyCategoryTab({ theme, profile }) {
       {tab === 'family-fun' && <FamilyFunTab theme={theme} profile={profile} />}
       {tab === 'permanent-resident' && <ImmigrationModule theme={theme} profile={profile} />}
       {tab === 'pets' && <PetRelocationChecklistTab theme={theme} profile={profile} />}
-      {tab === 'schools' && <SchoolsTab theme={theme} profile={profile} />}
+      {tab === 'schools' && <SchoolsTabMemo theme={theme} profile={profile} />}
     </CategoryTabShell>
   );
 }
@@ -6095,7 +6105,7 @@ function PCSOperationsTab({ theme, profile, checklistItems, setChecklistItems })
   const [tab, setTab] = useState(() => consumePendingSubTab('checklist', tabs.map(t => t.id)));
   return (
     <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
-      {tab === 'checklist' && <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />}
+      {tab === 'checklist' && <ChecklistTabMemo theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />}
       {tab === 'documents' && <PCSDocumentsModule theme={theme} profile={profile} />}
       {tab === 'timeline'  && <DynamicTimeline theme={theme} profile={profile} />}
     </CategoryTabShell>
@@ -6133,7 +6143,7 @@ function MissionResourcesTab({ theme, profile }) {
       {tab === 'base-insights' && <BaseIntelligenceUnifiedTab theme={theme} profile={profile} />}
       {tab === 'maps'          && <NavigationModule theme={theme} profile={profile} />}
       {tab === 'help-hub'      && <ResourcesTab theme={theme} profile={profile} />}
-      {tab === 'veteran'       && <VeteranBusinessesTab theme={theme} profile={profile} />}
+      {tab === 'veteran'       && <VeteranBusinessesTabMemo theme={theme} profile={profile} />}
     </CategoryTabShell>
   );
 }
@@ -6597,6 +6607,18 @@ function HomeLegalBanners({ theme }) {
     </div>
   );
 }
+
+// Memoized aliases for the three heaviest directly-dispatched tabs. They
+// receive only referentially-stable props (theme is a constant BRANCH_THEMES
+// lookup; profile/checklistItems are state; setChecklistItems is a stable
+// setter), so memo lets them skip re-renders when App re-renders for
+// unrelated reasons (notifications, the AI assistant, nav toggles, fetch
+// results). SchoolsTab + ChecklistTab read lazy HEAVY data and call
+// useHeavyData() internally, so memo can't strand them on the empty
+// pre-load snapshot. VeteranBusinessesTab reads no HEAVY data.
+const SchoolsTabMemo = memo(SchoolsTab);
+const ChecklistTabMemo = memo(ChecklistTab);
+const VeteranBusinessesTabMemo = memo(VeteranBusinessesTab);
 
 function App() {
 
@@ -7727,14 +7749,14 @@ function App() {
         {/* Legacy single-purpose routes. Not in the bottom nav anymore,
             but kept here so older deep links still resolve. */}
         {activeTab === 'base-intelligence' && renderCategoryFrame('base-intelligence', <BaseIntelligenceUnifiedTab theme={theme} profile={profile} />)}
-        {activeTab === 'checklist'  && renderCategoryFrame('checklist',  <ChecklistTab theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />)}
+        {activeTab === 'checklist'  && renderCategoryFrame('checklist',  <ChecklistTabMemo theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />)}
         {activeTab === 'documents'  && renderCategoryFrame('documents',  <PCSDocumentsModule theme={theme} profile={profile} />)}
         {activeTab === 'education'  && renderCategoryFrame('education',  <EducationBenefitsTab theme={theme} profile={profile} />)}
         {activeTab === 'family'     && renderCategoryFrame('family',     <FamilyCategoryTab theme={theme} profile={profile} />)}
         {activeTab === 'nav'        && renderCategoryFrame('nav',        <NavigationModule theme={theme} profile={profile} />)}
         {activeTab === 'religion'   && renderCategoryFrame('religion',   <ReligiousServicesModuleWrapped theme={theme} profile={profile} />)}
         {activeTab === 'resources'  && renderCategoryFrame('resources',  <ResourcesTab theme={theme} profile={profile} />)}
-        {activeTab === 'veterans'   && renderCategoryFrame('veterans',   <VeteranBusinessesTab theme={theme} profile={profile} />)}
+        {activeTab === 'veterans'   && renderCategoryFrame('veterans',   <VeteranBusinessesTabMemo theme={theme} profile={profile} />)}
       </div>
       </div>{/* end body container */}
       {/* Persistent app-shell footer — independence disclaimer + build
