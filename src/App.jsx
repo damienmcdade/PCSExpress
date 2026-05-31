@@ -5748,7 +5748,7 @@ function Onboarding({ onComplete }) {
                   uniformed components, GS/SES/WG ladder for DoD
                   Civilians, N/A for dependents. */}
               {p.component === 'Dependent' ? (
-                <div style={{ marginBottom: 12, padding: '11px 14px', borderRadius: 10, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>
+                <div style={{ marginBottom: 12, padding: '11px 14px', borderRadius: 10, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, color: 'rgba(255,255,255,0.72)', fontStyle: 'italic' }}>
                   Pay Grade &amp; Rank — N/A ({p.component})
                 </div>
               ) : p.component === 'DoD Civilian' ? (

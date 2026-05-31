@@ -2666,15 +2666,16 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, express.json({ limit: '64k
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath))
 
-  // SPA fallback: serve index.html for all non-API routes
-  app.get('*', (req, res) => {
+  // SPA fallback: serve index.html for all non-API routes. Regex catch-all
+  // (works in both Express 4 and 5 — Express 5 drops the bare '*' string).
+  app.get(/.*/, (req, res) => {
     res.sendFile(path.join(distPath, 'index.html'))
   })
 
   console.log('[SERVER] Frontend: ENABLED')
 } else {
   // Frontend not built
-  app.get('*', (req, res) => {
+  app.get(/.*/, (req, res) => {
     res.status(404).json({ error: 'Frontend not built' })
   })
 

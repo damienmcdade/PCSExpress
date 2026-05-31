@@ -59,10 +59,8 @@
     </div>
     <ul>
       <li><strong>Skip link tab order.</strong> The "Skip to main content" link exists in the DOM but is not the first tabbable element on every screen — the autosave-status chip sometimes precedes it. Targeted fix in progress.</li>
-      <li><strong>Color contrast on muted sidebar text and snooze icons.</strong> Some semi-transparent labels in the dark-themed sidebar fall short of the 4.5:1 contrast target. Being raised in the next polish pass.</li>
-      <li><strong>A small number of unlabeled inputs and icon-only buttons</strong> in the Family Readiness and PCS Operations panes. Tracked for the next a11y sweep.</li>
-      <li><strong>Some content-area sub-tabs use <code>role="tab"</code> without a matching <code>role="tabpanel"</code></strong> when the panel is lazily mounted. Either dropping <code>aria-controls</code> on those tabs or mounting hidden panels is the planned fix.</li>
       <li><strong>Horizontal tab strips on mobile</strong> clip without a visible scroll affordance on a few mission groups; users can swipe but the affordance is missing. Adding a fade gradient + chevron is queued.</li>
+      <li><strong>Resolved (2026‑05):</strong> low-contrast muted text raised to meet 4.5:1, form inputs given accessible names (<code>aria-label</code>/associated labels), and a mis-used <code>role="tab"</code> on action buttons removed.</li>
     </ul>
 
     <h2>4. Compatibility</h2>

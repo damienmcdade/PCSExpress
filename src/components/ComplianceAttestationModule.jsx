@@ -10,7 +10,7 @@
  * update this module too.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 // Route both encryptionAvailable AND secureLocalStore / AuditLogger
 // through SecurityExtensions. Importing cryptoStore.js directly here
 // while it's also imported via SecurityExtensions triggered a dual-
@@ -63,6 +63,28 @@ async function exportPersonalDataAsFile(profile) {
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// Restore from an export file. Reading a LOCAL file the user picks does NOT
+// upload anything to a PCS Express server — the file is parsed in the browser
+// and written back into the encrypted on-device store. This is the device-loss
+// recovery path (e.g. setting up a new phone). Returns the number of keys
+// restored. Throws with a user-facing message on a bad file.
+async function importPersonalDataFromFile(file) {
+  const text = await file.text();
+  let payload;
+  try { payload = JSON.parse(text); }
+  catch { throw new Error('That file is not valid JSON — pick a pcs-express-export-*.json file.'); }
+  if (!payload || typeof payload !== 'object' || !payload.storage || typeof payload.storage !== 'object') {
+    throw new Error('That does not look like a PCS Express export file.');
+  }
+  let restored = 0;
+  for (const k of EXPORT_KEYS) {
+    const v = payload.storage[k];
+    if (v != null) { await secureLocalStore.set(k, v); restored += 1; }
+  }
+  AuditLogger.record('personal_data_import', { keyCount: restored });
+  return restored;
 }
 
 const SECTIONS = [
@@ -173,6 +195,8 @@ const SECTIONS = [
 
 export default function ComplianceAttestationModule({ theme, profile }) {
   const [cryptoOk, setCryptoOk] = useState(null);
+  const importInputRef = useRef(null);
+  const [importMsg, setImportMsg] = useState(null);
   useEffect(() => { setCryptoOk(encryptionAvailable()); }, []);
   return (
     <div style={{ padding: 16 }}>
@@ -212,9 +236,9 @@ export default function ComplianceAttestationModule({ theme, profile }) {
       ))}
 
       <section style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 14, padding: 14, marginBottom: 12 }}>
-        <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821', marginBottom: 6, letterSpacing: '.03em' }}>Personal data export</div>
+        <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821', marginBottom: 6, letterSpacing: '.03em' }}>Back up &amp; restore your data</div>
         <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.55, marginBottom: 10 }}>
-          Download a JSON copy of everything PCS Express has stored on this device — your profile, checklist progress, inventory worksheet, shipment-tracker fields, pet checklist, audit log, and saved translations. Nothing leaves your device until you save the file. PCS Express does not support re-importing the file (there is no upload surface in the app); keep it as a personal backup or printable record.
+          Because your data lives only on this device (never on a PCS Express server), download a backup so you don't lose it if you clear your browser, lose your phone, or move to a new device. The file holds your profile, checklist progress, inventory, shipment-tracker fields, pet checklist, audit log, and saved translations. <strong>It is your only copy — keep it somewhere safe.</strong> Restoring reads the file locally on your device; nothing is uploaded to any server.
         </div>
         <button
           type="button"
@@ -222,8 +246,40 @@ export default function ComplianceAttestationModule({ theme, profile }) {
           className="card-cta card-cta--block"
           style={{ '--cta-color': theme.primary, background: theme.primary, color: '#FFF', border: 'none', cursor: 'pointer' }}
         >
-          💾 Download personal data as JSON
+          💾 Download backup (JSON)
         </button>
+        <input
+          ref={importInputRef}
+          type="file"
+          accept="application/json,.json"
+          style={{ display: 'none' }}
+          onChange={async (e) => {
+            const file = e.target.files && e.target.files[0];
+            e.target.value = '';
+            if (!file) return;
+            if (!window.confirm('Restore from this backup? It will overwrite the PCS data currently on this device.')) return;
+            try {
+              const n = await importPersonalDataFromFile(file);
+              setImportMsg({ ok: true, text: `Restored ${n} item${n === 1 ? '' : 's'}. Reloading…` });
+              setTimeout(() => { try { window.location.reload(); } catch { /* ignore */ } }, 1200);
+            } catch (err) {
+              setImportMsg({ ok: false, text: err.message || 'Could not restore that file.' });
+            }
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => importInputRef.current && importInputRef.current.click()}
+          className="card-cta card-cta--block"
+          style={{ '--cta-color': theme.primary, marginTop: 8, background: '#FFF', color: theme.primary, border: `1.5px solid ${theme.primary}`, cursor: 'pointer' }}
+        >
+          ⤴️ Restore from a backup file
+        </button>
+        {importMsg && (
+          <div role="status" style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: importMsg.ok ? '#1B5E20' : '#C62828' }}>
+            {importMsg.text}
+          </div>
+        )}
       </section>
 
       <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>

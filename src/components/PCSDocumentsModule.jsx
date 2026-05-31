@@ -486,7 +486,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
     <div style={{ paddingBottom: 80 }}>
       <div style={{ background: theme.secondary, padding: '16px 16px 14px' }}>
         <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', marginBottom: 2 }}>PCS Documents</div>
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginBottom: 12 }}>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.78)', marginBottom: 12 }}>
           {branch}{isReserveOrGuard ? ` · ${profileAttrs.component}` : ''} · {isOconus ? 'OCONUS Assignment' : 'CONUS Assignment'} · {totalObtained}/{totalDocs} marked gathered
         </div>
         {reserveOrdersNote && (
