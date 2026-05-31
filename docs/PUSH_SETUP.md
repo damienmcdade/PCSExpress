@@ -63,17 +63,25 @@ stored by the app itself.
   Origin-on-write CSRF guard because the Bearer secret is the stronger
   guarantee and machine callers send no Origin.
 
-## Still optional / future
+## Durability, UI, and scheduling (wired in v1.1.7)
 
-1. **Persistent subscription store.** The in-memory `PUSH_SUBSCRIPTIONS` Map
-   resets every deploy (acceptable on Railway's single instance — clients
-   re-subscribe on reconnect). Swap for Redis/Postgres if cross-deploy
-   durability or multi-replica fan-out is needed.
-2. **UI affordance.** `enablePushNotifications()` is ready to call; the natural
-   spot is the notifications dropdown (`App.jsx`, near the `showNotifs` panel) —
-   a single "Enable push reminders" button.
-3. **Scheduling.** `/api/push-dispatch` is a manual/cron trigger; wire it to a
-   scheduler (Railway cron or a GitHub Action) for timeline-based reminders.
+1. **Persistent subscription store.** Subscriptions persist in **Railway
+   Postgres** (`push_subscriptions` table) via `server/lib/pushStore.js` when
+   `DATABASE_URL` is set — survives deploys and works across replicas. If
+   `DATABASE_URL` is unset, or Postgres init fails, the store transparently
+   falls back to an in-memory Map (boot logs `[push-store] backend=…`). The
+   store self-caps at 10k (oldest trimmed).
+2. **UI affordance.** The notifications dropdown (the header bell) has a **Push
+   reminders** toggle (`src/App.jsx`) that calls `enablePushNotifications()` /
+   `disablePushNotifications()`. It auto-hides when the browser can't do push
+   or the server has no VAPID key configured.
+3. **Scheduling.** `.github/workflows/push-broadcast.yml` broadcasts via
+   `/api/push-dispatch` on a **weekly schedule** (Mondays 15:00 UTC) and
+   **on demand** (Actions → Push Broadcast → Run workflow, with title/body/tab
+   inputs). Requires the `PUSH_DISPATCH_KEY` repo secret (same value as Railway).
+
+### Future
+- Per-user / segmented push (currently a broadcast to all subscribers).
 
 ## Security / DOD-DISA alignment notes
 

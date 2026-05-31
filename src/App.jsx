@@ -6,6 +6,7 @@
 import { Suspense, lazy, useState, useEffect, useRef, useReducer, useMemo } from 'react'
 import './App.css'
 import { apiUrl } from './config/apiConfig'
+import { enablePushNotifications, disablePushNotifications } from './pushNotifications'
 import { INDEPENDENCE_DISCLAIMER } from './config/disclaimer'
 import AppErrorBoundary from './components/AppErrorBoundary'
 import BranchBackdrop from './components/BranchBackdrop'
@@ -6723,6 +6724,11 @@ function App() {
   const [navOpen, setNavOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
+  // Web-push opt-in state for the toggle in the notifications panel.
+  // null = not yet detected; 'unsupported' = no SW/PushManager or VAPID
+  // not configured server-side; true/false = subscribed or not.
+  const [pushState, setPushState] = useState(null);
+  const [pushBusy, setPushBusy] = useState(false);
   const [showResetWarning, setShowResetWarning] = useState(false);
   const [showCompliance, setShowCompliance] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
@@ -6741,6 +6747,46 @@ function App() {
   useFocusTrap(navDrawerRef, navOpen);
   useFocusTrap(notifsRef, showNotifs);
   useFocusTrap(complianceRef, showCompliance);
+
+  // Detect current web-push opt-in state when the notifications panel
+  // opens. Marks 'unsupported' when the browser lacks SW/PushManager OR
+  // the server hasn't configured a VAPID key (push-config → null), so
+  // the toggle only offers to enable push when it can actually work.
+  useEffect(() => {
+    if (!showNotifs) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+          if (!cancelled) setPushState('unsupported');
+          return;
+        }
+        let cfg = null;
+        try { const r = await fetch(apiUrl('/api/push-config')); cfg = r.ok ? await r.json() : null; } catch {}
+        if (!cfg?.vapidPublicKey) { if (!cancelled) setPushState('unsupported'); return; }
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg?.pushManager?.getSubscription?.();
+        if (!cancelled) setPushState(!!sub);
+      } catch { if (!cancelled) setPushState('unsupported'); }
+    })();
+    return () => { cancelled = true; };
+  }, [showNotifs]);
+
+  const handleTogglePush = async () => {
+    if (pushBusy) return;
+    setPushBusy(true);
+    try {
+      if (pushState === true) {
+        await disablePushNotifications();
+        setPushState(false);
+      } else {
+        const res = await enablePushNotifications();
+        setPushState(res?.ok === true);
+      }
+    } catch { /* leave state as-is; user can retry */ }
+    finally { setPushBusy(false); }
+  };
+
   const [checklistItems, setChecklistItems] = useState(() => {
     return readLegacyJson('pcs_checklist_checks', {});
   });
@@ -7449,15 +7495,22 @@ function App() {
         </div>
       )}
 
-      {/* Notification dropdown */}
-      {showNotifs && pendingAlerts.length > 0 && (
+      {/* Notification dropdown — opens on the bell regardless of whether
+          there are pending alerts, so the push-reminders toggle is always
+          reachable. */}
+      {showNotifs && (
         <div ref={notifsRef} role="dialog" aria-modal="true" aria-labelledby="pcs-notif-title" style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: isDesktop ? 230 : 0, right: 0, maxWidth: isDesktop ? '100%' : 480, margin: isDesktop ? 0 : '0 auto', zIndex: 200, background: '#FFFFFF', borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
           <div style={{ padding: '10px 16px', borderBottom: '1px solid #F0F0F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div id="pcs-notif-title" style={{ fontSize: 13, fontWeight: 800, color: '#0D1821' }}>
-              {overdueCount > 0 ? <>{overdueCount}{' '}{overdueCount !== 1 ? 'Overdue Actions' : 'Overdue Action'}</> : 'Pending Actions'}
+              {overdueCount > 0 ? <>{overdueCount}{' '}{overdueCount !== 1 ? 'Overdue Actions' : 'Overdue Action'}</> : pendingAlerts.length > 0 ? 'Pending Actions' : 'Notifications'}
             </div>
             <button onClick={() => setShowNotifs(false)} aria-label="Close notifications" style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: '#56697C' }}><span aria-hidden="true">✕</span></button>
           </div>
+          {pendingAlerts.length === 0 && (
+            <div style={{ padding: '14px 16px', fontSize: 12, color: '#56697C', borderBottom: '1px solid #F8F8F8' }}>
+              No pending actions right now — you’re on track. ✓
+            </div>
+          )}
           {pendingAlerts.map((alert, i) => (
             <button type="button" key={i} onClick={() => { goTo('checklist'); }} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: '1px solid #F8F8F8', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: alert.overdue ? '#FFF5F5' : '#FFFDE7' }}>
               <span style={{ fontSize: 20, flexShrink: 0 }}>{alert.overdue ? '⚠️' : '📋'}</span>
@@ -7472,6 +7525,27 @@ function App() {
               <span style={{ fontSize: 11, color: '#AAA' }}>→</span>
             </button>
           ))}
+          {/* Push-reminders toggle. Hidden only when the browser can't do
+              push or the server has no VAPID key configured. */}
+          {pushState !== 'unsupported' && (
+            <div style={{ padding: '12px 16px', display: 'flex', gap: 10, alignItems: 'center', background: '#FFFFFF' }}>
+              <span style={{ fontSize: 20, flexShrink: 0 }} aria-hidden="true">🔔</span>
+              <span style={{ flex: 1 }}>
+                <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#0D1821' }}>Push reminders</span>
+                <span style={{ display: 'block', fontSize: 11, color: '#56697C', marginTop: 1 }}>
+                  {pushState === true ? 'On — reminders arrive even when the app is closed.' : 'Get PCS reminders even when the app is closed.'}
+                </span>
+              </span>
+              {pushState === null ? (
+                <span style={{ fontSize: 11, color: '#AAA' }}>Checking…</span>
+              ) : (
+                <button type="button" onClick={handleTogglePush} disabled={pushBusy} aria-pressed={pushState === true}
+                  style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, padding: '7px 12px', borderRadius: 8, cursor: pushBusy ? 'default' : 'pointer', border: `1px solid ${theme.accent}`, background: pushState === true ? '#FFFFFF' : theme.accent, color: pushState === true ? theme.accent : '#fff', opacity: pushBusy ? 0.6 : 1 }}>
+                  {pushBusy ? '…' : pushState === true ? 'Disable' : 'Enable'}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
