@@ -1389,7 +1389,15 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
       const rawList = Array.isArray(data) ? data : (Array.isArray(data?.listings) ? data.listings : (Array.isArray(data?.results) ? data.results : []))
       return rawList.map(shapeListing).filter(l => l.address || l.beds || l.sqft)
     } catch (err) {
-      console.error(`[housing-listings] rapidapi ${err.message}`)
+      // AbortError === the 8s budget fired; that's an expected, graceful
+      // degradation to synthetic cards, not a fault. Log it at warn so it
+      // stops polluting error-level logs / alerting. Anything else (DNS,
+      // TLS, malformed JSON) is a genuine upstream problem → keep error.
+      if (err.name === 'AbortError' || err.name === 'TimeoutError') {
+        console.warn(`[housing-listings] rapidapi slow (>${RAPIDAPI_BUDGET_MS}ms); returning synthetic-only`)
+      } else {
+        console.error(`[housing-listings] rapidapi ${err.message}`)
+      }
       return []
     }
   })()
@@ -1398,7 +1406,8 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
   const rapidApiResults = await Promise.race([
     rapidApiPromise,
     new Promise(resolve => setTimeout(() => {
-      console.error('[housing-listings] rapidapi budget exceeded; returning synthetic-only')
+      // Expected fallback path, not an error — see note above.
+      console.warn('[housing-listings] rapidapi budget exceeded; returning synthetic-only')
       resolve([])
     }, RAPIDAPI_BUDGET_MS)),
   ])
