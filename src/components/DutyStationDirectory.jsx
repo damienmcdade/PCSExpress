@@ -2,7 +2,7 @@
  * Duty Station Directory — all installations in the app, with full data for major ones.
  * Auto-populates from profile.gainingInstallation. Remaining installations link to official sources.
  */
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useDeferredValue } from 'react';
 import { resolveInstallation } from '../lib/bahCalculator';
 import { INSTALLATION_MARKETS } from '../data/installationMarkets';
 import TabBar from './TabBar';
@@ -1485,12 +1485,17 @@ export default function DutyStationDirectory({ theme, profile }) {
 
   const isAutoFilled = Boolean(autoResolved && selected === (autoResolved || profileGaining));
 
+  // Defer the filter off the keystroke: the <input> updates `search`
+  // synchronously (cursor stays responsive) while the up-to-100-option
+  // list re-filters against the deferred value at lower priority. On a
+  // throttled phone this is the difference between laggy and instant typing.
+  const deferredSearch = useDeferredValue(search);
   const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
+    const q = deferredSearch.toLowerCase().trim();
     const source = ALL_INSTALLATIONS_SORTED;
     if (!q) return source;
     return source.filter(s => s.toLowerCase().includes(q));
-  }, [search]);
+  }, [deferredSearch]);
 
   // Lookup priority: hand-curated INSTALLATION_DIRECTORY > resolved alias >
   // auto-generated from public market data. The third tier ensures every

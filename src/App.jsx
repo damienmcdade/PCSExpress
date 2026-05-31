@@ -1591,7 +1591,16 @@ function StarRating({ rating }) {
 }
 
 function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
-  const branchChecklist = getTailoredChecklist(profile?.branch || 'Army', {
+  // Memoized so toggling a checkbox (which changes checklistItems and
+  // re-renders this tab) doesn't re-tailor the whole branch checklist.
+  // heavyChecklists is bound from HEAVY (empty {} until the lazy table
+  // loads, then reassigned) so the memo recomputes once data arrives;
+  // the firstPhase effect below back-fills activePhase on that transition.
+  // heavyChecklists changes only via HEAVY's one-time load mutation; the
+  // recompute is flushed by App's useHeavyData() re-render (exhaustive-deps
+  // can't model external-mutation + external-rerender, hence the disable).
+  const heavyChecklists = HEAVY.BRANCH_PCS_CHECKLISTS;
+  const branchChecklist = useMemo(() => getTailoredChecklist(profile?.branch || 'Army', {
     component:     profile?.component || 'Active Duty',
     ordersType:    profile?.ordersType || '',
     hasDependents: !!profile?.hasDependents,
@@ -1599,7 +1608,8 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
     hasPets:       !!profile?.hasPets,
     moveType:      profile?.moveType || 'HHG',
     isOverseas:    !!profile?.isOverseas,
-  });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [profile?.branch, profile?.component, profile?.ordersType, profile?.hasDependents, profile?.hasChildren, profile?.hasPets, profile?.moveType, profile?.isOverseas, heavyChecklists]);
   const [activePhase, setActivePhase] = useState(Object.keys(branchChecklist)[0]);
   // branchChecklist is {} during the lazy data-load window, so the
   // useState initializer above can be undefined. Back-fill the first
@@ -1882,6 +1892,34 @@ function resolveInstallationSchools(instName) {
   return direct || [];
 }
 
+// Pure helpers hoisted to module scope so they have stable identity and
+// can be referenced inside SchoolsTab's useMemo blocks without becoming
+// per-render dependencies. fuzzyCuratedRating takes `schools` as a param
+// (was a closure) so it stays pure.
+const gradeForAge = age => {
+  if (age < 5) return 'Pre-K';
+  if (age <= 10) return 'K-5';
+  if (age <= 13) return '6-8';
+  return '9-12';
+};
+function gradeMatchesAge(grades, ages) {
+  if (!grades || !ages.length) return false;
+  const wantedBands = new Set();
+  for (const a of ages) {
+    if (a < 5) wantedBands.add('Pre-K');
+    else if (a <= 10) wantedBands.add('K-5');
+    else if (a <= 13) wantedBands.add('6-8');
+    else wantedBands.add('9-12');
+  }
+  return [...wantedBands].some(b => grades.includes(b));
+}
+function fuzzyCuratedRating(name, schools) {
+  if (!schools.length) return null;
+  const t = String(name || '').toLowerCase();
+  const hit = schools.find(s => t.includes(String(s.name).toLowerCase().slice(0, 12)) || String(s.name).toLowerCase().includes(t.slice(0, 12)));
+  return hit?.rating ?? null;
+}
+
 function SchoolsTab({ theme, profile }) {
   const [section, setSection] = useState('schools');
   const [sortBy, setSortBy] = useState('rating');
@@ -1890,7 +1928,14 @@ function SchoolsTab({ theme, profile }) {
   const [searchZip, setSearchZip] = useState('');
 
   const instName = (profile?.gainingInstallation || '').split(',')[0].trim();
-  const schools = resolveInstallationSchools(instName);
+  // Bind the lazy table to a local const so it's a valid memo dependency:
+  // it's an empty {} until the lazy data chunk loads, then reassigned to
+  // the real table (new reference). HEAVY is subscribed only at the App
+  // level, so SchoolsTab re-renders via App on load; this dep makes the
+  // memo recompute then instead of caching the empty pre-load result.
+  const heavySchools = HEAVY.INSTALLATION_SCHOOLS;
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- heavySchools changes only via HEAVY's one-time load mutation; the recompute is flushed by App's useHeavyData() re-render. exhaustive-deps can't model external-mutation + external-rerender.
+  const schools = useMemo(() => resolveInstallationSchools(instName), [instName, heavySchools]);
   const daycares = DAYCARE_DATA[instName] || [];
   const _searchLocation = getInstallationSearchLocation(instName);
   const schoolFinderCards = officialSchoolCards(instName);
@@ -1899,16 +1944,11 @@ function SchoolsTab({ theme, profile }) {
   // (before the live-fetch effect and enrichment) so the grade-match
   // sort below can read it without hitting a temporal dead zone when
   // the live fetch returns schools synchronously from cache.
-  const agesFromProfile = profile?.childAges?.length > 0
-    ? profile.childAges.filter(a => !isNaN(Number(a))).map(Number)
-    : (profile?.childrenAges || '').split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
-
-  const gradeForAge = age => {
-    if (age < 5) return 'Pre-K';
-    if (age <= 10) return 'K-5';
-    if (age <= 13) return '6-8';
-    return '9-12';
-  };
+  const agesFromProfile = useMemo(() => (
+    profile?.childAges?.length > 0
+      ? profile.childAges.filter(a => !isNaN(Number(a))).map(Number)
+      : (profile?.childrenAges || '').split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n))
+  ), [profile?.childAges, profile?.childrenAges]);
 
   // Live OSM-backed schools and childcare for the gaining installation.
   // Empty + fallback => keep the existing curated cards visible.
@@ -1960,47 +2000,39 @@ function SchoolsTab({ theme, profile }) {
   //      siblings' options too)
   //   3. Then by ascending distance
   // Backend already promotes military-first; this layer adds the
-  // grade-match prioritization on top.
-  function gradeMatchesAge(grades, ages) {
-    if (!grades || !ages.length) return false;
-    const wantedBands = new Set();
-    for (const a of ages) {
-      if (a < 5) wantedBands.add('Pre-K');
-      else if (a <= 10) wantedBands.add('K-5');
-      else if (a <= 13) wantedBands.add('6-8');
-      else wantedBands.add('9-12');
-    }
-    return [...wantedBands].some(b => grades.includes(b));
-  }
-  function fuzzyCuratedRating(name) {
-    if (!schools.length) return null;
-    const t = String(name || '').toLowerCase();
-    const hit = schools.find(s => t.includes(String(s.name).toLowerCase().slice(0, 12)) || String(s.name).toLowerCase().includes(t.slice(0, 12)));
-    return hit?.rating ?? null;
-  }
-  const enrichedLive = liveSchools.schools.map(s => ({
-    ...s,
-    gradeMatch: gradeMatchesAge(s.grades, agesFromProfile),
-    curatedRating: fuzzyCuratedRating(s.name),
-  }));
-  enrichedLive.sort((a, b) => {
-    if (a.isMilitary !== b.isMilitary) return a.isMilitary ? -1 : 1;
-    if (a.gradeMatch !== b.gradeMatch) return a.gradeMatch ? -1 : 1;
-    return a.distanceMiles - b.distanceMiles;
-  });
-  const liveK12 = enrichedLive.filter(s => s.categoryId === 'k12');
-  const liveDaycare = enrichedLive.filter(s => s.categoryId === 'childcare' || s.categoryId === 'preschool');
+  // grade-match prioritization on top. Memoized so it doesn't re-run
+  // the O(n²) curated-rating fuzzy match on every unrelated re-render
+  // (typing in the search box, toggling sections, parent App renders).
+  const enrichedLive = useMemo(() => {
+    const list = liveSchools.schools.map(s => ({
+      ...s,
+      gradeMatch: gradeMatchesAge(s.grades, agesFromProfile),
+      curatedRating: fuzzyCuratedRating(s.name, schools),
+    }));
+    list.sort((a, b) => {
+      if (a.isMilitary !== b.isMilitary) return a.isMilitary ? -1 : 1;
+      if (a.gradeMatch !== b.gradeMatch) return a.gradeMatch ? -1 : 1;
+      return a.distanceMiles - b.distanceMiles;
+    });
+    return list;
+  }, [liveSchools.schools, agesFromProfile, schools]);
+  const liveK12 = useMemo(() => enrichedLive.filter(s => s.categoryId === 'k12'), [enrichedLive]);
+  const liveDaycare = useMemo(() => enrichedLive.filter(s => s.categoryId === 'childcare' || s.categoryId === 'preschool'), [enrichedLive]);
 
-  const relevantGrades = new Set(agesFromProfile.map(gradeForAge));
-  let filteredSchools = (showAll || agesFromProfile.length === 0)
-    ? schools
-    : schools.filter(s => [...relevantGrades].some(g => {
-        if (g === 'Pre-K') return false;
-        const [gStart] = g.split('-');
-        return s.grades.includes(gStart) || s.grades === g;
-      }));
-  if (sortBy === 'rating') filteredSchools = [...filteredSchools].sort((a, b) => b.rating - a.rating);
-  else filteredSchools = [...filteredSchools].sort((a, b) => a.name.localeCompare(b.name));
+  const filteredSchools = useMemo(() => {
+    const relevantGrades = new Set(agesFromProfile.map(gradeForAge));
+    let result = (showAll || agesFromProfile.length === 0)
+      ? schools
+      : schools.filter(s => [...relevantGrades].some(g => {
+          if (g === 'Pre-K') return false;
+          const [gStart] = g.split('-');
+          return s.grades.includes(gStart) || s.grades === g;
+        }));
+    result = sortBy === 'rating'
+      ? [...result].sort((a, b) => b.rating - a.rating)
+      : [...result].sort((a, b) => a.name.localeCompare(b.name));
+    return result;
+  }, [schools, agesFromProfile, showAll, sortBy]);
 
   const handleSearch = () => {
     const _grade = gradeForAge(parseInt(searchAge) || 10);
