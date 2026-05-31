@@ -606,11 +606,11 @@ const TMINUS_MILESTONES = [
 function TMinusDashboard({ theme, profile }) {
   const target = profile?.reportNLTDate || profile?.departingDate;
   if (!target) return null;
-  const targetDate = new Date(target);
-  if (isNaN(targetDate.getTime())) return null;
+  const targetDate = parseLocalDate(target);
+  if (!targetDate) return null;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const daysUntil = Math.floor((targetDate - today) / 86400000);
+  const daysUntil = Math.round((targetDate - today) / 86400000);
 
   const upcoming = TMINUS_MILESTONES
     .map(m => ({ ...m, dueDate: new Date(targetDate.getTime() + m.days * 86400000), tMinus: -m.days - daysUntil }))
@@ -931,11 +931,11 @@ function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
 
   const target = profile?.reportNLTDate || profile?.departingDate;
   if (!target) return null;
-  const targetDate = new Date(target);
-  if (isNaN(targetDate.getTime())) return null;
+  const targetDate = parseLocalDate(target);
+  if (!targetDate) return null;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const daysUntil = Math.floor((targetDate - today) / 86400000);
+  const daysUntil = Math.round((targetDate - today) / 86400000);
 
   // Build the same tailored per-phase checklist the user sees in PCS
   // Operations → Checklist, then index each task by its `phase-idx`
@@ -2276,10 +2276,27 @@ const PHASE_WINDOWS = {
   'In-Processing':   { activeAt: 0,   overdueAt: -30 },
 };
 
-function getDaysUntilDeparture(dateStr) {
+// Parse a YYYY-MM-DD date string as LOCAL midnight, not UTC. `new Date(
+// "2026-08-15")` is parsed as UTC midnight — which is the prior evening in
+// every US timezone — so differencing it against a local-midnight "today"
+// drifts day counts by one near the boundary. Appending a local time
+// component fixes that. Returns null on invalid/empty input.
+function parseLocalDate(dateStr) {
   if (!dateStr) return null;
-  const diff = new Date(dateStr + 'T12:00:00') - new Date();
-  return Math.floor(diff / (1000 * 60 * 60 * 24));
+  const s = String(dateStr);
+  const d = new Date(s.includes('T') ? s : s + 'T00:00:00');
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function getDaysUntilDeparture(dateStr) {
+  const target = parseLocalDate(dateStr);
+  if (!target) return null;
+  // Anchor both ends to local midnight so the count is stable across the
+  // whole calendar day (previously it flipped from 0 to -1 at noon on the
+  // report date because it differenced a noon anchor against the live clock).
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((target - today) / 86400000);
 }
 
 // ─── Onboarding constants ──────────────────────────────────────────────────
@@ -4406,9 +4423,24 @@ function VAHomeLoanPanel({ theme, profile }) {
   );
 }
 
+// US-territory state codes — all OCONUS (OHA, not BAH): Guam, Puerto Rico,
+// US Virgin Islands, American Samoa, Northern Mariana Islands.
+const OCONUS_TERRITORY_STATES = new Set(['GU', 'PR', 'VI', 'AS', 'MP']);
+
 function isOCONUSInstallation(name) {
   if (!name) return false;
-  const lower = name.toLowerCase();
+  const base = String(name).split(',')[0].trim();
+  const lower = base.toLowerCase();
+  // Authoritative path: match the installation in the duty-station data and
+  // treat it as OCONUS when it carries a `country` (overseas) or a US-
+  // territory `state`. This is the SAME source of truth that drives
+  // profile.isOverseas, so the housing calculator / VA-loan panel no longer
+  // disagree with the checklist for overseas bases the keyword list misses
+  // (e.g. RAF Lakenheath, Chievres, Panama). Falls through to the keyword
+  // match for free-text / partial names and while the lazy table loads.
+  const stations = HEAVY.MILITARY_DUTY_STATIONS || [];
+  const entry = stations.find(s => s.name === base || s.name === name);
+  if (entry && (entry.country || OCONUS_TERRITORY_STATES.has(entry.state))) return true;
   return ['korea','germany','japan','italy','guam','okinawa','cuba','bahrain','kuwait','qatar','djibouti',
     'humphreys','daegu','yongsan','ramstein','kaiserslautern','spangdahlem','wiesbaden','grafenwoehr',
     'vilseck','baumholder','ansbach','stuttgart','torii','kadena','misawa','camp zama','yokosuka',
@@ -4878,10 +4910,10 @@ function App() {
     try { if (sessionStorage.getItem('pcs_overdue_notified') === '1') return; } catch {}
     const target = profile?.reportNLTDate || profile?.departingDate;
     if (!target) return;
-    const targetDate = new Date(target);
-    if (isNaN(targetDate.getTime())) return;
+    const targetDate = parseLocalDate(target);
+    if (!targetDate) return;
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const daysUntil = Math.floor((targetDate - today) / 86400000);
+    const daysUntil = Math.round((targetDate - today) / 86400000);
     const currentPhase = resolveCurrentPhase(daysUntil);
     const tailored = getTailoredChecklist(profile?.branch || 'Army', {
       component: profile?.component || 'Active Duty',

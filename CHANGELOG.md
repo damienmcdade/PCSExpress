@@ -6,6 +6,25 @@ All notable changes to PCS Express. Dates are the release date. The
 while native build numbers (`CFBundleVersion` / `versionCode`) increment per
 store submission.
 
+## [1.1.15] — 2026-05-31
+
+### Fixed — data-accuracy audit (high-confidence follow-ups)
+- **OCONUS classification unified to the duty-station data.**
+  `isOCONUSInstallation` was a standalone fuzzy keyword list that disagreed
+  with `profile.isOverseas` (data-driven) for overseas bases the keywords
+  missed — e.g. RAF Lakenheath (UK), Chievres (Belgium), Panama — so the
+  housing calculator / VA-loan panel showed BAH where the checklist correctly
+  treated it as OCONUS. It now first looks the installation up in
+  `MILITARY_DUTY_STATIONS` and returns OCONUS when the entry has a `country`
+  or a US-territory `state` (GU/PR/VI/AS/MP), with the keyword list kept only
+  as a fallback for free-text/partial names and during lazy-table load.
+- **Departure-day count no longer drifts by a day.** `getDaysUntilDeparture`
+  and the three T-minus dashboards parsed `new Date("YYYY-MM-DD")` as UTC
+  midnight (the prior evening in US timezones) while differencing against a
+  local-midnight "today" — causing off-by-one counts and a 0→−1 flip at noon
+  on the report date. Added a shared `parseLocalDate` helper (local-midnight
+  parse) and anchored both ends to local midnight with `Math.round`.
+
 ## [1.1.14] — 2026-05-31
 
 ### Fixed — data-accuracy audit (confirmed entitlement bugs)
