@@ -62,7 +62,9 @@ describe('PPMFinancialEstimator', () => {
     const { container } = render(
       <PPMFinancialEstimator theme={theme} profile={{ paygrade: 'E-5' }} />
     );
-    const weightInput = container.querySelectorAll('input[inputmode="numeric"]')[2];
+    // Numeric inputs are now [0]=move distance, [1]=est. weight (the
+    // years-of-service field was removed — it had no effect on GCC).
+    const weightInput = container.querySelectorAll('input[inputmode="numeric"]')[1];
     expect(weightInput.value).toBe('7500');
   });
 
@@ -70,7 +72,7 @@ describe('PPMFinancialEstimator', () => {
     const { container } = render(
       <PPMFinancialEstimator theme={theme} profile={{ paygrade: 'E-5', component: 'DoD Civilian' }} />
     );
-    const weightInput = container.querySelectorAll('input[inputmode="numeric"]')[2];
+    const weightInput = container.querySelectorAll('input[inputmode="numeric"]')[1];
     expect(weightInput.value).toBe('18000');
   });
 

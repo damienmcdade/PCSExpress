@@ -6,6 +6,13 @@ node_modules/
 .env.local
 .env.production
 
+# Signing keystores / private keys — NEVER commit
+*.jks
+*.keystore
+*.p8
+*.pem
+key.properties
+
 # Build output
 build/
 dist/

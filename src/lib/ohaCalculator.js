@@ -212,7 +212,7 @@ export const OHA_REGIONS = {
     },
     miha: { moving: 2100, onetime: 900 },
     utilityRate: 380,
-    notes: 'Guam uses OHA (not BAH) as a non-foreign OCONUS location. High housing costs and limited inventory. Apply early — wait lists are common.',
+    notes: 'NOTE: Guam is a non-foreign OCONUS location and is paid BAH, NOT OHA — use the BAH calculator for the authoritative figure; the values here are rough housing-cost estimates only. High housing costs and limited inventory. Apply early — wait lists are common.',
   },
 };
 

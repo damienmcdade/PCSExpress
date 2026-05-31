@@ -136,23 +136,24 @@ export function calculateGovernmentConstructiveCost(input = {}, config = PPM_CON
   const rank = input.rank || 'E-5';
   const distanceMiles = clamp(toNumber(input.distanceMiles, 0), 0, 12000);
   const estimatedWeightLbs = clamp(toNumber(input.estimatedWeightLbs ?? input.actualWeightLbs, 0), 0, 24000);
-  const yearsOfService = clamp(toNumber(input.yearsOfService, 0), 0, 40);
   const authorizedWeightLbs = getAuthorizedWeightAllowance(rank);
   const reimbursableWeightLbs = Math.min(estimatedWeightLbs, authorizedWeightLbs);
   const excessWeightLbs = Math.max(estimatedWeightLbs - authorizedWeightLbs, 0);
   const hundredWeight = reimbursableWeightLbs / 100;
   const distanceBandFactor = distanceMiles > 1500 ? 1.08 : distanceMiles > 750 ? 1.04 : 1;
-  const serviceComplexity = 1 + Math.min(yearsOfService, 20) * 0.0025;
 
+  // GCC depends ONLY on weight, distance, and origin/destination — NOT on the
+  // member's years of service. A prior `serviceComplexity` multiplier tied to
+  // YOS had no JTR basis, silently inflated the incentive (up to ~4% at 20
+  // YOS), and broke the calibration the example values are pinned to.
   const baseHandling = config.gccBaseHandling;
   const distanceComponent = distanceMiles * config.gccDistanceRatePerMile * distanceBandFactor;
   const weightComponent = hundredWeight * config.gccWeightRatePerHundredLbs;
-  const weightDistanceComponent = hundredWeight * distanceMiles * config.gccWeightDistanceRate * serviceComplexity;
+  const weightDistanceComponent = hundredWeight * distanceMiles * config.gccWeightDistanceRate;
   const governmentConstructiveCost = baseHandling + distanceComponent + weightComponent + weightDistanceComponent;
 
   return {
     rank,
-    yearsOfService,
     distanceMiles,
     estimatedWeightLbs,
     authorizedWeightLbs,

@@ -7,7 +7,7 @@
  * skip until verified.
  *
  * IMPORTANT: PPM math involves both a JTR-mandated entitlement formula
- * (95% of GCC, 22% federal tax withholding) AND market-input planning
+ * (100% of GCC, 22% federal tax withholding) AND market-input planning
  * estimates (fuel, truck rental, labor). When verifying, decide which
  * field you are pinning:
  *   - `grossIncentive`               — verify against DPS / PPPO official estimate
@@ -26,7 +26,7 @@ import { calculatePPMEstimate } from '../../src/lib/ppmCalculator.js';
 
 const CASES = [
   {
-    name: 'E-5 / 6 YOS / 850 mi / 7,500 lb — gross incentive (95% GCC)',
+    name: 'E-5 / 6 YOS / 850 mi / 7,500 lb — gross incentive (100% GCC)',
     inputs: { rank: 'E-5', yearsOfService: 6, distanceMiles: 850, estimatedWeightLbs: 7500 },
     field: 'grossIncentive',
     expected: null,
@@ -38,13 +38,13 @@ const CASES = [
     expected: null,
   },
   {
-    name: 'E-7 / 14 YOS / 1500 mi / 13,000 lb — gross incentive (95% GCC)',
+    name: 'E-7 / 14 YOS / 1500 mi / 13,000 lb — gross incentive (100% GCC)',
     inputs: { rank: 'E-7', yearsOfService: 14, distanceMiles: 1500, estimatedWeightLbs: 13000 },
     field: 'grossIncentive',
     expected: null,
   },
   {
-    name: 'O-3 / 8 YOS / 1200 mi / 12,000 lb — gross incentive (95% GCC)',
+    name: 'O-3 / 8 YOS / 1200 mi / 12,000 lb — gross incentive (100% GCC)',
     inputs: { rank: 'O-3', yearsOfService: 8, distanceMiles: 1200, estimatedWeightLbs: 12000 },
     field: 'grossIncentive',
     expected: null,

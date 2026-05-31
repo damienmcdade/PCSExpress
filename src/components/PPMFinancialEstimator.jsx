@@ -61,7 +61,6 @@ export default function PPMFinancialEstimator({ theme, profile }) {
   // limitation and points users to the authoritative DCPAS/JTR sources.
   const initialRank = (profile?.paygrade && PPM_PAYGRADES.includes(profile.paygrade)) ? profile.paygrade : 'E-5';
   const [rank, setRank] = useState(initialRank);
-  const [yearsOfService, setYearsOfService] = useState('6');
   const [distanceMiles, setDistanceMiles] = useState('850');
   // Civilian PCS weight allowance is a flat 18,000 lbs per FTR §302-7
   // versus the military's rank-tied allowance. Default the field
@@ -70,10 +69,9 @@ export default function PPMFinancialEstimator({ theme, profile }) {
 
   const estimate = useMemo(() => calculatePPMEstimate({
     rank,
-    yearsOfService,
     distanceMiles,
     estimatedWeightLbs,
-  }), [rank, yearsOfService, distanceMiles, estimatedWeightLbs]);
+  }), [rank, distanceMiles, estimatedWeightLbs]);
 
   const meterWidth = `${Math.max(0, estimate.profitMeterPercent)}%`;
   const isProfit = estimate.estimatedCashInPocket >= 0;
@@ -84,7 +82,7 @@ export default function PPMFinancialEstimator({ theme, profile }) {
         <div style={{ fontSize: 10, fontWeight: 950, color: theme.accent, letterSpacing: '.16em', marginBottom: 6 }}>PPM FINANCIAL ESTIMATOR</div>
         <div style={{ fontSize: 17, fontWeight: 950, marginBottom: 6 }}>Personally Procured Move cash-flow planner</div>
         <div style={{ fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,0.78)' }}>
-          Estimates 95 percent of a planning Government Constructive Cost against rental truck, fuel, labor, supplies, and tax withholding. Official PPM payment amounts must come from DPS, your PPPO/TMO, and current JTR guidance.
+          Estimates 100 percent of a planning Government Constructive Cost against rental truck, fuel, labor, supplies, and tax withholding. Official PPM payment amounts must come from DPS, your PPPO/TMO, and current JTR guidance.
         </div>
       </div>
 
@@ -106,10 +104,6 @@ export default function PPMFinancialEstimator({ theme, profile }) {
           <select value={rank} onChange={(e) => setRank(e.target.value)} style={{ ...fieldStyle, marginTop: 5 }}>
             {PPM_PAYGRADES.map(pg => <option key={pg} value={pg}>{pg}</option>)}
           </select>
-        </label>
-        <label style={{ fontSize: 11, fontWeight: 900, color: theme.primary }}>
-          YEARS OF SERVICE
-          <input inputMode="numeric" min="0" max="40" value={yearsOfService} onChange={(e) => setYearsOfService(e.target.value)} style={{ ...fieldStyle, marginTop: 5 }} />
         </label>
         <label style={{ fontSize: 11, fontWeight: 900, color: theme.primary }}>
           MOVE DISTANCE
@@ -151,7 +145,7 @@ export default function PPMFinancialEstimator({ theme, profile }) {
       </div>
 
       <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 14, padding: 14, fontSize: 11, color: '#6D4C00', lineHeight: 1.6, marginBottom: 12 }}>
-        JTR and PPM incentive rates can change. In 2025, DTMO published changes clarifying 100 percent Best Value cost and a temporary 130 percent PPM rate; this module keeps the requested 95 percent formula as a conservative planning setting until the user verifies the official DPS/PPPO estimate.
+        JTR and PPM incentive rates can change. In 2025, DTMO published changes clarifying the 100 percent Best Value (Government Constructive Cost) standard, with a temporary 130 percent PPM rate that expired 30 Sep 2025; this module uses the standing 100 percent rate as a planning figure until the user verifies the official DPS/PPPO estimate.
       </div>
 
       <div style={{ display: 'grid', gap: 8 }}>
