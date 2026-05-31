@@ -48,18 +48,37 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
+          has_vercel=false
           if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
-            echo "has_vercel=true" >> "$GITHUB_OUTPUT"
+            # Presence is NOT enough. An expired / revoked token passes the
+            # -n check but then hard-fails `vercel pull` in the deploy job,
+            # turning the whole workflow red — defeating the documented
+            # "missing creds → skip, stay green, deploy manually" design.
+            # Validate the token for real so an UNUSABLE token degrades to
+            # the same graceful skip as an absent one (with a loud warning
+            # telling the operator to rotate it).
+            if npx --yes vercel@latest whoami --token "$VERCEL_TOKEN" >/dev/null 2>&1; then
+              has_vercel=true
+            else
+              echo "::warning::VERCEL_TOKEN is present but INVALID/EXPIRED — Vercel deploy skipped. Rotate it: mint at https://vercel.com/account/settings/tokens then 'gh secret set VERCEL_TOKEN'. Meanwhile deploy the frontend manually with 'npm run deploy:vercel'."
+            fi
           else
-            echo "has_vercel=false" >> "$GITHUB_OUTPUT"
             echo "::notice::Vercel deploy skipped — VERCEL_TOKEN/ORG_ID/PROJECT_ID not configured. Deploy manually with 'npm run deploy:vercel'."
           fi
+          echo "has_vercel=$has_vercel" >> "$GITHUB_OUTPUT"
+
+          # Railway stays a presence check: it deploys via a PROJECT token,
+          # for which `railway whoami` (an account-token concept) is an
+          # unreliable signal and could false-negative a working token and
+          # skip a healthy deploy. `railway up` surfaces a bad token loudly
+          # on its own if it ever expires.
+          has_railway=false
           if [ -n "$RAILWAY_TOKEN" ]; then
-            echo "has_railway=true" >> "$GITHUB_OUTPUT"
+            has_railway=true
           else
-            echo "has_railway=false" >> "$GITHUB_OUTPUT"
             echo "::notice::Railway deploy skipped — RAILWAY_TOKEN not configured. Deploy manually with 'npm run deploy:railway'."
           fi
+          echo "has_railway=$has_railway" >> "$GITHUB_OUTPUT"
 
   vercel:
     name: Vercel (frontend)
