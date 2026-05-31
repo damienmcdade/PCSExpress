@@ -326,7 +326,7 @@ export function getMHAForInstallation(installationName) {
 
 export function isOCONUS(installationName) {
   if (!installationName || typeof installationName !== 'string') return false;
-  const oconusKeywords = ['Korea','Germany','Japan','Italy','Guam','Okinawa','Cuba','Bahrain','Kuwait','Qatar','Djibouti','Humphreys','Daegu','Yongsan','Ramstein','Kaiserslautern','Spangdahlem','Wiesbaden','Grafenwoehr','Vilseck','Baumholder','Ansbach','Stuttgart','Torii','Kadena','Misawa','Camp Zama','Yokosuka','Sasebo','Naples','Vicenza','Aviano','Sigonella','Rota','Moron','Incirlik','NSA Bahrain','Lemonier','Iwakuni','Futenma','Butler','Guantanamo','Gtmo'];
+  const oconusKeywords = ['Korea','Germany','Japan','Italy','Guam','Okinawa','Cuba','Bahrain','Kuwait','Qatar','Djibouti','Humphreys','Daegu','Yongsan','Ramstein','Kaiserslautern','Spangdahlem','Wiesbaden','Grafenwoehr','Vilseck','Baumholder','Ansbach','Stuttgart','Torii','Kadena','Misawa','Camp Zama','Yokosuka','Sasebo','Naples','Vicenza','Aviano','Sigonella','Rota','Moron','Incirlik','NSA Bahrain','Lemonnier','Iwakuni','Futenma','Butler','Guantanamo','Gtmo'];
   return oconusKeywords.some(kw => installationName.includes(kw));
 }
 

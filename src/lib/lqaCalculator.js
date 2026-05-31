@@ -203,7 +203,7 @@ function lookupGroupTier(group) {
   return GRADE_GROUPS.find(g => g.value === group)?.tier ?? 1.00;
 }
 
-function lookupFamilyMult(familySize) {
+export function lookupFamilyMult(familySize) {
   // FAMILY_BUCKETS values are the UPPER bound of each range (4 = "3–4
   // persons", 6 = "5–6", 7 = "7+"). Snap an arbitrary head-count to its
   // bucket so a family of 3 or 5 gets the right multiplier instead of

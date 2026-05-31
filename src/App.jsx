@@ -4444,7 +4444,7 @@ function isOCONUSInstallation(name) {
   return ['korea','germany','japan','italy','guam','okinawa','cuba','bahrain','kuwait','qatar','djibouti',
     'humphreys','daegu','yongsan','ramstein','kaiserslautern','spangdahlem','wiesbaden','grafenwoehr',
     'vilseck','baumholder','ansbach','stuttgart','torii','kadena','misawa','camp zama','yokosuka',
-    'sasebo','naples','vicenza','aviano','sigonella','rota','moron','incirlik','lemonier','osan',
+    'sasebo','naples','vicenza','aviano','sigonella','rota','moron','incirlik','lemonnier','osan',
     'yokota','atsugi','iwakuni','futenma','foster','butler','courtney','hansen','schwab','andersen',
     // US territories are OCONUS (OHA, not BAH): Puerto Rico installations.
     'puerto rico','buchanan','borinquen','san juan',

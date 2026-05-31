@@ -14,6 +14,7 @@ import {
   POST_KEYS,
   GRADE_GROUPS,
   FAMILY_BUCKETS,
+  lookupFamilyMult,
   TQSA_TIERS,
   formatCurrencyLQA as fmt,
   detectPost,
@@ -57,7 +58,9 @@ export default function LQACalculatorTab({ theme, profile }) {
 
   const postData = LQA_POSTS[post];
   const groupTier = GRADE_GROUPS.find(g => g.value === group)?.tier || 1.00;
-  const familyMult = FAMILY_BUCKETS.find(b => b.value === familySize)?.mult || 1.00;
+  // Range-snap via the shared lib helper (handles family sizes between
+  // bucket bounds, e.g. 3 or 5, instead of falling through to 1.00).
+  const familyMult = lookupFamilyMult(familySize);
   const annualLqa = Math.round((postData?.baseAnnual || 0) * familyMult * groupTier);
   const monthlyLqa = Math.round(annualLqa / 12);
   const tqsaBase = postData?.tqsaDailyMax || 0;

@@ -1424,7 +1424,7 @@ function BasicInstallationCard({ name, theme }) {
     'humphreys','daegu','yongsan','ramstein','kaiserslautern','spangdahlem','wiesbaden',
     'grafenwoehr','vilseck','baumholder','ansbach','stuttgart','torii','kadena','misawa',
     'camp zama','yokosuka','sasebo','naples','vicenza','aviano','sigonella','rota','moron',
-    'incirlik','lemonier','pituffik','thule'].some(kw => nameLower.includes(kw));
+    'incirlik','lemonnier','pituffik','thule'].some(kw => nameLower.includes(kw));
   return (
     <div style={{ display: 'grid', gap: 10 }}>
       <div style={{ background: '#F8F9FA', border: '1px solid #E0E6EE', borderLeft: `4px solid ${theme.primary}`, borderRadius: 14, padding: 16 }}>

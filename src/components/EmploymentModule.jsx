@@ -443,7 +443,7 @@ function cityFor(profile) {
 const OCONUS_INSTALL_KEYWORDS = ['korea','germany','japan','italy','guam','okinawa','cuba','bahrain','kuwait','qatar','djibouti',
   'humphreys','daegu','yongsan','ramstein','kaiserslautern','spangdahlem','wiesbaden','grafenwoehr','grafenwöhr',
   'vilseck','baumholder','ansbach','stuttgart','torii','kadena','misawa','camp zama','yokosuka',
-  'sasebo','naples','vicenza','aviano','sigonella','rota','moron','morón','incirlik','lemonier','osan',
+  'sasebo','naples','vicenza','aviano','sigonella','rota','moron','morón','incirlik','lemonnier','osan',
   'yokota','atsugi','iwakuni','futenma','foster','butler','courtney','hansen','schwab','andersen',
   'lakenheath','mildenhall','souda','souda bay','singapore','stavanger','poland','belgium','netherlands',
   'kosovo','greenland','pituffik','thule','diego garcia','guantanamo']

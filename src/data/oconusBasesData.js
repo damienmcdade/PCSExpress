@@ -130,7 +130,7 @@ export const OCONUS_BASES = [
   // Africa
   {
     id: 'djibouti-ab',
-    base_name: 'Camp Lemonier',
+    base_name: 'Camp Lemonnier',
     country: 'Djibouti',
     region: 'Africa',
     status: 'available',
