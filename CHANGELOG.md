@@ -6,6 +6,31 @@ All notable changes to PCS Express. Dates are the release date. The
 while native build numbers (`CFBundleVersion` / `versionCode`) increment per
 store submission.
 
+## [1.1.8] — 2026-05-31
+
+### Performance — Tier 0 (interaction latency / INP)
+Measured prod under 4× CPU throttle showed TBT ≈484ms with a 365ms startup
+long task; the dominant felt sluggishness was interaction lag from the
+7,939-line `App.jsx` (50 `useState`, 0 memoization) re-rendering on every
+keystroke/toggle.
+- **SchoolsTab: killed the O(n²) per-render work.** `enrichedLive` called
+  `fuzzyCuratedRating` (a linear `schools.find`) per live school — ~7,200 string
+  searches on *every* render (incl. each keystroke). Hoisted the pure helpers
+  (`gradeForAge`, `gradeMatchesAge`, `fuzzyCuratedRating`) to module scope and
+  wrapped `schools`, `agesFromProfile`, `enrichedLive`, `liveK12`, `liveDaycare`,
+  and `filteredSchools` in `useMemo` with correct deps.
+- **ChecklistTab: memoized `getTailoredChecklist`** so toggling a checkbox no
+  longer re-tailors the entire branch checklist.
+- **DutyStationDirectory: `useDeferredValue`** on the installation search so the
+  input stays responsive while the up-to-100-item list re-filters at low priority.
+- Memoized lazy-data reads include a `HEAVY.*` dep so they correctly refresh when
+  the lazy `app-data` chunk loads (the store is subscribed only at the App level).
+
+Note: broad `React.memo` tab-wrapping was intentionally **not** done — `HEAVY`
+data is subscribed only at the App level, so memoizing tabs with stable props
+would make them skip the data-load re-render (stale UI). That needs
+`useHeavyData()` moved into consumers first (a Tier 1 item).
+
 ## [1.1.7] — 2026-05-31
 
 ### Added — push follow-ups
