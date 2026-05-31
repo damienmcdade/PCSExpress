@@ -117,12 +117,13 @@ const PHRASE_CATEGORIES = [
 // null on error). Translations are short, but streaming lets the
 // network round-trip overlap with text decoding so first-byte feels
 // faster than waiting for the full JSON payload.
-async function callAI(system, user, onDelta) {
+async function callAI(system, user, onDelta, signal) {
   try {
     const res = await fetch(apiUrl('/api/ai'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
       body: JSON.stringify({ system, user, stream: true }),
+      signal,
     });
     if (!res.ok) throw new Error('API error');
     const contentType = res.headers.get('content-type') || '';
@@ -181,11 +182,16 @@ export default function TranslationModule({ theme, profile }) {
   // hydrate clobber a translation the user saved during the load window.
   const [saved, setSaved] = useState([]);
   const savedDirtyRef = useRef(false);
+  // Abort the streaming AI fetch if the component unmounts mid-translation,
+  // so the SSE reader loop stops instead of running to completion against an
+  // unmounted component.
+  const abortRef = useRef(null);
 
   useEffect(() => {
     secureLocalStore.get('translations_saved', null).then(savedItems => {
       if (Array.isArray(savedItems) && !savedDirtyRef.current) setSaved(savedItems);
     });
+    return () => { try { abortRef.current?.abort(); } catch { /* already gone */ } };
   }, []);
 
   const selectedLang = LANGUAGES.find(l => l.code === targetLang) || LANGUAGES[0];
@@ -195,10 +201,13 @@ export default function TranslationModule({ theme, profile }) {
     if (!inputText.trim()) return;
     setLoading(true);
     setResult('');
+    const controller = new AbortController();
+    abortRef.current = controller;
     const aiResult = await callAI(
       `You are a military translation assistant. Translate the following text from English to ${selectedLang.name}. Respond with ONLY the translated text — no explanations, no labels, no quotation marks.`,
       inputText.trim(),
       (partial) => setResult(partial),
+      controller.signal,
     );
     if (aiResult) {
       setResult(aiResult);

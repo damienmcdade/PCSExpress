@@ -231,6 +231,7 @@ function NavigationModule({ theme, profile }) {
 
               <label style={{ fontSize: 11, fontWeight: 700, color: '#56697C', display: 'block', marginBottom: 5 }}>FROM</label>
               <input
+                aria-label="Route starting point"
                 type="text"
                 value={freeFormFrom}
                 onChange={e => setFreeFormFrom(e.target.value)}
@@ -241,6 +242,7 @@ function NavigationModule({ theme, profile }) {
 
               <label style={{ fontSize: 11, fontWeight: 700, color: '#56697C', display: 'block', marginBottom: 5 }}>TO</label>
               <input
+                aria-label="Route destination"
                 type="text"
                 value={freeFormTo}
                 onChange={e => setFreeFormTo(e.target.value)}

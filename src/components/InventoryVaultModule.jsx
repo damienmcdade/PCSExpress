@@ -187,14 +187,14 @@ export default function InventoryVaultModule({ theme, profile }) {
               <span>GBL / TCN</span>
               {state.meta?.gbl && <CopyableText value={state.meta.gbl} ariaLabel="Copy GBL" style={{ fontSize: 10, color: theme.primary, padding: '0 4px' }}>Copy</CopyableText>}
             </div>
-            <input value={state.meta?.gbl || ''} onChange={e => updMeta('gbl', e.target.value)} style={inputSt} placeholder="Shipment number" />
+            <input aria-label="GBL / TCN shipment number" value={state.meta?.gbl || ''} onChange={e => updMeta('gbl', e.target.value)} style={inputSt} placeholder="Shipment number" />
           </div>
           <div style={{ display: 'block' }}>
             <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
               <span>TSP</span>
               {state.meta?.tsp && <CopyableText value={state.meta.tsp} ariaLabel="Copy TSP" style={{ fontSize: 10, color: theme.primary, padding: '0 4px' }}>Copy</CopyableText>}
             </div>
-            <input value={state.meta?.tsp || ''} onChange={e => updMeta('tsp', e.target.value)} style={inputSt} placeholder="Transportation Service Provider" />
+            <input aria-label="Transportation Service Provider (TSP)" value={state.meta?.tsp || ''} onChange={e => updMeta('tsp', e.target.value)} style={inputSt} placeholder="Transportation Service Provider" />
           </div>
           <label style={{ display: 'block' }}>
             <div style={{ fontSize: 10, fontWeight: 800, color: '#56697C', marginBottom: 4 }}>Delivered on</div>
@@ -212,18 +212,18 @@ export default function InventoryVaultModule({ theme, profile }) {
       <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 14, padding: 14, marginBottom: 14 }}>
         <div style={{ fontSize: 12, fontWeight: 900, color: theme.primary, letterSpacing: '.06em', marginBottom: 10 }}>ADD AN ITEM</div>
         <div style={{ display: 'grid', gap: 8 }}>
-          <input value={draft.name} onChange={e => setDraft(d => ({ ...d, name: e.target.value }))} placeholder="Item description (e.g. 65-inch TV, dining table)" style={inputSt} />
+          <input aria-label="Item description" value={draft.name} onChange={e => setDraft(d => ({ ...d, name: e.target.value }))} placeholder="Item description (e.g. 65-inch TV, dining table)" style={inputSt} />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <select value={draft.room} onChange={e => setDraft(d => ({ ...d, room: e.target.value }))} style={inputSt}>
+            <select aria-label="Room" value={draft.room} onChange={e => setDraft(d => ({ ...d, room: e.target.value }))} style={inputSt}>
               {ROOMS.map(r => <option key={r}>{r}</option>)}
             </select>
-            <select value={draft.condition} onChange={e => setDraft(d => ({ ...d, condition: e.target.value }))} style={inputSt}>
+            <select aria-label="Item condition" value={draft.condition} onChange={e => setDraft(d => ({ ...d, condition: e.target.value }))} style={inputSt}>
               {CONDITION.map(c => <option key={c}>{c}</option>)}
             </select>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <input inputMode="decimal" value={draft.value} onChange={e => setDraft(d => ({ ...d, value: e.target.value }))} placeholder="Declared replacement value ($)" style={inputSt} />
-            <input value={draft.notes} onChange={e => setDraft(d => ({ ...d, notes: e.target.value }))} placeholder="Notes (serial #, damage)" style={inputSt} />
+            <input aria-label="Declared replacement value in dollars" inputMode="decimal" value={draft.value} onChange={e => setDraft(d => ({ ...d, value: e.target.value }))} placeholder="Declared replacement value ($)" style={inputSt} />
+            <input aria-label="Item notes" value={draft.notes} onChange={e => setDraft(d => ({ ...d, notes: e.target.value }))} placeholder="Notes (serial #, damage)" style={inputSt} />
           </div>
           <button onClick={addItem} disabled={!draft.name.trim()} style={{ padding: '10px 14px', background: theme.primary, color: '#FFF', border: 'none', borderRadius: 10, fontWeight: 800, fontSize: 12, cursor: draft.name.trim() ? 'pointer' : 'not-allowed', opacity: draft.name.trim() ? 1 : 0.6 }}>
             Add item
@@ -251,7 +251,7 @@ export default function InventoryVaultModule({ theme, profile }) {
                     {it.notes && <div style={{ fontSize: 11, color: '#56697C', marginTop: 4 }}>{it.notes}</div>}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
-                    <select value={it.condition} onChange={e => updItem(it.id, { condition: e.target.value })} style={{ ...inputSt, padding: '4px 6px', fontSize: 11, width: 100 }}>
+                    <select aria-label={`Condition for ${it.name || 'item'}`} value={it.condition} onChange={e => updItem(it.id, { condition: e.target.value })} style={{ ...inputSt, padding: '4px 6px', fontSize: 11, width: 100 }}>
                       {CONDITION.map(c => <option key={c}>{c}</option>)}
                     </select>
                     <button onClick={() => removeItem(it.id)} style={{ padding: '4px 8px', fontSize: 10, fontWeight: 700, color: '#C62828', background: '#FFFFFF', border: '1px solid #FFCDD2', borderRadius: 6, cursor: 'pointer' }}>Remove</button>

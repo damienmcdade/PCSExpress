@@ -78,3 +78,37 @@ that one reflects our market inputs and will legitimately drift.
 | 3 | E-7 / 14 YOS / 1500 mi / 13,000 lb      | `grossIncentive`         | _TODO_ | _TODO_ | _TODO_ |
 | 4 | O-3 / 8 YOS / 1200 mi / 12,000 lb       | `grossIncentive`         | _TODO_ | _TODO_ | _TODO_ |
 | 5 | E-4 / 3 YOS / 400 mi / 5,000 lb         | `authorizedWeightLbs`    | _TODO_ | _TODO_ | _TODO_ |
+
+---
+
+## 2026-05-31 — Verification pass findings
+
+A research pass attempted to verify all 20 reference cases against authoritative
+sources. Outcome:
+
+- **PPM — 1 of 5 pinned.** `E-4 authorized weight cap = 8,000 lb` is now VERIFIED
+  (JTR regulatory constant). The other 4 PPM cases are GCC-**model** outputs
+  (not DPS-confirmed payouts) and stay skipped — pinning them would only test
+  the code against itself, and they will (correctly) change if the GCC
+  coefficients are recalibrated.
+- **BAH — still skipped, BUT flagged for review.** The app advertises "2026 DTMO
+  rates," yet several independent 2026 third-party aggregators report figures
+  that differ from the app for the same MHA/grade. The third-party sources also
+  **conflict with each other** (e.g. Fort Liberty E-5 w/deps reported as both
+  ~$1,383 and ~$1,806; app shows $1,773), so nothing could be responsibly
+  pinned or recalibrated. **Action for a human:** verify a sample of MHAs
+  against the authoritative DTMO 2026 table (interactive lookup at
+  travel.dod.mil) and confirm the app's `MHA_RATES` are the current 1-Jan-2026
+  rates, not a prior year.
+- **OHA — still skipped.** Rates rotate quarterly with FX; only the interactive
+  DTMO OHA lookup is authoritative. Also note: **Guam is a BAH location, not an
+  OHA location** — the "Guam" OHA reference case is mis-categorized and should
+  be re-scoped or removed.
+- **LQA — still skipped (structural).** The app derives every LQA figure from a
+  single per-post `baseAnnual` × invented family multipliers × grade tiers. The
+  real DSSR §920 publishes discrete per-(post × group × family-size) ceilings
+  that do not follow those clean ratios, so the app output is a planning model,
+  not the §920 cell — it cannot match an authoritative value even in principle.
+  To make LQA reference-verifiable, the model would need to store real §920
+  cells. Until then these stay skipped and the UI's planning-estimate
+  disclaimer carries the caveat.
