@@ -227,7 +227,12 @@ export function formatCurrencyOHA(n) {
 export function detectOHARegion(installationName) {
   if (!installationName) return '';
   const name = installationName.toLowerCase();
-  if (name.includes('humphreys') || name.includes('daegu') || name.includes('yongsan') || name.includes('walker') || name.includes('casey')) return 'South Korea (Camp Humphreys)';
+  // NOTE: Yongsan (Seoul) and Camp Casey (Dongducheon) are NOT Camp Humphreys
+  // and there is no dedicated Seoul/Dongducheon OHA region here. Deliberately
+  // excluded so they return '' (honest "verify at the official DTMO OHA
+  // lookup") rather than being shown Humphreys' rent caps. Daegu/Walker remain
+  // mapped to Humphreys as the nearest available South Korea region.
+  if (name.includes('humphreys') || name.includes('daegu') || name.includes('walker')) return 'South Korea (Camp Humphreys)';
   if (name.includes('osan')) return 'South Korea (Osan AB)';
   if (name.includes('yokosuka') || name.includes('zama') || name.includes('sagamihara') || name.includes('yokohama')) return 'Japan (Yokosuka / Yokohama)';
   if (name.includes('okinawa') || name.includes('kadena') || name.includes('foster') || name.includes('butler') || name.includes('futenma') || name.includes('torii') || name.includes('courtney') || name.includes('hansen') || name.includes('schwab')) return 'Japan (Okinawa — Kadena / Camp Foster)';
@@ -235,7 +240,15 @@ export function detectOHARegion(installationName) {
   if (name.includes('ramstein') || name.includes('kaiserslautern') || name.includes('landstuhl') || name.includes('baumholder')) return 'Germany (Kaiserslautern / Ramstein)';
   if (name.includes('stuttgart') || name.includes('patch') || name.includes('kelley') || name.includes('robinson')) return 'Germany (Stuttgart)';
   if (name.includes('grafenwoehr') || name.includes('vilseck') || name.includes('ansbach') || name.includes('katterbach') || name.includes('tower barracks')) return 'Germany (Grafenwoehr / Vilseck / Ansbach)';
-  if (name.includes('wiesbaden') || name.includes('spangdahlem') || name.includes('baumholder') || name.includes('germany')) return 'Germany (Kaiserslautern / Ramstein)';
+  // Wiesbaden (own military community near Frankfurt) and Spangdahlem (Eifel)
+  // are distinct localities with their own OHA rates — NOT Kaiserslautern /
+  // Ramstein. There is no dedicated region for them here, so they are
+  // deliberately NOT routed to KMC; they fall through to '' (honest "verify at
+  // the official DTMO OHA lookup") rather than being shown the wrong region's
+  // rent caps. ('baumholder' is already handled by the KMC match above.)
+  // A bare 'germany' string with no recognized city remains a last-resort
+  // approximation to the KMC region.
+  if (name.includes('germany')) return 'Germany (Kaiserslautern / Ramstein)';
   if (name.includes('vicenza') || name.includes('naples') || name.includes('aviano') || name.includes('sigonella') || name.includes('italy')) return 'Italy (Vicenza / Naples)';
   if (name.includes('rota') || name.includes('moron') || name.includes('spain')) return 'Spain (Rota)';
   if (name.includes('bahrain') || name.includes('navcent') || name.includes('manama')) return 'Bahrain (NSA Bahrain)';

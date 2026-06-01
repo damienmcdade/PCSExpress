@@ -278,7 +278,14 @@ export const INSTALLATION_MARKETS = {
   'West Point (USMA)': { city: 'West Point', state: 'NY', zip: '10996', alias: 'West Point' },
   'USAG Humphreys': { city: 'Pyeongtaek', state: 'South Korea', zip: '17977', alias: 'Camp Humphreys' },
   'USAG Daegu': { city: 'Daegu', state: 'South Korea', zip: '41940' },
-  'USAG Yongsan-Casey': { city: 'Dongducheon', state: 'South Korea', zip: '11186' },
+  // USAG Yongsan-Casey garrison HQ is Yongsan (Seoul). The garrison still
+  // retains Camp Casey (Dongducheon, see 'Camp Casey' entry below), but the
+  // umbrella name's HQ is Seoul — NOT Dongducheon. Fixed from a prior entry
+  // that wrongly placed the whole umbrella in Dongducheon.
+  'USAG Yongsan-Casey': { city: 'Seoul', state: 'South Korea', zip: '04383' },
+  // Yongsan (Seoul) as its own resolvable key so a member at Yongsan is not
+  // told they're at Daegu or Dongducheon.
+  'USAG Yongsan': { city: 'Seoul', state: 'South Korea', zip: '04383' },
   'Camp Walker': { city: 'Daegu', state: 'South Korea', zip: '41940' },
   'Camp Red Cloud': { city: 'Uijeongbu', state: 'South Korea', zip: '11617' },
   'USAG Japan (Camp Zama)': { city: 'Zama', state: 'Japan', zip: '252-8511' },

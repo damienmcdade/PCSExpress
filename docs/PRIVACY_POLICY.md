@@ -28,7 +28,7 @@ all three.
   document.
 - We do **not** accept document uploads or photographs anywhere in the App.
 - We do **not** use third-party analytics, advertising trackers, or session
-  replay services. (See §7 on advertising for a future-state note.)
+  replay services. (See §7 on advertising.)
 - We do **not** sell, rent, or share any information with data brokers.
 
 ## 4. Information stored on YOUR device only
@@ -74,14 +74,23 @@ advertising cookies.
   profile described in §4) as IndexedDB / localStorage entries. These
   are not cookies and are not transmitted with HTTP requests.
 
-## 7. Advertising (future-state notice)
+## 7. Advertising (Google AdSense)
 
-PCS Express publishes an `ads.txt` file declaring a Google AdSense
-publisher relationship. **Advertising is not currently served on
-pcsexpress.app.** If and when the App begins serving ads, this notice
-will be updated **before** any ad code loads, and a granular consent
-control will be added for users in jurisdictions that require one
-(California, EU/EEA, UK).
+PCS Express has applied for the Google AdSense program and our publisher
+ID is declared in our `ads.txt` file, but **advertising is not currently
+served** on the web app, and never inside the iOS/Android apps. The
+AdSense script does not load and sets no advertising cookies until you
+grant consent through a Consent Management Platform — which is not yet
+enabled. Before any ads are served, we will: (a) require prior consent in
+the EU/EEA and the UK via a Google-certified consent banner, (b) default
+to non-personalized ads, and (c) update this notice with the data Google
+receives. Google's use of advertising cookies is described in Google's
+[Advertising Privacy & Terms](https://policies.google.com/technologies/ads)
+notice.
+
+If we ever introduce personalized ads, a granular consent banner will be
+added before personalization is enabled — including a clearly-labelled
+opt-out for users covered by CCPA / CPRA / GDPR / ePrivacy.
 
 ## 8. Data we receive automatically
 

@@ -326,7 +326,33 @@ export function getMHAForInstallation(installationName) {
 
 export function isOCONUS(installationName) {
   if (!installationName || typeof installationName !== 'string') return false;
-  const oconusKeywords = ['Korea','Germany','Japan','Italy','Guam','Okinawa','Cuba','Bahrain','Kuwait','Qatar','Djibouti','Humphreys','Daegu','Yongsan','Ramstein','Kaiserslautern','Spangdahlem','Wiesbaden','Grafenwoehr','Vilseck','Baumholder','Ansbach','Stuttgart','Torii','Kadena','Misawa','Camp Zama','Yokosuka','Sasebo','Naples','Vicenza','Aviano','Sigonella','Rota','Moron','Incirlik','NSA Bahrain','Lemonnier','Iwakuni','Futenma','Butler','Guantanamo','Gtmo'];
+  const oconusKeywords = ['Korea','Germany','Japan','Italy','Guam','Okinawa','Cuba','Bahrain','Kuwait','Qatar','Djibouti','Humphreys','Daegu','Yongsan','Ramstein','Kaiserslautern','Spangdahlem','Wiesbaden','Grafenwoehr','Vilseck','Baumholder','Ansbach','Stuttgart','Torii','Kadena','Misawa','Camp Zama','Yokosuka','Sasebo','Naples','Vicenza','Aviano','Sigonella','Rota','Moron','Incirlik','NSA Bahrain','Lemonnier','Iwakuni','Futenma','Butler','Guantanamo','Gtmo',
+    // ── OCONUS keyword gaps (added). Each is either a distinct overseas base
+    // name or a country/locality that cannot collide with a CONUS base name.
+    // NOTE: deliberately NOT using bare 'England' — it would false-positive the
+    // CONUS Coast Guard sectors 'USCG Sector Northern/Southeast New England'.
+    // UK / RAF
+    'RAF ','Lakenheath','Mildenhall','Croughton','Alconbury','Menwith Hill','United Kingdom',
+    // Portugal / Azores
+    'Lajes','Azores','Portugal',
+    // Belgium (NATO)
+    'Belgium','SHAPE','Chievres','Chièvres',
+    // Poland
+    'Poland',
+    // Kosovo
+    'Kosovo','Bondsteel',
+    // Greenland
+    'Greenland','Thule','Pituffik',
+    // Indian Ocean
+    'Diego Garcia',
+    // Singapore
+    'Singapore',
+    // Norway
+    'Norway','Stavanger',
+    // Greece
+    'Greece','Souda',
+    // Netherlands
+    'Netherlands','Brunssum'];
   return oconusKeywords.some(kw => installationName.includes(kw));
 }
 
@@ -414,9 +440,17 @@ const CANONICAL_ALIASES = {
   'rose barracks':                  'USAG Bavaria',
   'usag japan':                     'Camp Zama',
   'camp zama japan':                'Camp Zama',
-  'yongsan':                        'USAG Daegu',
-  'usag yongsan':                   'USAG Daegu',
-  'usag yongsan-casey':             'USAG Daegu',
+  // Yongsan (Seoul) and Camp Casey (Dongducheon) are NOT Daegu. Point each at
+  // its own correctly-located market entry instead of conflating with Daegu.
+  // These keys exist in INSTALLATION_MARKETS (src/data/installationMarkets.js).
+  // Where a lookup (e.g. the curated INSTALLATION_DIRECTORY) lacks the target,
+  // resolveInstallation falls through to an honest empty result rather than
+  // claiming the wrong garrison's data.
+  'yongsan':                        'USAG Yongsan',
+  'usag yongsan':                   'USAG Yongsan',
+  'usag yongsan-casey':             'USAG Yongsan-Casey',
+  'camp casey':                     'Camp Casey',
+  'casey':                          'Camp Casey',
   // Navy
   'nas oceana va':                  'NAS Oceana',
   'naval air station oceana':       'NAS Oceana',
@@ -470,7 +504,11 @@ const CANONICAL_ALIASES = {
   'misawa air base':                'Misawa AB',
   'kadena air base':                'Kadena AB',
   'ramstein air base':              'Ramstein AB',
-  'raf lakenheath':                 'Ramstein AB',
+  // RAF Lakenheath is in the UK, not Germany. Do NOT alias it to Ramstein.
+  // It is OCONUS (OHA applies) but there is no UK OHA region in this app, so
+  // it intentionally has no BAH/OHA alias — isOCONUS still returns true so the
+  // BAH tab correctly shows "OHA applies, not BAH" and detectOHARegion returns
+  // '' (honest "verify at DTMO").
   'spangdahlem air base':           'Spangdahlem AB',
 };
 

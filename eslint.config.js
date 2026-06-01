@@ -54,7 +54,7 @@ export default [
       react,
       'react-hooks': reactHooks,
     },
-    settings: { react: { version: '18' } },
+    settings: { react: { version: '19' } },
     rules: {
       // JSX tracks variable usage so React + the named component
       // imports aren't reported as unused. Without these two rules the
