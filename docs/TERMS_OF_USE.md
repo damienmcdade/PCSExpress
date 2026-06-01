@@ -1,7 +1,7 @@
 # PCS Express — Terms of Use
 
 **Effective date:** May 30, 2026
-**Operator:** PCS Express, operated by CyberWave Global LLC (cyberwaveglobal.com)
+**Operator:** PCS Express, operated by CyberWave Technologies LLC (cyberwaveglobal.com)
 **Contact:** info@cyberwaveglobal.com
 
 By accessing or using the PCS Express web app, iOS app, or Android app

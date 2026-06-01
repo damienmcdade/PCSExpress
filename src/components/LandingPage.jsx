@@ -524,7 +524,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
             textShadow: '0 2px 24px rgba(0,0,0,0.25)',
           }}>
             Your PCS,<br />
-            <span style={{ color: PALETTE.gold }}>engineered.</span>
+            <span style={{ color: PALETTE.gold }}>simplified.</span>
           </h1>
           <p style={{ fontSize: 18, lineHeight: 1.55, color: 'rgba(255,255,255,0.88)', margin: '0 auto 32px', maxWidth: 720, fontWeight: 500 }}>
             Branch-aware planning, encrypted on your device, every entitlement and timeline at hand — for active duty, reserve, guard, civilian, and the families who carry the move.
@@ -1022,7 +1022,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
             </div>
           </div>
           <div style={{ marginTop: 26, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,0.12)', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: 'rgba(255,255,255,0.6)' }}>
-            <div>© {new Date().getFullYear()} PCS Express, operated by CyberWave Global LLC. All rights reserved.</div>
+            <div>© {new Date().getFullYear()} PCS Express, operated by CyberWave Technologies LLC. All rights reserved.</div>
             <div style={{ display: 'flex', gap: 14 }}>
               <button type="button" aria-label="Start your PCS plan — begin onboarding" onClick={startPlan} style={{ background: 'none', border: 'none', color: PALETTE.gold, fontWeight: 800, cursor: 'pointer', padding: 0, fontSize: 11 }}>Start Your PCS Plan →</button>
             </div>

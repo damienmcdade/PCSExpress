@@ -172,7 +172,7 @@ const SECTIONS = [
     id: 'foci',
     title: 'Foreign Ownership, Control, or Influence (FOCI)',
     items: [
-      { label: 'Ownership',                  value: 'Independent project — currently sole-developer owned by a U.S. person. No outside investors, no venture funds with foreign limited partners.',                                                                                                     cite: '' },
+      { label: 'Ownership',                  value: 'Owned and operated by CyberWave Technologies LLC, a U.S. company — currently sole-developer led by a U.S. person. No outside investors, no venture funds with foreign limited partners.',                                                                                                     cite: '' },
       { label: 'Acquisition readiness',      value: 'Any future funding round will be screened for FOCI before close: NISPOM-aligned questionnaire for all investors / LPs, disclosure of any non-U.S. limited partners, and a written FOCI mitigation plan if any non-U.S. ownership exceeds 5 %.',         cite: '32 CFR Part 117 (NISPOM)' },
       { label: 'Personnel',                  value: 'Contributors are U.S. persons. Any future non-U.S. contributor would be limited to non-sensitive UI / translation work and excluded from anything touching export-controlled algorithms (none currently exist).',                                cite: '' },
       { label: 'Hosting & data',             value: 'Vercel and Railway U.S.-region only. No CDN edge in foreign jurisdictions caches PII (there is none to cache). DoD-prime acquirer can re-host on GovCloud (AWS US-Gov-West / Azure Gov) without code changes.',                                cite: '' },
