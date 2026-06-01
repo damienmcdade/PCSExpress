@@ -6,6 +6,44 @@ All notable changes to PCS Express. Dates are the release date. The
 while native build numbers (`CFBundleVersion` / `versionCode`) increment per
 store submission.
 
+## [1.2.0] — 2026-05-31
+
+### Added — Move Strategy (flagship)
+- New **Move Strategy** tab (Movement & Logistics): on-device HHG **weight
+  estimator** (Quick 1,000 lb/room + itemized room-by-room) → live **allowance
+  gauge** vs the member's rank/dependency JTR cap → real-time **overweight
+  excess + estimated government bill** → **Full-HHG vs Full-PPM vs Partial-PPM**
+  net-cash comparison with break-even weight. Reuses the PPM calculator for all
+  money math; persists encrypted on-device; travel entitlements (DLA/per diem/
+  MALT) are explicitly excluded from the comparison so the numbers aren't
+  misleading. Closes the one feature gap vs move.mil/MyArmyPCS/MoveAdvisor.
+- **2026 PCS changes** awareness card on the dashboard (GHC/HomeSafe wind-down,
+  new Personal Property Activity, 210-day orders, discretionary-move cuts,
+  FY2026 rate bumps), each sourced.
+
+### Changed — legal & currency
+- Owner entity set to **CyberWave Technologies LLC**; landing slogan → "Your
+  PCS, simplified."
+- FY2026 rate currency: MALT $0.21→**$0.205/mi**, corrected per-diem labels,
+  added the **$4,000 high-risk pet tier**, DLA +3.8% note.
+- **Terms of Use** hardened: liability cap + reliance carve-in + California Civil
+  Code §1668 carve-out; third-party trademark (TRICARE/GI Bill/DTMO) nominative
+  clause; **binding individual arbitration + class-action waiver** (AAA Consumer
+  Rules, FAA, small-claims/IP carve-outs, no opt-out); general clauses
+  (severability, entire agreement, no-waiver, assignment, force majeure). Tax/AI
+  advice disclaimers added to Move Strategy + JTR Assistant.
+
+### Fixed — OCONUS data accuracy
+- Korea garrison conflation (Yongsan/Camp Casey no longer mapped to USAG Daegu);
+  RAF Lakenheath no longer aliased to Ramstein; isOCONUS keyword gaps filled;
+  honest "verify at DTMO" fallbacks for unsupported OHA regions. Removed dead
+  code (oconusBasesData, EducationModule, DemoRequestForm).
+
+### Native
+- iOS `MARKETING_VERSION` / Android `versionName` → **1.2.0**; build numbers
+  `CFBundleVersion` 6→7, Android `versionCode` 3→4. Web bundle + legal pages
+  synced to both shells via `cap sync`.
+
 ## [1.1.16] — 2026-05-31
 
 ### Fixed — data-table cleanups (data-accuracy audit, low-severity)
