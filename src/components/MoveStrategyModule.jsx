@@ -436,7 +436,7 @@ export default function MoveStrategyModule({ theme, profile }) {
         </div>
         <CalculatorResultLabel
           tier="estimate"
-          note="Full PPM / Partial PPM use the shared JTR 100% incentive rate net of tax withholding and your estimated hauling costs. Full Government HHG is shown as $0 extra cash because the government pays the mover directly. Verify the official PPM payment with DPS / your PPPO."
+          note="Full PPM / Partial PPM use the shared JTR 100% incentive rate net of an estimated flat tax withholding and your estimated hauling costs. Full Government HHG is shown as $0 extra cash because the government pays the mover directly. This nets a flat estimated withholding, NOT your actual tax liability — PPM incentive payments are taxable income (IRS Form 3903 may offset documented moving costs), so your real take-home depends on your tax situation. This is not tax or financial advice; confirm your actual tax impact with a tax professional or your installation Tax Center, and verify the official PPM payment with DPS / your PPPO."
         />
       </div>
 

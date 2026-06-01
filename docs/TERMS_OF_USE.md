@@ -80,7 +80,10 @@ the operator. References to U.S. government works (JTR, FTR, DSSR,
 etc.) are used under 17 U.S.C. §105 (U.S. government works are not
 subject to copyright). Branch names ("Army," "Navy," etc.) are used in
 their nominative sense to identify the audience served and do not
-imply endorsement.
+imply endorsement. TRICARE, the GI Bill, DTMO, and other third-party
+names and marks referenced in the App are the property of their
+respective owners and are used nominatively to identify resources,
+without any claim of ownership, affiliation, or endorsement.
 
 ## 7. Disclaimers
 
@@ -100,6 +103,20 @@ INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS
 OF PROFITS, REVENUE, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES
 ARISING OUT OF OR IN CONNECTION WITH YOUR USE OF THE APP, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+The App's calculators, estimates, timelines, and informational content
+are planning aids only. You are solely responsible for verifying any
+figure or entitlement with your finance office (S1 / IPAC / MPF / PSD),
+TMO / PPPO, a licensed tax or legal professional, or the official
+publication before acting on it. PCS Express is not liable for any
+financial decision, entitlement shortfall, tax consequence, or
+move-cost overrun resulting from reliance on the App's output.
+
+To the maximum extent permitted by law, the total aggregate liability
+of PCS Express and its operators, contributors, and suppliers arising
+out of or relating to the App or these Terms shall not exceed one
+hundred U.S. dollars (USD $100.00) or the amount you paid us to use the
+App in the twelve months preceding the claim, whichever is greater.
 
 For users in jurisdictions that do not allow the exclusion or
 limitation of liability for consequential or incidental damages, our

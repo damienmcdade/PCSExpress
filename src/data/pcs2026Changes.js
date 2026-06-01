@@ -20,7 +20,7 @@ export const PCS_2026_CHANGES = Object.freeze([
     id: 'ghc-homesafe-terminated',
     title: 'HomeSafe / Global Household Goods Contract (GHC) ended',
     summary:
-      'In June 2025 U.S. Transportation Command terminated the GHC with HomeSafe Alliance for cause, ending the single-contractor experiment. Household-goods moves revert to the legacy Tender of Service system run through local installation Personal Property Offices.',
+      'In June 2025, U.S. Transportation Command announced it was ending the Global Household Goods Contract (GHC) with HomeSafe Alliance and winding down the single-contractor model; press reporting attributed the decision to performance concerns. Household-goods moves are reverting to the legacy Tender of Service system run through local installation Personal Property Offices.',
     impact:
       'Affects everyone shipping HHG. Work your move through your installation Personal Property Office (PPO) and DPS (move.mil) — not HomeSafe. Moves already in progress under HomeSafe are being completed; new shipments use the legacy process.',
     sourceUrl:
@@ -30,7 +30,7 @@ export const PCS_2026_CHANGES = Object.freeze([
     id: 'personal-property-activity',
     title: 'New DoD Personal Property Activity stands up (Scott AFB, May 1, 2026)',
     summary:
-      'The temporary PCS Joint Task Force is being made permanent as the Personal Property Activity, which stands up May 1, 2026 at Scott AFB, Illinois and reports directly to the Secretary of Defense. It consolidates the Defense Personal Property Program under a single accountable command (first commander: Maj. Gen. Lance Curtis).',
+      'The temporary PCS Joint Task Force is being made permanent as the Personal Property Activity, reported to stand up May 1, 2026 at Scott AFB, Illinois and to report directly to the Secretary of Defense. It is intended to consolidate the Defense Personal Property Program under a single accountable command (press reporting names Maj. Gen. Lance Curtis as its first commander).',
     impact:
       'Aimed at clearer accountability and faster problem resolution across the services. If a move issue stalls, expect a single chain to escalate to rather than service-by-service handoffs.',
     sourceUrl:

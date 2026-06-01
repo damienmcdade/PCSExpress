@@ -299,11 +299,20 @@ export default function JTRAssistantModule({ theme }) {
               {askState.status === 'fallback' ? 'NOT CONFIGURED' : askState.status === 'error' ? 'ERROR' : `ASSISTANT · ${askState.source || 'unknown source'}`}
             </div>
             <div style={{ fontSize: 12, color: '#0D1821', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{askState.answer}</div>
+            {(askState.status === 'streaming' || askState.status === 'ready') && (
+              <div style={{ marginTop: 8, fontSize: 10.5, color: '#8A6D1A', background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 8, padding: '6px 8px', lineHeight: 1.5 }}>
+                AI-generated planning summary — it may be incomplete, out of date, or wrong. This is not legal, tax, or financial advice. Verify against the cited JTR / FTR / DSSR / IRS section and your finance office before acting on it.
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      <div style={{ display: 'grid', gap: 8 }}>
+      <div style={{ marginTop: 10, padding: '8px 10px', background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 8, fontSize: 10.5, color: '#56697C', lineHeight: 1.5 }}>
+        Planning aid — informational only, not legal, tax, or financial advice. Entitlements are determined by your finance office based on your official orders. Verify every figure against the current JTR / FTR / DSSR / IRS publication.
+      </div>
+
+      <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
         <a href="https://www.travel.dod.mil/Policy-Regulations/Joint-Travel-Regulations/" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block" style={{ '--cta-color': theme.primary }}>Official Joint Travel Regulations (JTR)</a>
         <a href="https://www.gsa.gov/policy-regulations/regulations/federal-travel-regulation" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">Federal Travel Regulation (FTR) — civilians</a>
         <a href="https://allowances.state.gov/Default.asp" target="_blank" rel="noopener noreferrer" className="card-cta card-cta--block card-cta--ghost">DSSR — overseas allowance rules</a>
