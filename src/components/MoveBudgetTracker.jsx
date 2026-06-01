@@ -19,7 +19,9 @@ const fieldStyle = {
 
 const ENTITLEMENT_CATEGORIES = [
   { id: 'dislocation', label: 'Dislocation Allowance (DLA)', hint: 'Paid ~2 months of BAH at old station. Check LES.', defaultPct: 100 },
-  { id: 'mileage', label: 'POV Mileage (TLE/MALT)', hint: '$.21/mi per DoD mileage rate for authorized POVs.', defaultPct: 100 },
+  // MALT (PCS POV mileage) = $0.205/mi for CY2026 — unchanged from CY2025.
+  // Source: DTMO/PDTATAC MAP 73-25(I), CY2026 POV Mileage Rates (eff. 2026-01-01). As of 2026-05.
+  { id: 'mileage', label: 'POV Mileage (TLE/MALT)', hint: '$0.205/mi per DoD MALT rate for authorized POVs (CY2026).', defaultPct: 100 },
   { id: 'perDiem', label: 'TLE / Per Diem', hint: 'Temporary lodging and daily per diem during travel.', defaultPct: 100 },
   { id: 'hhgCost', label: 'HHG Government Move Cost', hint: 'What it cost the Gov to move your household goods.', defaultPct: 100 },
   { id: 'ppm', label: 'PPM Incentive (if applicable)', hint: '95% of GCC if you did a personally procured move.', defaultPct: 0 },
@@ -68,10 +70,15 @@ function buildExpenseCategories(profile) {
 // against the official GSA / DTMO / BLS publications before filing.
 const INFLATION_2026 = {
   fuelGalUsd:        4.10,  // BLS national avg gas, Q1 2026 forecast
-  hotelNightUsd:     185,   // GSA standard CONUS lodging rate, FY26
-  hotelNightHighUsd: 295,   // GSA high-cost CONUS lodging rate, FY26
-  mealsDayUsd:       80,    // GSA M&IE standard CONUS, FY26
-  mealsDayHighUsd:   92,    // GSA M&IE high-cost CONUS, FY26
+  // NOTE: these are real-world PLANNING ranges (typical actual hotel/meal
+  // spend on a move), deliberately set ABOVE the GSA reimbursement floor.
+  // For reference, the GSA FY2026 standard CONUS per diem is $178/day =
+  // $110 lodging + $68 M&IE (unchanged from FY2025). Source: GSA FTR
+  // Bulletin 26-01 / Federal Register 2025-15771. As of 2026-05.
+  hotelNightUsd:     185,   // typical CONUS hotel/night (above the $110 GSA floor)
+  hotelNightHighUsd: 295,   // typical high-cost-locality hotel/night
+  mealsDayUsd:       80,    // typical CONUS meals/day (above the $68 GSA M&IE floor)
+  mealsDayHighUsd:   92,    // typical high-cost-locality meals/day
   fxLossPct:         0.04,  // 4% typical OCONUS FX exposure on a 90-day move
   cpiYoY:            0.061, // Headline CPI YoY at last BLS release for 2026
 };

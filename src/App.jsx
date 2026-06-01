@@ -47,6 +47,8 @@ const EFMPTab = lazy(() => import('./components/EFMPTab'))
 const HomeLocatorTab = lazy(() => import('./components/HomeLocatorTab'))
 const BaseIntelligenceReviews = lazy(() => import('./components/BaseIntelligenceReviews'))
 const PPMFinancialEstimator = lazy(() => import('./components/PPMFinancialEstimator'))
+const MoveStrategyModule = lazy(() => import('./components/MoveStrategyModule'))
+const PCS2026ChangesCard = lazy(() => import('./components/PCS2026ChangesCard'))
 const BAHCalculatorTab = lazy(() => import('./components/BAHCalculatorTab'))
 const OHACalculatorTab = lazy(() => import('./components/OHACalculatorTab'))
 const LQACalculatorTab = lazy(() => import('./components/LQACalculatorTab'))
@@ -2499,7 +2501,7 @@ const APP_TRANSLATIONS = {
       documents: 'A checklist for every PCS form you need to gather. Check items off as you collect the actual paperwork yourself. Export the checklist as a printable PDF for the gaining S1 / HR / VA. PCS Express never accepts, stores, or transmits uploads.',
       education: 'Tuition Assistance portals, GI Bill chapters, MyCAA spouse scholarships, and a curated list of colleges near the gaining installation.',
       family: 'Family-specific PCS planning: deployment support, EFMP, spouse employment, permanent residency for immigrant spouses, pets, and K-12 schools — all in one tab.',
-      'home-relocation': 'Eight tools in one tab — Home Locator, BAH / OHA / LQA calculators, PPM estimator, inflation-adjusted Budget, Shipment Tracker, Inventory worksheet, JTR Assistant, Move Aid, and VA Loan.',
+      'home-relocation': 'Tools in one tab — Home Locator, BAH / OHA / LQA calculators, PPM estimator, Move Strategy (weight + overweight-cost + HHG-vs-PPM compare), inflation-adjusted Budget, Shipment Tracker, Inventory worksheet, JTR Assistant, Move Aid, and VA Loan.',
       'medical-readiness': 'Total well-being in four sections: Medical Care (ER, hospitals, urgent care, specialty, dental, vision, pharmacy, preventive / PHA), Behavioral Health & Counseling, Spiritual Care, and Fitness (gyms, workouts during PCS, diet and meal tips for traveling). Tailored to your component, branch, and TRICARE region (or FEHB for DoD Civilians).',
       nav: 'Plan routes and save directions on a public installation map. No restricted or non-public base details.',
       resources: 'One hub of official, public military, government, family, financial, healthcare, and PCS resources.',
@@ -4466,6 +4468,7 @@ function HomeRelocationUnifiedTab({ theme, profile }) {
     { id: 'home-locator', label: 'Home Locator' },
     { id: 'bah-calculator', label: housingLabel },
     { id: 'ppm-estimator', label: 'PPM Estimator' },
+    { id: 'move-strategy', label: 'Move Strategy' },
     { id: 'budget-tracker', label: 'Budget Tracker' },
     { id: 'shipment-tracker', label: 'Shipment Tracker' },
     { id: 'inventory-claims', label: 'Inventory & Claims' },
@@ -4489,6 +4492,7 @@ function HomeRelocationUnifiedTab({ theme, profile }) {
           : <BAHCalculatorTab theme={theme} profile={profile} />
       )}
       {tab === 'ppm-estimator' && <PPMFinancialEstimator theme={theme} profile={profile} />}
+      {tab === 'move-strategy' && <MoveStrategyModule theme={theme} profile={profile} />}
       {tab === 'budget-tracker' && <MoveBudgetTracker theme={theme} profile={profile} />}
       {tab === 'shipment-tracker' && <ShipmentTrackerModule theme={theme} profile={profile} />}
       {tab === 'inventory-claims' && <InventoryVaultModule theme={theme} profile={profile} />}
@@ -5688,6 +5692,11 @@ function App() {
                 checklist so the home dashboard reflects real progress,
                 not a static milestone array. */}
             <MissionLanes theme={theme} profile={profile} checklistItems={checklistItems} onJumpToOps={() => goTo('pcs-operations')} />
+
+            {/* 2026 PCS policy-change awareness — GHC termination, new
+                Personal Property Activity, 210-day orders, FY2026 rate
+                bumps. Collapsible; data in src/data/pcs2026Changes.js. */}
+            <Suspense fallback={null}><PCS2026ChangesCard theme={theme} /></Suspense>
 
             {/* Weekly Digest — aggregated stats from the last 7 days.
                 Companion to ChangeLogCard (event list). */}

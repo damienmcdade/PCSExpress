@@ -42,9 +42,10 @@ TLA (Temporary Lodging Allowance) covers up to 60 days OCONUS (extensible to 100
   {
     id: 'dla',
     q: 'What is Dislocation Allowance (DLA) and how much will I get?',
-    a: `DLA is a one-time payment that partially reimburses miscellaneous PCS expenses (utility deposits, cleaning, supplies). It is paid automatically on PCS to/from any duty station. The amount equals approximately 2 months of the With-Dependents BAH at the rank of the sponsor (or rank E-4 if without dependents at the old station). DTMO publishes the exact dollar figures each year.`,
+    a: `DLA is a one-time payment that partially reimburses miscellaneous PCS expenses (utility deposits, cleaning, supplies). It is paid automatically on PCS to/from any duty station. The amount is set by grade and dependency status — roughly two months of the With-Dependents BAH at the sponsor's rank (or the without-dependents amount for unaccompanied moves). CY2026 DLA rates rose about 3.8% over CY2025 (the BLS Employment Cost Index adjustment). DTMO publishes the exact dollar table each year — confirm your grade's figure there.`,
+    // CY2026 DLA +3.8% vs CY2025. Source: DTMO/PDTATAC MAP 72-25(I), CY2026 DLA Rates (eff. 2026-01-01). As of 2026-05.
     tags: ['dla','dislocation','allowance','reimbursement','miscellaneous'],
-    citation: 'JTR §050601',
+    citation: 'JTR §050601 / DTMO MAP 72-25(I) (CY2026)',
   },
   {
     id: 'pov-ship',
@@ -63,9 +64,11 @@ TLA (Temporary Lodging Allowance) covers up to 60 days OCONUS (extensible to 100
   {
     id: 'pet-allowance',
     q: 'Is there a pet shipment allowance?',
-    a: `Yes. For OCONUS PCS the JTR authorizes reimbursement up to $2,000 per family ($550 CONUS) for pet shipment when the move qualifies — boarding fees, transit, quarantine, mandatory health certificates, and approved pet transport. Reimbursement is per family, not per pet, so consolidate receipts. Submit through your travel voucher (DD 1351-2).`,
+    a: `Yes — for one cat or dog. The JTR authorizes reimbursement up to $550 for a CONUS PCS and up to $2,000 for an OCONUS PCS; OCONUS moves to a high-risk-for-rabies country where contracted/commercial pet transport is unavailable can be reimbursed up to $4,000 (requires Secretarial-process approval). Reimbursement is a single cap per move (not per pet) and covers qualifying costs — microchipping, vaccinations, rabies titers, quarantine, boarding, and required health certificates. Submit through your travel voucher (DD 1351-2).`,
+    // Pet caps: $550 CONUS / $2,000 OCONUS / $4,000 high-risk OCONUS (orders on/after 25 Nov 2024).
+    // Source: JTR par. 050107 / DTMO Pet Transportation Allowance FAQ. As of 2026-05.
     tags: ['pet','animal','shipment','allowance','reimbursement','quarantine'],
-    citation: 'JTR §053703',
+    citation: 'JTR §050107 / DTMO Pet Transportation Allowance',
   },
   {
     id: 'hht-civilian',
@@ -105,9 +108,10 @@ TLA (Temporary Lodging Allowance) covers up to 60 days OCONUS (extensible to 100
   {
     id: 'malt-mileage',
     q: 'What is the POV mileage rate (MALT) for PCS travel?',
-    a: `MALT (Monetary Allowance in Lieu of Transportation) reimburses POV travel during a PCS at the published JTR rate per authorized mile. The rate is set annually by DTMO and is significantly lower than the IRS business rate — verify the current figure on the DTMO mileage page. Distance is calculated on the Defense Table of Official Distances (DTOD), not your odometer.`,
+    a: `MALT (Monetary Allowance in Lieu of Transportation) reimburses POV travel during a PCS at the published JTR rate per authorized mile. The CY2026 MALT rate is $0.205/mile (unchanged from CY2025), set annually by DTMO and significantly lower than the IRS business rate — always confirm the current figure on the DTMO mileage page before filing. Distance is calculated on the Defense Table of Official Distances (DTOD), not your odometer.`,
+    // CY2026 MALT = $0.205/mi. Source: DTMO/PDTATAC MAP 73-25(I) (eff. 2026-01-01). As of 2026-05.
     tags: ['malt','mileage','pov','reimbursement','dtod','travel'],
-    citation: 'JTR §020205 / DTMO mileage page',
+    citation: 'JTR §020205 / DTMO MAP 73-25(I) (CY2026)',
   },
   {
     id: 'tle-vs-tla',
