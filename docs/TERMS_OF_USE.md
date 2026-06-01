@@ -1,6 +1,6 @@
 # PCS Express — Terms of Use
 
-**Effective date:** May 30, 2026
+**Effective date:** May 31, 2026
 **Operator:** PCS Express, operated by CyberWave Technologies LLC (cyberwaveglobal.com)
 **Contact:** info@cyberwaveglobal.com
 
@@ -122,6 +122,11 @@ For users in jurisdictions that do not allow the exclusion or
 limitation of liability for consequential or incidental damages, our
 liability is limited to the maximum extent permitted by law.
 
+Nothing in these Terms excludes or limits any liability that cannot be
+excluded or limited under applicable law, including liability for
+fraud, willful injury, or violation of law under California Civil Code
+§1668, or any other liability that may not be waived as a matter of law.
+
 ## 9. Indemnification
 
 You agree to indemnify and hold harmless PCS Express, its operators,
@@ -145,11 +150,82 @@ users, or its third-party providers.
 ## 12. Governing law
 
 These Terms are governed by the laws of the State of California,
-without regard to its conflict of laws principles. Any dispute will be
-brought exclusively in the state or federal courts located in
-California, and you consent to the personal jurisdiction of those
-courts.
+without regard to its conflict of laws principles. Except for disputes
+subject to binding arbitration under §13 and disputes that qualify for
+small-claims court, any dispute will be brought exclusively in the
+state or federal courts located in California, and you consent to the
+personal jurisdiction of those courts.
 
-## 13. Contact
+## 13. Dispute resolution; binding arbitration; class-action waiver
+
+**PLEASE READ THIS SECTION CAREFULLY. IT REQUIRES YOU AND PCS EXPRESS
+TO RESOLVE DISPUTES THROUGH BINDING INDIVIDUAL ARBITRATION INSTEAD OF
+IN COURT, AND IT WAIVES YOUR RIGHT TO A JURY TRIAL AND TO PARTICIPATE
+IN ANY CLASS, COLLECTIVE, OR REPRESENTATIVE ACTION.**
+
+**Informal resolution first.** Before starting an arbitration, you
+agree to first email info@cyberwaveglobal.com with a description of
+your dispute and the relief you seek, and to give us 30 days to resolve
+it informally. Most concerns can be resolved this way.
+
+**Binding arbitration.** If we cannot resolve a dispute informally, you
+and PCS Express agree that any dispute, claim, or controversy arising
+out of or relating to the App or these Terms will be resolved by
+binding individual arbitration administered by the American Arbitration
+Association (AAA) under its Consumer Arbitration Rules, rather than in
+court. The Federal Arbitration Act (FAA) governs the interpretation and
+enforcement of this section. The arbitrator decides all issues, except
+that a court of competent jurisdiction decides the validity, scope, and
+enforceability of this arbitration agreement and the class-action
+waiver below.
+
+**Class-action waiver.** YOU AND PCS EXPRESS AGREE THAT EACH MAY BRING
+CLAIMS AGAINST THE OTHER ONLY IN AN INDIVIDUAL CAPACITY, AND NOT AS A
+PLAINTIFF OR CLASS MEMBER IN ANY PURPORTED CLASS, COLLECTIVE,
+CONSOLIDATED, OR REPRESENTATIVE PROCEEDING. The arbitrator may not
+consolidate more than one person's claims or preside over any form of
+class or representative proceeding.
+
+**Exceptions (not subject to arbitration).** Either party may (a) bring
+an individual claim in small-claims court if it qualifies, and (b) seek
+injunctive or other equitable relief in court to stop the infringement
+or misuse of intellectual property or unauthorized access to the App.
+These are the only disputes excluded from arbitration.
+
+**Arbitration costs and procedure.** Arbitration fees are governed by
+the AAA Consumer Arbitration Rules; PCS Express will pay any
+arbitration filing, administrative, and arbitrator fees that exceed
+what you would have paid to file the same claim in court, to the extent
+required for this section to be enforceable. The arbitration is seated
+in California; for claims that can be decided without an in-person
+hearing, the arbitration may proceed by telephone, videoconference, or
+written submissions. Judgment on the award may be entered in any court
+of competent jurisdiction, including the California courts identified in
+§12.
+
+**Severability of this section.** If the class-action waiver above is
+found unenforceable as to a particular claim or request for relief,
+that claim or request will be severed and brought in the courts
+identified in §12, while all other claims proceed in arbitration. If
+any other part of this section is found unenforceable, the remainder
+continues to apply.
+
+## 14. General
+
+**Entire agreement.** These Terms, together with the Privacy Notice,
+are the entire agreement between you and PCS Express regarding the App
+and supersede any prior agreements on the subject. **Severability.** If
+any provision is held invalid or unenforceable, the remaining
+provisions remain in full force. **No waiver.** Our failure to enforce
+any right or provision is not a waiver of that right or provision.
+**Assignment.** You may not assign these Terms; we may assign them to an
+affiliate or to a successor in interest (for example, in a merger or
+acquisition). **Force majeure.** We are not liable for any delay or
+failure to perform caused by events beyond our reasonable control.
+**Survival.** The sections on intellectual property, disclaimers,
+limitation of liability, indemnification, dispute resolution, and this
+General section survive any termination of these Terms.
+
+## 15. Contact
 
 Questions: **info@cyberwaveglobal.com**
