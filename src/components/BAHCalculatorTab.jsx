@@ -227,7 +227,7 @@ export default function BAHCalculatorTab({ theme, profile }) {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
             {[
-              { name: 'DTMO — OHA rate lookup',                  url: 'https://www.defensetravel.dod.mil/site/oha.cfm',                          who: 'Military', desc: 'Look up the current OHA rent ceiling and utility/recurring maintenance allowance for your specific overseas locality.' },
+              { name: 'DTMO — OHA rate lookup',                  url: 'https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/OHA-Rate-Lookup/',                          who: 'Military', desc: 'Look up the current OHA rent ceiling and utility/recurring maintenance allowance for your specific overseas locality.' },
               { name: 'DTMO — MIHA overview',                    url: 'https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/',       who: 'Military', desc: 'Move-In Housing Allowance components: MIHA-Rent, MIHA-Security, MIHA-Miscellaneous — one-time payments for OCONUS move-in.' },
               { name: 'DTMO — COLA lookup',                      url: 'https://www.travel.dod.mil/Allowances/Cost-of-Living-Allowance/',         who: 'Military', desc: 'Cost-of-Living Allowance (COLA) for high-cost OCONUS localities. Paid in addition to OHA/MIHA. Adjusted twice per month.' },
               { name: 'DSSR §130 — Living Quarters Allowance',   url: 'https://allowances.state.gov/Default.asp',         who: 'DoD Civilian', desc: 'Department of State Standardized Regulations §130 — LQA eligibility, rate tables, and computation rules for U.S. government civilians overseas.' },

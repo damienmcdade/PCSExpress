@@ -163,8 +163,28 @@ async function callAI(system, user, onDelta, signal) {
   }
 }
 
+// Vetted, per-locale OPSEC warning for the free-text translation tab. This
+// is rendered directly (not via the DOM language runtime, which skips the
+// `data-no-language-runtime` container) so a safety-critical instruction is
+// never lossily machine-translated into a generic sentence. Locales we have
+// not vetted fall back to English rather than risk a wrong safety message.
+const OPSEC_WARNING = {
+  es: 'Todo lo que escribas aquí se envía por internet para traducirse. No escribas nada sensible: nombres, rangos, unidades, ubicaciones, fechas de operaciones, datos del EFMP ni información clasificada. Para frases cotidianas, usa la pestaña Frases comunes: esas traducciones se ejecutan en este dispositivo y nunca salen de él.',
+  de: 'Alles, was Sie hier eingeben, wird zur Übersetzung über das Internet gesendet. Geben Sie nichts Sensibles ein – keine Namen, Dienstgrade, Einheiten, Standorte, Einsatztermine, EFMP-Daten oder Verschlusssachen. Für alltägliche Sätze nutzen Sie den Reiter „Gängige Sätze“ – diese Übersetzungen laufen auf diesem Gerät und verlassen es nie.',
+  fr: 'Tout ce que vous saisissez ici est envoyé sur Internet pour être traduit. N’écrivez rien de sensible : ni noms, grades, unités, lieux, dates d’opérations, données EFMP ou informations classifiées. Pour les phrases courantes, utilisez l’onglet Phrases courantes : ces traductions s’exécutent sur cet appareil et n’en sortent jamais.',
+  ko: '여기에 입력하는 모든 내용은 번역을 위해 인터넷으로 전송됩니다. 이름, 계급, 부대, 위치, 작전 날짜, EFMP 정보, 기밀 정보 등 민감한 내용은 입력하지 마십시오. 일상적인 표현은 일반 문구 탭을 사용하세요. 해당 번역은 이 기기에서 실행되며 외부로 전송되지 않습니다.',
+  ja: 'ここに入力した内容はすべて翻訳のためにインターネットへ送信されます。氏名、階級、部隊、所在地、作戦日、EFMP情報、機密情報などの機微な情報は入力しないでください。日常的なフレーズは「よく使うフレーズ」タブを使用してください。これらの翻訳はこの端末内で実行され、外部に送信されません。',
+  tl: 'Lahat ng iti-type mo rito ay ipinapadala sa internet para isalin. Huwag mag-type ng anumang sensitibo — walang mga pangalan, ranggo, yunit, lokasyon, petsa ng operasyon, detalye ng EFMP, o klasipikadong impormasyon. Para sa pang-araw-araw na parirala, gamitin ang tab na Common Phrases — ang mga pagsasaling iyon ay tumatakbo sa device na ito at hindi kailanman lumalabas.',
+  ar: 'كل ما تكتبه هنا يُرسَل عبر الإنترنت لترجمته. لا تكتب أي معلومات حساسة — لا أسماء أو رتب أو وحدات أو مواقع أو تواريخ عمليات أو تفاصيل EFMP أو معلومات سرية. للعبارات اليومية، استخدم علامة التبويب «العبارات الشائعة» — تُجرى تلك الترجمات على هذا الجهاز ولا تغادره أبدًا.',
+  zh: '您在此输入的任何内容都会通过互联网发送以进行翻译。请勿输入任何敏感信息——不要包含姓名、军衔、单位、位置、行动日期、EFMP 详情或机密信息。日常用语请使用“常用短语”标签，那些翻译在本设备上运行，绝不外传。',
+  it: 'Tutto ciò che digiti qui viene inviato su Internet per la traduzione. Non digitare nulla di sensibile: niente nomi, gradi, unità, località, date di operazioni, dati EFMP o informazioni classificate. Per le frasi di uso quotidiano, usa la scheda Frasi comuni: quelle traduzioni vengono eseguite su questo dispositivo e non escono mai.',
+  pt: 'Tudo o que você digitar aqui é enviado pela internet para tradução. Não digite nada sensível — sem nomes, postos, unidades, localizações, datas de operações, dados do EFMP ou informações classificadas. Para frases do dia a dia, use a aba Frases Comuns — essas traduções são executadas neste dispositivo e nunca saem dele.',
+  vi: 'Mọi nội dung bạn nhập ở đây đều được gửi qua internet để dịch. Đừng nhập bất kỳ thông tin nhạy cảm nào — không có tên, cấp bậc, đơn vị, vị trí, ngày hành quân, chi tiết EFMP hoặc thông tin mật. Với các câu thường dùng, hãy dùng tab Cụm từ thông dụng — các bản dịch đó chạy trên thiết bị này và không bao giờ rời khỏi máy.',
+};
+
 export default function TranslationModule({ theme, profile }) {
   const [subTab, setSubTab] = useState('phrases');
+  const opsecWarning = OPSEC_WARNING[profile?.language] || null;
   const [inputText, setInputText] = useState('');
   const selectedProfileLanguage = LANGUAGES.some(l => l.code === profile?.language) && profile?.language !== 'en' ? profile.language : 'es';
   const [targetLang, setTargetLang] = useState(selectedProfileLanguage);
@@ -346,7 +366,9 @@ export default function TranslationModule({ theme, profile }) {
           <div data-no-language-runtime style={{ background: '#7F1D1D', border: '1px solid #B91C1C', borderRadius: 12, padding: '12px 14px', marginBottom: 14, color: '#FECACA' }}>
             <div style={{ fontSize: 11, fontWeight: 950, color: '#FCA5A5', letterSpacing: '.08em', marginBottom: 6 }}>⚠ THIS TAB SENDS YOUR TEXT TO A TRANSLATION SERVICE</div>
             <div style={{ fontSize: 11, lineHeight: 1.55, color: '#FFFFFF', fontWeight: 600 }}>
-              Anything you type here gets sent over the internet to translate. <strong>Don't type anything sensitive</strong> — no names, ranks, units, locations, operation dates, EFMP details, or classified info. For everyday phrases, use the <strong>Common Phrases</strong> tab — those translations run on this device and never leave.
+              {opsecWarning
+                ? opsecWarning
+                : <>Anything you type here gets sent over the internet to translate. <strong>Don't type anything sensitive</strong> — no names, ranks, units, locations, operation dates, EFMP details, or classified info. For everyday phrases, use the <strong>Common Phrases</strong> tab — those translations run on this device and never leave.</>}
             </div>
           </div>
 

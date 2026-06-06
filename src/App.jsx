@@ -572,7 +572,11 @@ function normalizeProfile(raw) {
     childAges,
     childrenAges: childAges.join(', '),
     hasChildren: childAges.length > 0,
-    language: raw.language || PROFILE_DEFAULTS.language,
+    // Migrate retired Google-Translate-only locales (sw/ha/yo/am/zu/ig/so/af)
+    // back to English so a returning user who once picked one isn't stranded
+    // on a language that's no longer offered (and never actually translated
+    // on Vercel/native). Any code not in the supported picker falls back too.
+    language: (SUPPORTED_LANGUAGES.some(l => l.code === raw.language) ? raw.language : null) || PROFILE_DEFAULTS.language,
     religiousPreference: raw.religiousPreference || raw.religion || PROFILE_DEFAULTS.religiousPreference,
     demoMode: raw.demoMode === true || raw.isDemo === true,
   };
@@ -2488,17 +2492,14 @@ const SUPPORTED_LANGUAGES = [
   { code: 'it', name: 'Italian',              native: 'Italiano'   },
   { code: 'pt', name: 'Portuguese',           native: 'Português'  },
   { code: 'vi', name: 'Vietnamese',           native: 'Tiếng Việt' },
-  // African languages — Google-Translate-only coverage. Ordered by
-  // approximate native-speaker count to surface the most-spoken
-  // first in the dropdown.
-  { code: 'sw', name: 'Swahili',              native: 'Kiswahili'  },
-  { code: 'ha', name: 'Hausa',                native: 'Hausa'      },
-  { code: 'yo', name: 'Yoruba',               native: 'Yorùbá'     },
-  { code: 'am', name: 'Amharic',              native: 'አማርኛ'        },
-  { code: 'zu', name: 'Zulu',                 native: 'isiZulu'    },
-  { code: 'ig', name: 'Igbo',                 native: 'Igbo'       },
-  { code: 'so', name: 'Somali',               native: 'Soomaali'   },
-  { code: 'af', name: 'Afrikaans',            native: 'Afrikaans'  },
+  // NOTE: Eight Google-Translate-only African locales (sw, ha, yo, am, zu,
+  // ig, so, af) were removed from the picker. They had no in-app curated
+  // dictionary and relied entirely on the Google Translate widget, which is
+  // CSP-blocked on the Vercel web build and in the Capacitor native shells —
+  // so they rendered the app fully in English ("selectable but dead"). They
+  // were dropped rather than offer a language that cannot actually translate
+  // on the surfaces most users run. Re-add only alongside curated dictionary
+  // coverage or a CSP path that lets the widget load on those surfaces.
 ];
 
 
@@ -3395,6 +3396,15 @@ const TRANSLATION_BANNER_TEXT = {
 
 
 const KEYED_LANGUAGE_TOPICS = {
+  // Bottom-nav tab labels for the current tab ids. Added after the per-locale
+  // `nav` objects were first written — without these, `home` rendered as
+  // "Home" (not "Command Center") and pcs-operations / mission-resources /
+  // transition rendered in English for every non-English user. trFrom checks
+  // KEYED_LANGUAGE_TOPICS first for nav.* keys, so these take precedence.
+  home: { es: 'Centro de Mando', de: 'Kommandozentrale', fr: 'Centre de Commandement', ko: '지휘 센터', ja: 'コマンドセンター', tl: 'Command Center', ar: 'مركز القيادة', zh: '指挥中心', it: 'Centro di Comando', pt: 'Centro de Comando', vi: 'Trung tâm Chỉ huy' },
+  'pcs-operations': { es: 'Operaciones PCS', de: 'PCS-Operationen', fr: 'Opérations PCS', ko: 'PCS 작전', ja: 'PCS業務', tl: 'Mga Operasyon ng PCS', ar: 'عمليات PCS', zh: 'PCS 行动', it: 'Operazioni PCS', pt: 'Operações PCS', vi: 'Hoạt động PCS' },
+  'mission-resources': { es: 'Recursos de Misión', de: 'Einsatzressourcen', fr: 'Ressources de Mission', ko: '임무 자원', ja: '任務リソース', tl: 'Mga Mapagkukunan ng Misyon', ar: 'موارد المهمة', zh: '任务资源', it: 'Risorse di Missione', pt: 'Recursos da Missão', vi: 'Tài nguyên Nhiệm vụ' },
+  transition: { es: 'Transición', de: 'Übergang', fr: 'Transition', ko: '전환', ja: '移行', tl: 'Transisyon', ar: 'الانتقال', zh: '过渡', it: 'Transizione', pt: 'Transição', vi: 'Chuyển tiếp' },
   'base-intelligence': { es: 'Inteligencia de base', de: 'Standortinformationen', fr: 'Informations base', ko: '기지 정보', ja: '基地情報', tl: 'Base intelligence', ar: 'معلومات القاعدة', zh: '基地情报', it: 'Informazioni base', pt: 'Inteligência da base', vi: 'Thông tin căn cứ' },
   checklist: { es: 'Lista PCS', de: 'PCS-Checkliste', fr: 'Liste PCS', ko: 'PCS 체크리스트', ja: 'PCSチェックリスト', tl: 'PCS checklist', ar: 'قائمة PCS', zh: 'PCS 清单', it: 'Checklist PCS', pt: 'Checklist PCS', vi: 'Danh sách PCS' },
   documents: { es: 'Documentos', de: 'Dokumente', fr: 'Documents', ko: '문서', ja: '書類', tl: 'Dokumento', ar: 'المستندات', zh: '文件', it: 'Documenti', pt: 'Documentos', vi: 'Tài liệu' },
@@ -4542,7 +4552,7 @@ function VAHomeLoanPanel({ theme, profile }) {
     { name: 'HOMES.mil (Gov’t On/Off-Base Housing)',      url: 'https://www.homes.mil',                                                   note: 'Official DoD Housing Office portal for on-base and approved off-base housing referrals at the gaining installation.' },
     { name: 'AHRN.com (Automated Housing Referral Network)',   url: 'https://www.ahrn.com',                                                    note: 'DoD-sponsored off-base rental network used at most OCONUS installations. Pre-screened listings, military-friendly lease language.' },
     { name: 'MilitaryByOwner (OCONUS rentals)',                url: 'https://www.militarybyowner.com/',                                        note: 'Off-base rental and sale listings worldwide, including OCONUS installations.' },
-    { name: 'DoD Overseas Housing Allowance (OHA) Rates',      url: 'https://www.defensetravel.dod.mil/site/oha.cfm',                          note: 'Official DTMO OHA rate lookup for the gaining overseas locality. Includes utility and MIHA components.' },
+    { name: 'DoD Overseas Housing Allowance (OHA) Rates',      url: 'https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/OHA-Rate-Lookup/',                          note: 'Official DTMO OHA rate lookup for the gaining overseas locality. Includes utility and MIHA components.' },
     { name: 'DoD Per Diem, Travel and Transportation Allowance Committee', url: 'https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/', note: 'Background on OCONUS housing allowances, MIHA-Miscellaneous, MIHA-Rent, and MIHA-Security.' },
     { name: 'VA Home Loan Overview (CONUS / retirement use)',  url: 'https://www.va.gov/housing-assistance/home-loans/',                       note: 'Your VA loan benefit is preserved while OCONUS for a future CONUS purchase. Track entitlement use here.' },
   ];

@@ -5,6 +5,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
+import NotificationModeSelector from './NotificationModeSelector';
 
 const STORAGE_KEY = 'pcs_efmp_checks';
 
@@ -132,6 +133,16 @@ export default function EFMPTab({ theme, profile }) {
   const pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
   const current = CORE_STEPS.find(section => section.phase === activePhase) || CORE_STEPS[0];
 
+  // Outstanding EFMP tasks feed notification mode + the Command Center.
+  // EFMP enrollment/updates can gate the assignment, so incomplete items
+  // are surfaced as Medium-priority alerts.
+  const outstandingAlerts = useMemo(() => CORE_STEPS.flatMap(section =>
+    section.tasks
+      .map((task, index) => ({ key: `${section.phase}-${index}`, task }))
+      .filter(t => !checks[t.key])
+      .map(t => ({ id: t.key, title: t.task, priority: 'Medium' }))
+  ), [checks]);
+
   const toggleTask = async (phase, index) => {
     const key = `${phase}-${index}`;
     const next = { ...checks, [key]: !checks[key] };
@@ -184,6 +195,8 @@ export default function EFMPTab({ theme, profile }) {
           <div style={{ width: `${pct}%`, background: pct === 100 ? '#2E7D32' : theme.accent }} />
         </div>
       </div>
+
+      <NotificationModeSelector theme={theme} checklistId="efmp" checklistLabel="EFMP PCS Checklist" alerts={outstandingAlerts} />
 
       <div className="pet-phase-tabs" role="tablist" aria-label="EFMP PCS phases">
         {CORE_STEPS.map(section => {

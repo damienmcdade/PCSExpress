@@ -55,6 +55,7 @@ of it. There is no server-side backup.
 | AI Assistant (in-app) | Your typed question + a non-PII context blob (branch, phase, open-task count) | Anthropic, Inc. (`api.anthropic.com`) via our server | To return a contextual answer |
 | Translation widget (opt-in only) | Page content as you read it | Google LLC (Google Translate) | Only when you turn translation on |
 | Navigation tab | Addresses you type, plus origin/destination pairs | OpenStreetMap Foundation (`nominatim.openstreetmap.org`, `router.project-osrm.org`) | To geocode and route |
+| Local resource lookups (business directory, jobs, housing rates, market stats, schools, family activities) | Your gaining installation's city / state / ZIP, and any address you type | Public government & third-party APIs via our server: SAM.gov, USASpending.gov, USAJOBS (OPM), FRED (St. Louis Fed), HUD User, TheMuse, RemoteOK, OpenStreetMap (Nominatim/Overpass) | To fetch local results for the gaining area |
 | Demo / partner contact form | Name, email, organization, role, message, your request IP | PCS Express server (ephemeral application logs only — no database) | To respond to your inquiry |
 | Push notifications (opt-in only) | Browser push subscription (an endpoint URL chosen by your browser vendor) | PCS Express server | To send reminders you've requested |
 

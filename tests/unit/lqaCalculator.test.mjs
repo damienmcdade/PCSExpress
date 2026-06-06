@@ -6,7 +6,31 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { lookupFamilyMult, FAMILY_BUCKETS } from '../../src/lib/lqaCalculator.js';
+import { lookupFamilyMult, FAMILY_BUCKETS, detectGroup } from '../../src/lib/lqaCalculator.js';
+
+// Regression: Wage-Grade paygrades are stored WITHOUT a dash (WG/WS/WL).
+// They must map to grade group g4, not silently fall through to a default.
+test('detectGroup classifies Wage-Grade (WG/WS/WL, no dash) as g4', () => {
+  assert.equal(detectGroup('WG'), 'g4');
+  assert.equal(detectGroup('WS'), 'g4');
+  assert.equal(detectGroup('WL'), 'g4');
+});
+
+test('detectGroup classifies GS tiers correctly (with or without dash)', () => {
+  assert.equal(detectGroup('GS-15'), 'g1');
+  assert.equal(detectGroup('SES'), 'g1');
+  assert.equal(detectGroup('GS-13'), 'g2');
+  assert.equal(detectGroup('GS-14'), 'g2');
+  assert.equal(detectGroup('GS-9'), 'g3');
+  assert.equal(detectGroup('GS-12'), 'g3');
+  assert.equal(detectGroup('GS-5'), 'g4');
+});
+
+test('detectGroup returns null for unknown/N/A grade (caller defaults conservatively)', () => {
+  assert.equal(detectGroup('N/A'), null);
+  assert.equal(detectGroup(''), null);
+  assert.equal(detectGroup(undefined), null);
+});
 
 // FAMILY_BUCKETS values are UPPER bounds (4 = "3–4", 6 = "5–6", 7 = "7+").
 // Family sizes that fall BETWEEN bucket bounds (3, 5) must snap up to the

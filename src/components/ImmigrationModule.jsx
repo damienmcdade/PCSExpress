@@ -1,6 +1,7 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
 import TabBar from './TabBar'
+import NotificationModeSelector from './NotificationModeSelector'
 
 const store = {
   get: (k) => readLegacyJson(k, null),
@@ -355,6 +356,11 @@ export default function ImmigrationModule({ theme, profile }) {
 
   const totalDone = Object.values(checked).filter(Boolean).length;
 
+  // Outstanding USCIS checklist items feed notification mode + Command Center.
+  const outstandingAlerts = useMemo(() => CHECKLIST_ITEMS
+    .filter(i => !checked[i.id])
+    .map(i => ({ id: i.id, title: i.text, priority: 'Medium' })), [checked]);
+
   const SUB_TABS = [
     { id: 'greencard', label: 'Green Card' },
     { id: 'citizenship', label: 'Citizenship' },
@@ -484,6 +490,8 @@ export default function ImmigrationModule({ theme, profile }) {
           <div style={{ height: 6, background: '#E0E6EE', borderRadius: 3, marginBottom: 16, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${(totalDone / CHECKLIST_ITEMS.length) * 100}%`, background: theme.primary, borderRadius: 3, transition: 'width .3s' }} />
           </div>
+
+          <NotificationModeSelector theme={theme} checklistId="immigration" checklistLabel="Immigration Checklist" alerts={outstandingAlerts} />
 
           {CATEGORIES.map(cat => {
             const items = CHECKLIST_ITEMS.filter(i => i.category === cat);
