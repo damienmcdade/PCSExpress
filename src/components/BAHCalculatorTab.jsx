@@ -169,7 +169,7 @@ export default function BAHCalculatorTab({ theme, profile }) {
         {profileGaining && !showPicker && dutyStation === profileGaining && (
           <div style={{ fontSize: 11, color: '#56697C', marginBottom: 6 }}>
             Auto-filled from your profile: <strong>{profileGaining}</strong>
-            <button onClick={() => setShowPicker(true)} style={{ marginLeft: 10, fontSize: 11, color: theme.primary, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, textDecoration: 'underline' }}>Change</button>
+            <button onClick={() => { setSearch(dutyStation || profileGaining || ''); setShowPicker(true); }} style={{ marginLeft: 10, fontSize: 11, color: theme.primary, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, textDecoration: 'underline' }}>Change</button>
           </div>
         )}
         {(!profileGaining || showPicker || dutyStation !== profileGaining) && (
@@ -177,7 +177,7 @@ export default function BAHCalculatorTab({ theme, profile }) {
             <input
               aria-label="Search duty station"
               placeholder="Search duty station..."
-              value={search || dutyStation}
+              value={search}
               onChange={e => { setSearch(e.target.value); setShowPicker(true); }}
               onFocus={() => setShowPicker(true)}
               style={{ ...fieldStyle, marginBottom: 6 }}
@@ -190,7 +190,7 @@ export default function BAHCalculatorTab({ theme, profile }) {
                     role="option"
                     aria-selected={s === dutyStation}
                     key={s}
-                    onClick={() => { setDutyStation(s); setSearch(''); setShowPicker(false); }}
+                    onClick={() => { setDutyStation(s); setSearch(s); setShowPicker(false); }}
                     style={{ display: 'block', width: '100%', textAlign: 'left', border: 'none', padding: '10px 14px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid #F3F4F6', background: s === dutyStation ? '#EEF5FF' : '#FFF', color: '#111827', fontWeight: s === dutyStation ? 700 : 400 }}
                   >
                     {s}

@@ -765,12 +765,15 @@ const AI_MAX_LEN = 4_000;
 // cost-abuse where an attacker POSTs the global 1MB allowance worth
 // of JSON to a paid-LLM endpoint.
 app.post('/api/ai', aiRateLimit, express.json({ limit: '64kb' }), async (req, res) => {
-  // Cost-abuse gate: this endpoint hits a paid third-party LLM. Reject
-  // POSTs that arrive with no Origin header from anything other than
-  // the mobile shells. isSameOriginRequest already returns true for
-  // Capacitor / iOS / Android UAs, allowlisted browser Origins, and
-  // Sec-Fetch-Site=same-origin/same-site/none; everything else is a
-  // drive-by or script attempting to burn our LLM budget.
+  // Cost-abuse gate: this endpoint hits a paid third-party LLM. A request
+  // with no Origin header is allowed ONLY if isSameOriginRequest() proves a
+  // genuine same-origin call — i.e. an allowlisted Origin/Referer or a
+  // browser-set Sec-Fetch-Site=same-origin/same-site. The User-Agent is NOT
+  // trusted (spoofable), and Sec-Fetch-Site=none (a user-typed navigation,
+  // never a fetch) is NOT honored — both are rejected by the global write
+  // guard above. The mobile shells pass because they send an allowlisted
+  // Origin (capacitor://localhost / https://localhost). Everything else is a
+  // drive-by or script trying to burn our LLM budget.
   if (!req.headers.origin && !isSameOriginRequest(req)) {
     return res.status(403).json({ error: 'origin required for AI endpoints' })
   }
