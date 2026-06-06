@@ -175,7 +175,15 @@ export function calculateGovernmentConstructiveCost(input = {}, config = PPM_CON
   const withDependents = input.withDependents !== false;
   const distanceMiles = clamp(toNumber(input.distanceMiles, 0), 0, 12000);
   const estimatedWeightLbs = clamp(toNumber(input.estimatedWeightLbs ?? input.actualWeightLbs, 0), 0, 24000);
-  const authorizedWeightLbs = getAuthorizedWeightAllowance(rank, withDependents);
+  // DoD civilians don't have a rank-tied JTR allowance — the FTR (§302-7)
+  // gives a flat weight allowance regardless of pay plan. When the caller
+  // passes an explicit override (e.g. the civilian 18,000 lb FTR allowance),
+  // use it instead of the military rank table so the reimbursable weight
+  // isn't silently capped at the E-5 baseline the UI falls back to for math.
+  // Backward-compatible: military callers/reference tests pass no override.
+  const authorizedWeightLbs = input.authorizedWeightLbsOverride != null
+    ? clamp(toNumber(input.authorizedWeightLbsOverride, 0), 0, 24000)
+    : getAuthorizedWeightAllowance(rank, withDependents);
   const reimbursableWeightLbs = Math.min(estimatedWeightLbs, authorizedWeightLbs);
   const excessWeightLbs = Math.max(estimatedWeightLbs - authorizedWeightLbs, 0);
   const hundredWeight = reimbursableWeightLbs / 100;

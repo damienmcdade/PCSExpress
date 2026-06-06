@@ -138,3 +138,18 @@ test('a single member gets a smaller reimbursable cap + incentive than one with 
   // Omitting the flag preserves the legacy with-dependents default.
   assert.equal(calculatePPMEstimate(base).reimbursableWeightLbs, 9000);
 });
+
+test('authorizedWeightLbsOverride uses the flat civilian FTR allowance, not the rank cap', () => {
+  const base = { rank: 'E-5', distanceMiles: 1000, estimatedWeightLbs: 18000, withDependents: true };
+  const military = calculatePPMEstimate(base);                                   // E-5 cap = 9,000
+  const civilian = calculatePPMEstimate({ ...base, authorizedWeightLbsOverride: 18000 });
+  assert.equal(military.reimbursableWeightLbs, 9000);
+  assert.equal(civilian.reimbursableWeightLbs, 18000);                           // honors the FTR 18k allowance
+  assert.equal(civilian.authorizedWeightLbs, 18000);
+  assert.equal(civilian.excessWeightLbs, 0);
+  assert.ok(civilian.grossIncentive > military.grossIncentive,
+    `civilian incentive ${Math.round(civilian.grossIncentive)} should exceed capped military ${Math.round(military.grossIncentive)}`);
+  // Override is clamped to the 24,000 lb model ceiling and ignored when absent.
+  assert.equal(calculatePPMEstimate({ ...base, authorizedWeightLbsOverride: 99999 }).authorizedWeightLbs, 24000);
+  assert.equal(calculatePPMEstimate(base).authorizedWeightLbs, 9000);
+});

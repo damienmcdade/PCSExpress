@@ -71,12 +71,17 @@ export default function PPMFinancialEstimator({ theme, profile }) {
   // dependents has a lower cap, so pass the real status instead of always
   // defaulting to the with-dependents table.
   const withDependents = !!profile?.hasDependents;
+  // Civilians get the flat 18,000 lb FTR (§302-7) allowance, not the
+  // rank-tied military table the E-5 fallback would otherwise impose — so
+  // the reimbursable weight matches the allowance stated in the banner.
+  const authorizedWeightLbsOverride = isCivilian ? 18000 : undefined;
   const estimate = useMemo(() => calculatePPMEstimate({
     rank,
     distanceMiles,
     estimatedWeightLbs,
     withDependents,
-  }), [rank, distanceMiles, estimatedWeightLbs, withDependents]);
+    authorizedWeightLbsOverride,
+  }), [rank, distanceMiles, estimatedWeightLbs, withDependents, authorizedWeightLbsOverride]);
 
   const meterWidth = `${Math.max(0, estimate.profitMeterPercent)}%`;
   const isProfit = estimate.estimatedCashInPocket >= 0;
