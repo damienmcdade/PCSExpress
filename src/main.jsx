@@ -7,6 +7,25 @@ import { installGlobalErrorReporting } from './lib/errorReporter'
 
 installGlobalErrorReporting()
 
+// Stale-deploy recovery backstop. Vite fires `vite:preloadError` when a
+// dynamically-imported chunk fails to load — almost always because a new
+// build shipped and purged the hashed chunk this older session is asking
+// for ("importing a module script failed"). Force ONE reload to pull the
+// fresh index + chunk manifest. sessionStorage-guarded against reload loops
+// (the lazyRetry wrapper in App.jsx covers the same case at the import
+// site, so this is defense-in-depth).
+window.addEventListener('vite:preloadError', (event) => {
+  try {
+    const KEY = 'pcs_chunk_reload_at'
+    const last = Number(sessionStorage.getItem(KEY)) || 0
+    if (Date.now() - last > 10_000) {
+      sessionStorage.setItem(KEY, String(Date.now()))
+      event.preventDefault()
+      window.location.reload()
+    }
+  } catch { /* private mode — let the default error surface */ }
+})
+
 // Native (Capacitor) bootstrap. No-op on web; on the iOS / Android
 // shell, registers native push + wires notification-click deep links.
 // Fire-and-forget so first paint isn't blocked. Biometric unlock is

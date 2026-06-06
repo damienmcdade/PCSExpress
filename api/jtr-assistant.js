@@ -91,6 +91,21 @@ const sanitizeForPrompt = (s, maxLen) => String(s || '')
   .trim()
   .slice(0, maxLen);
 
+// PII gate — parity with /api/ai's containsLikelyPii (server/lib/validators.js).
+// Inlined because Vercel functions don't share the server/ module tree.
+// Refuses to forward raw email / phone / SSN-like patterns to the LLM.
+function containsLikelyPii(value) {
+  let text;
+  try { text = JSON.stringify(value == null ? {} : value); }
+  catch { text = String(value); }
+  if (!text) return false;
+  if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(text)) return true;   // email
+  if (/\b\d{10}\b/.test(text)) return true;                                // 10 raw digits
+  if (/\b\d{3}-\d{2}-\d{4}\b/.test(text)) return true;                     // SSN NNN-NN-NNNN
+  if (/(?<!\d)(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}(?!\d)/.test(text)) return true; // US phone
+  return false;
+}
+
 // 64 KB matches the Express per-endpoint cap on /api/jtr-assistant so
 // both surfaces enforce the same ceiling. The Vercel platform default
 // is far more generous (multi-MB), which is enough payload room to
@@ -232,6 +247,9 @@ export default async function handler(req, res) {
   const language = String(body.language || 'en').trim().slice(0, 8).toLowerCase().replace(/[^a-z-]/g, '');
   const userContext = sanitizeForPrompt(body.userContext, 1000);
   if (!q) return res.status(400).json({ error: 'q is required' });
+  if (containsLikelyPii({ q, userContext })) {
+    return res.status(400).json({ error: 'Input appears to contain PII (email / phone / SSN-like patterns). PCS Express will not forward this to the AI provider.' });
+  }
 
   const messages = rawHistory
     .slice(-10)

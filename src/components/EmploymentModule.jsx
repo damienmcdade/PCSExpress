@@ -5,6 +5,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { apiUrl } from '../config/apiConfig'
+import { secureLocalStore } from '../security/SecurityExtensions'
 import TabBar from './TabBar'
 
 const BASE_CITY = {
@@ -509,8 +510,21 @@ function EmploymentModule({ theme, profile }) {
   const [keyword, setKeyword] = useState('')
   const copy = useCopy(profile)
   const installation = installLabel(profile)
-  const searchCity = cityFor(profile)
-  const oconus = isOconusProfile(profile)
+  // Optional user-entered relocation location ("City, ST"). When set it
+  // OVERRIDES the gaining-installation-derived city for every tailored
+  // surface — live job listings and all USAJOBS/LinkedIn/Indeed/Clearance
+  // search URLs run against the area the member is actually moving to.
+  const [locationOverride, setLocationOverride] = useState('')
+  useEffect(() => {
+    let mounted = true
+    secureLocalStore.get('pcs_career_location_override', '').then(v => {
+      if (mounted && typeof v === 'string') setLocationOverride(v)
+    })
+    return () => { mounted = false }
+  }, [])
+  const overrideCity = locationOverride.trim()
+  const searchCity = overrideCity || cityFor(profile)
+  const oconus = overrideCity ? false : isOconusProfile(profile)
 
   // American Job Centers are DOL services that exist only inside the
   // U.S. and territories. For OCONUS markets we drop those cards and
@@ -622,9 +636,44 @@ function EmploymentModule({ theme, profile }) {
       <div style={{ fontSize: 11, color: '#46586B', marginBottom: 10 }}>{copy.text('subtitle')} {searchCity}</div>
       <div style={{ background: '#EDF4FA', border: '1px solid #D7E0EA', borderRadius: 8, padding: 12, marginBottom: 12 }}>
         <div style={{ fontSize: 10, fontWeight: 900, color: '#334155', letterSpacing: '.09em', marginBottom: 4 }}>{copy.text('searchLocation')}</div>
-        <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821' }}>{installation} - {searchCity}</div>
+        <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821' }}>{overrideCity ? overrideCity : `${installation} - ${searchCity}`}</div>
         <div style={{ fontSize: 11, color: '#46586B', lineHeight: 1.55, marginTop: 6 }}>{copy.text('sourcePolicy')}</div>
         {copy.lang !== 'en' && <div style={{ fontSize: 11, color: '#46586B', lineHeight: 1.55, marginTop: 5 }}>{copy.text('languageNote')} ({LANGUAGE_NAMES[copy.lang] || copy.lang})</div>}
+
+        {/* User-entered relocation area — overrides the gaining-installation
+            city so all job searches + listings tailor to where they're
+            actually moving (useful for transition/separation when the next
+            stop isn't a duty station). */}
+        <div style={{ marginTop: 10 }}>
+          <label htmlFor="career-location-override" style={{ display: 'block', fontSize: 10, fontWeight: 900, color: '#334155', letterSpacing: '.06em', marginBottom: 4 }}>
+            RELOCATING SOMEWHERE ELSE? TAILOR TO A CITY &amp; STATE
+          </label>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <input
+              id="career-location-override"
+              value={locationOverride}
+              onChange={(e) => { const v = e.target.value; setLocationOverride(v); secureLocalStore.set('pcs_career_location_override', v); }}
+              placeholder="City, ST (e.g. Austin, TX)"
+              aria-label="Relocation city and state"
+              style={{ flex: 1, minWidth: 180, border: '1px solid #D7E0EA', borderRadius: 8, padding: '8px 10px', fontSize: 13, color: '#0D1821', background: '#FFFFFF' }}
+            />
+            {overrideCity && (
+              <button
+                type="button"
+                onClick={() => { setLocationOverride(''); secureLocalStore.set('pcs_career_location_override', ''); }}
+                aria-label="Clear relocation override and use the gaining installation"
+                style={{ border: '1px solid #D4DCE8', borderRadius: 8, background: '#FFF', color: '#43526B', fontSize: 12, fontWeight: 700, padding: '8px 12px', cursor: 'pointer' }}
+              >
+                Use {installation}
+              </button>
+            )}
+          </div>
+          {overrideCity && (
+            <div style={{ fontSize: 11, color: '#176B6B', fontWeight: 700, marginTop: 5 }}>
+              ✓ Tailoring jobs &amp; resources to {overrideCity}
+            </div>
+          )}
+        </div>
       </div>
 
       <TabBar ariaLabel="Employment sections" className="pcs-tabbar--flush">
