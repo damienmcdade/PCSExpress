@@ -96,6 +96,7 @@ const TransitionChecklistModule = lazyRetry(() => import('./components/Transitio
 const TransitionDocumentsModule = lazyRetry(() => import('./components/TransitionDocumentsModule'))
 const TransitionOutreachModule = lazyRetry(() => import('./components/TransitionOutreachModule'))
 const TransitionCommunityModule = lazyRetry(() => import('./components/TransitionCommunityModule'))
+const TransitionCareerModule = lazyRetry(() => import('./components/TransitionCareerModule'))
 const PriorityAlertsCard = lazyRetry(() => import('./components/PriorityAlertsCard'))
 const ResourcesTab = lazyRetry(() => import('./components/ResourcesTab'))
 import { AuditLogger, secureLocalStore, readLegacyJson, closeCryptoStoreDB } from './security/SecurityExtensions'
@@ -4197,7 +4198,7 @@ function TransitionTab({ theme, profile }) {
     <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab} variant="bubble">
       {tab === 'checklist'     && <TransitionChecklistModule theme={theme} profile={profile} />}
       {tab === 'documentation' && <TransitionDocumentsModule theme={theme} profile={profile} />}
-      {tab === 'career'        && <EmploymentModule theme={theme} profile={profile} />}
+      {tab === 'career'        && <TransitionCareerModule theme={theme} profile={profile} />}
       {tab === 'community'     && <TransitionCommunityModule theme={theme} profile={profile} />}
       {tab === 'outreach'      && <TransitionOutreachModule theme={theme} profile={profile} />}
     </CategoryTabShell>
