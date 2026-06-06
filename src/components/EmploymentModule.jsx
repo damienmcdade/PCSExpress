@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { apiUrl } from '../config/apiConfig'
 import { secureLocalStore } from '../security/SecurityExtensions'
 import TabBar from './TabBar'
+import LocationAutocomplete from './LocationAutocomplete'
 
 const BASE_CITY = {
   'Fort Liberty': 'Fayetteville, NC',
@@ -649,13 +650,14 @@ function EmploymentModule({ theme, profile }) {
             RELOCATING SOMEWHERE ELSE? TAILOR TO A CITY &amp; STATE
           </label>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <input
+            <LocationAutocomplete
               id="career-location-override"
               value={locationOverride}
-              onChange={(e) => { const v = e.target.value; setLocationOverride(v); secureLocalStore.set('pcs_career_location_override', v); }}
+              onChange={(v) => { setLocationOverride(v); secureLocalStore.set('pcs_career_location_override', v); }}
               placeholder="City, ST (e.g. Austin, TX)"
-              aria-label="Relocation city and state"
-              style={{ flex: 1, minWidth: 180, border: '1px solid #D7E0EA', borderRadius: 8, padding: '8px 10px', fontSize: 13, color: '#0D1821', background: '#FFFFFF' }}
+              ariaLabel="Relocation city and state"
+              theme={theme}
+              inputStyle={{ borderRadius: 8, padding: '8px 10px' }}
             />
             {overrideCity && (
               <button
