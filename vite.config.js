@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { execSync } from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
 
 // Best-effort embed of the current git SHA + a build timestamp so the
 // app can display a deployment-version stamp. Prefer Vercel's injected
@@ -12,12 +14,32 @@ if (!_sha) {
 const BUILD_SHA = _sha;
 const BUILD_TIME = new Date().toISOString();
 
+// Stamp the service worker's CACHE_VERSION with the build SHA after each
+// build so every deploy automatically evicts the prior SW caches — no more
+// manual `pcs-vN` bumps (which previously had to be remembered per release).
+// Falls back silently to the in-file version when no SHA is available.
+function stampServiceWorkerVersion() {
+  return {
+    name: 'stamp-sw-cache-version',
+    apply: 'build',
+    closeBundle() {
+      if (!BUILD_SHA) return;
+      const swPath = path.resolve('dist/pcs-sw.js');
+      try {
+        const src = fs.readFileSync(swPath, 'utf8');
+        const next = src.replace(/const CACHE_VERSION = '[^']*'/, `const CACHE_VERSION = 'pcs-${BUILD_SHA}'`);
+        if (next !== src) fs.writeFileSync(swPath, next);
+      } catch { /* SW absent — nothing to stamp */ }
+    },
+  };
+}
+
 export default defineConfig({
   define: {
     'import.meta.env.VITE_BUILD_SHA':  JSON.stringify(BUILD_SHA),
     'import.meta.env.VITE_BUILD_TIME': JSON.stringify(BUILD_TIME),
   },
-  plugins: [react()],
+  plugins: [react(), stampServiceWorkerVersion()],
   server: {
     port: 3000,
     host: '0.0.0.0',

@@ -2,9 +2,15 @@
  * Move Budget Tracker — entitlement estimates vs. actual out-of-pocket spending.
  * Helps families track the avg $5,000 unreimbursed PCS cost gap.
  */
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import DataFreshnessFooter from './DataFreshnessFooter';
 import { CalculatorResultLabel, PlanningAidDisclaimer } from './CalculatorResultLabel';
+import { secureLocalStore } from '../security/SecurityExtensions';
+
+// Persist the user's entered entitlement/expense figures on-device (encrypted)
+// so the budget survives a tab switch / reload, consistent with the app's
+// other planning tools.
+const BUDGET_STORAGE_KEY = 'pcs_move_budget';
 
 const fieldStyle = {
   border: '1px solid #D8DEE7',
@@ -156,6 +162,28 @@ export default function MoveBudgetTracker({ theme, profile }) {
       return { ...prev, ...Object.fromEntries(missing.map(c => [c.id, ''])) };
     });
   }, [EXPENSE_CATEGORIES]);
+
+  // Load saved figures once on mount; merge into the controlled defaults so
+  // any newly-added category ids stay controlled. The save effect below is
+  // gated on loadedRef so the empty initial state can't overwrite saved data
+  // before the async decrypt resolves.
+  const loadedRef = useRef(false);
+  useEffect(() => {
+    let mounted = true;
+    secureLocalStore.get(BUDGET_STORAGE_KEY, null).then(saved => {
+      if (mounted && saved && typeof saved === 'object') {
+        if (saved.entitlements) setEntitlements(prev => ({ ...prev, ...saved.entitlements }));
+        if (saved.expenses) setExpenses(prev => ({ ...prev, ...saved.expenses }));
+      }
+      loadedRef.current = true;
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!loadedRef.current) return;
+    secureLocalStore.set(BUDGET_STORAGE_KEY, { entitlements, expenses });
+  }, [entitlements, expenses]);
 
   const totalEntitlements = useMemo(() =>
     ENTITLEMENT_CATEGORIES.reduce((sum, c) => sum + parseNum(entitlements[c.id]), 0),

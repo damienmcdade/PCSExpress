@@ -1746,6 +1746,21 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
 
       <NotificationModeSelector theme={theme} checklistId="pcs-checklist" checklistLabel="PCS Checklist" alerts={outstandingAlerts} />
 
+      {/* Reserve / Guard orders-type entitlement banner. The checklist already
+          FILTERS out items that need a PCS entitlement the orders don't carry;
+          this explains why so the absence isn't mistaken for a bug. Data-driven
+          from the same ordersTypeMeta catalog the filters use. */}
+      {(() => {
+        const meta = (profile?.component === 'Reserve' || profile?.component === 'National Guard') && profile?.ordersType
+          ? ordersTypeMeta(profile.component, profile.ordersType) : null;
+        if (!meta || (meta.pcsEntitled && meta.bahEligible)) return null;
+        return (
+          <div style={{ background: 'rgba(255,179,0,0.12)', border: '1px solid rgba(255,179,0,0.45)', borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 11, color: '#7A4A00', lineHeight: 1.5 }}>
+            <strong>Orders type: {meta.label}.</strong> {meta.pcsEntitled ? '' : 'These orders carry no full PCS household-goods entitlement — '}{meta.bahEligible ? '' : 'BAH at the gaining ZIP does not apply — '}items that require a PCS entitlement are filtered out of this checklist below. Verify your specific entitlements with your unit and finance.
+          </div>
+        );
+      })()}
+
       {/* Overdue warning banner */}
       {phaseIsOverdue && (
         <div style={{ background: '#FFEBEE', border: '1.5px solid #EF9A9A', borderRadius: 12, padding: '12px 14px', marginBottom: 14, display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -5485,7 +5500,7 @@ function App() {
             {IOS_TAB_BAR.map(item => (
               <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-bottom-tab ${activeTab === item.id ? 'is-active' : ''}`} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
                 <span className="pcs-bottom-tab__glyph" style={{ fontSize: 22, lineHeight: 1 }}>{item.iosIcon}</span>
-                <span style={{ fontSize: 10, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>{item.label}</span>
+                <span style={{ fontSize: 10, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1.15, textAlign: 'center', maxWidth: '100%', overflowWrap: 'anywhere', hyphens: 'auto' }}>{item.label}</span>
               </button>
             ))}
             <button onClick={() => setMoreOpen(o => !o)} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
@@ -6100,7 +6115,7 @@ function App() {
           {IOS_TAB_BAR.map(item => (
             <button key={item.id} onClick={() => { goTo(item.id); setMoreOpen(false); }} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
               <span style={{ fontSize: 22, lineHeight: 1 }}>{item.iosIcon}</span>
-              <span style={{ fontSize: 10, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>{item.label}</span>
+              <span style={{ fontSize: 10, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1.15, textAlign: 'center', maxWidth: '100%', overflowWrap: 'anywhere', hyphens: 'auto' }}>{item.label}</span>
               {activeTab === item.id && <div style={{ position: 'absolute', bottom: 'calc(env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', width: 4, height: 4, borderRadius: '50%', background: theme.accent }} />}
             </button>
           ))}
