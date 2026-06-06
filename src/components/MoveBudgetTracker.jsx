@@ -24,7 +24,7 @@ const ENTITLEMENT_CATEGORIES = [
   { id: 'mileage', label: 'POV Mileage (TLE/MALT)', hint: '$0.205/mi per DoD MALT rate for authorized POVs (CY2026).', defaultPct: 100 },
   { id: 'perDiem', label: 'TLE / Per Diem', hint: 'Temporary lodging and daily per diem during travel.', defaultPct: 100 },
   { id: 'hhgCost', label: 'HHG Government Move Cost', hint: 'What it cost the Gov to move your household goods.', defaultPct: 100 },
-  { id: 'ppm', label: 'PPM Incentive (if applicable)', hint: '95% of GCC if you did a personally procured move.', defaultPct: 0 },
+  { id: 'ppm', label: 'PPM Incentive (if applicable)', hint: '100% of the Government Constructive Cost (GCC) if you did a personally procured move.', defaultPct: 0 },
 ];
 
 const EXPENSE_CATEGORIES_BASE = [
