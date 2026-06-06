@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Brand colors for the Android shell. Without this file the theme's
+  @color/colorPrimary / colorPrimaryDark / colorAccent references (styles.xml)
+  resolved to the generic AppCompat/Material defaults (indigo/pink), giving
+  the launch screen and status bar an off-brand accent. These match the web
+  app's brand palette: navy #0A1628 primary, gold #C99A3D accent.
+-->
+<resources>
+    <color name="colorPrimary">#0A1628</color>
+    <color name="colorPrimaryDark">#060F1C</color>
+    <color name="colorAccent">#C99A3D</color>
+</resources>

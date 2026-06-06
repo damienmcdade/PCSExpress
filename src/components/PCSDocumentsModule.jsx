@@ -3,7 +3,7 @@
  * Third-party dependencies: React, Capacitor bridge when running native.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions';
 import { escapeHtml } from '../lib/escapeHtml';
 import TabBar from './TabBar';
@@ -436,10 +436,13 @@ export default function PCSDocumentsModule({ theme, profile }) {
   const [activecat, setActivecat] = useState('family');
   const [toast, setToast] = useState(null);
 
+  // dirtyRef guards against the async decrypt clobbering a doc the user marked
+  // during the mount-load window.
+  const dirtyRef = useRef(false);
   useEffect(() => {
     cleanupLegacyFiles();
     secureLocalStore.get(STATE_KEY, null).then(saved => {
-      if (saved) setStates(sanitizeStates(saved));
+      if (saved && !dirtyRef.current) setStates(sanitizeStates(saved));
     });
   }, []);
 
@@ -472,6 +475,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
   };
 
   const toggleObtained = (docId) => {
+    dirtyRef.current = true;
     setStates(prev => {
       const cur = prev[docId] || {};
       // Per the Zero-Upload security baseline, doc state stores only

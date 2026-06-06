@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { apiUrl, fetchWithTimeout } from '../config/apiConfig'
+import { resolveMarket } from '../data/installationMarkets'
 import CopyableText from './CopyableText'
 import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import TabBar from './TabBar'
@@ -330,7 +331,19 @@ function ReligiousServicesModule({ theme, profile }) {
     }
     let cancelled = false
     setLiveServices(s => ({ ...s, status: 'loading' }))
-    const params = new URLSearchParams({ address: inst, radiusMiles: '25' })
+    // Send resolved city/state/zip when the gaining installation is in the
+    // market table (the server builds live cards from city/state, not from a
+    // bare installation name) — mirrors the Schools / Family Fun tabs. Falls
+    // back to the address string for unrecognized installations.
+    const market = resolveMarket(profile)
+    const params = new URLSearchParams({ radiusMiles: '25' })
+    if (market.matched && (market.city || market.zip)) {
+      if (market.city) params.set('city', market.city)
+      if (market.state) params.set('state', market.state)
+      if (market.zip) params.set('zip', market.zip)
+    } else {
+      params.set('address', inst)
+    }
     if (profile?.language) params.set('lang', profile.language)
     fetchWithTimeout(apiUrl(`/api/religious-services?${params.toString()}`), { headers: { Accept: 'application/json' } })
       .then(r => r.ok ? r.json() : { services: [], fallback: true })

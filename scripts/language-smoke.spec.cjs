@@ -26,14 +26,11 @@ const LOCALES = [
   { code: 'it', name: 'Italian',     curated: true,  dir: 'ltr' },
   { code: 'pt', name: 'Portuguese',  curated: true,  dir: 'ltr' },
   { code: 'vi', name: 'Vietnamese',  curated: true,  dir: 'ltr' },
-  { code: 'sw', name: 'Swahili',     curated: false, dir: 'ltr' },
-  { code: 'ha', name: 'Hausa',       curated: false, dir: 'ltr' },
-  { code: 'yo', name: 'Yoruba',      curated: false, dir: 'ltr' },
-  { code: 'am', name: 'Amharic',     curated: false, dir: 'ltr' },
-  { code: 'zu', name: 'Zulu',        curated: false, dir: 'ltr' },
-  { code: 'ig', name: 'Igbo',        curated: false, dir: 'ltr' },
-  { code: 'so', name: 'Somali',      curated: false, dir: 'ltr' },
-  { code: 'af', name: 'Afrikaans',   curated: false, dir: 'ltr' },
+  // The 8 Google-Translate-only African locales (sw/ha/yo/am/zu/ig/so/af)
+  // were removed from the language picker — they had no curated dictionary
+  // and the Translate widget is CSP-blocked on Vercel/native, so they were
+  // "selectable but dead". The picker now offers English + the 11 curated
+  // locales only; this list mirrors that.
 ]
 
 const SEED_PROFILE = {

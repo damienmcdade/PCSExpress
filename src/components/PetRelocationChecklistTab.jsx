@@ -3,7 +3,7 @@
  * Third-party dependencies: React only.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
 import SyncStatusIndicator from './SyncStatusIndicator';
 import NotificationModeSelector from './NotificationModeSelector';
@@ -84,10 +84,13 @@ export default function PetRelocationChecklistTab({ theme, profile }) {
   const isOconus = !!profile?.isOverseas;
   const countryRule = detectPetCountryRule(profile);
 
+  // Guard against the async decrypt clobbering a task the user toggled during
+  // the mount-load window.
+  const dirtyRef = useRef(false);
   useEffect(() => {
     let mounted = true;
     secureLocalStore.get(STORAGE_KEY, {}).then(saved => {
-      if (mounted) setChecks(saved || {});
+      if (mounted && !dirtyRef.current) setChecks(saved || {});
     });
     return () => { mounted = false; };
   }, []);
@@ -106,6 +109,7 @@ export default function PetRelocationChecklistTab({ theme, profile }) {
   );
 
   const toggleTask = async (phase, index) => {
+    dirtyRef.current = true;
     const key = `${phase}-${index}`;
     const next = { ...checks, [key]: !checks[key] };
     setChecks(next);

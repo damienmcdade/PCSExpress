@@ -2123,7 +2123,7 @@ app.get('/api/religious-services', religiousRateLimit, async (req, res) => {
   // Services directory. Each card deep-links to a Google Maps
   // search restricted to the locality so users see service times,
   // contact info, and directions in one tap.
-  const cards = syntheticReligiousCards(city, state)
+  const cards = syntheticReligiousCards(city, state, origin?.displayName || address)
 
   if (cards.length === 0) {
     return res.status(200).json({ services: [], origin, fallback: true, reason: 'no-locality', source: 'google-maps-search' })
@@ -2201,7 +2201,7 @@ app.get('/api/schools-nearby', schoolRateLimit, async (req, res) => {
   // Each card deep-links to a Google Maps search for the category
   // restricted to the locality so users see real schools with
   // ratings, contact info, and zoning details.
-  const cards = syntheticSchoolCards(city, state)
+  const cards = syntheticSchoolCards(city, state, origin?.displayName || address)
 
   if (cards.length === 0) {
     return res.status(200).json({ categories: SCHOOL_CATEGORIES, schools: [], origin, fallback: true, reason: 'no-locality', source: 'google-maps-search' })
@@ -2256,10 +2256,13 @@ const FAMILY_CATEGORIES = [
 // businesses, so users always have an actionable starting point.
 // Synthetic Google Maps search-portal cards for Schools. Always
 // available; surfaced when OSM returns empty or times out.
-function syntheticSchoolCards(city, state) {
-  if (!city && !state) return []
+function syntheticSchoolCards(city, state, fallbackLabel = '') {
   const ev = encodeURIComponent
-  const where = [city, state].filter(Boolean).join(', ')
+  // Fall back to the geocoded place / installation name when the gaining
+  // installation isn't in the market table, so address-only requests still
+  // yield actionable search cards instead of an empty list.
+  const where = [city, state].filter(Boolean).join(', ') || String(fallbackLabel || '').trim()
+  if (!where) return []
   const CARDS = [
     { categoryId: 'public_elementary',  type: 'Public elementary schools',  query: `public elementary schools near ${where}` },
     { categoryId: 'public_middle',      type: 'Public middle schools',      query: `public middle schools near ${where}` },
@@ -2273,7 +2276,7 @@ function syntheticSchoolCards(city, state) {
     id: `school-search-${c.categoryId}-${idx}-${ev(where).slice(0,30)}`,
     categoryId: c.categoryId,
     type: c.type,
-    name: `${c.type} near ${city || state}`,
+    name: `${c.type} near ${city || state || where}`,
     address: '',
     city: city || '',
     state: state || '',
@@ -2290,10 +2293,12 @@ function syntheticSchoolCards(city, state) {
 
 // Synthetic Google Maps search-portal cards for Religious Services.
 // Covers the major faiths/denominations users have asked about.
-function syntheticReligiousCards(city, state) {
-  if (!city && !state) return []
+function syntheticReligiousCards(city, state, fallbackLabel = '') {
   const ev = encodeURIComponent
-  const where = [city, state].filter(Boolean).join(', ')
+  // Fall back to the geocoded place / installation name for address-only
+  // requests so the directory renders even off the market table.
+  const where = [city, state].filter(Boolean).join(', ') || String(fallbackLabel || '').trim()
+  if (!where) return []
   const CARDS = [
     { categoryId: 'catholic',      type: 'Catholic churches',       query: `Catholic churches near ${where}` },
     { categoryId: 'protestant',    type: 'Protestant churches',     query: `Protestant churches near ${where}` },
@@ -2311,7 +2316,7 @@ function syntheticReligiousCards(city, state) {
     id: `religious-search-${c.categoryId}-${idx}-${ev(where).slice(0,30)}`,
     categoryId: c.categoryId,
     type: c.type,
-    name: `${c.type} near ${city || state}`,
+    name: `${c.type} near ${city || state || where}`,
     address: '',
     city: city || '',
     state: state || '',
@@ -2327,10 +2332,12 @@ function syntheticReligiousCards(city, state) {
   }))
 }
 
-function syntheticFamilyCards(city, state) {
-  if (!city && !state) return []
+function syntheticFamilyCards(city, state, fallbackLabel = '') {
   const ev = encodeURIComponent
-  const where = [city, state].filter(Boolean).join(', ')
+  // Fall back to the geocoded place / installation name for address-only
+  // requests so Family Fun renders even off the market table.
+  const where = [city, state].filter(Boolean).join(', ') || String(fallbackLabel || '').trim()
+  if (!where) return []
   // Each entry maps a Family Fun category to a Google Maps search
   // query that surfaces real, current listings in the user's market.
   // The text intentionally avoids fabricated specifics (hours, rating)
@@ -2349,7 +2356,7 @@ function syntheticFamilyCards(city, state) {
     id: `family-search-${c.categoryId}-${idx}-${ev(where).slice(0,30)}`,
     categoryId: c.categoryId,
     type: c.type,
-    name: `${c.type} near ${city || state}`,
+    name: `${c.type} near ${city || state || where}`,
     address: '',
     city: city || '',
     state: state || '',
@@ -2546,7 +2553,7 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
   // data source. Each card deep-links to a Google Maps search for
   // the category restricted to the installation's locality, so users
   // see real venues with ratings/hours/directions in one tap.
-  const cards = syntheticFamilyCards(city, state)
+  const cards = syntheticFamilyCards(city, state, origin?.displayName || address)
 
   if (cards.length === 0) {
     return res.status(200).json({
