@@ -44,7 +44,7 @@ async function openTransition(page) {
   await page.waitForTimeout(600)
 }
 
-test('military member — VA track shows BDD; switching to career hides it', async ({ page }) => {
+test('military member — VA track is on by default (BDD shown), SFL-TAP for Army', async ({ page }) => {
   const logs = []
   page.on('pageerror', e => logs.push('PAGEERROR: ' + e.message))
   await page.addInitScript(seedScript, {
@@ -56,11 +56,8 @@ test('military member — VA track shows BDD; switching to career hides it', asy
   await openTransition(page)
 
   await expect(page.locator('h2:has-text("Transition")').first()).toBeVisible()
-  // Default track is career → VA BDD milestone hidden.
-  await expect(page.getByText('Benefits Delivery at Discharge', { exact: false })).toHaveCount(0)
-  // Switch to VA track.
-  await clickButtonByText(page, 'VA disability')
-  await page.waitForTimeout(300)
+  // Every separating service member is a veteran, so the VA track (and the
+  // BDD milestone) is ON by default — the old career/VA toggle was removed.
   await expect(page.getByText('Benefits Delivery at Discharge', { exact: false }).first()).toBeVisible()
   // SFL-TAP branch program text present for Army.
   await expect(page.getByText('SFL-TAP', { exact: false }).first()).toBeVisible()

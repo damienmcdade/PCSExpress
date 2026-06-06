@@ -18,6 +18,7 @@ import { createPushStore } from './lib/pushStore.js'
 import {
   containsLikelyPii,
   sanitizeQueryParam,
+  safeHttpUrl,
 } from './lib/validators.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -1319,7 +1320,9 @@ function shapeListing(raw) {
     propertyType,
     description,
     price,
-    listingUrl: raw.listingUrl || raw.url || (address
+    // Third-party aggregator URL is validated; our own Google-search
+    // fallback is safe by construction.
+    listingUrl: safeHttpUrl(raw.listingUrl || raw.url) || (address
       ? `https://www.google.com/search?q=${encodeURIComponent(address + ' ' + city + ' ' + state + ' rent')}`
       : ''),
     source: RAPIDAPI_HOST,
@@ -1850,7 +1853,7 @@ async function fetchRemoteOk(keyword) {
     salaryMin: j.salary_min || null,
     salaryMax: j.salary_max || null,
     description: clip(j.description),
-    url: j.url || j.apply_url || '',
+    url: safeHttpUrl(j.url || j.apply_url),
     source: 'RemoteOK',
     remote: true,
     postedAt: j.date || j.epoch ? new Date((j.epoch || 0) * 1000).toISOString() : null,
@@ -1901,7 +1904,7 @@ async function fetchTheMuse(keyword, city, state) {
       salaryMin: null,
       salaryMax: null,
       description: clip([category, level, j.contents].filter(Boolean).join(' · ')),
-      url: j.refs?.landing_page || '',
+      url: safeHttpUrl(j.refs?.landing_page),
       source: 'The Muse',
       remote: /remote/i.test(locName),
       postedAt: j.publication_date || null,

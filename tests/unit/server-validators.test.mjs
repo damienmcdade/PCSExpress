@@ -5,7 +5,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { containsLikelyPii, sanitizeQueryParam } from '../../server/lib/validators.js';
+import { containsLikelyPii, sanitizeQueryParam, safeHttpUrl } from '../../server/lib/validators.js';
 
 // ── containsLikelyPii ────────────────────────────────────────────────
 
@@ -185,4 +185,33 @@ test('query: combination of multiple attacks all neutralized in one pass', () =>
   assert.ok(!out.includes('='));
   assert.ok(!out.includes('\n'));
   assert.ok(!out.includes('\x00'));
+});
+
+// ── safeHttpUrl: gate third-party aggregator destination URLs ──────────
+test('safeHttpUrl: passes well-formed http(s) URLs', () => {
+  assert.equal(safeHttpUrl('https://example.com/job/123'), 'https://example.com/job/123');
+  assert.equal(safeHttpUrl('http://muse.example.org/x'), 'http://muse.example.org/x');
+});
+
+test('safeHttpUrl: rejects javascript: / data: / vbscript: schemes', () => {
+  assert.equal(safeHttpUrl('javascript:alert(1)'), '');
+  assert.equal(safeHttpUrl('JavaScript:alert(1)'), '');
+  assert.equal(safeHttpUrl('data:text/html,<script>x</script>'), '');
+  assert.equal(safeHttpUrl(' \t javascript:alert(1)'), '');
+});
+
+test('safeHttpUrl: rejects relative / blank / malformed values', () => {
+  assert.equal(safeHttpUrl(''), '');
+  assert.equal(safeHttpUrl('   '), '');
+  assert.equal(safeHttpUrl('/relative/path'), '');
+  assert.equal(safeHttpUrl('not a url'), '');
+  assert.equal(safeHttpUrl(null), '');
+  assert.equal(safeHttpUrl(undefined), '');
+  assert.equal(safeHttpUrl(12345), '');
+  assert.equal(safeHttpUrl({}), '');
+});
+
+test('safeHttpUrl: never throws on hostile input', () => {
+  assert.doesNotThrow(() => safeHttpUrl('http://['));
+  assert.doesNotThrow(() => safeHttpUrl('\x00\x01'));
 });

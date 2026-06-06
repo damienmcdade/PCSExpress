@@ -61,3 +61,20 @@ export function sanitizeQueryParam(value, maxLen = 60) {
   // accidental URL injection into the upstream query.
   return String(value == null ? '' : value).trim().replace(/[^A-Za-z0-9 .'-]/g, '').slice(0, Math.max(0, maxLen | 0));
 }
+
+// Returns `value` only when it is a well-formed absolute http(s) URL,
+// otherwise ''. Third-party aggregators (RemoteOK, The Muse, RapidAPI
+// housing) put a destination URL in a field we forward to the client as a
+// clickable link; a compromised/garbage upstream could supply a
+// javascript:/data: URL or junk. The client renders only what survives this
+// filter (defense-in-depth alongside the client's rel=noopener hardening).
+export function safeHttpUrl(value) {
+  const s = String(value == null ? '' : value).trim();
+  if (!s) return '';
+  try {
+    const u = new URL(s);
+    return /^https?:$/.test(u.protocol) ? u.href : '';
+  } catch {
+    return '';
+  }
+}

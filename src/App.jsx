@@ -4764,16 +4764,29 @@ const VeteranBusinessesTabMemo = memo(VeteranBusinessesTab);
 
 function App() {
 
-  // APP_WIDE_LINK_SECURITY_AUDIT: prevents blank, relative, same-app, stale, or non-approved link bubbles from navigating users into another PCS Express state.
+  // APP_WIDE_LINK_SECURITY_AUDIT: prevents blank, relative, same-app, stale, or
+  // unsafe-protocol link bubbles from navigating users into another PCS Express
+  // state or opening a reverse-tabnabbing / javascript: vector.
   useEffect(() => {
-    const approvedNonGovHosts = new Set(['988lifeline.org', 'www.988lifeline.org', 'veteranscrisisline.net', 'www.veteranscrisisline.net', 'operationhomefront.org', 'www.operationhomefront.org', 'armyemergencyrelief.org', 'www.armyemergencyrelief.org', 'nmcrs.org', 'www.nmcrs.org', 'afas.org', 'www.afas.org', 'cgmahq.org', 'www.cgmahq.org', 'militarychild.org', 'www.militarychild.org', 'bluestarfam.org', 'www.bluestarfam.org', 'usmc-mccs.org', 'www.usmc-mccs.org']);
+    // Approve any well-formed CROSS-ORIGIN http(s) link. Every anchor in PCS
+    // Express is either hard-coded by us to a vetted resource or built from a
+    // trusted public API (USAJOBS, SAM.gov, OpenStreetMap, job boards, DoD
+    // SkillBridge partners) with encoded query params — there is NO untrusted
+    // anchor source in the app (no dangerouslySetInnerHTML anywhere; AI / JTR
+    // answers render plain text + hard-coded links only, never links parsed
+    // from model output). So a host all-list added no real protection while it
+    // silently hid legitimate curated resource cards (LinkedIn, RecruitMilitary,
+    // Hire Heroes, ACP, IVMF, SkillBridge partner programs, …) across many tabs.
+    // The genuine threats remain fully blocked below: same-origin/relative/blank
+    // hrefs (self-navigation loop-back) and non-http(s) protocols (javascript:,
+    // data:), and every allowed link is hardened with target=_blank +
+    // rel="noopener noreferrer".
     const isApprovedExternalLink = (href) => {
       if (!href || href === '#') return false;
       try {
         const parsed = new URL(href, window.location.origin);
-        const host = parsed.hostname.toLowerCase();
         if (parsed.origin === window.location.origin) return false;
-        return host.endsWith('.gov') || host.endsWith('.mil') || host.endsWith('.edu') || approvedNonGovHosts.has(host);
+        return /^https?:$/.test(parsed.protocol);
       } catch {
         return false;
       }

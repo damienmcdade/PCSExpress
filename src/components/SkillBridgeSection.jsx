@@ -1,19 +1,23 @@
 /*
- * SkillBridgeSection — the SkillBridge tab body for the veteran Career Center.
- * A job-category filter PLUS a "Remote only" toggle (so remote/virtual
- * SkillBridge opportunities populate within the same tab), and auto-populated
- * result cards (official DoD locator + location/category-targeted searches +
- * curated partner programs). Reuses the Career Center's shared location for
- * non-remote results — no separate location input.
+ * SkillBridgeSection — the DoD SkillBridge tab body for the veteran Career
+ * Center. Mirrors the Employment Center's card style + structure EXACTLY
+ * (shared SectionIntro + Card primitives), the only difference being that it
+ * populates vetted SkillBridge information: the official DoD locator + program
+ * overview, a location/category-targeted live search, and curated, verified
+ * SkillBridge-authorized partner programs.
+ *
+ * A job-category filter plus a "Remote only" toggle narrow the results. Local
+ * results reuse the Career Center's shared location (no separate input).
  *
  * Third-party dependencies: React only.
  */
 
 import { useState } from 'react';
 import TabBar from './TabBar';
-import { SKILLBRIDGE_CATEGORIES, skillbridgeResults } from '../data/skillbridge';
+import { Card, SectionIntro } from './careerCards';
+import { SKILLBRIDGE_CATEGORIES, SKILLBRIDGE_FACTS, skillbridgeResults } from '../data/skillbridge';
 
-export default function SkillBridgeSection({ theme, location = '' }) {
+export default function SkillBridgeSection({ theme, location = '', copy }) {
   const [cat, setCat] = useState('all');
   const [remoteOnly, setRemoteOnly] = useState(false);
   const loc = String(location || '').trim();
@@ -21,12 +25,10 @@ export default function SkillBridgeSection({ theme, location = '' }) {
 
   return (
     <div>
-      <div style={{ background: '#EDF4FA', border: '1px solid #D7E0EA', borderRadius: 12, padding: 12, marginBottom: 12 }}>
-        <div style={{ fontSize: 10, fontWeight: 900, color: '#0D3B66', letterSpacing: '.08em', marginBottom: 3 }}>SKILLBRIDGE ELIGIBILITY</div>
-        <div style={{ fontSize: 12, color: '#43526B', lineHeight: 1.55 }}>
-          DoD SkillBridge places you in a civilian-employer internship during your <strong>last up-to-180 days</strong> of service while you keep military pay and benefits. It requires <strong>unit commander approval</strong> — start early.
-        </div>
-      </div>
+      <SectionIntro
+        title="DoD SkillBridge"
+        lead={`${SKILLBRIDGE_FACTS.summary} Use the Remote-only filter and job categories below to narrow the vetted programs; local results tailor to ${loc || 'your destination above'}.`}
+      />
 
       {/* Remote-only filter — populate only remote/virtual opportunities. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
@@ -53,7 +55,7 @@ export default function SkillBridgeSection({ theme, location = '' }) {
         </span>
       </div>
 
-      {/* Job-category filter. */}
+      {/* Job-category filter — bubble pills matching the rest of the app. */}
       <TabBar ariaLabel="SkillBridge job category filter">
         {SKILLBRIDGE_CATEGORIES.map(c => {
           const active = cat === c.id;
@@ -74,25 +76,15 @@ export default function SkillBridgeSection({ theme, location = '' }) {
         })}
       </TabBar>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
-        {cards.map((card, i) => (
-          <a
-            key={`${card.name}-${i}`}
-            href={card.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`${card.name} (opens in a new tab)`}
-            style={{ display: 'block', textDecoration: 'none', background: '#FFFFFF', border: '1px solid #E2E8F1', borderRadius: 12, padding: 13 }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 3 }}>
-              <span style={{ fontSize: 13.5, fontWeight: 800, color: theme.primary }}>{card.name} →</span>
-              {card.official && <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: '.06em', color: '#1B5E20', background: '#E8F5E9', border: '1px solid #A5D6A7', borderRadius: 5, padding: '1px 6px' }}>OFFICIAL</span>}
-              {card.partner && <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: '.06em', color: '#0D3B66', background: '#E3F2FD', border: '1px solid #90CAF9', borderRadius: 5, padding: '1px 6px' }}>PARTNER</span>}
-            </div>
-            <div style={{ fontSize: 12, color: '#43526B', lineHeight: 1.5 }}>{card.desc}</div>
-          </a>
+      <div style={{ marginTop: 14 }}>
+        {cards.map((card) => (
+          <Card key={`${card.name}-${card.url}`} item={card} copy={copy} />
         ))}
       </div>
+
+      <p style={{ fontSize: 10, color: '#66788A', lineHeight: 1.5, marginTop: 6 }}>
+        SkillBridge participation requires unit commander approval and is offered at the company’s discretion. Confirm current openings, eligibility, and dates on each program’s official page before applying.
+      </p>
     </div>
   );
 }
