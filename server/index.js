@@ -1954,20 +1954,26 @@ app.get('/api/job-listings', jobsRateLimit, async (req, res) => {
   const keyword = String(req.query.keyword || '').trim().slice(0, 80)
   const city = String(req.query.city || '').trim().replace(/[^A-Za-z0-9 .'-]/g, '').slice(0, 60)
   const state = String(req.query.state || '').trim().replace(/[^A-Za-z0-9 .'-]/g, '').slice(0, 16)
+  // Default is IN-PERSON near the requested location; `remote=true` returns
+  // remote/anywhere roles. Previously RemoteOK (a remote-only board queried
+  // with NO location) was always mixed in, so listings showed jobs from other
+  // areas regardless of the user's location.
+  const remoteMode = String(req.query.remote || '') === 'true'
 
-  const cacheKey = `${keyword}|${city}|${state}`
+  const cacheKey = `${keyword}|${city}|${state}|${remoteMode ? 'remote' : 'local'}`
   const cached = JOBS_CACHE.get(cacheKey)
   if (cached && Date.now() - cached.fetchedAt < JOBS_TTL_MS) {
     return res.status(200).json({ listings: cached.listings, fallback: cached.listings.length === 0, sources: cached.sources, source: 'cache', fetchedAt: cached.fetchedAt })
   }
 
   const results = []
-  const sources = { themuse: 'pending', remoteok: 'pending', usajobs: USAJOBS_API_KEY ? 'pending' : 'no-api-key' }
+  const sources = { themuse: 'pending', remoteok: remoteMode ? 'pending' : 'skipped-local', usajobs: USAJOBS_API_KEY ? 'pending' : 'no-api-key' }
 
-  // Run all three in parallel - one failing should not stop the others.
+  // Run in parallel - one failing should not stop the others. RemoteOK is a
+  // remote-only board, so it is only queried in remote mode.
   const [theMuseResult, remoteOkResult, usaJobsResult] = await Promise.allSettled([
     fetchTheMuse(keyword, city, state),
-    fetchRemoteOk(keyword),
+    remoteMode ? fetchRemoteOk(keyword) : Promise.resolve([]),
     USAJOBS_API_KEY ? fetchUsajobs(keyword, city, state) : Promise.resolve([]),
   ])
 
@@ -1995,9 +2001,14 @@ app.get('/api/job-listings', jobsRateLimit, async (req, res) => {
     sources.usajobs = `error-${usaJobsResult.reason?.message || 'unknown'}`
   }
 
+  // Mode filter: in-person (default) keeps only non-remote roles near the
+  // location; remote mode keeps only remote/anywhere roles. This is what
+  // makes the listings actually match the user's location by default.
+  const modeFiltered = results.filter(j => (remoteMode ? j.remote === true : !j.remote))
+
   // De-dupe by url + title
   const seen = new Set()
-  const deduped = results.filter(j => {
+  const deduped = modeFiltered.filter(j => {
     const key = `${j.url}|${j.title}`
     if (seen.has(key)) return false
     seen.add(key)

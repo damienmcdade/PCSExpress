@@ -640,6 +640,9 @@ function EmploymentModule({ theme, profile, audience = 'spouse' }) {
   // Live job listings from /api/job-listings (RemoteOK + USAJOBS).
   // Empty + fallback=true => keep the existing static portal search
   // cards visible underneath as the verified backup.
+  // Live listings default to IN-PERSON near the location; the user can flip
+  // to remote roles. (Fixes listings showing jobs from other areas.)
+  const [remoteJobs, setRemoteJobs] = useState(false)
   const [liveJobs, setLiveJobs] = useState({ status: 'idle', listings: [], fallback: false, sources: null })
   useEffect(() => {
     if (activeTab !== 'jobSearch') return
@@ -651,6 +654,7 @@ function EmploymentModule({ theme, profile, audience = 'spouse' }) {
     const [cityPart, statePart] = String(searchCity || '').split(',').map(s => s && s.trim())
     if (cityPart) params.set('city', cityPart)
     if (statePart) params.set('state', statePart)
+    if (remoteJobs) params.set('remote', 'true')
     // Debounce keyword changes so we do not fire on every keystroke.
     const t = setTimeout(() => {
       fetch(apiUrl(`/api/job-listings?${params.toString()}`), { headers: { Accept: 'application/json' } })
@@ -670,7 +674,7 @@ function EmploymentModule({ theme, profile, audience = 'spouse' }) {
         })
     }, 350)
     return () => { cancelled = true; clearTimeout(t) }
-  }, [activeTab, keyword, searchCity])
+  }, [activeTab, keyword, searchCity, remoteJobs])
 
   const liveSearches = useMemo(() => {
     const audienceWord = isVet ? 'veteran' : 'military spouse'
@@ -814,6 +818,23 @@ function EmploymentModule({ theme, profile, audience = 'spouse' }) {
               style={{ width: '100%', boxSizing: 'border-box', marginTop: 6, padding: '11px 12px', borderRadius: 8, border: '1.5px solid #CBD5E1', fontSize: 13, outline: 'none', background: '#FFFFFF', color: '#0D1821' }}
             />
             <div style={{ marginTop: 6, fontSize: 10, color: '#66788A' }}>{copy.text('keywordHelp')}</div>
+            {/* In-person (default) vs remote filter for the live listings. */}
+            <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+              {[{ id: false, label: searchCity ? `📍 In-person near ${searchCity}` : '📍 In-person' }, { id: true, label: '🌐 Remote' }].map(opt => {
+                const active = remoteJobs === opt.id
+                return (
+                  <button
+                    key={String(opt.id)}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setRemoteJobs(opt.id)}
+                    style={{ borderRadius: 999, padding: '6px 13px', cursor: 'pointer', fontSize: 11.5, fontWeight: 700, border: `1.5px solid ${active ? theme.primary : '#D4DCE8'}`, background: active ? theme.primary : '#FFF', color: active ? '#FFF' : '#43526B' }}
+                  >
+                    {opt.label}
+                  </button>
+                )
+              })}
+            </div>
           </SectionIntro>
 
           {liveJobs.status === 'loading' && (
@@ -828,7 +849,7 @@ function EmploymentModule({ theme, profile, audience = 'spouse' }) {
           {liveJobs.status === 'ready' && liveJobs.listings.length > 0 && (
             <section style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 10, fontWeight: 900, color: theme.primary, letterSpacing: '.1em', marginBottom: 10, textTransform: 'uppercase' }}>
-                Live job listings · {liveJobs.listings.length}
+                {remoteJobs ? 'Remote job listings' : `In-person listings${searchCity ? ` near ${searchCity}` : ''}`} · {liveJobs.listings.length}
               </div>
               <div data-dynamic-card="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
                 {liveJobs.listings.map(job => (
