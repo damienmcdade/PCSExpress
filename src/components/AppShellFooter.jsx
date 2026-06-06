@@ -15,8 +15,7 @@ export default function AppShellFooter() {
   const buildSha = import.meta.env.VITE_BUILD_SHA || 'unknown';
   const buildTime = (import.meta.env.VITE_BUILD_TIME || '').slice(0, 16).replace('T', ' ');
   return (
-    <div
-      role="contentinfo"
+    <footer
       aria-label="App-wide disclaimer and build info"
       style={{
         // Inline content; deliberately not position:fixed so it scrolls
@@ -69,6 +68,6 @@ export default function AppShellFooter() {
       >
         build · {buildSha} · {buildTime}
       </div>
-    </div>
+    </footer>
   );
 }

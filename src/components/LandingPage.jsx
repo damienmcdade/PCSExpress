@@ -42,6 +42,11 @@ const PALETTE = {
   navy: '#0D3B66',
   navyDeep: '#082A4D',
   gold: '#C99A3D',
+  // Darker gold for SMALL TEXT on light backgrounds. The bright `gold`
+  // (#C99A3D) only hits ~2.5:1 on white — below WCAG AA 4.5:1 — so small
+  // gold labels/kickers on light cards use goldInk (~5:1) instead. Keep
+  // `gold` for decorative rules, large text, and gold-on-dark (hero/footer).
+  goldInk: '#8A6A12',
   paper: '#FFFFFF',
   bg: '#F4F6F9',
   text: '#0D1821',
@@ -118,7 +123,7 @@ function SectionHeader({ kicker, title, subtitle, light = false }) {
       <div style={{
         display: 'inline-flex', alignItems: 'center', gap: 10,
         fontSize: 11, fontWeight: 900, letterSpacing: '.18em', textTransform: 'uppercase',
-        color: PALETTE.gold, marginBottom: 12,
+        color: PALETTE.goldInk, marginBottom: 12,
       }}>
         {/* Decorative leading bar — small gold accent rule so the
             kicker reads as a labelled section rather than floating
@@ -683,7 +688,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
         <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
           {WHO_WE_SERVE.map(g => (
             <Card key={g.label}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 6 }}>{g.label}</div>
+              <div style={{ fontSize: 12, fontWeight: 900, color: PALETTE.goldInk, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 6 }}>{g.label}</div>
               <div style={{ fontSize: 14, color: PALETTE.text, lineHeight: 1.55 }}>{g.detail}</div>
             </Card>
           ))}
@@ -868,15 +873,15 @@ export default function LandingPage({ onStartPlan, onClose }) {
         <div style={{ maxWidth: 1180, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 28 }}>
             <Card>
-              <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Problem</div>
+              <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.goldInk, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Problem</div>
               <div style={{ fontSize: 13, color: PALETTE.muted, lineHeight: 1.6 }}>PCS information is scattered across regulations, branch portals, and installation resources. Families absorb the burden of finding and sequencing it.</div>
             </Card>
             <Card>
-              <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Solution</div>
+              <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.goldInk, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Solution</div>
               <div style={{ fontSize: 13, color: PALETTE.muted, lineHeight: 1.6 }}>A single workflow that retunes to branch, component, and CONUS / OCONUS status, with authoritative citations to JTR, FTR, DSSR, DTMO, and branch portals.</div>
             </Card>
             <Card>
-              <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Mission alignment</div>
+              <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.goldInk, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Mission alignment</div>
               <div style={{ fontSize: 13, color: PALETTE.muted, lineHeight: 1.6 }}>Designed with DoD-published family-readiness and transition-assistance priorities in mind, with the goal of reducing relocation-related administrative overhead. PCS Express is independent and is not endorsed, sponsored, or coordinated with the DoD.</div>
             </Card>
           </div>
@@ -916,7 +921,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
             const cfg = p.phase === 'Live today'
               ? { color: PALETTE.green, bar: 100, bg: '#E8F5E9', accent: PALETTE.green }
               : p.phase === 'In development'
-              ? { color: PALETTE.gold,  bar: 55,  bg: 'rgba(201,154,61,0.10)', accent: PALETTE.gold }
+              ? { color: PALETTE.goldInk,  bar: 55,  bg: 'rgba(201,154,61,0.10)', accent: PALETTE.gold }
               : { color: PALETTE.muted, bar: 18,  bg: 'rgba(86,105,124,0.10)', accent: PALETTE.muted };
             return (
               <Card key={p.phase} accent={cfg.accent}>
@@ -969,7 +974,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
       {/* ───── FOUNDER ───── */}
       <section style={{ padding: '72px 20px', background: PALETTE.bg }}>
         <div style={{ maxWidth: 820, margin: '0 auto', textAlign: 'center' }}>
-          <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.gold, letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 12 }}>Founder & mission</div>
+          <div style={{ fontSize: 11, fontWeight: 900, color: PALETTE.goldInk, letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 12 }}>Founder & mission</div>
           <h2 style={{ fontSize: 28, fontWeight: 700, color: PALETTE.navyDeep, margin: '0 0 16px', lineHeight: 1.2, letterSpacing: '-0.025em', fontFamily: DISPLAY_FONT }}>Built from firsthand PCS experience</h2>
           <p style={{ fontSize: 15, lineHeight: 1.7, color: PALETTE.text }}>
             PCS Express was founded by a U.S. Army Veteran with firsthand experience in the challenges of military relocation and transition. The platform was built to make PCS planning easier, more organized, and more accessible for service members and their families.
