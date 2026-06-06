@@ -34,6 +34,23 @@ function needsSsl(url) {
   } catch { return false; }
 }
 
+// TLS config for the pg pool. Internal/local hosts use no TLS. For external
+// (public-proxy) hosts, verify the server certificate when the operator
+// provides a CA bundle (PGSSL_CA / DATABASE_CA_CERT) or opts in via
+// PGSSL_REJECT_UNAUTHORIZED=true — preventing a MITM on the DB connection.
+// Defaults to the prior non-verifying behavior so deployments without a
+// configured CA keep working (the Railway proxy presents a cert whose chain
+// isn't in the system store), but full verification is now one env var away.
+function pgSslConfig(url) {
+  if (!needsSsl(url)) return false;
+  const ca = process.env.PGSSL_CA || process.env.DATABASE_CA_CERT || '';
+  if (ca) return { rejectUnauthorized: true, ca };
+  if (String(process.env.PGSSL_REJECT_UNAUTHORIZED).toLowerCase() === 'true') {
+    return { rejectUnauthorized: true };
+  }
+  return { rejectUnauthorized: false };
+}
+
 class MemoryBackend {
   constructor() { this.kind = 'memory'; this.map = new Map(); }
   async upsert(sub) {
@@ -57,7 +74,7 @@ class PgBackend {
   static async create(url) {
     const pool = new pg.Pool({
       connectionString: url,
-      ssl: needsSsl(url) ? { rejectUnauthorized: false } : false,
+      ssl: pgSslConfig(url),
       max: 4,
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 10_000,

@@ -47,10 +47,25 @@ export async function enablePushNotifications() {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') return { ok: false, reason: 'permission-denied' };
 
-    const existing = await reg.pushManager.getSubscription();
+    const appServerKey = urlBase64ToUint8Array(cfg.vapidPublicKey);
+    let existing = await reg.pushManager.getSubscription();
+    // If a subscription survives from a PREVIOUS VAPID key (server rotated
+    // keys / key changed between releases), the push service silently drops
+    // messages signed with the new private key. Detect the mismatch and
+    // re-subscribe with the current key.
+    if (existing) {
+      const existingKey = existing.options?.applicationServerKey;
+      const sameKey = existingKey
+        && existingKey.byteLength === appServerKey.byteLength
+        && new Uint8Array(existingKey).every((b, i) => b === appServerKey[i]);
+      if (!sameKey) {
+        try { await existing.unsubscribe(); } catch { /* ignore */ }
+        existing = null;
+      }
+    }
     const subscription = existing || await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(cfg.vapidPublicKey),
+      applicationServerKey: appServerKey,
     });
 
     await fetch(apiUrl('/api/push-subscribe'), {

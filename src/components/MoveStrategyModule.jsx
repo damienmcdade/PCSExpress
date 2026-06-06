@@ -418,12 +418,12 @@ export default function MoveStrategyModule({ theme, profile }) {
 
         <div style={{ marginTop: 12 }}>
           <MetricCard
-            label="Full-PPM break-even weight"
+            label="Full-PPM minimum break-even weight"
             value={breakEven.weight != null
               ? `${breakEven.weight.toLocaleString()} lbs`
               : breakEven.alwaysPositive ? 'Always positive' : 'Always negative'}
             note={breakEven.weight != null
-              ? 'Below this weight a full PPM nets roughly $0 or less after your hauling costs and taxes.'
+              ? 'Below this weight a full PPM nets roughly $0 or less after hauling costs and taxes. Net cash peaks near your weight allowance, then declines as excess weight (above the cap) adds hauling cost with no extra incentive.'
               : breakEven.alwaysPositive
                 ? 'For these inputs a full PPM nets positive cash across the weight range.'
                 : 'For these inputs a full PPM nets negative cash across the weight range — the government move is the cheaper choice.'}

@@ -183,16 +183,19 @@ export default function BAHCalculatorTab({ theme, profile }) {
               style={{ ...fieldStyle, marginBottom: 6 }}
             />
             {showPicker && (
-              <div style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, maxHeight: 200, overflowY: 'auto', boxShadow: '0 4px 16px rgba(0,0,0,0.12)' }}>
+              <div role="listbox" aria-label="Duty station results" style={{ background: '#FFF', border: '1px solid #E0E6EE', borderRadius: 12, maxHeight: 200, overflowY: 'auto', boxShadow: '0 4px 16px rgba(0,0,0,0.12)' }}>
                 {filteredStations.slice(0, 80).map(s => (
-                  <div
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={s === dutyStation}
                     key={s}
                     onClick={() => { setDutyStation(s); setSearch(''); setShowPicker(false); }}
-                    style={{ padding: '10px 14px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid #F3F4F6', background: s === dutyStation ? '#EEF5FF' : '#FFF', color: '#111827', fontWeight: s === dutyStation ? 700 : 400 }}
+                    style={{ display: 'block', width: '100%', textAlign: 'left', border: 'none', padding: '10px 14px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid #F3F4F6', background: s === dutyStation ? '#EEF5FF' : '#FFF', color: '#111827', fontWeight: s === dutyStation ? 700 : 400 }}
                   >
                     {s}
                     {INSTALLATION_MHA_MAP[s] && <span style={{ fontSize: 10, color: '#888', marginLeft: 8 }}>({INSTALLATION_MHA_MAP[s]})</span>}
-                  </div>
+                  </button>
                 ))}
                 {filteredStations.length === 0 && (
                   <div style={{ padding: 14, color: '#888', fontSize: 12 }}>No matching installations found</div>

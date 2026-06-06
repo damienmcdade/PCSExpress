@@ -132,7 +132,9 @@ export default function PPMFinancialEstimator({ theme, profile }) {
             <div style={{ fontSize: 24, color: isProfit ? '#1B5E20' : '#B71C1C', fontWeight: 950 }}>{formatCurrency(estimate.estimatedCashInPocket)}</div>
           </div>
           <div style={{ textAlign: 'right', fontSize: 11, color: '#56697C', lineHeight: 1.45 }}>
-            <strong>{estimate.profitMeterPercent}%</strong><br />estimated cash-in-pocket after taxes
+            {isProfit
+              ? <><strong>{estimate.profitMeterPercent}%</strong><br />estimated cash-in-pocket after taxes</>
+              : <><strong style={{ color: '#B71C1C' }}>Net loss</strong><br />costs exceed the PPM incentive after taxes</>}
           </div>
         </div>
         <div style={{ height: 13, borderRadius: 999, background: '#EEF2F6', overflow: 'hidden', border: '1px solid #D8DEE7' }}>
