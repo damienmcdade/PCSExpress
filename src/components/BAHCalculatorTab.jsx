@@ -221,7 +221,7 @@ export default function BAHCalculatorTab({ theme, profile }) {
 
       {dutyStation && oconus && (
         <div style={{ background: '#FFF3E0', border: '1.5px solid #FFB74D', borderRadius: 14, padding: 16, marginBottom: 14 }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: '#E65100', marginBottom: 4 }}>OCONUS Assignment — OHA Applies (not BAH)</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: '#C44400', marginBottom: 4 }}>OCONUS Assignment — OHA Applies (not BAH)</div>
           <div style={{ fontSize: 12, color: '#6D4C00', lineHeight: 1.6, marginBottom: 12 }}>
             <strong>{dutyStation}</strong> is overseas. Members assigned OCONUS receive <strong>Overseas Housing Allowance (OHA)</strong>, <strong>Move-In Housing Allowance (MIHA)</strong>, and a <strong>Utility / Recurring Maintenance Allowance</strong> — not BAH. Civilians receive <strong>Living Quarters Allowance (LQA)</strong> under DSSR §130. Rates depend on the specific city/locality, pay grade, and dependency status; look them up at DTMO and confirm with the gaining housing office.
           </div>
@@ -319,7 +319,7 @@ export default function BAHCalculatorTab({ theme, profile }) {
 
       {dutyStation && !oconus && !knownRate && (
         <div style={{ background: '#FFF3E0', border: '1px solid #FFB74D', borderRadius: 14, padding: 16, marginBottom: 14 }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: '#E65100', marginBottom: 4 }}>Rate Table Not Found for This Location</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: '#C44400', marginBottom: 4 }}>Rate Table Not Found for This Location</div>
           <div style={{ fontSize: 12, color: '#6D4C00', lineHeight: 1.6 }}>
             Rates for <strong>{dutyStation}</strong> are not in the local table. Use the official DTMO BAH Rate Lookup for an exact figure — it covers all 300 Military Housing Areas by ZIP code.
           </div>

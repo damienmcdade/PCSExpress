@@ -62,7 +62,7 @@ export default function AppShellFooter() {
           fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
           fontSize: 9,
           letterSpacing: '.06em',
-          opacity: 0.6,
+          color: '#5B6470',
           userSelect: 'all',
         }}
       >
