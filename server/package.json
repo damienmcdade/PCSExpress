@@ -12,7 +12,7 @@
   },
   "keywords": ["pcs", "military", "relocation", "dod"],
   "author": "CyberWave Technologies LLC",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "_note": "Production installs from the REPO ROOT package.json (Docker context is the repo root). This manifest is kept in sync so a standalone `npm ci` inside server/ still resolves the real runtime deps (Express 5, pg, web-push).",
   "dependencies": {
     "cors": "^2.8.5",

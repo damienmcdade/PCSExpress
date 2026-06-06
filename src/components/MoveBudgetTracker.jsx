@@ -21,7 +21,7 @@ const ENTITLEMENT_CATEGORIES = [
   { id: 'dislocation', label: 'Dislocation Allowance (DLA)', hint: 'Paid ~2 months of BAH at old station. Check LES.', defaultPct: 100 },
   // MALT (PCS POV mileage) = $0.205/mi for CY2026 — unchanged from CY2025.
   // Source: DTMO/PDTATAC MAP 73-25(I), CY2026 POV Mileage Rates (eff. 2026-01-01). As of 2026-05.
-  { id: 'mileage', label: 'POV Mileage (TLE/MALT)', hint: '$0.205/mi per DoD MALT rate for authorized POVs (CY2026).', defaultPct: 100 },
+  { id: 'mileage', label: 'POV Mileage (MALT)', hint: '$0.205/mi per DoD MALT rate for authorized POVs (CY2026).', defaultPct: 100 },
   { id: 'perDiem', label: 'TLE / Per Diem', hint: 'Temporary lodging and daily per diem during travel.', defaultPct: 100 },
   { id: 'hhgCost', label: 'HHG Government Move Cost', hint: 'What it cost the Gov to move your household goods.', defaultPct: 100 },
   { id: 'ppm', label: 'PPM Incentive (if applicable)', hint: '100% of the Government Constructive Cost (GCC) if you did a personally procured move.', defaultPct: 0 },
@@ -295,7 +295,7 @@ export default function MoveBudgetTracker({ theme, profile }) {
         <ul style={{ margin: '6px 0 0', paddingLeft: 16 }}>
           <li>File a DPS damage claim within 9 months for HHG loss or damage</li>
           <li>Keep ALL receipts — lodging, meals, fuel — to reconcile with DLA/per diem</li>
-          <li>TLE (Temporary Lodging Expense) covers up to 10 days at old/new station — use it</li>
+          <li>TLE (Temporary Lodging Expense) covers up to 21 days at old/new station — use it</li>
           <li>Non-temporary storage (NTS) is authorized for OCONUS moves — request it early</li>
           <li>MYCAA, Army Emergency Relief, NMCRS, AFAS can offset transition costs</li>
         </ul>

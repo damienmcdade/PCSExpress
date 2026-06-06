@@ -44,7 +44,10 @@ export default function LQACalculatorTab({ theme, profile }) {
   }, [profile?.hasDependents, profile?.childAges]);
 
   const [post, setPost] = useState(autoPost || POST_KEYS[0]);
-  const [group, setGroup] = useState(autoGroup);
+  // When the grade can't be inferred (autoGroup === null, e.g. "N/A"), default
+  // the selector to the most conservative group (g4, lowest ceiling) rather
+  // than silently assuming a mid-high GS-13/14 tier. The user can adjust it.
+  const [group, setGroup] = useState(autoGroup || 'g4');
   const [familySize, setFamilySize] = useState(() => {
     if (_profileFamilyCount >= 7) return 7;
     if (_profileFamilyCount >= 5) return 6;
@@ -99,10 +102,10 @@ export default function LQACalculatorTab({ theme, profile }) {
       </div>
 
       {/* Auto-detected notice */}
-      {(autoPost || autoGroup !== 'g2') && (
+      {(autoPost || autoGroup) && (
         <div style={{ background: '#F0FFF4', border: '1px solid #A5D6A7', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 12, color: '#1B5E20' }}>
-          {autoPost && <>Post auto-detected from your profile: <strong>{profileGaining}</strong> → <strong>{autoPost}</strong>{autoGroup !== 'g2' ? <>; grade group inferred from <strong>{profile?.paygrade}</strong></> : null}</>}
-          {!autoPost && autoGroup !== 'g2' && <>Grade group inferred from <strong>{profile?.paygrade}</strong></>}
+          {autoPost && <>Post auto-detected from your profile: <strong>{profileGaining}</strong> → <strong>{autoPost}</strong>{autoGroup ? <>; grade group inferred from <strong>{profile?.paygrade}</strong></> : null}</>}
+          {!autoPost && autoGroup && <>Grade group inferred from <strong>{profile?.paygrade}</strong></>}
         </div>
       )}
 

@@ -20,6 +20,8 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
 import { notifyReminderOncePerDay, notificationsGranted } from '../lib/localReminders';
+import NotificationModeSelector from './NotificationModeSelector';
+import { isNotifyMode } from '../lib/checklistAlerts';
 import CopyableText from './CopyableText';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 
@@ -65,7 +67,6 @@ function daysBetween(isoA, isoB) {
 
 export default function ShipmentTrackerModule({ theme, profile: _profile }) {
   const [state, setState] = useState({ fields: {}, milestones: {}, startedOn: '', notifyOnOverdue: false });
-  const [permission, setPermission] = useState(() => (typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'));
   // Hydration guard: the store decrypts asynchronously, so the first render
   // holds the empty default. Writing in that window would persist the empty
   // object OVER saved milestones/fields. loadedRef blocks writes until the
@@ -136,22 +137,19 @@ export default function ShipmentTrackerModule({ theme, profile: _profile }) {
   // they open the tracker. Background push isn't possible — the milestone
   // data is encrypted on-device and never reaches the server.
   useEffect(() => {
-    if (!state.notifyOnOverdue || !notificationsGranted()) return;
+    if (!isNotifyMode('shipment-tracker') || !notificationsGranted()) return;
     for (const m of MILESTONES) {
       if (overdueMap[m.id]) {
         notifyReminderOncePerDay(`shipment:${m.id}`, 'PCS Express shipment reminder', `Overdue: ${m.label}`);
       }
     }
-  }, [overdueMap, state.notifyOnOverdue]);
+  }, [overdueMap]);
 
-  const askNotify = async () => {
-    if (typeof Notification === 'undefined') return;
-    if (Notification.permission === 'default') {
-      const r = await Notification.requestPermission();
-      setPermission(r);
-    }
-    persist(prev => ({ ...prev, notifyOnOverdue: !prev.notifyOnOverdue }));
-  };
+  // Outstanding milestones feed notification mode + the Command Center.
+  // Overdue milestones (past their JTR SLA window) escalate to High.
+  const outstandingAlerts = useMemo(() => MILESTONES
+    .filter(m => !state.milestones[m.id])
+    .map(m => ({ id: m.id, title: m.label, priority: overdueMap[m.id] ? 'High' : 'Medium' })), [state.milestones, overdueMap]);
 
   return (
     <div style={{ padding: 16 }}>
@@ -190,15 +188,10 @@ export default function ShipmentTrackerModule({ theme, profile: _profile }) {
           <button onClick={startTracking} style={{ flex: 1, minWidth: 140, padding: '10px 14px', background: theme.primary, color: '#FFF', border: 'none', borderRadius: 10, fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>
             {state.startedOn ? `Tracking since ${state.startedOn}` : 'Start tracking'}
           </button>
-          <button onClick={askNotify} style={{ padding: '10px 14px', background: state.notifyOnOverdue ? '#1B5E20' : '#F4F7F7', color: state.notifyOnOverdue ? '#FFF' : '#56697C', border: `1px solid ${state.notifyOnOverdue ? '#1B5E20' : '#D8DEE7'}`, borderRadius: 10, fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>
-            {state.notifyOnOverdue ? '🔔 Overdue alerts ON' : 'Enable overdue alerts'}
-          </button>
         </div>
-        {permission !== 'granted' && state.notifyOnOverdue && (
-          <div style={{ fontSize: 11, color: '#7A4A00', background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 8, padding: '8px 10px', marginTop: 8 }}>
-            Browser notifications are off — overdue alerts will show in-app only. Allow notifications in your browser to receive push alerts.
-          </div>
-        )}
+        <div style={{ marginTop: 12 }}>
+          <NotificationModeSelector theme={theme} checklistId="shipment-tracker" checklistLabel="HHG Shipment Tracker" alerts={outstandingAlerts} />
+        </div>
       </div>
 
       <div style={{ background: '#F4F7F7', border: '1px solid #E0E6EE', borderRadius: 14, padding: 14, marginBottom: 14 }}>

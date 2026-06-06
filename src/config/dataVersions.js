@@ -47,7 +47,7 @@ export const DATA_VERSIONS = {
     label: 'PPM (DITY) calculator',
     effective: '2026-05-01',
     source: 'PPM incentive = 100% of Government Constructive Cost — DTR 4500.9-R Part IV (Best Value) + USTRANSCOM PPM guidance',
-    url: 'https://www.ustranscom.mil/dtr/part-iv/dtr_part_iv_411.pdf',
+    url: 'https://www.ustranscom.mil/dtr/dtrp4.cfm',
   },
   ppm_config: {
     // Planning estimates for truck / fuel / labor / GCC inputs to the PPM calc.

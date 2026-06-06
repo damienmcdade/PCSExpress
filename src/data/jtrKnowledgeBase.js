@@ -32,7 +32,7 @@ export const JTR_KB = [
   {
     id: 'tle-cap',
     q: 'How many days of TLE / TLA am I entitled to?',
-    a: `Temporary Lodging Expense (TLE) covers up to 14 days for CONUS PCS — combined between losing and gaining duty stations.
+    a: `Temporary Lodging Expense (TLE) covers up to 21 days for CONUS PCS — combined between losing and gaining duty stations (raised from 14 to 21 days by DTMO, effective 27 Nov 2024).
 TLA (Temporary Lodging Allowance) covers up to 60 days OCONUS (extensible to 100). Both reimburse the lodging cost up to the locality per-diem ceiling plus a percentage of M&IE based on family size.`,
     tags: ['tle','tla','temporary lodging','per diem','m&ie','allowance'],
     citation: 'JTR §050501 (TLE) / §050502 (TLA)',
@@ -215,14 +215,14 @@ TLA (Temporary Lodging Allowance) covers up to 60 days OCONUS (extensible to 100
   {
     id: 'tle-vs-tla',
     q: 'TLE vs TLA — what is the difference?',
-    a: `TLE = Temporary Lodging Expense (CONUS). Up to 14 days combined across losing and gaining. Lodging up to per-diem + percentage of M&IE based on family. TLA = Temporary Lodging Allowance (OCONUS). Up to 60 days at the gaining station (extensible to 100). Same flavor, different scope.`,
+    a: `TLE = Temporary Lodging Expense (CONUS). Up to 21 days combined across losing and gaining (raised from 14 days effective 27 Nov 2024). Lodging up to per-diem + percentage of M&IE based on family. TLA = Temporary Lodging Allowance (OCONUS). Up to 60 days at the gaining station (extensible to 100). Same flavor, different scope.`,
     tags: ['tle','tla','difference','temporary lodging','conus','oconus'],
     citation: 'JTR §050501 (TLE) / §050502 (TLA)',
   },
   {
     id: 'claim-window',
     q: 'How long do I have to file a damage claim against the TSP?',
-    a: `Soft target: 75 days from delivery to file an itemized claim via DPS for full Best Replacement Value (FRV) coverage. Hard deadline: 9 months from delivery, after which the TSP only owes Depreciated Replacement Value. Annotate damage on the DD 1840R at delivery, then supplement via DPS within the window.`,
+    a: `Report loss or damage in DPS within 180 days of delivery (the notice/dispatch window). File the itemized claim within 9 months of delivery for full Best Replacement Value (FRV) — filing later, up to the 2-year statutory limit, yields only Depreciated Replacement Value. Annotate damage on the DD 1840R at delivery, then submit via DPS within the window.`,
     tags: ['claim','damage','dps','tsp','dd 1840','frv','window','broken'],
     citation: 'JTR §054305 / DTR Part IV Chapter 401',
   },

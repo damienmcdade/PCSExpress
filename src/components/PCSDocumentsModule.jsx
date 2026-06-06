@@ -7,6 +7,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions';
 import { escapeHtml } from '../lib/escapeHtml';
 import TabBar from './TabBar';
+import NotificationModeSelector from './NotificationModeSelector';
 
 // ─── Document categories ─────────────────────────────────────────────────────
 
@@ -30,7 +31,7 @@ const BASE_DOCS = {
   ],
   travel: [
     { id: 'travel_voucher',      name: 'Travel Voucher',                  form: 'DD Form 1351-2',          required: true,  desc: 'Claim for PCS travel reimbursement — submit to finance within 5 days of arrival', formUrl: 'https://www.esd.whs.mil/Portals/54/Documents/DD/forms/dd/dd1351-2.pdf' },
-    { id: 'dla_advance',         name: 'Advance Pay / DLA Request',       form: 'DD Form 2560',            required: false, desc: 'Dislocation Allowance and advance pay request — submit to finance before departure' },
+    { id: 'dla_advance',         name: 'Advance Pay Request',             form: 'DD Form 2560',            required: false, desc: 'Advance pay request — submit to finance before departure. (Dislocation Allowance is paid automatically through your PCS travel voucher, not via this form.)' },
     { id: 'lodging_receipts',    name: 'Lodging Receipts',                form: 'Receipts',                required: true,  desc: 'Hotel receipts for every night of PCS travel — keep all originals for voucher' },
     { id: 'mileage_log',         name: 'Mileage / Per Diem Log',          form: 'Log / Receipts',          required: true,  desc: 'POV mileage documentation, fuel receipts, or rental car receipts during PCS travel' },
     { id: 'dla_receipt',         name: 'DLA / Meal Receipts',             form: 'Receipts',                required: false, desc: 'Meal and incidental receipts during authorized PCS travel days' },
@@ -44,11 +45,11 @@ const BASE_DOCS = {
     { id: 'pov_shipment',        name: 'POV Shipment Authorization',      form: 'DD Form 788',             required: false, desc: 'Authorization to ship privately owned vehicle — required for OCONUS, check for CONUS' },
     { id: 'storage_auth',        name: 'Non-Temporary Storage Auth (NTS)', form: 'NTS Authorization',      required: false, desc: 'Long-term storage authorization if household goods cannot move to gaining installation' },
     { id: 'pro_gear',            name: 'Pro-Gear Authorization List',     form: 'Pro-Gear List',           required: false, desc: 'Professional gear (books, instruments, tools of trade) exempt from weight allowance' },
-    { id: 'hhg_claim',           name: 'HHG Damage Claim (if needed)',    form: 'DD Form 1840R',           required: false, desc: 'File within 70 days of delivery for any damaged or missing household goods items' },
+    { id: 'hhg_claim',           name: 'HHG Damage Claim (if needed)',    form: 'DPS / DD Form 1840R',     required: false, desc: 'Report loss/damage in DPS within 180 days of delivery; file the itemized claim within 9 months (12 months for shipments picked up on/after 15 May 2026) for Full Replacement Value' },
   ],
   housing: [
     { id: 'bah_auth',            name: 'BAH Authorization',               form: 'Branch-Specific',         required: true,  desc: 'Basic Allowance for Housing — ensure rate is set for gaining installation zip code', formUrl: 'https://www.travel.dod.mil/Allowances/Basic-Allowance-for-Housing/BAH-Rate-Lookup/' },
-    { id: 'oha_miha_auth',       name: 'OHA / MIHA Authorization',        form: 'Branch-Specific',         required: true,  desc: 'Overseas Housing Allowance, Move-In Housing Allowance, and Utility/Recurring Maintenance Allowance — start/stop/change paperwork submitted through the gaining housing office. Replaces BAH overseas.', formUrl: 'https://www.defensetravel.dod.mil/site/oha.cfm' },
+    { id: 'oha_miha_auth',       name: 'OHA / MIHA Authorization',        form: 'Branch-Specific',         required: true,  desc: 'Overseas Housing Allowance, Move-In Housing Allowance, and Utility/Recurring Maintenance Allowance — start/stop/change paperwork submitted through the gaining housing office. Replaces BAH overseas.', formUrl: 'https://www.travel.dod.mil/Allowances/Overseas-Housing-Allowance/OHA-Rate-Lookup/' },
     { id: 'housing_application', name: 'On-Post Housing Application',     form: 'Installation Form',       required: false, desc: 'Application for government-owned or privatized quarters at gaining installation' },
     { id: 'lease_termination',   name: 'Lease Termination Notice (SCRA)', form: 'SCRA Letter',             required: false, desc: 'PCS lease break letter — protected under Servicemembers Civil Relief Act (30-day notice)', formUrl: '' },
     { id: 'new_lease',           name: 'New Rental / Lease Agreement',    form: 'Lease Agreement',         required: false, desc: 'Signed lease or rental agreement at or near gaining installation' },
@@ -66,7 +67,7 @@ const BASE_DOCS = {
   ],
   family: [
     { id: 'deers_update',        name: 'DEERS Enrollment Update',         form: 'DD Form 1172-2',          required: true,  desc: 'Update dependent information and address in DEERS at gaining installation ID card office' },
-    { id: 'id_cards',            name: 'ID Cards (CAC + Dependents)',     form: 'DD Form 1172',            required: true,  desc: 'Check all expiration dates — update CAC and dependent IDs before or at gaining installation' },
+    { id: 'id_cards',            name: 'ID Cards (CAC + Dependents)',     form: 'DD Form 1172-2',          required: true,  desc: 'Check all expiration dates — update CAC and dependent IDs before or at gaining installation' },
     { id: 'dd93_emergency_data', name: 'Record of Emergency Data',        form: 'DD Form 93',              required: true,  desc: 'Update emergency contacts and next-of-kin information at gaining installation S1 / personnel office', formUrl: 'https://www.esd.whs.mil/Portals/54/Documents/DD/forms/dd/dd0093.pdf' },
     { id: 'sgli_beneficiary',    name: 'SGLI Beneficiary Election',       form: 'SGLV 8286',               required: true,  desc: 'Servicemembers Group Life Insurance beneficiary designations — verify before PCS, update at gaining S1', formUrl: 'https://www.benefits.va.gov/INSURANCE/forms/SGLV_8286_ed_2020-08.pdf' },
     { id: 'family_care_plan',    name: 'Family Care Plan',                form: 'Branch-Specific',         required: false, desc: 'Required for single parents and dual-military couples with dependents — coordinate alternate caregivers' },
@@ -112,10 +113,10 @@ const BRANCH_EXTRA = {
   },
   Navy: {
     orders: [
-      { id: 'navpers_detach',   name: 'Report of Detachment',              form: 'NAVPERS 1300/16',        required: true,  desc: 'Official report of detachment from losing command — processed via MyNavy HR portal', formUrl: 'https://www.mynavyhr.navy.mil' },
+      { id: 'navpers_detach',   name: 'Detachment Endorsement',            form: 'MyNavy HR / NSIPS',       required: true,  desc: 'Detachment from the losing command is processed by endorsement in MyNavy HR / NSIPS — there is no standalone "report of detachment" NAVPERS form', formUrl: 'https://www.mynavyhr.navy.mil' },
       { id: 'bupers_verify',    name: 'BUPERS Orders Verification',        form: 'MyNavy HR',               required: true,  desc: 'Confirm PCS orders and endorsements are accurate in MyNavy HR before proceeding' },
-      { id: 'navpers_1070_605', name: 'Admin Remarks (Page 13) — Losing',  form: 'NAVPERS 1070/605',        required: true,  desc: 'Page 13 entry at current command documenting PCS transfer, address change, or dependency status' },
-      { id: 'opnav_overseas',   name: 'Overseas Screening (OPNAV 1300/16)', form: 'OPNAV 1300/16',          required: false, desc: 'Required for OCONUS PCS — sponsor and family medical/dental/admin screening before report date' },
+      { id: 'navpers_1070_605', name: 'Admin Remarks (Page 13) — Losing',  form: 'NAVPERS 1070/613',        required: true,  desc: 'Page 13 entry (NAVPERS 1070/613, Administrative Remarks) at current command documenting PCS transfer, address change, or dependency status' },
+      { id: 'opnav_overseas',   name: 'Overseas Screening (NAVPERS 1300/16)', form: 'NAVPERS 1300/16',       required: false, desc: 'Required for OCONUS PCS — sponsor and family medical/dental/admin screening before report date (Report of Suitability for Overseas Assignment, per OPNAVINST 1300.14)' },
     ],
     family: [
       { id: 'navy_checkout',    name: 'Command Check-Out Sheet',           form: 'Command Form',            required: true,  desc: 'Signed check-out sheet from all required losing command department heads' },
@@ -127,11 +128,11 @@ const BRANCH_EXTRA = {
   'Marine Corps': {
     orders: [
       { id: 'cmc_orders',       name: 'CMC Orders (MCTFS)',                form: 'CMC Orders',              required: true,  desc: 'Official Marine Corps PCS orders — verify accuracy via Marine Corps Total Force System' },
-      { id: 'navmc_118',        name: 'Service Record Book Page Entry',    form: 'NAVMC 118(3)',            required: true,  desc: 'Page 11/12 administrative remarks entry at IPAC documenting transfer, dependents, or admin updates' },
+      { id: 'navmc_118',        name: 'Service Record Book Page Entry',    form: 'NAVMC 118(11)',           required: true,  desc: 'Page 11 administrative remarks entry (NAVMC 118(11)) at IPAC documenting transfer, dependents, or admin updates' },
       { id: 'mol_outprocess',   name: 'MOL Out-Processing Checklist',      form: 'MOL Checklist',           required: true,  desc: 'Complete Marine Online out-processing checklist before detachment — all sections verified' },
     ],
     family: [
-      { id: 'mco_checkout',     name: 'Command Check-Out Checklist',       form: 'MCO 4600.39',             required: true,  desc: 'Complete check-out per MCO 4600.39 — all required signatures from unit staff before departure' },
+      { id: 'mco_checkout',     name: 'Command Check-Out Checklist',       form: 'IPAC / Unit Check-Out',   required: true,  desc: 'Complete the unit / IPAC out-processing check-out — all required signatures from unit staff before departure (local out-processing checklist)' },
       { id: 'msr_review',       name: 'Service Record Review (MSR/ESR)',   form: 'MSR / ESR',               required: true,  desc: 'Verify Master Service Record and Electronic Service Record are complete and current' },
       { id: 'mccs_brief',       name: 'MCCS Relocation Brief',             form: 'MCCS Brief',              required: false, desc: 'PCS relocation counseling brief through Marine Corps Community Services' },
       { id: 'usmc_fcp',         name: 'Family Care Plan',                  form: 'MCO 1740.13 FCP',         required: false, desc: 'Required for single parents and dual-military Marines with dependents — coordinated through IPAC' },
@@ -141,13 +142,13 @@ const BRANCH_EXTRA = {
     orders: [
       { id: 'af_mypers',        name: 'AF PCS Orders via myPers',          form: 'AF Orders',               required: true,  desc: 'Official AF PCS orders from AFPC — verify in myPers portal and print all endorsements', formUrl: 'https://mypers.af.mil' },
       { id: 'af988_leave',      name: 'Leave Request (AF Form 988)',       form: 'AF Form 988',             required: true,  desc: 'Request and Authority for Leave covering PCS travel days — signed by commander' },
-      { id: 'af4380_pcs_plan',  name: 'PCS Travel Planning',               form: 'AF Form 4380',            required: true,  desc: 'AF Form 4380 PCS Travel Planning — completed at Airman & Family Readiness Center before departure' },
+      { id: 'af4380_pcs_plan',  name: 'Relocation Out-Processing Appointment', form: 'A&FRC / vMPF',        required: true,  desc: 'Schedule and complete relocation out-processing with the Airman & Family Readiness Center and vMPF before departure' },
     ],
     family: [
       { id: 'af907',            name: 'Relocation Preparation Checklist',  form: 'AF Form 907',             required: true,  desc: 'Complete AF Form 907 with Airman & Family Readiness Center counselor before departure' },
       { id: 'af_outprocess',    name: 'Base / Unit Out-Processing',        form: 'AF Out-Processing Sheet', required: true,  desc: 'Complete all base out-processing appointments: MPF, finance, housing, medical' },
       { id: 'vmpf_review',      name: 'vMPF Records Review',               form: 'AFPC vMPF',               required: true,  desc: 'Verify all records are current in Air Force Personnel Center virtual MPF before departure' },
-      { id: 'af1466_efmp',      name: 'EFMP Identification (AF 1466)',     form: 'AF Form 1466',            required: false, desc: 'Request to identify exceptional family members for AF EFMP enrollment — required if dependents have special needs' },
+      { id: 'af1466_efmp',      name: 'Family Member Travel Clearance (AF Form 1466)', form: 'AF Form 1466 (MyVector)', required: false, desc: 'OCONUS family-member medical/education clearance for travel, generated in MyVector. For EFMP enrollment use DD Form 2792 / 2792-1.' },
     ],
   },
   'Space Force': {
@@ -157,13 +158,13 @@ const BRANCH_EXTRA = {
     ],
     family: [
       { id: 'sf_outprocess',    name: 'Delta / Unit Out-Processing',       form: 'SF Out-Processing',       required: true,  desc: 'Complete all out-processing at losing Delta/unit and Space Force installation' },
-      { id: 'gdp_review',       name: 'Guardian Development Plan',         form: 'GDP',                     required: false, desc: 'Review and update Guardian Development Plan before PCS for career continuity' },
-      { id: 'sf_af1466_efmp',   name: 'EFMP Identification (AF 1466)',     form: 'AF Form 1466',            required: false, desc: 'Space Force uses the AF EFMP form — required if any dependent has special needs' },
+      { id: 'gdp_review',       name: 'Guardian Career Development Review', form: 'Career Path',             required: false, desc: 'Review your Officer Career Development Path / Core Enlisted Framework before PCS for career continuity' },
+      { id: 'sf_af1466_efmp',   name: 'Family Member Travel Clearance (AF Form 1466)', form: 'AF Form 1466 (MyVector)', required: false, desc: 'Space Force uses the AF form — OCONUS family-member medical/education travel clearance, generated in MyVector. For EFMP enrollment use DD Form 2792 / 2792-1.' },
     ],
   },
   'Coast Guard': {
     orders: [
-      { id: 'cg3103',           name: 'CG Transfer Orders (CG-3103)',      form: 'CG-3103',                 required: true,  desc: 'Official Coast Guard PCS transfer orders — access and verify via Direct Access portal' },
+      { id: 'cg3103',           name: 'CG PCS Transfer Orders',            form: 'Direct Access (electronic)', required: true, desc: 'Official Coast Guard PCS orders are issued and viewed electronically in Direct Access — verify entitlements on the CG-2000 / CG-2003 PCS worksheets' },
       { id: 'cg_direct_access', name: 'Direct Access Records Verification', form: 'CG Direct Access',       required: true,  desc: 'Verify all personnel records are current and accurate in CGBI / Direct Access' },
       { id: 'cg3307_remarks',   name: 'Administrative Remarks (CG-3307)',  form: 'CG-3307',                 required: true,  desc: 'Page 7 administrative remarks entry at SPO documenting transfer, dependents, leave, or admin updates' },
     ],
@@ -249,13 +250,13 @@ const CIVILIAN_DOCS = {
     { id: 'civ_sf50',            name: 'Notification of Personnel Action',  form: 'SF-50',                          required: true,  desc: 'Records the personnel action (transfer-in, promotion, etc.) for your federal record. Issued by gaining HR.' },
   ],
   travel: [
-    { id: 'civ_travel_voucher',  name: 'Civilian Travel Voucher',           form: 'DD Form 1351-2',                 required: true,  desc: 'Civilian PCS reimbursement claim. Submit within 5 working days of arrival per FTR §302-2.18.', formUrl: 'https://www.esd.whs.mil/Portals/54/Documents/DD/forms/dd/dd1351-2.pdf' },
-    { id: 'civ_tqse_request',    name: 'Temporary Quarters Subsistence Expense (TQSE) Request', form: 'TQSE Request', required: false, desc: 'Up to 60 days CONUS / 90 days OCONUS lodging and meals per FTR §302-6. Submit before incurring expenses.' },
+    { id: 'civ_travel_voucher',  name: 'Civilian Travel Voucher',           form: 'DD Form 1351-2',                 required: true,  desc: 'Civilian PCS reimbursement claim. Submit within 5 working days of arrival per FTR §301-52.7.', formUrl: 'https://www.esd.whs.mil/Portals/54/Documents/DD/forms/dd/dd1351-2.pdf' },
+    { id: 'civ_tqse_request',    name: 'Temporary Quarters Subsistence Expense (TQSE) Request', form: 'TQSE Request', required: false, desc: 'Up to 60 days initially, extendable to a 120-day maximum, of lodging and meals per FTR §302-6. Submit before incurring expenses.' },
     { id: 'civ_house_hunt',      name: 'House Hunting Trip Authorization',  form: 'HHT Authorization',              required: false, desc: 'Round-trip travel for self and spouse to search for housing at the new locality (CONUS only, FTR §302-5).' },
     { id: 'civ_oconus_house_recon', name: 'OCONUS Housing Reconnaissance Plan', form: 'Gaining Housing Office / AHRN coordination', required: false, desc: 'Civilians do not receive an HHT authorization OCONUS. Document your contact with the gaining installation Housing Office (HOMES.mil) and any pre-screened off-base options pulled from AHRN.com or MilitaryByOwner.' },
     { id: 'civ_lodging_rcpts',   name: 'Lodging Receipts',                  form: 'Receipts',                       required: true,  desc: 'Hotel receipts for every night of PCS travel — required for voucher reimbursement.' },
     { id: 'civ_mileage_log',     name: 'Mileage / Per Diem Log',            form: 'Log / Receipts',                 required: true,  desc: 'POV mileage documentation per FTR §302-4 mileage rates, fuel and rental car receipts during PCS travel.' },
-    { id: 'civ_misc_expense',    name: 'Miscellaneous Expense Allowance',   form: 'Miscellaneous Expense Claim',    required: false, desc: 'Flat-rate up to $1,300 OR itemized actuals per FTR §302-16. Covers driver licenses, vehicle re-registration, utility connection fees.' },
+    { id: 'civ_misc_expense',    name: 'Miscellaneous Expense Allowance',   form: 'Miscellaneous Expense Claim',    required: false, desc: 'Flat rate up to $905 without family / $1,810 with family (or 1 to 2 weeks of basic pay, whichever is less) OR itemized actuals per FTR §302-16. Covers driver licenses, vehicle re-registration, utility connection fees.' },
     { id: 'civ_real_estate',     name: 'Real Estate Expense Allowance',     form: 'Real Estate Claim',              required: false, desc: 'Reimbursement for selling and buying primary residence at the new locality per FTR §302-11.' },
     { id: 'civ_advance_pay',     name: 'Advance Pay Request',               form: 'Advance Pay Request',            required: false, desc: 'Up to 30 days base salary advance through your servicing payroll office.' },
   ],
@@ -424,6 +425,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
     ? (profileAttrs.ordersType === 'idt' ? 'IDT / drill — no PCS entitlement; finance, transportation, and housing forms below apply only if you switch to Title 10 orders.'
       : profileAttrs.ordersType === 'sad' ? 'State Active Duty — federal forms below do not apply; check your state National Guard HQ for state-specific paperwork.'
       : profileAttrs.ordersType === 'title32_709' ? 'Title 32 §709 technician — federal civilian benefits apply; use the DoD Civilian document set for PCS-style paperwork.'
+      : profileAttrs.ordersType === 'title32_502f' ? 'Title 32 §502(f) duty — BAH/TRICARE apply for orders of 30+ days, but there is NO PCS household-goods entitlement; the HHG/DLA forms below do not apply unless you transition to Title 10 PCS orders.'
       : profileAttrs.ordersType === 'reserve_pcs' ? 'Reserve Center transfer — coordinate any limited relocation assistance through your gaining unit; full JTR PCS package below does not apply.'
       : profileAttrs.ordersType === 'title10_at' ? 'Annual Training / ADT — short-term federal active duty; only orders + travel voucher forms typically apply.'
       : null)
@@ -457,6 +459,12 @@ export default function PCSDocumentsModule({ theme, profile }) {
   const totalDocs = Object.values(allDocs).flat().length;
   const totalObtained = Object.values(allDocs).flat().filter(d => states[d.id]?.obtained).length;
   const missingRequired = Object.values(allDocs).flat().filter(d => d.required && !states[d.id]?.obtained);
+  // Outstanding-document alerts for notification mode + Command Center.
+  // Required documents not yet gathered are High priority; optional ones
+  // ride along as Low so the feed stays focused on must-have paperwork.
+  const outstandingAlerts = Object.values(allDocs).flat()
+    .filter(d => !states[d.id]?.obtained)
+    .map(d => ({ id: d.id, title: d.name, priority: d.required ? 'High' : 'Low' }));
 
   const showToast = (msg, ok = true) => {
     setToast({ msg, ok });
@@ -505,6 +513,9 @@ export default function PCSDocumentsModule({ theme, profile }) {
         </div>
       </div>
 
+      <div style={{ padding: '12px 16px 0' }}>
+        <NotificationModeSelector theme={theme} checklistId="pcs-documents" checklistLabel="PCS Documents" alerts={outstandingAlerts} />
+      </div>
 
       {missingRequired.length > 0 && (
         <div style={{ background: '#7F1D1D', borderBottom: '1px solid #991B1B', padding: '10px 16px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>

@@ -188,15 +188,20 @@ export function detectPost(gainingInstallation) {
   return null;
 }
 
-// Default the grade group from a profile paygrade. GS-15/SES → g1,
-// GS-13/14 → g2, GS-9 to 12 → g3, lower → g4.
+// Infer the LQA grade group from a profile paygrade. GS-15/SES → g1,
+// GS-13/14 → g2, GS-9 to 12 → g3, lower GS + all Wage-Grade (WG/WS/WL) → g4.
+// Wage-Grade paygrades are stored WITHOUT a dash (WG/WS/WL) in the profile,
+// so the patterns must not require one — requiring `WG-` silently dropped
+// every WG/WS/WL civilian into the g2 default and overstated their LQA
+// ceiling by ~18%. Returns null when the grade can't be classified (e.g.
+// "N/A") so the caller defaults conservatively instead of assuming g2.
 export function detectGroup(paygrade) {
-  const p = String(paygrade || '').toUpperCase();
-  if (/^GS-15$|^SES/.test(p)) return 'g1';
-  if (/^GS-(13|14)$/.test(p)) return 'g2';
-  if (/^GS-(9|10|11|12)$/.test(p)) return 'g3';
-  if (/^GS-/.test(p) || /^WG-/.test(p) || /^WL-/.test(p) || /^WS-/.test(p)) return 'g4';
-  return 'g2';
+  const p = String(paygrade || '').toUpperCase().trim();
+  if (/^GS-?15$|^SES/.test(p)) return 'g1';
+  if (/^GS-?(13|14)$/.test(p)) return 'g2';
+  if (/^GS-?(9|10|11|12)$/.test(p)) return 'g3';
+  if (/^GS-?\d/.test(p) || /^W[GLS]\b/.test(p)) return 'g4';
+  return null;
 }
 
 function lookupGroupTier(group) {

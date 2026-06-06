@@ -22,14 +22,22 @@ top of git history.
 | debug | MIT | https://github.com/debug-js/debug |
 | dotenv | BSD-2-Clause | https://github.com/motdotla/dotenv |
 | express | MIT | https://github.com/expressjs/express |
-| postcss | MIT | https://github.com/postcss/postcss |
+| pg (node-postgres) | MIT | https://github.com/brianc/node-postgres |
+| web-push | MPL-2.0 | https://github.com/web-push-libs/web-push |
 | react | MIT | https://github.com/facebook/react |
 | react-dom | MIT | https://github.com/facebook/react |
-| rollup | MIT | https://github.com/rollup/rollup |
 
 React and React-DOM are included in the runtime bundle even though they
 are currently declared in `devDependencies` (a known classification
-defect tracked separately).
+defect tracked separately). Build-only tools (`postcss`, `rollup`,
+`vite`) are not bundled into the shipped runtime and are therefore not
+listed here; they are recorded in `package-lock.json`.
+
+**`web-push` is licensed under the Mozilla Public License 2.0 (MPL-2.0)**,
+a file-level weak-copyleft license compatible with this proprietary
+application. MPL-2.0 requires that the source of the MPL-covered files
+remain available and that the license/notices be preserved; the
+unmodified upstream source is available at the URL above.
 
 ## Government works
 
