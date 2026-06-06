@@ -257,7 +257,7 @@ export default function LandingPage({ onStartPlan, onClose }) {
   const activeTheme = previewBranch ? branchTheme(previewBranch) : null;
 
   return (
-    <div
+    <main
       style={{
         background: PALETTE.bg,
         color: PALETTE.text,
@@ -1048,6 +1048,6 @@ export default function LandingPage({ onStartPlan, onClose }) {
           />
         )}
       </Suspense>
-    </div>
+    </main>
   );
 }
