@@ -525,16 +525,17 @@ registerRateLimitMap(_resetCacheHits, RESET_CACHE_RATE_WINDOW_MS)
 
 function isSameOriginRequest(req) {
   const sfs = String(req.headers['sec-fetch-site'] || '').toLowerCase()
-  if (sfs === 'same-origin' || sfs === 'same-site' || sfs === 'none') return true
-  // Carve-out for the iOS/Android Capacitor WebView shells. They
-  // don't always set Sec-Fetch-Site (older WebKit/WebView) and their
-  // Origin header is "capacitor://localhost" or "https://localhost",
-  // which isn't a real same-site match. Match on the UA token that the
-  // shells embed so the AI / cost endpoints aren't blocked for mobile.
-  const ua = String(req.headers['user-agent'] || '')
-  if (/Capacitor|CapacitorWebView|PCSExpress/i.test(ua)) return true
-  // Fallback for browsers / clients without Sec-Fetch-Site: parse
-  // Origin or Referer host and require it to be in allowedOrigins.
+  // Real same-origin/same-site fetches only. We intentionally do NOT honor
+  // Sec-Fetch-Site "none" (a user-typed/bookmarked navigation, never a fetch)
+  // for these gated POSTs.
+  if (sfs === 'same-origin' || sfs === 'same-site') return true
+  // Native iOS/Android Capacitor shells issue cross-origin fetches to the
+  // Railway API, so they send Origin "capacitor://localhost" / "https://localhost"
+  // (both in ALWAYS_ALLOWED_ORIGINS) and pass the allowlist check below.
+  // We deliberately do NOT trust the User-Agent string: it is fully
+  // attacker-controllable, and trusting "PCSExpress"/"Capacitor" in the UA
+  // turned these Anthropic-billed endpoints (/api/ai, /api/jtr-assistant) into
+  // an unauthenticated cost-abuse vector for any curl client.
   const candidate = req.headers.origin || req.headers.referer || ''
   if (!candidate) return false
   try {
@@ -2846,6 +2847,13 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, express.json({ limit: '64k
 })
 
 // === FRONTEND SERVING (AFTER ALL API ROUTES) ===
+// Any /api/* path that reached here matched no API route — return a JSON 404
+// instead of falling through to the SPA HTML fallback below. Otherwise a
+// mistyped endpoint hands the caller index.html, whose r.json() then throws.
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'not found', path: req.path })
+})
+
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath))
 

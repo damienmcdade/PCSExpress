@@ -67,6 +67,13 @@ const CASES = [
     withDeps: false,
     expected: 5112, // DTMO 2026 official table, NY219 NEW YORK CITY (verified 2026-06-06)
   },
+  {
+    name: 'Camp Pendleton (CA024), E-5, with dependents',
+    installation: 'MCB Camp Pendleton',
+    payGrade: 'E-5',
+    withDeps: true,
+    expected: 3963, // DTMO 2026 official table, CA024 CAMP PENDLETON (verified 2026-06-06)
+  },
 ];
 
 for (const c of CASES) {

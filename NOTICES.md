@@ -77,6 +77,14 @@ The AI Assistant feature forwards user prompts to:
   privacy policy. PCS Express does not retain prompts or completions
   server-side.
 
+## Bundled fonts
+
+PCS Express self-hosts two webfonts, each under the SIL Open Font License,
+Version 1.1 (full text + copyright notices in `public/fonts/OFL.txt`):
+
+* **Inter** — Copyright (c) 2016-2020 The Inter Project Authors.
+* **Space Grotesk** — Copyright (c) 2020 The Space Grotesk Project Authors.
+
 ## How to report a missing attribution
 
 If you believe an attribution is missing or incorrect, please email

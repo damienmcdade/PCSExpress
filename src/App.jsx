@@ -2298,6 +2298,11 @@ function SchoolsTab({ theme, profile }) {
               </div>
             </>
           )}
+          {daycares.length > 0 && (
+            <div style={{ fontSize: 10, color: '#6D4C00', background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 8, padding: '8px 10px', lineHeight: 1.5, marginBottom: 10 }}>
+              ⚠️ Provider ratings and waitlist times are <strong>editorial planning estimates</strong>, not a live feed. Confirm current availability, ratings, and waitlists on <a href="https://militarychildcare.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#0D3B66' }}>MilitaryChildCare.com</a> or by contacting each provider before making decisions.
+            </div>
+          )}
           {daycares.map((dc, idx) => (
             <div key={idx} style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderLeft: `3px solid ${theme.accent}`, borderRadius: 12, padding: 14, marginBottom: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
@@ -3382,7 +3387,7 @@ const TRANSLATION_BANNER_TEXT = {
   ja: 'アプリ全体が日本語で表示されます。詳細な手順は一般化された表現になる場合があります。実行前に英語原文または公式ソースをご確認ください。',
   tl: 'Buong app ay nasa wikang pinili mo. Ang mga detalyadong tagubilin ay maaaring maging pangkalahatan — tingnan ang orihinal na Ingles o opisyal na source bago kumilos.',
   ar: 'يُعرض التطبيق بالكامل بلغتك المختارة. قد تظهر التعليمات التفصيلية بشكل عام — راجع النص الأصلي بالإنجليزية أو المصدر الرسمي قبل اتخاذ أي إجراء.',
-  zh: '整个应用程序以您选择的语言显示。详细说明可能显示为通用表述,采取行动前请查阅英文原文或官方来源。',
+  zh: '整个应用程序以您选择的语言显示。详细说明可能显示为通用表述，采取行动前请查阅英文原文或官方来源。',
   it: 'L\'intera app è in italiano. Le istruzioni dettagliate possono essere generalizzate — consulta l\'originale inglese o la fonte ufficiale prima di agire.',
   pt: 'O aplicativo inteiro está em português. As instruções detalhadas podem aparecer generalizadas — consulte o inglês original ou a fonte oficial antes de agir.',
   vi: 'Toàn bộ ứng dụng hiển thị bằng ngôn ngữ bạn chọn. Hướng dẫn chi tiết có thể được hiển thị tổng quát — xem bản gốc tiếng Anh hoặc nguồn chính thức trước khi thực hiện.',

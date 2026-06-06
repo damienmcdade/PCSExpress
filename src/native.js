@@ -30,8 +30,19 @@ export function isNative() {
   return !!window.Capacitor?.isNativePlatform?.();
 }
 
+// Top-level tab slugs a push notification is allowed to deep-link to. Mirrors
+// the ?go= allowlist in App.jsx — the server-supplied `tab` is untrusted, so we
+// validate it here instead of dispatching an arbitrary value to setActiveTab.
+const ALLOWED_NAV_TABS = new Set([
+  'home', 'pcs-operations', 'home-relocation', 'family-readiness',
+  'medical-readiness', 'mission-resources', 'transition',
+  'checklist', 'documents', 'family', 'education', 'translation',
+  'religion', 'base-intelligence', 'nav', 'resources', 'veterans',
+  'jtr-assistant',
+]);
+
 function dispatchNavigate(tab) {
-  if (typeof window === 'undefined' || !tab) return;
+  if (typeof window === 'undefined' || !tab || !ALLOWED_NAV_TABS.has(tab)) return;
   try {
     window.dispatchEvent(new CustomEvent('pcs-navigate', { detail: { tab } }));
   } catch {}
