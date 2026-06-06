@@ -8,6 +8,7 @@ import { apiUrl } from '../config/apiConfig'
 import { secureLocalStore } from '../security/SecurityExtensions'
 import TabBar from './TabBar'
 import LocationAutocomplete from './LocationAutocomplete'
+import SkillBridgeSection from './SkillBridgeSection'
 
 const BASE_CITY = {
   'Fort Liberty': 'Fayetteville, NC',
@@ -413,6 +414,75 @@ const RESOURCE_SETS = {
   ],
 }
 
+// Veteran / transitioning-service-member resource sets — mirror RESOURCE_SETS
+// key-for-key so the Career Center is identical in structure and only the
+// content is tailored. All URLs verified against official sources (.gov / .mil
+// / .va.gov / .dol.gov; chartered/nonprofit marked affiliated). Excludes
+// programs flagged as not-yet-live (VET TEC 2.0) or offline (Veterati).
+const VETERAN_RESOURCE_SETS = {
+  jobResources: [
+    { name: 'USAJOBS', badgeKey: 'federal', url: 'https://www.usajobs.gov/', desc: 'The federal government’s official job site. Apply your veterans’ preference (VEOA / VRA / 30% disabled) in the filters.', official: true, color: '#1F4E79' },
+    { name: 'USAJOBS Veterans Hiring Path', badgeKey: 'federal', url: 'https://help.usajobs.gov/working-in-government/unique-hiring-paths/veterans', desc: 'Official guide to veterans’ preference and special hiring authorities for federal jobs.', official: true, color: '#5B3E8A' },
+    { name: 'DOL VETS', badgeKey: 'official', url: 'https://www.dol.gov/agencies/vets', desc: 'Department of Labor Veterans’ Employment & Training Service — programs, rights, and job help.', official: true, color: '#334155' },
+    { name: 'VA Careers & Employment', badgeKey: 'official', url: 'https://www.va.gov/careers-employment/', desc: 'VA hub for career counseling, employment resources, and readiness support.', official: true, color: '#176B6B' },
+    { name: 'CareerOneStop — Veterans Center', badgeKey: 'official', url: 'https://www.careeronestop.org/Veterans/default.aspx', desc: 'DOL-sponsored employment, training, and military-transition tools.', official: true, color: '#255E91' },
+    { name: 'RecruitMilitary', badgeKey: 'external', url: 'https://recruitmilitary.com/', desc: 'Large military-to-civilian job board and career fairs (free to job seekers).', official: false, color: '#0A66C2' },
+  ],
+  resume: [
+    { name: 'USAJOBS Federal Resume Help', badgeKey: 'official', url: 'https://help.usajobs.gov/how-to/account/documents/resume', desc: 'Official guidance on building a federal resume and what to include.', official: true, color: '#1F4E79' },
+    { name: 'O*NET Military Crosswalk', badgeKey: 'official', url: 'https://www.onetonline.org/crosswalk/MOC/', desc: 'Translate your MOS / rating / AFSC into civilian careers and resume keywords.', official: true, color: '#2C6E49' },
+    { name: 'CareerOneStop Resume Guide', badgeKey: 'official', url: 'https://www.careeronestop.org/JobSearch/Resumes/resumes.aspx', desc: 'DOL-sponsored resume guidance and examples.', official: true, color: '#255E91' },
+    { name: 'Hire Heroes USA — Job Seeker Services', badgeKey: 'affiliated', url: 'https://www.hireheroesusa.org/job-seekers/', desc: 'Free resume translation, career coaching, and mock interviews for veterans.', official: false, color: '#7A3E16' },
+  ],
+  internships: [
+    { name: 'DoD SkillBridge', badgeKey: 'federal', url: 'https://skillbridge.osd.mil/', desc: 'Civilian-employer internships during your final 180 days of service while keeping military pay.', official: true, color: '#1F4E79' },
+    { name: 'Hiring Our Heroes Corporate Fellowship', badgeKey: 'affiliated', url: 'https://www.hiringourheroes.org/career-services/fellowships/internships/cfp/', desc: 'SkillBridge-authorized 12-week corporate fellowship for transitioning members.', official: false, color: '#7A3E16' },
+    { name: 'USAJOBS Recent Graduates / Pathways', badgeKey: 'federal', url: 'https://help.usajobs.gov/working-in-government/unique-hiring-paths/recent-graduates', desc: 'Federal developmental programs; veterans’ preference applies.', official: true, color: '#2C6E49' },
+  ],
+  workshops: [
+    { name: 'DOL Transition Assistance Program (TAP)', badgeKey: 'official', url: 'https://www.dol.gov/agencies/vets/programs/tap', desc: 'The DOL Employment Workshop — resume, networking, interviewing, and negotiation.', official: true, color: '#334155' },
+    { name: 'VA Careers & Employment', badgeKey: 'official', url: 'https://www.va.gov/careers-employment/', desc: 'Career planning, counseling, and employment-readiness support.', official: true, color: '#176B6B' },
+    { name: 'American Job Centers (Veteran priority)', badgeKey: 'official', url: 'https://www.careeronestop.org/LocalHelp/AmericanJobCenters/american-job-centers.aspx', desc: 'Free local employment help; veterans receive priority of service.', official: true, color: '#255E91' },
+    { name: 'Hiring Our Heroes Events', badgeKey: 'affiliated', url: 'https://www.hiringourheroes.org/career-services/hiring-events/', desc: 'Hiring fairs, summits, and expos (in-person and virtual).', official: false, color: '#7A3E16' },
+  ],
+  certifications: [
+    { name: 'VR&E (Chapter 31)', badgeKey: 'official', url: 'https://www.va.gov/careers-employment/vocational-rehabilitation/', desc: 'Veteran Readiness & Employment: training and support for service-connected disabilities.', official: true, color: '#176B6B' },
+    { name: 'DoD COOL — Credentialing', badgeKey: 'official', url: 'https://www.cool.osd.mil/', desc: 'Map your military training to civilian licenses and certifications (with funding).', official: true, color: '#5B3E8A' },
+    { name: 'CareerOneStop Training Finder', badgeKey: 'official', url: 'https://www.careeronestop.org/FindTraining/find-training.aspx', desc: 'DOL-sponsored training and certification search.', official: true, color: '#255E91' },
+    { name: 'Apprenticeship.gov — Veterans', badgeKey: 'official', url: 'https://www.apprenticeship.gov/career-seekers/service-members-and-veterans', desc: 'Registered "earn-and-learn" apprenticeships (GI Bill stipend eligible).', official: true, color: '#2C6E49' },
+    { name: 'IVMF Onward to Opportunity', badgeKey: 'affiliated', url: 'https://ivmf.syracuse.edu/programs/career-training/', desc: 'Free industry certifications (IT, business, customer service) for members and veterans.', official: false, color: '#7A3E16' },
+  ],
+  mentorship: [
+    { name: 'American Corporate Partners (ACP)', badgeKey: 'mentorship', url: 'https://www.acp-usa.org/programs/veteran-mentoring-program/', desc: 'Free yearlong 1-on-1 mentorship with corporate professionals.', official: false, color: '#7A3E16' },
+    { name: 'VA Careers & Employment counseling', badgeKey: 'official', url: 'https://www.va.gov/careers-employment/', desc: 'Career counseling and guidance from the VA.', official: true, color: '#176B6B' },
+    { name: 'SCORE — Veteran Entrepreneurs', badgeKey: 'affiliated', url: 'https://www.score.org/veteran-entrepreneurs', desc: 'Free business mentoring (SBA resource partner).', official: false, color: '#334155' },
+  ],
+  spousePreferred: [
+    { name: 'DOL Veterans’ Preference', badgeKey: 'official', url: 'https://www.dol.gov/agencies/vets/programs/vetspref', desc: 'Authoritative explainer on VEOA, VRA, and 30%-disabled hiring preference.', official: true, color: '#334155' },
+    { name: 'Feds Hire Vets', badgeKey: 'federal', url: 'https://www.opm.gov/fedshirevets/veteran-job-seekers/', desc: 'OPM hub for federal special hiring authorities and veterans’ preference.', official: true, color: '#1F4E79' },
+    { name: 'USAJOBS Veterans Hiring Path', badgeKey: 'federal', url: 'https://help.usajobs.gov/working-in-government/unique-hiring-paths/veterans', desc: 'How to apply veterans’ preference inside USAJOBS.', official: true, color: '#5B3E8A' },
+    { name: 'Hire Heroes USA Job Board', badgeKey: 'affiliated', url: 'https://jobs.hireheroesusa.org/', desc: 'Veteran-focused job board paired with free coaching.', official: false, color: '#7A3E16' },
+  ],
+  connections: [
+    { name: 'RallyPoint', badgeKey: 'external', url: 'https://www.rallypoint.com/', desc: 'The professional network for the military community — connect by unit, MOS, and location.', official: false, color: '#0A66C2' },
+    { name: 'VA Careers & Employment', badgeKey: 'official', url: 'https://www.va.gov/careers-employment/', desc: 'Networking, counseling, and employment resources from the VA.', official: true, color: '#176B6B' },
+    { name: 'American Job Center Locator', badgeKey: 'official', url: 'https://www.careeronestop.org/LocalHelp/AmericanJobCenters/american-job-centers.aspx', desc: 'Find local DOL job centers (veteran priority of service) near your destination.', official: true, color: '#334155' },
+    { name: 'Hiring Our Heroes Events', badgeKey: 'affiliated', url: 'https://www.hiringourheroes.org/events/', desc: 'Virtual and in-person hiring and networking events.', official: false, color: '#7A3E16' },
+  ],
+  linkedin: [
+    { name: 'LinkedIn Job Search', badgeKey: 'external', url: 'https://www.linkedin.com/jobs/', desc: 'Search current roles, recruiters, and company hiring teams.', official: false, color: '#0A66C2' },
+    { name: 'LinkedIn — free 1-year Premium for veterans', badgeKey: 'external', url: 'https://socialimpact.linkedin.com/programs/veterans/premiumform', desc: 'Free year of LinkedIn Premium Career + LinkedIn Learning for current/former U.S. service members.', official: false, color: '#0A66C2' },
+    { name: 'RallyPoint', badgeKey: 'external', url: 'https://www.rallypoint.com/', desc: 'Military-community professional network and job board.', official: false, color: '#176B6B' },
+  ],
+  entrepreneurship: [
+    { name: 'SBA Boots to Business', badgeKey: 'official', url: 'https://www.sba.gov/sba-learning-platform/boots-business', desc: 'Official SBA entrepreneurship training under TAP (B2B and B2B Reboot for veterans).', official: true, color: '#1F4E79' },
+    { name: 'SBA Veterans Business Outreach Centers (VBOC)', badgeKey: 'official', url: 'https://www.sba.gov/local-assistance/resource-partners/veterans-business-outreach-centers-vboc', desc: 'Local counseling, training, and mentorship for veteran entrepreneurs.', official: true, color: '#2C6E49' },
+    { name: 'SBA Veteran Small Business Certification (VetCert)', badgeKey: 'official', url: 'https://veterans.certify.sba.gov/', desc: 'Official VOSB / SDVOSB certification portal for federal contracting.', official: true, color: '#334155' },
+    { name: 'VA OSDBU — Veteran-Owned Business support', badgeKey: 'official', url: 'https://www.va.gov/osdbu/', desc: 'VA office for VOSB/SDVOSB contracting access and the Veteran Entrepreneur Portal.', official: true, color: '#176B6B' },
+    { name: 'IVMF EBV (Entrepreneurship Bootcamp for Veterans)', badgeKey: 'affiliated', url: 'https://ivmf.syracuse.edu/programs/entrepreneurship/start-up/ebv/', desc: 'Free, selective entrepreneurship bootcamp for post-9/11 veterans.', official: false, color: '#5B3E8A' },
+  ],
+}
+
 function languageFor(profile) {
   const code = String(profile?.language || 'en').toLowerCase()
   return TEXT[code] ? code : 'en'
@@ -506,7 +576,13 @@ function SectionIntro({ title, lead, children }) {
   )
 }
 
-function EmploymentModule({ theme, profile }) {
+// audience: 'spouse' (default — Family Readiness) or 'veteran' (Transition
+// Career Center). Veteran mode mirrors the spouse Career Center exactly and
+// only swaps the resource content + a few labels, and adds a SkillBridge tab.
+function EmploymentModule({ theme, profile, audience = 'spouse' }) {
+  const isVet = audience === 'veteran'
+  // Memoized so it's stable per audience and safe in downstream useMemo deps.
+  const SETS = useMemo(() => (isVet ? VETERAN_RESOURCE_SETS : RESOURCE_SETS), [isVet])
   const [activeTab, setActiveTab] = useState('jobSearch')
   const [keyword, setKeyword] = useState('')
   const copy = useCopy(profile)
@@ -541,20 +617,20 @@ function EmploymentModule({ theme, profile }) {
   ]), [installation])
 
   const workshopsResources = useMemo(() => {
-    if (!oconus) return RESOURCE_SETS.workshops
+    if (!oconus) return SETS.workshops
     return [
-      ...RESOURCE_SETS.workshops.filter(r => !/american job center/i.test(r.name)),
+      ...SETS.workshops.filter(r => !/american job center/i.test(r.name)),
       ...OCONUS_EMPLOYMENT_SUPPLEMENT.slice(0, 3),
     ]
-  }, [oconus, OCONUS_EMPLOYMENT_SUPPLEMENT])
+  }, [oconus, OCONUS_EMPLOYMENT_SUPPLEMENT, SETS])
 
   const connectionsResources = useMemo(() => {
-    if (!oconus) return RESOURCE_SETS.connections
+    if (!oconus) return SETS.connections
     return [
-      ...RESOURCE_SETS.connections.filter(r => !/american job center/i.test(r.name)),
+      ...SETS.connections.filter(r => !/american job center/i.test(r.name)),
       ...OCONUS_EMPLOYMENT_SUPPLEMENT.slice(2),
     ]
-  }, [oconus, OCONUS_EMPLOYMENT_SUPPLEMENT])
+  }, [oconus, OCONUS_EMPLOYMENT_SUPPLEMENT, SETS])
 
   // Live job listings from /api/job-listings (RemoteOK + USAJOBS).
   // Empty + fallback=true => keep the existing static portal search
@@ -592,30 +668,47 @@ function EmploymentModule({ theme, profile }) {
   }, [activeTab, keyword, searchCity])
 
   const liveSearches = useMemo(() => {
-    const kw = keyword.trim() || 'military spouse'
+    const audienceWord = isVet ? 'veteran' : 'military spouse'
+    const kw = keyword.trim() || audienceWord
     const localKw = encoded(kw)
     const loc = encoded(searchCity)
-    const spouseKw = encoded(`${kw} military spouse`)
+    const tailoredKw = encoded(`${kw} ${audienceWord}`)
+    if (isVet) {
+      return [
+        { name: `USAJOBS - ${searchCity}`, badgeKey: 'federal', url: `https://www.usajobs.gov/Search/Results?k=${localKw}&l=${loc}`, desc: 'Current federal listings near your destination. Apply your veterans’ preference and use the remote/telework, pay-grade, agency, and hiring-path filters.', official: true, color: '#1F4E79' },
+        { name: 'USAJOBS Veterans Hiring Path', badgeKey: 'federal', url: 'https://help.usajobs.gov/working-in-government/unique-hiring-paths/veterans', desc: 'How veterans’ preference (VEOA / VRA / 30% disabled) works in USAJOBS.', official: true, color: '#5B3E8A' },
+        { name: `LinkedIn - ${searchCity}`, badgeKey: 'external', url: `https://www.linkedin.com/jobs/search/?keywords=${tailoredKw}&location=${loc}`, desc: 'External job-board search for current local or remote roles. Veterans get a free year of LinkedIn Premium Career.', official: false, color: '#0A66C2' },
+        { name: `Indeed - ${searchCity}`, badgeKey: 'external', url: `https://www.indeed.com/jobs?q=${tailoredKw}&l=${loc}`, desc: 'External job-board search for current local or remote roles. Use the date-posted and remote filters.', official: false, color: '#2557A7' },
+        { name: `ClearanceJobs - ${searchCity}`, badgeKey: 'external', url: `https://www.clearancejobs.com/jobs?keywords=${localKw}&location=${loc}`, desc: 'Clearance-friendly job-board search — your clearance is a major asset. Verify requirements on each posting.', official: false, color: '#334155' },
+        { name: 'RecruitMilitary', badgeKey: 'external', url: 'https://recruitmilitary.com/', desc: 'Veteran-focused job board and career fairs (free to job seekers).', official: false, color: '#176B6B' },
+      ]
+    }
     return [
       { name: `USAJOBS - ${searchCity}`, badgeKey: 'federal', url: `https://www.usajobs.gov/Search/Results?k=${localKw}&l=${loc}`, desc: 'Current federal listings near the gaining installation. Use USAJOBS filters for remote, telework, pay grade, agency, and hiring path.', official: true, color: '#1F4E79' },
       { name: 'USAJOBS Military Spouse Hiring Path', badgeKey: 'spouse', url: 'https://milspouse.usajobs.gov/', desc: 'Official federal hiring path for eligible military spouses.', official: true, color: '#5B3E8A' },
-      { name: `LinkedIn - ${searchCity}`, badgeKey: 'external', url: `https://www.linkedin.com/jobs/search/?keywords=${spouseKw}&location=${loc}`, desc: 'Requested external job board search for current local or remote roles. Use LinkedIn filters for remote, hybrid, company, and date posted.', official: false, color: '#0A66C2' },
-      { name: `Indeed - ${searchCity}`, badgeKey: 'external', url: `https://www.indeed.com/jobs?q=${spouseKw}&l=${loc}`, desc: 'Requested external job board search for current local or remote roles. Use date posted and remote filters on Indeed.', official: false, color: '#2557A7' },
+      { name: `LinkedIn - ${searchCity}`, badgeKey: 'external', url: `https://www.linkedin.com/jobs/search/?keywords=${tailoredKw}&location=${loc}`, desc: 'Requested external job board search for current local or remote roles. Use LinkedIn filters for remote, hybrid, company, and date posted.', official: false, color: '#0A66C2' },
+      { name: `Indeed - ${searchCity}`, badgeKey: 'external', url: `https://www.indeed.com/jobs?q=${tailoredKw}&l=${loc}`, desc: 'Requested external job board search for current local or remote roles. Use date posted and remote filters on Indeed.', official: false, color: '#2557A7' },
       { name: `ClearanceJobs - ${searchCity}`, badgeKey: 'external', url: `https://www.clearancejobs.com/jobs?keywords=${localKw}&location=${loc}`, desc: 'Requested external clearance-friendly job board search. Verify eligibility and clearance requirements on each posting.', official: false, color: '#334155' },
       { name: 'MSEP Military Spouse Employers', badgeKey: 'spouse', url: 'https://msepjobs.militaryonesource.mil/msep/', desc: 'Official DoD employment partnership for spouse-friendly employers and current opportunities.', official: true, color: '#176B6B' },
     ]
-  }, [keyword, searchCity])
+  }, [keyword, searchCity, isVet])
 
   const internshipSearches = useMemo(() => {
     const loc = encoded(searchCity)
     return [
       { name: `USAJOBS Internships - ${searchCity}`, badgeKey: 'federal', url: `https://www.usajobs.gov/Search/Results?k=internship&l=${loc}&hp=student`, desc: 'Current USAJOBS internship search near the gaining installation using the student hiring path.', official: true, color: '#1F4E79' },
       { name: 'USAJOBS Remote Internships', badgeKey: 'remote', url: 'https://www.usajobs.gov/Search/Results?k=internship&rmi=true&hp=student', desc: 'Current USAJOBS remote internship search for users who need portable options.', official: true, color: '#2C6E49' },
-      ...RESOURCE_SETS.internships,
+      ...SETS.internships,
     ]
-  }, [searchCity])
+  }, [searchCity, SETS])
 
-  const tabs = TAB_ORDER.map(([id, labelKey]) => ({ id, label: copy.text(labelKey) }))
+  const tabs = TAB_ORDER.map(([id, labelKey]) => ({
+    id,
+    // Veteran mode relabels the spouse-preference tab to veteran preference.
+    label: (isVet && id === 'spousePreferred') ? 'Veteran Preferred' : copy.text(labelKey),
+  }))
+  // Veteran Career Center adds a SkillBridge tab (with a remote-only filter).
+  if (isVet) tabs.splice(4, 0, { id: 'skillbridge', label: 'SkillBridge' })
   const tabStyle = (id) => ({
     padding: '8px 10px',
     borderRadius: 8,
@@ -633,8 +726,8 @@ function EmploymentModule({ theme, profile }) {
 
   return (
     <div style={{ padding: 16 }} dir={copy.lang === 'ar' ? 'rtl' : 'ltr'} lang={copy.lang}>
-      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 2 }}>{copy.text('title')}</div>
-      <div style={{ fontSize: 11, color: '#46586B', marginBottom: 10 }}>{copy.text('subtitle')} {searchCity}</div>
+      <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821', marginBottom: 2 }}>{isVet ? 'Career Center' : copy.text('title')}</div>
+      <div style={{ fontSize: 11, color: '#46586B', marginBottom: 10 }}>{isVet ? 'Job search, SkillBridge, credentialing & training for transitioning service members and veterans near' : copy.text('subtitle')} {searchCity}</div>
       <div style={{ background: '#EDF4FA', border: '1px solid #D7E0EA', borderRadius: 8, padding: 12, marginBottom: 12 }}>
         <div style={{ fontSize: 10, fontWeight: 900, color: '#334155', letterSpacing: '.09em', marginBottom: 4 }}>{copy.text('searchLocation')}</div>
         <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821' }}>{overrideCity ? overrideCity : `${installation} - ${searchCity}`}</div>
@@ -779,10 +872,17 @@ function EmploymentModule({ theme, profile }) {
         </div>
       )}
 
+      {activeTab === 'skillbridge' && (
+        <div role="tabpanel" id="emp-panel-skillbridge" aria-labelledby="emp-tab-skillbridge">
+          <SectionIntro title="DoD SkillBridge" lead="Civilian-employer internships during your final 180 days of service. Use the Remote-only filter and job categories to populate matching opportunities; local results tailor to your destination above." />
+          <SkillBridgeSection theme={theme} location={searchCity} />
+        </div>
+      )}
+
       {activeTab === 'jobResources' && (
         <div role="tabpanel" id="emp-panel-jobResources" aria-labelledby="emp-tab-jobResources">
           <SectionIntro title={copy.text('tabJobResources')} lead={copy.text('leadJobResources')} />
-          {renderCards(RESOURCE_SETS.jobResources)}
+          {renderCards(SETS.jobResources)}
         </div>
       )}
 
@@ -801,7 +901,7 @@ function EmploymentModule({ theme, profile }) {
               </div>
             ))}
           </div>
-          {renderCards(RESOURCE_SETS.resume)}
+          {renderCards(SETS.resume)}
         </div>
       )}
 
@@ -822,21 +922,21 @@ function EmploymentModule({ theme, profile }) {
       {activeTab === 'certifications' && (
         <div role="tabpanel" id="emp-panel-certifications" aria-labelledby="emp-tab-certifications">
           <SectionIntro title={copy.text('tabCertifications')} lead={copy.text('leadCertifications')} />
-          {renderCards(RESOURCE_SETS.certifications)}
+          {renderCards(SETS.certifications)}
         </div>
       )}
 
       {activeTab === 'mentorship' && (
         <div role="tabpanel" id="emp-panel-mentorship" aria-labelledby="emp-tab-mentorship">
           <SectionIntro title={copy.text('tabMentorship')} lead={copy.text('leadMentorship')} />
-          {renderCards(RESOURCE_SETS.mentorship)}
+          {renderCards(SETS.mentorship)}
         </div>
       )}
 
       {activeTab === 'spousePreferred' && (
         <div role="tabpanel" id="emp-panel-spousePreferred" aria-labelledby="emp-tab-spousePreferred">
           <SectionIntro title={copy.text('tabSpousePreferred')} lead={copy.text('leadSpousePreferred')} />
-          {renderCards(RESOURCE_SETS.spousePreferred)}
+          {renderCards(SETS.spousePreferred)}
         </div>
       )}
 
@@ -862,14 +962,14 @@ function EmploymentModule({ theme, profile }) {
               </div>
             ))}
           </div>
-          {renderCards(RESOURCE_SETS.linkedin)}
+          {renderCards(SETS.linkedin)}
         </div>
       )}
 
       {activeTab === 'entrepreneurship' && (
         <div role="tabpanel" id="emp-panel-entrepreneurship" aria-labelledby="emp-tab-entrepreneurship">
           <SectionIntro title={copy.text('tabEntrepreneurship')} lead={copy.text('leadEntrepreneurship')} />
-          {renderCards(RESOURCE_SETS.entrepreneurship)}
+          {renderCards(SETS.entrepreneurship)}
         </div>
       )}
     </div>

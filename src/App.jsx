@@ -96,7 +96,6 @@ const TransitionChecklistModule = lazyRetry(() => import('./components/Transitio
 const TransitionDocumentsModule = lazyRetry(() => import('./components/TransitionDocumentsModule'))
 const TransitionOutreachModule = lazyRetry(() => import('./components/TransitionOutreachModule'))
 const TransitionCommunityModule = lazyRetry(() => import('./components/TransitionCommunityModule'))
-const TransitionCareerModule = lazyRetry(() => import('./components/TransitionCareerModule'))
 const PriorityAlertsCard = lazyRetry(() => import('./components/PriorityAlertsCard'))
 const ResourcesTab = lazyRetry(() => import('./components/ResourcesTab'))
 import { AuditLogger, secureLocalStore, readLegacyJson, closeCryptoStoreDB } from './security/SecurityExtensions'
@@ -278,6 +277,10 @@ function ResetWarningModal({ theme: _theme, onConfirm, onCancel }) {
 function SaveStatusIndicator({ theme }) {
   const [lastSave, setLastSave] = useState(null);
   const [open, setOpen] = useState(false);
+  // Surface a SAVE FAILURE so a member never loses progress silently. The
+  // secureLocalStore dispatches `pcs-local-storage-error` on encrypt-failed,
+  // write-failed (incl. QuotaExceeded), or crypto-unavailable.
+  const [saveError, setSaveError] = useState(null); // { reason } | null
   const [, tickRelativeTime] = useReducer(x => x + 1, 0);
   useEffect(() => {
     const seed = () => {
@@ -287,9 +290,14 @@ function SaveStatusIndicator({ theme }) {
       } catch {}
     };
     seed();
-    const onSync = () => seed();
+    const onSync = () => { setSaveError(null); seed(); };
+    const onError = (e) => { setSaveError({ reason: e?.detail?.reason || 'unknown' }); setOpen(true); };
     window.addEventListener('pcs-local-sync', onSync);
-    return () => window.removeEventListener('pcs-local-sync', onSync);
+    window.addEventListener('pcs-local-storage-error', onError);
+    return () => {
+      window.removeEventListener('pcs-local-sync', onSync);
+      window.removeEventListener('pcs-local-storage-error', onError);
+    };
   }, []);
   const rel = (() => {
     if (!lastSave) return 'No saves yet';
@@ -308,16 +316,23 @@ function SaveStatusIndicator({ theme }) {
     const id = setInterval(tickRelativeTime, 30_000);
     return () => clearInterval(id);
   }, []);
+  const errorMsg = saveError && ({
+    'write-failed': 'Your device blocked the save (storage may be full or private-browsing is on). Free up space or disable private mode, then make the change again.',
+    'encrypt-failed': 'Encryption failed on this device, so the change was NOT saved (we refuse to store your data unencrypted). Reload the app and try again.',
+    'crypto-unavailable': 'This browser can’t open the secure store, so a saved item couldn’t be read. Reload the app; if it persists, update your browser.',
+    'decrypt-failed': 'A saved item couldn’t be read back. Your other data is fine; reload the app.',
+  }[saveError.reason] || 'A change may not have been saved. Reload the app and make the change again.');
+
   return (
     <div data-no-language-runtime style={{ position: 'fixed', bottom: 16, right: 16, zIndex: 150, pointerEvents: 'auto' }}>
       <button
         onClick={() => setOpen(o => !o)}
-        aria-label="Save status"
-        title="Save status — your data is auto-saved with AES-256 encryption"
+        aria-label={saveError ? 'Save problem — details' : 'Save status'}
+        title={saveError ? 'A recent change may not have saved — tap for details' : 'Save status — your data is auto-saved with AES-256 encryption'}
         style={{
-          background: theme.primary,
+          background: saveError ? '#B71C1C' : theme.primary,
           color: '#FFFFFF',
-          border: `1.5px solid ${theme.accent}80`,
+          border: `1.5px solid ${saveError ? '#7F1010' : theme.accent + '80'}`,
           borderRadius: 999,
           padding: '8px 14px',
           fontSize: 11,
@@ -330,13 +345,22 @@ function SaveStatusIndicator({ theme }) {
           gap: 6,
         }}
       >
-        <span style={{ fontSize: 12 }}>🔒</span>
-        <span>{rel}</span>
+        <span style={{ fontSize: 12 }} aria-hidden="true">{saveError ? '⚠️' : '🔒'}</span>
+        <span>{saveError ? 'Save problem' : rel}</span>
       </button>
       {open && (
-        <div role="dialog" style={{ position: 'absolute', bottom: 'calc(100% + 8px)', right: 0, width: 260, background: '#FFFFFF', border: `1px solid ${theme.accent}55`, borderRadius: 12, padding: 12, color: '#111827', fontSize: 11, lineHeight: 1.55, boxShadow: '0 12px 30px rgba(0,0,0,0.22)' }}>
-          <div style={{ fontWeight: 950, color: theme.primary, fontSize: 11, letterSpacing: '.08em', marginBottom: 6 }}>SAVED ON THIS DEVICE</div>
-          Your profile, checklist, and documents are saved every time you change something. The data is scrambled with strong encryption (AES-256) and stays only on this device — we never see it. This badge updates each time a save happens.
+        <div role={saveError ? 'alertdialog' : 'dialog'} aria-live={saveError ? 'assertive' : undefined} style={{ position: 'absolute', bottom: 'calc(100% + 8px)', right: 0, width: 280, background: '#FFFFFF', border: `1px solid ${saveError ? '#EF9A9A' : theme.accent + '55'}`, borderLeft: saveError ? '4px solid #B71C1C' : undefined, borderRadius: 12, padding: 12, color: '#111827', fontSize: 11, lineHeight: 1.55, boxShadow: '0 12px 30px rgba(0,0,0,0.22)' }}>
+          {saveError ? (
+            <>
+              <div style={{ fontWeight: 950, color: '#B71C1C', fontSize: 11, letterSpacing: '.08em', marginBottom: 6 }}>⚠️ CHANGE MAY NOT HAVE SAVED</div>
+              {errorMsg}
+            </>
+          ) : (
+            <>
+              <div style={{ fontWeight: 950, color: theme.primary, fontSize: 11, letterSpacing: '.08em', marginBottom: 6 }}>SAVED ON THIS DEVICE</div>
+              Your profile, checklist, and documents are saved every time you change something. The data is scrambled with strong encryption (AES-256) and stays only on this device — we never see it. This badge updates each time a save happens.
+            </>
+          )}
         </div>
       )}
     </div>
@@ -4198,7 +4222,7 @@ function TransitionTab({ theme, profile }) {
     <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab} variant="bubble">
       {tab === 'checklist'     && <TransitionChecklistModule theme={theme} profile={profile} />}
       {tab === 'documentation' && <TransitionDocumentsModule theme={theme} profile={profile} />}
-      {tab === 'career'        && <TransitionCareerModule theme={theme} profile={profile} />}
+      {tab === 'career'        && <EmploymentModule theme={theme} profile={profile} audience="veteran" />}
       {tab === 'community'     && <TransitionCommunityModule theme={theme} profile={profile} />}
       {tab === 'outreach'      && <TransitionOutreachModule theme={theme} profile={profile} />}
     </CategoryTabShell>
