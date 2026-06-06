@@ -32,28 +32,49 @@ export function setNotifyMode(checklistId, on) {
   } catch { /* storage disabled — degrade silently */ }
 }
 
+// Serialize all read-modify-write access to the shared ALERTS_KEY through a
+// single promise chain. Four checklists write the same key; without this,
+// concurrent publish/clear calls each read the same base map and the later
+// set() clobbers the earlier one's entry (silent alert loss). Mirrors
+// AuditLogger._writeQueue in SecurityExtensions.js.
+let _writeQueue = Promise.resolve();
+function enqueue(mutate) {
+  _writeQueue = _writeQueue.then(async () => {
+    const all = (await secureLocalStore.get(ALERTS_KEY, {})) || {};
+    const changed = mutate(all);
+    if (changed) {
+      await secureLocalStore.set(ALERTS_KEY, all);
+      emitChanged();
+    }
+  }).catch(() => {});
+  return _writeQueue;
+}
+
 // Replace the published alert set for one checklist and notify listeners.
 export async function publishAlerts(checklistId, label, items) {
-  const all = (await secureLocalStore.get(ALERTS_KEY, {})) || {};
   const clean = Array.isArray(items)
     ? items
         .filter(it => it && it.id && it.title)
         .map(it => ({ id: String(it.id), title: String(it.title), priority: it.priority || 'Medium' }))
         .slice(0, 50)
     : [];
-  if (!clean.length) delete all[checklistId];
-  else all[checklistId] = { label: label || 'Checklist', items: clean };
-  await secureLocalStore.set(ALERTS_KEY, all);
-  emitChanged();
+  return enqueue((all) => {
+    if (!clean.length) {
+      if (!all[checklistId]) return false;
+      delete all[checklistId];
+    } else {
+      all[checklistId] = { label: label || 'Checklist', items: clean };
+    }
+    return true;
+  });
 }
 
 export async function clearAlerts(checklistId) {
-  const all = (await secureLocalStore.get(ALERTS_KEY, {})) || {};
-  if (all[checklistId]) {
+  return enqueue((all) => {
+    if (!all[checklistId]) return false;
     delete all[checklistId];
-    await secureLocalStore.set(ALERTS_KEY, all);
-    emitChanged();
-  }
+    return true;
+  });
 }
 
 // Flattened, priority-sorted alerts from every checklist whose mode is ON.

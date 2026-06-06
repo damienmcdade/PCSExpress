@@ -382,7 +382,7 @@ export default function HomeLocatorTab({ theme = {}, profile = {} }) {
             <div style={{ fontSize: 13, fontWeight: 800, color: colors.text, marginBottom: 4 }}>{oh.title}</div>
             <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.55, marginBottom: 10 }}>{oh.body}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
-              {oh.resources.map((r, idx) => (
+              {(Array.isArray(oh.resources) ? oh.resources : []).map((r, idx) => (
                 <a key={idx} href={r.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', color: 'inherit', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 10, padding: 10 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
                     <div style={{ fontSize: 12, fontWeight: 800, color: colors.text }}>{r.name}</div>

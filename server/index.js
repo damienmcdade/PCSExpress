@@ -712,16 +712,24 @@ registerRateLimitMap(_aiHits, AI_RATE_WINDOW_MS);
 const AI_GLOBAL_WINDOW_MS = 60 * 60_000;
 const AI_GLOBAL_CAP = Number(process.env.AI_GLOBAL_HOURLY_CAP) || 1000;
 let _aiGlobal = { windowStart: Date.now(), count: 0 };
-function aiGlobalCapExceeded() {
+// Read-only: is the hourly budget already spent? Used by the limiter to
+// 429 early WITHOUT incrementing, so malformed / blocked / oversized
+// requests that never reach Anthropic can't burn the budget (a zero-cost
+// DoS). The counter is only advanced by aiGlobalConsume() immediately
+// before the billed upstream call.
+function aiGlobalCapReached() {
   const now = Date.now();
   if (now - _aiGlobal.windowStart > AI_GLOBAL_WINDOW_MS) _aiGlobal = { windowStart: now, count: 0 };
-  if (_aiGlobal.count >= AI_GLOBAL_CAP) return true;
+  return _aiGlobal.count >= AI_GLOBAL_CAP;
+}
+function aiGlobalConsume() {
+  const now = Date.now();
+  if (now - _aiGlobal.windowStart > AI_GLOBAL_WINDOW_MS) _aiGlobal = { windowStart: now, count: 0 };
   _aiGlobal.count += 1;
-  return false;
 }
 
 function aiRateLimit(req, res, next) {
-  if (aiGlobalCapExceeded()) {
+  if (aiGlobalCapReached()) {
     return res.status(429).json({ error: 'The assistant is at capacity right now. Please try again shortly.' });
   }
   const ip = req.ip || 'unknown';
@@ -780,6 +788,11 @@ app.post('/api/ai', aiRateLimit, express.json({ limit: '64kb' }), async (req, re
       return res.status(500).json({ error: 'API key not configured' })
     }
 
+    // All validation passed and we're about to make the billed upstream
+    // call — consume one unit of the global hourly budget here (not in the
+    // limiter) so rejected requests never count against it.
+    aiGlobalConsume()
+
     const anthropicBody = {
       model: 'claude-sonnet-4-6',
       max_tokens: 256,
@@ -792,6 +805,12 @@ app.post('/api/ai', aiRateLimit, express.json({ limit: '64kb' }), async (req, re
     // the /api/jtr-assistant pattern so the client can consume both
     // endpoints with the same delta-parsing code.
     if (wantStream) {
+      // Abort the (billed) upstream generation if the client disconnects
+      // mid-stream — otherwise the server keeps draining and paying for the
+      // full Anthropic response after the user is gone.
+      const ac = new AbortController()
+      const onClose = () => ac.abort()
+      req.on('close', onClose)
       const upstream = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -801,9 +820,10 @@ app.post('/api/ai', aiRateLimit, express.json({ limit: '64kb' }), async (req, re
           'accept': 'text/event-stream',
         },
         body: JSON.stringify(anthropicBody),
-        signal: AbortSignal.timeout(20_000),
-      })
+        signal: AbortSignal.any([ac.signal, AbortSignal.timeout(20_000)]),
+      }).catch((e) => { throw e })
       if (!upstream.ok || !upstream.body) {
+        req.off('close', onClose)
         console.error(`[API] Anthropic stream error: ${upstream.status}`)
         return res.status(502).json({ error: 'Anthropic API error' })
       }
@@ -822,6 +842,8 @@ app.post('/api/ai', aiRateLimit, express.json({ limit: '64kb' }), async (req, re
         // silently treating a partial answer as final.
         console.error(`[API] stream pipe ${err.message}`)
         try { res.write('event: error\ndata: {"error":"stream-interrupted"}\n\n') } catch { /* socket already gone */ }
+      } finally {
+        req.off('close', onClose)
       }
       return res.end()
     }
@@ -2540,7 +2562,7 @@ app.get('/api/family-activities', familyRateLimit, async (req, res) => {
 const _jtrHits = new Map()
 registerRateLimitMap(_jtrHits, 60_000)
 function jtrAssistantRateLimit(req, res, next) {
-  if (aiGlobalCapExceeded()) {
+  if (aiGlobalCapReached()) {
     return res.status(429).json({ error: 'The assistant is at capacity right now. Please try again shortly.' })
   }
   const ip = req.ip || 'unknown'
@@ -2645,6 +2667,13 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, express.json({ limit: '64k
   const userContext = sanitizeForPrompt(req.body?.userContext, 1000)
   if (!q) return res.status(400).json({ error: 'q is required' })
 
+  // PII guard parity with /api/ai: refuse to forward raw email / phone /
+  // SSN-like patterns to the LLM provider. sanitizeForPrompt only strips
+  // control chars/whitespace, so this is a separate, necessary check.
+  if (containsLikelyPii({ q, userContext })) {
+    return res.status(400).json({ error: 'Input appears to contain PII (email / phone / SSN-like patterns). PCS Express will not forward this to the AI provider.' })
+  }
+
   if (!provider) {
     return res.status(501).json({
       error: 'not-configured',
@@ -2694,6 +2723,9 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, express.json({ limit: '64k
       const ctxLine = userContext
         ? `\n\nThe user's current PCS context (non-PII, drawn from their on-device profile): ${userContext}. Use this to tailor answers ("you have N open tasks in the X phase") and cite the relevant tab in PCS Express when appropriate.`
         : '';
+      // Billed upstream call ahead — consume one unit of the global hourly
+      // budget here, after all validation, so rejected requests don't.
+      aiGlobalConsume();
       const anthropicBody = {
         model: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
         max_tokens: 800,
@@ -2705,6 +2737,10 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, express.json({ limit: '64k
       // client can read chunks via fetch + ReadableStream and append
       // deltas to the active message for a typing-feel response.
       if (wantStream) {
+        // Abort the billed upstream generation if the client disconnects.
+        const ac = new AbortController();
+        const onClose = () => ac.abort();
+        req.on('close', onClose);
         const upstream = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: {
@@ -2714,9 +2750,10 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, express.json({ limit: '64k
             'accept': 'text/event-stream',
           },
           body: JSON.stringify(anthropicBody),
-          signal: AbortSignal.timeout(30_000),
+          signal: AbortSignal.any([ac.signal, AbortSignal.timeout(30_000)]),
         });
         if (!upstream.ok || !upstream.body) {
+          req.off('close', onClose);
           const detail = await upstream.text().catch(() => '');
           console.error(`[jtr-assistant] anthropic stream ${upstream.status} ${redactUpstreamError(detail)}`);
           return res.status(502).json({ error: 'upstream', source: 'anthropic' });
@@ -2735,6 +2772,9 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, express.json({ limit: '64k
           }
         } catch (err) {
           console.error(`[jtr-assistant] anthropic stream pipe ${err.message}`);
+          try { res.write('event: error\ndata: {"error":"stream-interrupted"}\n\n'); } catch { /* socket gone */ }
+        } finally {
+          req.off('close', onClose);
         }
         return res.end();
       }

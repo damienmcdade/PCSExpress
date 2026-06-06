@@ -326,16 +326,16 @@ function NavigationModule({ theme, profile }) {
               <>
                 <div style={{ fontSize: 12, fontWeight: 800, color: '#56697C', marginBottom: 10, marginTop: 4 }}>ON-BASE ROUTE PLANNER</div>
                 <div style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 12, padding: 14, marginBottom: 12 }}>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: '#56697C', display: 'block', marginBottom: 5 }}>DEPARTING FROM</label>
-                  <select value={departingFrom} onChange={(e) => setDepartingFrom(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #E0E6EE', marginBottom: 10, fontSize: 12 }}>
+                  <label htmlFor="nav-departing-from" style={{ fontSize: 11, fontWeight: 700, color: '#56697C', display: 'block', marginBottom: 5 }}>DEPARTING FROM</label>
+                  <select id="nav-departing-from" aria-label="Departing from" value={departingFrom} onChange={(e) => setDepartingFrom(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #E0E6EE', marginBottom: 10, fontSize: 12 }}>
                     <option value="">Select location...</option>
                     {getBaseLocations().map((loc) => (
                       <option key={loc.id} value={loc.name}>{loc.name} ({loc.type})</option>
                     ))}
                   </select>
 
-                  <label style={{ fontSize: 11, fontWeight: 700, color: '#56697C', display: 'block', marginBottom: 5 }}>DESTINATION</label>
-                  <select value={destination} onChange={(e) => setDestination(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #E0E6EE', fontSize: 12 }}>
+                  <label htmlFor="nav-destination" style={{ fontSize: 11, fontWeight: 700, color: '#56697C', display: 'block', marginBottom: 5 }}>DESTINATION</label>
+                  <select id="nav-destination" aria-label="Destination" value={destination} onChange={(e) => setDestination(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #E0E6EE', fontSize: 12 }}>
                     <option value="">Select location...</option>
                     {getBaseLocations().map((loc) => (
                       <option key={loc.id} value={loc.name}>{loc.name} ({loc.type})</option>

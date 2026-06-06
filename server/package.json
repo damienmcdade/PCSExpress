@@ -11,12 +11,15 @@
     "migrate": "node scripts/migrate.js"
   },
   "keywords": ["pcs", "military", "relocation", "dod"],
-  "author": "Docker Inc.",
+  "author": "CyberWave Technologies LLC",
   "license": "MIT",
+  "_note": "Production installs from the REPO ROOT package.json (Docker context is the repo root). This manifest is kept in sync so a standalone `npm ci` inside server/ still resolves the real runtime deps (Express 5, pg, web-push).",
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2"
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1",
+    "pg": "^8.21.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",

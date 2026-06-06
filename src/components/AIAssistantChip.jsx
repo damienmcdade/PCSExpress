@@ -489,8 +489,15 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
   // tag/keyword, then a graceful pointer to the JTR Assistant tab.
   // ALWAYS produces a message so the user never sees a dead-end.
   const answerFromLocalSources = (q, curated, reason) => {
+    // If a stream reserved an empty assistant bubble (line ~590) and then
+    // aborted before any delta arrived, drop that orphan so we replace it
+    // instead of leaving a blank bubble above the fallback answer.
+    const dropTrailingEmpty = (prev) =>
+      (prev.length && prev[prev.length - 1].role === 'assistant' && !prev[prev.length - 1].text)
+        ? prev.slice(0, -1)
+        : prev;
     if (curated) {
-      setMessages(prev => [...prev, {
+      setMessages(prev => [...dropTrailingEmpty(prev), {
         role: 'assistant',
         text: curated + `\n\n_(Live AI temporarily unreachable — answered from your local checklist data.)_`,
         source: 'context-aware-offline',
@@ -499,14 +506,14 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
     }
     const hit = searchKB(q);
     if (hit) {
-      setMessages(prev => [...prev, {
+      setMessages(prev => [...dropTrailingEmpty(prev), {
         role: 'assistant',
         text: `${hit.a}\n\n[Citation: ${hit.citation}]\n\n_(Live AI temporarily unreachable — answered from the curated PCS Express knowledge base.)_`,
         source: 'curated-kb-offline',
       }]);
       return;
     }
-    setMessages(prev => [...prev, {
+    setMessages(prev => [...dropTrailingEmpty(prev), {
       role: 'system',
       text: `Live AI is temporarily unreachable (${reason}) and no curated entry matches that exact question. Try rephrasing, browse the full curated library inside Movement & Logistics → JTR Assistant, or check Mission Resources → Help Hub for the official source.`,
     }]);

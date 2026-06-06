@@ -657,7 +657,7 @@ function ReligiousServicesModule({ theme, profile }) {
                     <div style={{ fontSize: 10, fontWeight: 700, color: '#56697C', marginBottom: 6, letterSpacing: 0.4 }}>
                       SERVICE TIMES
                     </div>
-                    {service.mass.map((time, idx) => (
+                    {(Array.isArray(service.mass) ? service.mass : []).map((time, idx) => (
                       <div key={idx} style={{ fontSize: 10, color: '#34495E', marginBottom: 3 }}>
                         · {time}
                       </div>

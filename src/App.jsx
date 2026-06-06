@@ -1590,7 +1590,12 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
         if (t <= now && now - t < 24 * 3600 * 1000) {
           // Don't fire if already checked off.
           if (checklistItems[key]) continue;
-          const [phase, idx] = key.split('-');
+          // Split on the LAST hyphen: phase names contain hyphens
+          // ("In-Processing"), so a naive split('-') mis-parses the key and
+          // drops the real task label to the generic fallback.
+          const sep = key.lastIndexOf('-');
+          const phase = key.slice(0, sep);
+          const idx = key.slice(sep + 1);
           const label = (branchChecklist[phase] || [])[parseInt(idx, 10)] || 'PCS task';
           try {
             const n = new Notification('PCS Express reminder', {
@@ -3956,7 +3961,7 @@ function Onboarding({ onComplete }) {
                 {p.childAges.map((age, idx) => (
                   <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', minWidth: 60 }}>{ot('childN')} {idx + 1}</div>
-                    <input type="number" min="0" max="25" value={age} onChange={e => { const a = [...p.childAges]; a[idx] = e.target.value; upd('childAges', a); }} placeholder={ot('agePlaceholder')} style={{ ...inputSt, width: 80, flexShrink: 0 }} />
+                    <input type="number" min="0" max="25" value={age} onChange={e => { const a = [...p.childAges]; a[idx] = e.target.value; upd('childAges', a); }} placeholder={ot('agePlaceholder')} aria-label={`${ot('childN')} ${idx + 1} ${ot('yrs')}`} style={{ ...inputSt, width: 80, flexShrink: 0 }} />
                     <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{ot('yrs')}</span>
                     <button onClick={() => upd('childAges', p.childAges.filter((_, i) => i !== idx))} aria-label={`Remove child ${idx + 1}`} style={{ marginLeft: 'auto', padding: '4px 9px', borderRadius: 7, background: 'rgba(255,80,80,0.2)', border: '1px solid rgba(255,80,80,0.35)', color: '#FF8080', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}><span aria-hidden="true">✕</span></button>
                   </div>
@@ -4821,7 +4826,7 @@ function App() {
         const [top, sub] = String(target).split('/');
         const allowed = new Set([
           'home', 'pcs-operations', 'home-relocation', 'family-readiness',
-          'medical-readiness', 'mission-resources',
+          'medical-readiness', 'mission-resources', 'transition',
           // Legacy deep-link IDs kept for support-link compatibility.
           'checklist', 'documents', 'family', 'education', 'translation',
           'religion', 'base-intelligence', 'nav', 'resources', 'veterans',
@@ -5067,8 +5072,11 @@ function App() {
     document.documentElement.dir = appDir;
   }, [appLanguage, appDir]);
 
-  // Compute pending alerts based on departure date and checklist completion
-  const daysUntilDeparture = profile?.departingDate ? getDaysUntilDeparture(profile.departingDate) : null;
+  // Compute pending alerts based on the report-NLT date (the canonical
+  // countdown target, matching TMinusDashboard / MissionLanes / the AI
+  // context) falling back to departingDate, and checklist completion.
+  const countdownTarget = profile?.reportNLTDate || profile?.departingDate;
+  const daysUntilDeparture = countdownTarget ? getDaysUntilDeparture(countdownTarget) : null;
   // Memoized: this builds the tailored checklist (getBranchChecklist +
   // filters over every phase), which previously ran up to ~12x on EVERY
   // render of this 48-state component (once per phase in .filter AND again
@@ -5597,7 +5605,7 @@ function App() {
           Renders the same icon-rich item shape as the desktop sidebar:
           emoji glyph + label + 3-letter abbr badge. */}
       {!isDesktop && !isNative && navOpen && (
-        <div ref={navDrawerRef} role="dialog" aria-modal="true" aria-label="Navigation" style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: 0, right: 0, maxWidth: 480, margin: '0 auto', zIndex: 200, background: theme.secondary, borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
+        <div id="pcs-nav-drawer" ref={navDrawerRef} role="dialog" aria-modal="true" aria-label="Navigation" style={{ position: 'fixed', top: 'calc(52px + env(safe-area-inset-top))', left: 0, right: 0, maxWidth: 480, margin: '0 auto', zIndex: 200, background: theme.secondary, borderBottom: `2px solid ${theme.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0 }}>
             {LOCALIZED_BOTTOM_NAV.map(item => (
               <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-side-link ${activeTab === item.id ? 'is-active' : ''}`} style={{ padding: '12px 4px', background: activeTab === item.id ? `${theme.accent}25` : 'transparent', border: 'none', borderBottom: `1px solid rgba(255,255,255,0.07)`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.75)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontSize: 9, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', '--side-accent': theme.accent }}>
