@@ -40,7 +40,7 @@ const MILESTONES = [
   { id: 'in-transit',     label: 'In Transit',                        slaDays:  30, link: 'https://dps.move.mil/', desc: 'Tracking begins. Most CONUS loads deliver inside the spread window; OCONUS sea-freight runs 60-90 days.' },
   { id: 'arrival-call',   label: 'Notice of Arrival Received',        slaDays:  45, link: '', desc: 'TSP calls 24-48 hours before delivery to schedule. Confirm gaining address and access details.' },
   { id: 'delivered',      label: 'Delivered',                         slaDays:  46, link: '', desc: 'Truck unloaded, items checked off the inventory. Note any pre-existing damage on the DD 1840R BEFORE the driver leaves.' },
-  { id: 'claim-loss',     label: 'Loss / Damage Claim Filed',         slaDays:  76, link: 'https://dps.move.mil', desc: 'File the DPS damage claim within 75 days of delivery (DD 1840R supplement). Soft deadline 75; hard deadline 9 months.' },
+  { id: 'claim-loss',     label: 'Loss / Damage Claim Filed',         slaDays:  76, link: 'https://dps.move.mil', desc: 'Report loss/damage in DPS within 180 days of delivery; file the itemized claim within 9 months for full replacement value (DD 1840R supplement). File promptly — don\'t wait for the deadline.' },
   { id: 'claim-settled',  label: 'Claim Settled',                     slaDays: 120, link: 'https://dps.move.mil', desc: 'TSP settles inside 60 days of claim filing. Escalate to the Military Claims Office (MCO) if you disagree with the offer.' },
 ];
 

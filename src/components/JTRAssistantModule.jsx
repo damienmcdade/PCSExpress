@@ -58,7 +58,7 @@ export default function JTRAssistantModule({ theme }) {
       if (r.status === 404 || r.status === 501) {
         setAskState({
           status: 'fallback',
-          answer: 'Free-text JTR Q&A is not configured in this deployment. Use the curated knowledge base above, then escalate to your gaining installation Finance Office / DTMO travel team for cases not covered there. Authoritative sources: travel.dod.mil/Joint-Travel-Regulations and travel.dod.mil/site/oha.cfm.',
+          answer: 'Free-text JTR Q&A is not configured in this deployment. Use the curated knowledge base above, then escalate to your gaining installation Finance Office / DTMO travel team for cases not covered there. Authoritative sources: travel.dod.mil/Joint-Travel-Regulations and travel.dod.mil/Allowances/Overseas-Housing-Allowance/.',
           source: 'fallback',
         });
         return;

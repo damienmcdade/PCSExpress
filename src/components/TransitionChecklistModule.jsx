@@ -21,7 +21,7 @@
  * Third-party dependencies: React only.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
 import { PlanningAidDisclaimer } from './CalculatorResultLabel';
 import SyncStatusIndicator from './SyncStatusIndicator';
@@ -308,11 +308,13 @@ export default function TransitionChecklistModule({ theme, profile }) {
   const [separationType, setSeparationType] = useState(isCivilian ? 'resignation' : 'ets');
   const [checks, setChecks] = useState({});
 
-  // Hydrate persisted state once.
+  // Hydrate persisted state once. dirtyRef guards against the async decrypt
+  // clobbering a checkbox/selection the user changed during the load window.
+  const dirtyRef = useRef(false);
   useEffect(() => {
     let mounted = true;
     secureLocalStore.get(STORAGE_KEY, null).then(saved => {
-      if (!mounted || !saved) return;
+      if (!mounted || !saved || dirtyRef.current) return;
       if (saved.separationType) setSeparationType(saved.separationType);
       if (saved.checks && typeof saved.checks === 'object') setChecks(saved.checks);
     });
@@ -354,6 +356,7 @@ export default function TransitionChecklistModule({ theme, profile }) {
     .map(m => ({ id: m.id, title: m.title, priority: m.priority }));
 
   const toggle = (id) => {
+    dirtyRef.current = true;
     const next = { ...checks, [id]: !checks[id] };
     setChecks(next);
     secureLocalStore.set(STORAGE_KEY, { separationType, checks: next });
@@ -361,6 +364,7 @@ export default function TransitionChecklistModule({ theme, profile }) {
   };
 
   const chooseSeparation = (value) => {
+    dirtyRef.current = true;
     setSeparationType(value);
     secureLocalStore.set(STORAGE_KEY, { separationType: value, checks });
   };

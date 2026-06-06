@@ -71,7 +71,7 @@ export default function PriorityAlertsCard({ onJumpTo }) {
         </span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+      <div role="list" style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
         {shown.map(a => {
           const tier = TIER[a.priority] || TIER.Medium;
           const route = CHECKLIST_ROUTE[a.checklistId];

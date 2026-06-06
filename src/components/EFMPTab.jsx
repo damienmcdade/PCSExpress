@@ -3,7 +3,7 @@
  * Third-party dependencies: React only.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
 import NotificationModeSelector from './NotificationModeSelector';
 
@@ -120,10 +120,14 @@ export default function EFMPTab({ theme, profile }) {
   const [activePhase, setActivePhase] = useState(CORE_STEPS[0].phase);
   const [checks, setChecks] = useState({});
 
+  // Guard against the async decrypt clobbering a checkbox the user toggled
+  // during the (sub-second) mount-load window — otherwise a fast tap could be
+  // silently reverted when the saved state resolves.
+  const dirtyRef = useRef(false);
   useEffect(() => {
     let mounted = true;
     secureLocalStore.get(STORAGE_KEY, {}).then(saved => {
-      if (mounted) setChecks(saved || {});
+      if (mounted && !dirtyRef.current) setChecks(saved || {});
     });
     return () => { mounted = false; };
   }, []);
@@ -144,6 +148,7 @@ export default function EFMPTab({ theme, profile }) {
   ), [checks]);
 
   const toggleTask = async (phase, index) => {
+    dirtyRef.current = true;
     const key = `${phase}-${index}`;
     const next = { ...checks, [key]: !checks[key] };
     setChecks(next);
