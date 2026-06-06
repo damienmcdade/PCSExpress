@@ -264,10 +264,8 @@ const RESOURCES = [
 export default function TransitionChecklistModule({ theme, profile }) {
   const isCivilian = profile?.component === 'DoD Civilian';
 
-  // In-tab questionnaire answers (the "fork" the user picks). Defaults are
-  // the most common case per audience; both persist.
+  // In-tab questionnaire answer: how the user is leaving service.
   const [separationType, setSeparationType] = useState(isCivilian ? 'resignation' : 'ets');
-  const [track, setTrack] = useState('career'); // 'career' | 'va'
   const [checks, setChecks] = useState({});
 
   // Hydrate persisted state once.
@@ -276,7 +274,6 @@ export default function TransitionChecklistModule({ theme, profile }) {
     secureLocalStore.get(STORAGE_KEY, null).then(saved => {
       if (!mounted || !saved) return;
       if (saved.separationType) setSeparationType(saved.separationType);
-      if (saved.track) setTrack(saved.track);
       if (saved.checks && typeof saved.checks === 'object') setChecks(saved.checks);
     });
     return () => { mounted = false; };
@@ -284,11 +281,11 @@ export default function TransitionChecklistModule({ theme, profile }) {
 
   const isRetirement = separationType === 'retirement' || separationType === 'fers_retirement';
   const isMedical = separationType === 'medical';
-  // Medical/MEB separations are inherently a VA-benefits track. Civilians
-  // don't have a military VA track unless they are also a separating
-  // veteran — for the civilian audience we drive VA items off the explicit
-  // "va" toggle only.
-  const vaTrack = isMedical || (!isCivilian && track === 'va');
+  // Every separating/retiring service member is a veteran, so the VA track
+  // (disability/BDD, VA health, SGLI→VGLI) always applies to military
+  // audiences; DoD civilians off-board federal service and don't get the
+  // military VA items. The career track applies to everyone.
+  const vaTrack = !isCivilian;
   const ctx = {
     isCivilian,
     branch: profile?.branch || 'Army',
@@ -296,7 +293,7 @@ export default function TransitionChecklistModule({ theme, profile }) {
     isRetirement,
     isMedical,
     vaTrack,
-    careerTrack: track === 'career',
+    careerTrack: true,
     hasDependents: !!(profile?.hasDependents || profile?.hasChildren),
     isOverseas: !!profile?.isOverseas,
   };
@@ -319,17 +316,13 @@ export default function TransitionChecklistModule({ theme, profile }) {
   const toggle = (id) => {
     const next = { ...checks, [id]: !checks[id] };
     setChecks(next);
-    secureLocalStore.set(STORAGE_KEY, { separationType, track, checks: next });
+    secureLocalStore.set(STORAGE_KEY, { separationType, checks: next });
     AuditLogger.record('transition_checklist_change', { id, complete: !!next[id] });
   };
 
   const chooseSeparation = (value) => {
     setSeparationType(value);
-    secureLocalStore.set(STORAGE_KEY, { separationType: value, track, checks });
-  };
-  const chooseTrack = (value) => {
-    setTrack(value);
-    secureLocalStore.set(STORAGE_KEY, { separationType, track: value, checks });
+    secureLocalStore.set(STORAGE_KEY, { separationType: value, checks });
   };
 
   // Audience-aware separation-type options.
@@ -371,7 +364,7 @@ export default function TransitionChecklistModule({ theme, profile }) {
           TAILOR MY CHECKLIST
         </div>
         <p style={{ fontSize: 12, color: '#43526B', margin: '0 0 12px', lineHeight: 1.5 }}>
-          Showing milestones for <strong>{audienceBranch}</strong>. Answer the two questions below and the timeline updates instantly.
+          Showing milestones for <strong>{audienceBranch}</strong>. Choose how you're leaving below and the timeline updates instantly.
         </p>
 
         <fieldset style={{ border: 'none', padding: 0, margin: '0 0 12px' }}>
@@ -400,46 +393,6 @@ export default function TransitionChecklistModule({ theme, profile }) {
             })}
           </div>
         </fieldset>
-
-        {/* Benefits track — primarily a military fork. For civilians the VA
-            track only matters if they are also a separating veteran. */}
-        {!isCivilian && (
-          <fieldset style={{ border: 'none', padding: 0, margin: 0 }} disabled={isMedical}>
-            <legend style={{ fontSize: 12, fontWeight: 800, color: '#1F2A3C', marginBottom: 6 }}>
-              Are you heading to a civilian career, or filing a VA disability / medical track?
-            </legend>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {[
-                { value: 'career', label: 'Civilian career (employment-focused)' },
-                { value: 'va',     label: 'VA disability / medical track' },
-              ].map(opt => {
-                const active = track === opt.value || (isMedical && opt.value === 'va');
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => chooseTrack(opt.value)}
-                    aria-pressed={active}
-                    className="pcs-tab"
-                    style={{
-                      borderColor: active ? theme.primary : '#D4DCE8',
-                      background: active ? theme.primary : '#FFF',
-                      color: active ? '#FFF' : '#43526B',
-                      opacity: isMedical && opt.value === 'career' ? 0.55 : 1,
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-            {isMedical && (
-              <p style={{ fontSize: 11, color: '#6D4C00', margin: '8px 0 0' }}>
-                A medical (MEB/PEB) separation always includes the VA disability track, so VA milestones are shown automatically.
-              </p>
-            )}
-          </fieldset>
-        )}
       </section>
 
       {/* Progress */}

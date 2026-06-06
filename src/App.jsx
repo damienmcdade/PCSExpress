@@ -32,46 +32,71 @@ import PrivacyShield from './components/PrivacyShield'
 // own chunks and downloaded the first time the user navigates to them.
 // Each lazy import resolves inside the top-level <Suspense> fallback at
 // the App root.
-const EmploymentModule = lazy(() => import('./components/EmploymentModule'))
-const TranslationModule = lazy(() => import('./components/TranslationModule'))
-const ReligiousServicesModule = lazy(() => import('./components/ReligiousServicesModule'))
-const SpouseDeploymentGuide = lazy(() => import('./components/SpouseDeploymentGuide'))
-const PCSDocumentsModule = lazy(() => import('./components/PCSDocumentsModule'))
-const ShipmentTrackerModule = lazy(() => import('./components/ShipmentTrackerModule'))
-const ComplianceAttestationModule = lazy(() => import('./components/ComplianceAttestationModule'))
-const InventoryVaultModule = lazy(() => import('./components/InventoryVaultModule'))
-const JTRAssistantModule = lazy(() => import('./components/JTRAssistantModule'))
-const ImmigrationModule = lazy(() => import('./components/ImmigrationModule'))
-const MovingFinancialAssistanceTab = lazy(() => import('./components/MovingFinancialAssistanceTab'))
-const PetRelocationChecklistTab = lazy(() => import('./components/PetRelocationChecklistTab'))
-const EFMPTab = lazy(() => import('./components/EFMPTab'))
-const HomeLocatorTab = lazy(() => import('./components/HomeLocatorTab'))
-const BaseIntelligenceReviews = lazy(() => import('./components/BaseIntelligenceReviews'))
-const PPMFinancialEstimator = lazy(() => import('./components/PPMFinancialEstimator'))
-const MoveStrategyModule = lazy(() => import('./components/MoveStrategyModule'))
-const PCS2026ChangesCard = lazy(() => import('./components/PCS2026ChangesCard'))
-const BAHCalculatorTab = lazy(() => import('./components/BAHCalculatorTab'))
-const OHACalculatorTab = lazy(() => import('./components/OHACalculatorTab'))
-const LQACalculatorTab = lazy(() => import('./components/LQACalculatorTab'))
-const MedicalReadinessTab = lazy(() => import('./components/MedicalReadinessTab'))
-const MoveBudgetTracker = lazy(() => import('./components/MoveBudgetTracker'))
-const DutyStationDirectory = lazy(() => import('./components/DutyStationDirectory'))
-const AIAssistantModal = lazy(() => import('./components/AIAssistantChip').then(m => ({ default: m.AIAssistantModal })))
+//
+// lazyRetry: a failed dynamic import() is almost always a stale-deploy
+// chunk 404 — the session loaded an older index.html, a new build shipped
+// (purging the old hashed chunks), and the user then navigates to a tab
+// whose chunk was never preloaded. React would surface this as "importing
+// a module script failed" / "Failed to fetch dynamically imported module".
+// Recover by forcing ONE reload (sessionStorage-guarded against loops) to
+// pull the fresh index + chunk manifest.
+function importWithRetry(factory) {
+  return factory().catch((err) => {
+    const KEY = 'pcs_chunk_reload_at';
+    let last = 0;
+    try { last = Number(sessionStorage.getItem(KEY)) || 0; } catch { /* private mode */ }
+    const now = Date.now();
+    if (now - last > 10_000) {
+      try { sessionStorage.setItem(KEY, String(now)); } catch { /* ignore */ }
+      window.location.reload();
+      // Park the render until the reload takes over so React doesn't paint
+      // an error boundary in the brief interim.
+      return new Promise(() => {});
+    }
+    throw err;
+  });
+}
+const lazyRetry = (factory) => lazy(() => importWithRetry(factory));
+const EmploymentModule = lazyRetry(() => import('./components/EmploymentModule'))
+const TranslationModule = lazyRetry(() => import('./components/TranslationModule'))
+const ReligiousServicesModule = lazyRetry(() => import('./components/ReligiousServicesModule'))
+const SpouseDeploymentGuide = lazyRetry(() => import('./components/SpouseDeploymentGuide'))
+const PCSDocumentsModule = lazyRetry(() => import('./components/PCSDocumentsModule'))
+const ShipmentTrackerModule = lazyRetry(() => import('./components/ShipmentTrackerModule'))
+const ComplianceAttestationModule = lazyRetry(() => import('./components/ComplianceAttestationModule'))
+const InventoryVaultModule = lazyRetry(() => import('./components/InventoryVaultModule'))
+const JTRAssistantModule = lazyRetry(() => import('./components/JTRAssistantModule'))
+const ImmigrationModule = lazyRetry(() => import('./components/ImmigrationModule'))
+const MovingFinancialAssistanceTab = lazyRetry(() => import('./components/MovingFinancialAssistanceTab'))
+const PetRelocationChecklistTab = lazyRetry(() => import('./components/PetRelocationChecklistTab'))
+const EFMPTab = lazyRetry(() => import('./components/EFMPTab'))
+const HomeLocatorTab = lazyRetry(() => import('./components/HomeLocatorTab'))
+const BaseIntelligenceReviews = lazyRetry(() => import('./components/BaseIntelligenceReviews'))
+const PPMFinancialEstimator = lazyRetry(() => import('./components/PPMFinancialEstimator'))
+const MoveStrategyModule = lazyRetry(() => import('./components/MoveStrategyModule'))
+const PCS2026ChangesCard = lazyRetry(() => import('./components/PCS2026ChangesCard'))
+const BAHCalculatorTab = lazyRetry(() => import('./components/BAHCalculatorTab'))
+const OHACalculatorTab = lazyRetry(() => import('./components/OHACalculatorTab'))
+const LQACalculatorTab = lazyRetry(() => import('./components/LQACalculatorTab'))
+const MedicalReadinessTab = lazyRetry(() => import('./components/MedicalReadinessTab'))
+const MoveBudgetTracker = lazyRetry(() => import('./components/MoveBudgetTracker'))
+const DutyStationDirectory = lazyRetry(() => import('./components/DutyStationDirectory'))
+const AIAssistantModal = lazyRetry(() => import('./components/AIAssistantChip').then(m => ({ default: m.AIAssistantModal })))
 // Public-facing capability statement / landing page. Lazy because it
 // is only shown on first visit (or via ?landing=1) and the
 // already-onboarded flow doesn't need it in the eager bundle.
-const LandingPage = lazy(() => import('./components/LandingPage'))
-const NavigationModule = lazy(() => import('./components/NavigationModule'))
+const LandingPage = lazyRetry(() => import('./components/LandingPage'))
+const NavigationModule = lazyRetry(() => import('./components/NavigationModule'))
 // Education tab + its ~1,500-line college/OCONUS dataset live in their own
 // lazy chunk (perf Tier 1b PR-B) so they don't ship in the eager bundle.
-const EducationBenefitsTab = lazy(() => import('./components/EducationBenefitsTab'))
+const EducationBenefitsTab = lazyRetry(() => import('./components/EducationBenefitsTab'))
 // VeteranBusinesses + Resources tabs also lazy-loaded (perf Tier 1b PR-C).
-const VeteranBusinessesTab = lazy(() => import('./components/VeteranBusinessesTab'))
-const TransitionChecklistModule = lazy(() => import('./components/TransitionChecklistModule'))
-const TransitionDocumentsModule = lazy(() => import('./components/TransitionDocumentsModule'))
-const TransitionOutreachModule = lazy(() => import('./components/TransitionOutreachModule'))
-const PriorityAlertsCard = lazy(() => import('./components/PriorityAlertsCard'))
-const ResourcesTab = lazy(() => import('./components/ResourcesTab'))
+const VeteranBusinessesTab = lazyRetry(() => import('./components/VeteranBusinessesTab'))
+const TransitionChecklistModule = lazyRetry(() => import('./components/TransitionChecklistModule'))
+const TransitionDocumentsModule = lazyRetry(() => import('./components/TransitionDocumentsModule'))
+const TransitionOutreachModule = lazyRetry(() => import('./components/TransitionOutreachModule'))
+const PriorityAlertsCard = lazyRetry(() => import('./components/PriorityAlertsCard'))
+const ResourcesTab = lazyRetry(() => import('./components/ResourcesTab'))
 import { AuditLogger, secureLocalStore, readLegacyJson, closeCryptoStoreDB } from './security/SecurityExtensions'
 import { resolveMarket } from './data/installationMarkets'
 // Three largest data tables (~172 KB raw / ~30 KB gzip) live in a
@@ -95,7 +120,7 @@ import {
 // ~90 KB i18n payload off the cold-start path for English users; the
 // mount is gated below on `appLanguage !== 'en'` so the chunk only
 // downloads when a non-English locale is actually selected.
-const AppLanguageRuntimeMount = lazy(() => import('./i18n/AppLanguageRuntimeMount'))
+const AppLanguageRuntimeMount = lazyRetry(() => import('./i18n/AppLanguageRuntimeMount'))
 
 const store = {
   get: (k) => readLegacyJson(k, null),
@@ -4034,7 +4059,35 @@ function Onboarding({ onComplete }) {
   );
 }
 
-function CategoryTabShell({ theme, tabs, activeTab, onChange, children }) {
+function CategoryTabShell({ theme, tabs, activeTab, onChange, children, variant = 'box' }) {
+  // 'bubble' = rounded pill tabs matching the style used elsewhere in the
+  // app (questionnaire / phase / outreach strips); 'box' = the compact
+  // uppercase default used by the other mission groups.
+  const bubble = variant === 'bubble';
+  const tabStyle = (isActive) => bubble
+    ? {
+        padding: '8px 15px',
+        borderRadius: 999,
+        border: `1.5px solid ${isActive ? theme.primary : '#D4DCE8'}`,
+        background: isActive ? theme.primary : '#FFFFFF',
+        color: isActive ? '#FFFFFF' : '#43526B',
+        fontSize: 12,
+        fontWeight: 700,
+        cursor: 'pointer',
+        letterSpacing: '.01em',
+      }
+    : {
+        padding: '8px 11px',
+        borderRadius: 8,
+        border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`,
+        background: isActive ? theme.primary : '#FFFFFF',
+        color: isActive ? '#FFFFFF' : '#56697C',
+        fontSize: 10,
+        fontWeight: 800,
+        cursor: 'pointer',
+        letterSpacing: '.04em',
+        textTransform: 'uppercase',
+      };
   return (
     <div style={{ padding: 16 }}>
       <TabBar ariaLabel="Category sections" className="pcs-tabbar--flush">
@@ -4050,18 +4103,7 @@ function CategoryTabShell({ theme, tabs, activeTab, onChange, children }) {
               data-active={isActive || undefined}
               onClick={() => onChange(tab.id)}
               className={`pcs-tab ${isActive ? 'is-active' : ''}`}
-              style={{
-                padding: '8px 11px',
-                borderRadius: 8,
-                border: `1.5px solid ${isActive ? theme.primary : '#E0E6EE'}`,
-                background: isActive ? theme.primary : '#FFFFFF',
-                color: isActive ? '#FFFFFF' : '#56697C',
-                fontSize: 10,
-                fontWeight: 800,
-                cursor: 'pointer',
-                letterSpacing: '.04em',
-                textTransform: 'uppercase',
-              }}
+              style={tabStyle(isActive)}
             >
               {tab.label}
             </button>
@@ -4150,7 +4192,7 @@ function TransitionTab({ theme, profile }) {
   ];
   const [tab, setTab] = useState(() => consumePendingSubTab('checklist', tabs.map(t => t.id)));
   return (
-    <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
+    <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab} variant="bubble">
       {tab === 'checklist'     && <TransitionChecklistModule theme={theme} profile={profile} />}
       {tab === 'documentation' && <TransitionDocumentsModule theme={theme} profile={profile} />}
       {tab === 'career'        && <EmploymentModule theme={theme} profile={profile} />}
