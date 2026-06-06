@@ -57,7 +57,7 @@ export default function OHACalculatorTab({ theme, profile }) {
       {/* Header */}
       <div style={{ background: theme.secondary, borderRadius: 18, padding: 16, marginBottom: 14, color: '#FFFFFF', border: `1px solid ${theme.accent}55` }}>
         <div style={{ fontSize: 10, fontWeight: 950, color: theme.accent, letterSpacing: '.16em', marginBottom: 6 }}>OHA REFERENCE CALCULATOR</div>
-        <div style={{ fontSize: 17, fontWeight: 950, marginBottom: 6 }}>Overseas Housing Allowance — 2025/2026 Reference Rates</div>
+        <div style={{ fontSize: 17, fontWeight: 950, marginBottom: 6 }}>Overseas Housing Allowance — 2026 Reference Rates</div>
         <div style={{ fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,0.78)' }}>
           OHA is the overseas equivalent of BAH. Unlike BAH, OHA reimburses <strong style={{ color: theme.accent }}>actual rent paid</strong>, up to the cap for your grade and location. Use the official DTMO tool for exact current rates.
         </div>

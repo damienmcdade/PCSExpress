@@ -69,7 +69,7 @@ function buildExpenseCategories(profile) {
 // move costs at current prices. Sources should always be verified
 // against the official GSA / DTMO / BLS publications before filing.
 const INFLATION_2026 = {
-  fuelGalUsd:        4.10,  // BLS national avg gas, Q1 2026 forecast
+  fuelGalUsd:        4.48,  // EIA national avg regular gasoline, week ending 2026-05-25 (matches ppmCalculator)
   // NOTE: these are real-world PLANNING ranges (typical actual hotel/meal
   // spend on a move), deliberately set ABOVE the GSA reimbursement floor.
   // For reference, the GSA FY2026 standard CONUS per diem is $178/day =

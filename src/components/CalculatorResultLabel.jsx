@@ -13,7 +13,7 @@
  *   or LQA post not yet confirmed against the current table, or a budget
  *   range derived from CPI / industry averages.
  *
- * When a single output blends both tiers (PPM uses the official 95% JTR
+ * When a single output blends both tiers (PPM uses the official 100% JTR
  *   incentive rate but estimated market costs), label it Tier 2 overall
  *   and pass a `note` like "uses official JTR incentive rate with
  *   estimated market costs."
