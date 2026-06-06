@@ -297,7 +297,7 @@ const PHRASES = {
   'Verified enrollment link': tr('Enlace de inscripción verificado', 'Verifizierter Einschreibungslink', 'Lien d’inscription vérifié', '확인된 등록 링크', '確認済み入学リンク', 'Beripikadong enrollment link', 'رابط تسجيل موثّق', '已验证注册链接', 'Link iscrizione verificato', 'Link de matrícula verificado', 'Liên kết ghi danh đã xác minh'),
   'Enrollment link under official review': tr('Enlace de inscripción en revisión oficial', 'Einschreibungslink in offizieller Prüfung', 'Lien d’inscription en vérification officielle', '등록 링크 공식 검토 중', '入学リンクは公式確認中', 'Enrollment link ay sinusuri pa', 'رابط التسجيل قيد المراجعة الرسمية', '注册链接正在官方审核', 'Link iscrizione in verifica ufficiale', 'Link de matrícula em revisão oficial', 'Liên kết ghi danh đang được xác minh'),
   'In Progress': tr('En progreso', 'In Bearbeitung', 'En cours', '진행 중', '進行中', 'Kasalukuyang ginagawa', 'قيد التنفيذ', '进行中', 'In corso', 'Em andamento', 'Đang tiến hành'),
-  'Move Complete': tr('Mudanza completada', 'Umzug abgeschlossen', 'Déménagement terminé', '이사 완료', '引越し完了', 'Kumpleto na ang paglipat', 'اكتمل الانتقال', '搞迁完成', 'Trasloco completato', 'Mudança concluída', 'Hoàn tất chuyển nhà'),
+  'Move Complete': tr('Mudanza completada', 'Umzug abgeschlossen', 'Déménagement terminé', '이사 완료', '引越し完了', 'Kumpleto na ang paglipat', 'اكتمل الانتقال', '搬迁完成', 'Trasloco completato', 'Mudança concluída', 'Hoàn tất chuyển nhà'),
   'Schools & Childcare': tr('Escuelas y guardería', 'Schulen & Kinderbetreuung', 'Écoles et garde d\'enfants', '학교 및 보육', '学校と保育', 'Mga Paaralan at Pag-aalaga ng Bata', 'المدارس ورعاية الأطفال', '学校与托儿', 'Scuole e asilo nido', 'Escolas e creche', 'Trường học và trông trẻ'),
   'Search by Location': tr('Buscar por ubicación', 'Nach Standort suchen', 'Chercher par lieu', '위치별 검색', '場所で検索', 'Maghanap sa lokasyon', 'البحث حسب الموقع', '按地点搜索', 'Cerca per posizione', 'Buscar por localização', 'Tìm theo vị trí'),
   'Open active source': tr('Abrir fuente activa', 'Aktive Quelle öffnen', 'Ouvrir la source active', '활성 출처 열기', 'アクティブソースを開く', 'Buksan ang aktibong source', 'فتح المصدر النشط', '打开活跃来源', 'Apri fonte attiva', 'Abrir fonte ativa', 'Mở nguồn hoạt động'),
@@ -612,6 +612,20 @@ function sourceFrom(text) {
   return acronym?.[0] || '';
 }
 
+// Korean object particle: 을 after a syllable with a final consonant (batchim),
+// 를 after a vowel-final syllable (and as the default for non-Hangul endings).
+// Picks the grammatically-correct particle for the interpolated topic term
+// instead of a hardcoded 을, which is wrong for every vowel-final topic.
+function koObjectParticle(word) {
+  const s = String(word || '').trim();
+  if (!s) return '를';
+  const last = s.charCodeAt(s.length - 1);
+  if (last >= 0xAC00 && last <= 0xD7A3) {
+    return ((last - 0xAC00) % 28) === 0 ? '를' : '을';
+  }
+  return '를';
+}
+
 function localizedSentence({ topic, intent, source, lang, short }) {
   const t = topicTerm(topic, lang);
   const i = intentTerm(intent, lang);
@@ -636,7 +650,7 @@ function localizedSentence({ topic, intent, source, lang, short }) {
     es: `${sourceLead}Use ${t} para ${i}. Verifique los detalles con la fuente oficial antes de actuar.`,
     de: `${sourceLead}Nutzen Sie ${t}, um ${i}. Prüfen Sie Details vor dem Handeln bei der offiziellen Quelle.`,
     fr: `${sourceLead}Utilisez ${t} pour ${i}. Vérifiez les détails auprès de la source officielle avant d’agir.`,
-    ko: `${sourceLead}${t}을 사용하여 ${i}. 조치하기 전에 공식 출처에서 세부 정보를 확인하십시오.`,
+    ko: `${sourceLead}${t}${koObjectParticle(t)} 사용하여 ${i}. 조치하기 전에 공식 출처에서 세부 정보를 확인하십시오.`,
     ja: `${sourceLead}${t}を使用して${i}。行動する前に公式ソースで詳細を確認してください。`,
     tl: `${sourceLead}Gamitin ang ${t} para ${i}. Kumpirmahin ang detalye sa opisyal na source bago kumilos.`,
     ar: `${sourceLead}استخدم ${t} ${i}. تحقق من التفاصيل من المصدر الرسمي قبل اتخاذ أي إجراء.`,

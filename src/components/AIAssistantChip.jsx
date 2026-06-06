@@ -791,6 +791,10 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
           <strong>OPSEC:</strong> never enter classified, FOUO, CUI, sponsor names, GBL numbers, exact unit IDs, or specific operational dates. Treat this as an unclassified planning conversation.
         </div>
 
+        <div style={{ background: '#EEF2F6', color: '#46586B', padding: '6px 14px', fontSize: 10.5, lineHeight: 1.45, borderBottom: '1px solid #DDE3EA' }}>
+          AI answers are a planning aid and can be wrong or out of date — verify any dollar amounts, dates, and eligibility against the official DTMO / GSA / IRS source before acting. Not financial, tax, or legal advice.
+        </div>
+
         <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: 14, background: '#F8FAFC' }}>
           {messages.length === 0 && (
             <div style={{ color: '#56697C', fontSize: 12, lineHeight: 1.6 }}>
