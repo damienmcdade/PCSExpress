@@ -250,7 +250,7 @@ const CIVILIAN_DOCS = {
     { id: 'civ_sf50',            name: 'Notification of Personnel Action',  form: 'SF-50',                          required: true,  desc: 'Records the personnel action (transfer-in, promotion, etc.) for your federal record. Issued by gaining HR.' },
   ],
   travel: [
-    { id: 'civ_travel_voucher',  name: 'Civilian Travel Voucher',           form: 'DD Form 1351-2',                 required: true,  desc: 'Civilian PCS reimbursement claim. Submit within 5 working days of arrival per FTR §301-52.7.', formUrl: 'https://www.esd.whs.mil/Portals/54/Documents/DD/forms/dd/dd1351-2.pdf' },
+    { id: 'civ_travel_voucher',  name: 'Civilian Travel Voucher',           form: 'DD Form 1351-2',                 required: true,  desc: 'Civilian PCS reimbursement claim. Submit within 5 working days of arrival per FTR §301-52.', formUrl: 'https://www.esd.whs.mil/Portals/54/Documents/DD/forms/dd/dd1351-2.pdf' },
     { id: 'civ_tqse_request',    name: 'Temporary Quarters Subsistence Expense (TQSE) Request', form: 'TQSE Request', required: false, desc: 'Up to 60 days initially, extendable to a 120-day maximum, of lodging and meals per FTR §302-6. Submit before incurring expenses.' },
     { id: 'civ_house_hunt',      name: 'House Hunting Trip Authorization',  form: 'HHT Authorization',              required: false, desc: 'Round-trip travel for self and spouse to search for housing at the new locality (CONUS only, FTR §302-5).' },
     { id: 'civ_oconus_house_recon', name: 'OCONUS Housing Reconnaissance Plan', form: 'Gaining Housing Office / AHRN coordination', required: false, desc: 'Civilians do not receive an HHT authorization OCONUS. Document your contact with the gaining installation Housing Office (HOMES.mil) and any pre-screened off-base options pulled from AHRN.com or MilitaryByOwner.' },
@@ -268,7 +268,7 @@ const CIVILIAN_DOCS = {
     { id: 'civ_hhg_inventory',   name: 'HHG Inventory & Condition Report',  form: 'DD Form 1840 / 1840R',           required: true,  desc: 'Note all pre-existing damage at PICKUP and again at DELIVERY. Critical for claims.' },
     { id: 'civ_pov_ship',        name: 'POV Shipment Authorization',        form: 'DD Form 788',                    required: false, desc: 'Required for OCONUS civilian PCS, check eligibility for CONUS.' },
     { id: 'civ_nts_auth',        name: 'Non-Temporary Storage Authorization', form: 'NTS Authorization',            required: false, desc: 'Long-term storage if household goods cannot be moved immediately.' },
-    { id: 'civ_hhg_claim',       name: 'HHG Damage Claim (if needed)',      form: 'DD Form 1840R',                  required: false, desc: 'File within 70 days of delivery for damaged or missing items.' },
+    { id: 'civ_hhg_claim',       name: 'HHG Damage Claim (if needed)',      form: 'DPS / DD Form 1840R',            required: false, desc: 'Report loss/damage in DPS within 180 days of delivery; file the itemized claim within 9 months (12 months for shipments picked up on/after 15 May 2026) for full replacement value.' },
   ],
   housing: [
     { id: 'civ_locality_pay',    name: 'Locality Pay Confirmation',         form: 'OPM Locality Tables',            required: true,  desc: 'Confirm gaining locality pay rate via OPM tables. Civilians do NOT receive BAH/OHA.', formUrl: 'https://www.opm.gov/policy-data-oversight/pay-leave/salaries-wages/' },
