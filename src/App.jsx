@@ -3809,7 +3809,8 @@ function Onboarding({ onComplete }) {
   );
 
   return (
-    <div lang={onboardingLanguage} dir={onboardingLanguage === 'ar' ? 'rtl' : 'ltr'} style={{ minHeight: '100dvh', background: theme.secondary, display: 'flex', flexDirection: 'column', fontFamily: APP_FONT }}>
+    <div role="main" lang={onboardingLanguage} dir={onboardingLanguage === 'ar' ? 'rtl' : 'ltr'} style={{ minHeight: '100dvh', background: theme.secondary, display: 'flex', flexDirection: 'column', fontFamily: APP_FONT }}>
+      <h1 className="sr-only">PCS Express — set up your PCS profile</h1>
       {/* Header */}
       <div style={{ padding: 'env(safe-area-inset-top) 0 0', background: theme.secondary }}>
         <div style={{ padding: '20px 16px 12px', textAlign: 'center' }}>
