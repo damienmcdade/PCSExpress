@@ -676,7 +676,7 @@ function isLikelySelectorLabel(parent, compact) {
 
 function commandFallback(lower, bundle) {
   if (/^open\b|^view\b|^learn\b|^visit\b|^download\b|^browse\b|^launch\b/.test(lower)) return bundle.action;
-  if (/^copy\b/.test(lower)) return PHRASE_LOOKUP.copy?.it === bundle.action ? bundle.action : '';
+  if (/^copy\b/.test(lower)) return '';
   if (/^clear\b|^remove\b|^reset\b|^delete\b/.test(lower)) return '';
   if (/^add\b|^save\b|^load\b|^close\b|^submit\b|^translate\b/.test(lower)) return '';
   return '';

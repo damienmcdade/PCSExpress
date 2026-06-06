@@ -105,22 +105,48 @@ const DOC_GROUPS = [
         url: 'https://jst.doded.mil/', urlLabel: 'Joint Services Transcript' },
     ],
   },
+  {
+    group: 'Medical Separation (IDES / MEB / PEB)',
+    medicalOnly: true,
+    items: [
+      { id: 'med-narsum', title: 'MEB narrative summary (NARSUM) + DD Form 2807/2808', militaryOnly: true,
+        desc: 'The Medical Evaluation Board packet that lists your referred conditions. Review every condition is captured and keep a full copy.',
+        url: 'https://www.health.mil/Military-Health-Topics/Conditions-and-Treatments/Physical-Disability-Board-of-Review', urlLabel: 'DoD — Disability evaluation' },
+      { id: 'med-cp-results', title: 'VA C&P exam results (IDES proposed ratings)', militaryOnly: true,
+        desc: 'Your single set of Compensation & Pension exam results that feed both the PEB and your VA rating. Confirm each claimed condition was examined.',
+        url: 'https://www.va.gov/disability/va-claim-exam/', urlLabel: 'VA — Claim exam' },
+      { id: 'med-peb-findings', title: 'PEB findings letter + your election (accept / appeal)', militaryOnly: true,
+        desc: 'The Physical Evaluation Board fitness determination and disability percentage, plus your signed election. Consult military disability counsel before signing.' },
+      { id: 'med-disposition', title: 'Disability disposition — TDRL/PDRL orders or DD-214 severance entry', militaryOnly: true,
+        desc: 'Your medical-retirement (TDRL/PDRL) orders or the severance-pay entry on the DD-214. Determines pay, TRICARE, and re-exam obligations.' },
+      { id: 'med-crsc-app', title: 'CRSC application / CRDP confirmation (if medically retired)', militaryOnly: true,
+        desc: 'Paperwork to restore retired pay offset by VA compensation. CRSC requires a branch application; keep the determination letters.',
+        url: 'https://www.dfas.mil/RetiredMilitary/disability/crsc/', urlLabel: 'DFAS — CRSC / CRDP' },
+    ],
+  },
 ];
 
 export default function TransitionDocumentsModule({ theme, profile }) {
   const isCivilian = profile?.component === 'DoD Civilian';
   const [checks, setChecks] = useState({});
+  // Read the separation type chosen on the Checklist sub-tab so the medical
+  // (IDES) document group only appears for a medical (MEB/PEB) separation.
+  const [isMedical, setIsMedical] = useState(false);
 
   useEffect(() => {
     let mounted = true;
     secureLocalStore.get(STORAGE_KEY, {}).then(saved => {
       if (mounted) setChecks(saved || {});
     });
+    secureLocalStore.get('pcs_transition_checklist', null).then(saved => {
+      if (mounted && saved?.separationType === 'medical') setIsMedical(true);
+    });
     return () => { mounted = false; };
   }, []);
 
   // Filter each group's items to the audience, then drop empty groups.
   const visibleGroups = DOC_GROUPS
+    .filter(g => (g.medicalOnly ? isMedical : true))
     .map(g => ({
       group: g.group,
       items: g.items.filter(it => (it.civilianOnly ? isCivilian : true) && (it.militaryOnly ? !isCivilian : true)),

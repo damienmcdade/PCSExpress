@@ -487,7 +487,9 @@ test('language: script tag in language is stripped', async () => {
       const res = makeRes();
       await handler(makeReq({ body: { q: 'hi', language: '<script>alert(1)</script>' } }), res);
       assert.ok(!rec.body.system.includes('<script'));
-      assert.ok(!rec.body.system.includes('alert'));
+      // Assert the injected payload specifically (not the bare word "alert",
+      // which legitimately appears in the prompt's feature description).
+      assert.ok(!rec.body.system.includes('alert(1)'));
     });
   });
 });

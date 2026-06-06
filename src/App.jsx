@@ -95,6 +95,7 @@ const VeteranBusinessesTab = lazyRetry(() => import('./components/VeteranBusines
 const TransitionChecklistModule = lazyRetry(() => import('./components/TransitionChecklistModule'))
 const TransitionDocumentsModule = lazyRetry(() => import('./components/TransitionDocumentsModule'))
 const TransitionOutreachModule = lazyRetry(() => import('./components/TransitionOutreachModule'))
+const TransitionCommunityModule = lazyRetry(() => import('./components/TransitionCommunityModule'))
 const PriorityAlertsCard = lazyRetry(() => import('./components/PriorityAlertsCard'))
 const ResourcesTab = lazyRetry(() => import('./components/ResourcesTab'))
 import { AuditLogger, secureLocalStore, readLegacyJson, closeCryptoStoreDB } from './security/SecurityExtensions'
@@ -4188,6 +4189,7 @@ function TransitionTab({ theme, profile }) {
     { id: 'checklist',     label: 'Checklist' },
     { id: 'documentation', label: 'Documentation' },
     { id: 'career',        label: 'Career Center' },
+    { id: 'community',     label: 'Community' },
     { id: 'outreach',      label: 'Outreach' },
   ];
   const [tab, setTab] = useState(() => consumePendingSubTab('checklist', tabs.map(t => t.id)));
@@ -4196,6 +4198,7 @@ function TransitionTab({ theme, profile }) {
       {tab === 'checklist'     && <TransitionChecklistModule theme={theme} profile={profile} />}
       {tab === 'documentation' && <TransitionDocumentsModule theme={theme} profile={profile} />}
       {tab === 'career'        && <EmploymentModule theme={theme} profile={profile} />}
+      {tab === 'community'     && <TransitionCommunityModule theme={theme} profile={profile} />}
       {tab === 'outreach'      && <TransitionOutreachModule theme={theme} profile={profile} />}
     </CategoryTabShell>
   );
@@ -5786,7 +5789,7 @@ function App() {
             {/* Priority Alerts — red, priority-tiered feed of outstanding items
                 from every checklist with notification mode enabled. Renders
                 nothing until the user turns notifications on somewhere. */}
-            <Suspense fallback={null}><PriorityAlertsCard onJumpTo={goTo} /></Suspense>
+            <Suspense fallback={null}><PriorityAlertsCard onJumpTo={(tab, sub) => { if (sub) _SUBTAB_STORE.pending = sub; goTo(tab); }} /></Suspense>
 
             {/* Quick Actions — one-tap entry points for the most-common
                 "I just opened the app, what now?" tasks. */}

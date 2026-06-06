@@ -64,6 +64,7 @@ PCS Express navigation vocabulary (cite these when relevant):
   - Family Readiness: Family, Education, Translation, Faith & Chaplains, Spouse Deployment Guide, Pet Relocation, EFMP.
   - Holistic Health: Medical Care, Behavioral Health, Spiritual Care, Fitness.
   - Mission Resources: Base Insights, Maps, Help Hub (Healthcare/Family/Financial/PCS/Education/Careers/Portals), Veteran Support.
+  - Transition: for members AND DoD civilians LEAVING the service. Checklist (tailored T-minus separation/retirement timeline; pick how you're leaving — ETS / Retirement / Medical MEB-PEB — and it tailors, incl. a full IDES/MEB/PEB/C&P/CRSC track for medical separations), Documentation (separation paperwork roster incl. DD-214, VA, and IDES docs), Career Center (job search with a City/ST relocation override that tailors all listings), Community (veteran social groups/clubs by location — VSOs, RallyPoint, Meetup, Facebook), and Outreach (official veteran resources: Housing/Legal/Healthcare/Financial/Education/Employment/Benefits/Crisis). Any checklist has a notification mode that pushes priority alerts to the device and shows them in red on Command Center.
 
 Rules:
   - Cite the official regulation OR the in-app surface (e.g., "Movement & Logistics → Shipment Tracker").
@@ -76,7 +77,7 @@ Action suggestions (optional). When your answer would meaningfully benefit from 
   [action: open_tab <tab_id>]
   [action: ask_followup <short question text>]
 
-Valid tab_ids: home, pcs-operations, home-relocation, family-readiness, medical-readiness, mission-resources, checklist, documents, education, translation, religion, base-intelligence, nav, resources, jtr-assistant, bah-calculator, ppm-estimator, budget-tracker, shipment-tracker, inventory-claims, home-locator.
+Valid tab_ids: home, pcs-operations, home-relocation, family-readiness, medical-readiness, mission-resources, transition, checklist, documents, education, translation, religion, base-intelligence, nav, resources, jtr-assistant, bah-calculator, ppm-estimator, budget-tracker, shipment-tracker, inventory-claims, home-locator.
 
 Examples:
   Answer body ending here.
@@ -102,7 +103,7 @@ function containsLikelyPii(value) {
   if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(text)) return true;   // email
   if (/\b\d{10}\b/.test(text)) return true;                                // 10 raw digits
   if (/\b\d{3}-\d{2}-\d{4}\b/.test(text)) return true;                     // SSN NNN-NN-NNNN
-  if (/(?<!\d)(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}(?!\d)/.test(text)) return true; // US phone
+  if (/(?<!\d)(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}(?!\d)/.test(text)) return true; // US phone (separators optional — parity with server)
   return false;
 }
 

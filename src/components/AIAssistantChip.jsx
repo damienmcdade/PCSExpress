@@ -209,6 +209,19 @@ const CURATED_KB = [
   { tags: ['privacy','data','security','encryption','what do you collect','no upload'], citation: 'In-app: Command Center → 🔒 Security & data handling',
     q: 'What data does PCS Express collect or send to servers?',
     a: 'Effectively none. Your profile, checklist, reminders, and audit log live encrypted (AES-256-GCM, key in IndexedDB, never extractable) on your device. The AI Assistant sends only your question (and a minimal non-PII context blob: branch / rank / phase / open-task count) — never your name, email, address, or document content. PCS Express does not accept document or photo uploads anywhere. Full detail in Command Center → 🔒 Security & data handling.' },
+
+  { tags: ['transition','separation','separating','ets','retirement','retiring','leaving','getting out','terminal leave','tap'], citation: 'In-app: Transition tab',
+    q: 'I am separating or retiring — where do I start?',
+    a: 'Open the Transition tab. The Checklist asks how you are leaving (Separation/ETS, Retirement, or Medical MEB/PEB) and builds a tailored T-minus timeline — TAP, VA disability/BDD, DD-214, TRICARE/FEHB bridge, SGLI→VGLI, final pay. Documentation tracks the paperwork to secure, Career Center runs a job search you can re-aim at any City/ST, Community finds veteran groups where you are moving, and Outreach lists official VA/VSO resources by category (Housing, Legal, Healthcare, Financial, Education, Employment, Benefits, Crisis). Turn on notification mode on any checklist to get priority alerts on your device and in red on Command Center.' },
+  { tags: ['medical separation','meb','peb','ides','medical retirement','medboard','unfit','disability rating','crsc','crdp','tdrl','pdrl'], citation: 'In-app: Transition → Checklist (Medical) / DoD IDES',
+    q: 'How does a medical separation (MEB/PEB) work?',
+    a: 'A medical separation runs through the Integrated Disability Evaluation System (IDES): your Medical Evaluation Board (MEB) refers conditions, you do ONE set of VA C&P exams that feed both the DoD fitness decision and your VA rating, then the Physical Evaluation Board (PEB) decides fitness and a DoD disability %. 30%+ on the unfitting conditions generally means medical RETIREMENT; below 30% is usually separation with severance. Your PEBLO is your case manager; talk to free military disability counsel before accepting or appealing PEB findings. If medically retired, look at CRSC/CRDP to restore retired pay offset by VA comp. Pick "Medical (MEB/PEB)" on the Transition Checklist to surface this whole track plus the IDES document roster.' },
+  { tags: ['community','veteran groups','clubs','social','meetup','rallypoint','vfw','american legion','make friends','motorcycle','car club'], citation: 'In-app: Transition → Community',
+    q: 'How do I find veteran groups or clubs where I am moving?',
+    a: 'Open Transition → Community, enter the city/state you are moving to, and the links tailor to that area — broken into categories (Veteran Orgs, Biker Clubs, Car Clubs, Sports & Outdoors, Social & Hobby, Family & Spouse). It points to official VA/VSO sources (VA locator, VFW/American Legion/DAV chapter finders, CVMA, Team RWB) plus location-aware searches on RallyPoint, Meetup, Facebook groups, and Nextdoor.' },
+  { tags: ['notifications','alerts','reminders','push','notify','red alerts'], citation: 'In-app: any checklist → notification mode',
+    q: 'How do I get reminders / alerts for my checklist tasks?',
+    a: 'Every checklist (PCS Checklist, Transition Checklist, Transition Documents, Pet Relocation) has a notification mode selector. Turn it on to connect your device for notifications — your outstanding high/medium/low priority items then appear in a red Priority Alerts card on Command Center and can alert you on your device. Turning one checklist off leaves the others (and the global push toggle) untouched.' },
 ];
 
 // Parse an "In-app: <Group> → <Subtab>" hint out of an assistant

@@ -18,7 +18,7 @@ import {
   isNotifyMode, setNotifyMode, publishAlerts, clearAlerts,
   connectDeviceNotifications, fireLocalNotification,
 } from '../lib/checklistAlerts';
-import { enablePushNotifications, disablePushNotifications } from '../pushNotifications';
+import { enablePushNotifications } from '../pushNotifications';
 
 const withTimeout = (p, ms) =>
   Promise.race([p, new Promise(resolve => setTimeout(() => resolve({ ok: false, reason: 'timeout' }), ms))]);
@@ -69,7 +69,12 @@ export default function NotificationModeSelector({ theme, checklistId, checklist
     setNotifyMode(checklistId, false);
     setOn(false);
     await clearAlerts(checklistId);
-    withTimeout(disablePushNotifications(), 3000).catch(() => {});
+    // Do NOT tear down the shared device push subscription here. It's a
+    // single subscription owned jointly by every checklist's notify mode AND
+    // the global push toggle in Settings; unsubscribing on one checklist's
+    // disable would silently kill push for all the others. Turning off the
+    // device subscription is the global toggle's job. Local notifications
+    // simply stop firing for this checklist once its mode is off.
     setStatus('Off.');
   };
 
@@ -94,7 +99,7 @@ export default function NotificationModeSelector({ theme, checklistId, checklist
             </span>
           )}
         </div>
-        <div style={{ fontSize: 11, color: '#56697C', marginTop: 2, lineHeight: 1.4 }}>
+        <div role="status" aria-live="polite" style={{ fontSize: 11, color: '#56697C', marginTop: 2, lineHeight: 1.4 }}>
           {status || 'Connect this device to get priority alerts on your phone and in red on Command Center.'}
         </div>
       </div>
