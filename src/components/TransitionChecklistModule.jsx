@@ -25,6 +25,7 @@ import { useEffect, useState } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
 import { PlanningAidDisclaimer } from './CalculatorResultLabel';
 import SyncStatusIndicator from './SyncStatusIndicator';
+import NotificationModeSelector from './NotificationModeSelector';
 
 const STORAGE_KEY = 'pcs_transition_checklist';
 
@@ -309,6 +310,12 @@ export default function TransitionChecklistModule({ theme, profile }) {
   const done = visible.filter(m => checks[m.id]).length;
   const pct = total ? Math.round((done / total) * 100) : 0;
 
+  // Outstanding (unchecked) milestones feed the device-notification + the
+  // Command Center priority feed, carrying each milestone's own priority.
+  const outstandingAlerts = visible
+    .filter(m => !checks[m.id])
+    .map(m => ({ id: m.id, title: m.title, priority: m.priority }));
+
   const toggle = (id) => {
     const next = { ...checks, [id]: !checks[id] };
     setChecks(next);
@@ -444,6 +451,10 @@ export default function TransitionChecklistModule({ theme, profile }) {
         <div className="pcs-progress-card__bar">
           <div style={{ width: `${pct}%`, background: pct === 100 ? '#2E7D32' : theme.accent }} />
         </div>
+      </div>
+
+      <div style={{ marginTop: 14 }}>
+        <NotificationModeSelector theme={theme} checklistId="transition-checklist" checklistLabel="Transition" alerts={outstandingAlerts} />
       </div>
 
       {/* Vertical T-minus timeline */}

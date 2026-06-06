@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
 import SyncStatusIndicator from './SyncStatusIndicator';
+import NotificationModeSelector from './NotificationModeSelector';
 
 const STORAGE_KEY = 'pcs_pet_relocation_checks';
 
@@ -95,6 +96,15 @@ export default function PetRelocationChecklistTab({ theme, profile }) {
   const done = allTasks.filter(key => checks[key]).length;
   const pct = allTasks.length ? Math.round((done / allTasks.length) * 100) : 0;
 
+  // Unchecked pet tasks feed the notification + Command Center feed. OCONUS
+  // moves are time-critical (quarantine / import lead times) → High.
+  const outstandingAlerts = Object.entries(PHASES).flatMap(([phase, tasks]) =>
+    tasks
+      .map((task, index) => ({ key: `${phase}-${index}`, task }))
+      .filter(t => !checks[t.key])
+      .map(t => ({ id: t.key, title: t.task, priority: isOconus ? 'High' : 'Medium' })),
+  );
+
   const toggleTask = async (phase, index) => {
     const key = `${phase}-${index}`;
     const next = { ...checks, [key]: !checks[key] };
@@ -123,6 +133,9 @@ export default function PetRelocationChecklistTab({ theme, profile }) {
           <div style={{ width: `${pct}%`, background: pct === 100 ? '#2E7D32' : theme.accent }} />
         </div>
       </div>
+
+      <NotificationModeSelector theme={theme} checklistId="pet-relocation" checklistLabel="Pet Relocation" alerts={outstandingAlerts} />
+
 
       {countryRule && (
         <section style={{ background: '#FFF8E1', border: '1.5px solid #FFE082', borderRadius: 12, padding: 14, marginBottom: 14 }}>
