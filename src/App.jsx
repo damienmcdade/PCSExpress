@@ -685,7 +685,10 @@ function TMinusDashboard({ theme, profile }) {
     .sort((a, b) => a.tMinus - b.tMinus);
 
   const tLabel = daysUntil >= 0 ? `T-${daysUntil}` : `T+${Math.abs(daysUntil)}`;
-  const tColor = daysUntil < 0 ? '#16A34A' : daysUntil <= 7 ? '#DC2626' : daysUntil <= 30 ? '#F59E0B' : theme.accent;
+  // All branches/states use AA-contrast text colors here (the value also
+  // drives the small T-tag labels, not just the border): darker green/red/
+  // amber and the branch accentInk fallback so none drop below 4.5:1 on white.
+  const tColor = daysUntil < 0 ? '#15803D' : daysUntil <= 7 ? '#C62828' : daysUntil <= 30 ? '#B45309' : (theme.accentInk || theme.accent);
 
   return (
     <div style={{ background: '#FFFFFF', border: `1px solid ${UI_PALETTE.line}`, borderLeft: `4px solid ${tColor}`, borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
@@ -707,8 +710,8 @@ function TMinusDashboard({ theme, profile }) {
             const tag = m.days >= 0 ? `T+${m.days}` : `T${m.days}`;
             return (
               <div key={idx} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 0', borderBottom: idx === Math.min(upcoming.length, 4) - 1 ? 'none' : `1px dashed ${UI_PALETTE.line}` }}>
-                <div style={{ flexShrink: 0, minWidth: 44, fontSize: 11, fontWeight: 900, color: passed ? '#9CA3AF' : tColor, textAlign: 'center', padding: '2px 0' }}>{tag}</div>
-                <div style={{ flex: 1, fontSize: 12, color: passed ? '#9CA3AF' : UI_PALETTE.text, lineHeight: 1.45, textDecoration: passed ? 'line-through' : 'none' }}>{m.label}</div>
+                <div style={{ flexShrink: 0, minWidth: 44, fontSize: 11, fontWeight: 900, color: passed ? '#6B7280' : tColor, textAlign: 'center', padding: '2px 0' }}>{tag}</div>
+                <div style={{ flex: 1, fontSize: 12, color: passed ? '#6B7280' : UI_PALETTE.text, lineHeight: 1.45, textDecoration: passed ? 'line-through' : 'none' }}>{m.label}</div>
               </div>
             );
           })}
@@ -865,7 +868,7 @@ function WeeklyDigestCard({ theme, checklistItems }) {
   if (!anyActivity) return null;
   const tiles = [
     { label: 'Tasks completed',    value: stats.completed,   accent: '#2E7D32' },
-    { label: 'Tasks reopened',     value: stats.reopened,    accent: '#E65100' },
+    { label: 'Tasks reopened',     value: stats.reopened,    accent: '#C44400' },
     { label: 'Inventory updates',  value: stats.inv,         accent: theme.primary },
     { label: 'AI sessions',        value: stats.aiOpens,     accent: '#0D3B66' },
   ];
@@ -1038,7 +1041,7 @@ function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
 
   const lanes = [
     { id: 'today',  title: 'Today',             accent: '#C62828', phaseLabel: currentPhase, items: pickItems(currentPhase, 4) },
-    { id: 'week',   title: 'This Week',         accent: '#E65100', phaseLabel: nextPhase || '—', items: nextPhase ? pickItems(nextPhase, 4) : [] },
+    { id: 'week',   title: 'This Week',         accent: '#C44400', phaseLabel: nextPhase || '—', items: nextPhase ? pickItems(nextPhase, 4) : [] },
     { id: 'before', title: 'Before You Report', accent: theme.primary, phaseLabel: null, items: futureItems },
   ];
   const total = lanes.reduce((s, l) => s + l.items.length, 0);
@@ -1160,13 +1163,13 @@ const COMPONENT_NOTES = {
 };
 
 const BRANCH_THEMES = {
-  Army:           { primary: "#4A5E2A", secondary: "#2C3A14", accent: "#C8A84B", motto: "HOOAH",          tagline: "This We'll Defend",            insignia: "USA",  abbr: "USA"  },
-  Navy:           { primary: "#1A2A5E", secondary: "#0D1838", accent: "#C8A84B", motto: "BRAVO ZULU",     tagline: "A Global Force for Good",      insignia: "USN",  abbr: "USN"  },
-  "Marine Corps": { primary: "#8B0000", secondary: "#5C0000", accent: "#C8A84B", motto: "SEMPER FIDELIS", tagline: "The Few. The Proud.",           insignia: "USMC", abbr: "USMC" },
-  "Air Force":    { primary: "#1A3A5C", secondary: "#0D2240", accent: "#60A0C8", motto: "AIM HIGH",       tagline: "Fly–Fight–Win",                insignia: "USAF", abbr: "USAF" },
-  "Space Force":  { primary: "#1A1A3E", secondary: "#0A0A28", accent: "#7AB0E0", motto: "SEMPER SUPRA",   tagline: "Guardians of the High Ground", insignia: "USSF", abbr: "USSF" },
-  "Coast Guard":  { primary: "#005A8E", secondary: "#003D6A", accent: "#FF6B00", motto: "SEMPER PARATUS", tagline: "Always Ready",                 insignia: "USCG", abbr: "USCG" },
-  "DoD Civilian": { primary: "#0D3B66", secondary: "#082A4D", accent: "#C99A3D", motto: "MISSION FIRST",  tagline: "Service to the Nation",        insignia: "DoD",  abbr: "DoD"  },
+  Army:           { primary: "#4A5E2A", secondary: "#2C3A14", accent: "#C8A84B", accentInk: "#8A6A12", motto: "HOOAH",          tagline: "This We'll Defend",            insignia: "USA",  abbr: "USA"  },
+  Navy:           { primary: "#1A2A5E", secondary: "#0D1838", accent: "#C8A84B", accentInk: "#8A6A12", motto: "BRAVO ZULU",     tagline: "A Global Force for Good",      insignia: "USN",  abbr: "USN"  },
+  "Marine Corps": { primary: "#8B0000", secondary: "#5C0000", accent: "#C8A84B", accentInk: "#8A6A12", motto: "SEMPER FIDELIS", tagline: "The Few. The Proud.",           insignia: "USMC", abbr: "USMC" },
+  "Air Force":    { primary: "#1A3A5C", secondary: "#0D2240", accent: "#60A0C8", accentInk: "#1F6A93", motto: "AIM HIGH",       tagline: "Fly–Fight–Win",                insignia: "USAF", abbr: "USAF" },
+  "Space Force":  { primary: "#1A1A3E", secondary: "#0A0A28", accent: "#7AB0E0", accentInk: "#1F6A93", motto: "SEMPER SUPRA",   tagline: "Guardians of the High Ground", insignia: "USSF", abbr: "USSF" },
+  "Coast Guard":  { primary: "#005A8E", secondary: "#003D6A", accent: "#FF6B00", accentInk: "#C24E00", motto: "SEMPER PARATUS", tagline: "Always Ready",                 insignia: "USCG", abbr: "USCG" },
+  "DoD Civilian": { primary: "#0D3B66", secondary: "#082A4D", accent: "#C99A3D", accentInk: "#8A6A12", motto: "MISSION FIRST",  tagline: "Service to the Nation",        insignia: "DoD",  abbr: "DoD"  },
 };
 
 const BRANCH_RANKS = {
@@ -1778,18 +1781,18 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
           <div style={{ fontSize: 13, fontWeight: 800, color: theme.primary }}>Overall Progress</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 12, color: '#56697C' }}>{done}/{allTasks.length} tasks</span>
-            <span style={{ fontSize: 17, fontWeight: 900, color: pct === 100 ? '#2E7D32' : theme.accent }}>{pct}%</span>
+            <span style={{ fontSize: 17, fontWeight: 900, color: pct === 100 ? '#2E7D32' : (theme.accentInk || theme.accent) }}>{pct}%</span>
             {pct === 100 && <span style={{ fontSize: 11, fontWeight: 700, background: '#2E7D32', color: '#FFF', borderRadius: 6, padding: '2px 8px' }}>COMPLETE</span>}
           </div>
         </div>
         <div style={{ height: 10, background: '#E0E0E0', borderRadius: 10, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? '#2E7D32' : theme.accent, borderRadius: 10, transition: 'width 0.4s ease' }} />
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10, color: '#BBB' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10, color: '#5B6470' }}>
           <span>{'Orders Received'}</span><span>{'In Progress'}</span><span>{'Move Complete'}</span>
         </div>
         {daysUntil !== null && (
-          <div style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: daysUntil < 0 ? '#C62828' : daysUntil < 30 ? '#E65100' : '#56697C', textAlign: 'center' }}>
+          <div style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: daysUntil < 0 ? '#C62828' : daysUntil < 30 ? '#C44400' : '#56697C', textAlign: 'center' }}>
             {daysUntil < 0 ? `${Math.abs(daysUntil)}d since departure` : `${daysUntil} days until departure`}
           </div>
         )}
@@ -1857,7 +1860,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
                 </span>
                 <span style={{ flex: 1 }}>
                   <span style={{ fontSize: 13, color: checked ? '#888' : taskOverdue ? '#C62828' : theme.primary, textDecoration: checked ? 'line-through' : 'none', fontWeight: checked ? 400 : 600, lineHeight: 1.4 }}>{task}</span>
-                  {taskOverdue && <span style={{ display: 'block', fontSize: 10, color: '#E57373', fontWeight: 800, marginTop: 3 }}>PAST DUE — Complete immediately</span>}
+                  {taskOverdue && <span style={{ display: 'block', fontSize: 10, color: '#C62828', fontWeight: 800, marginTop: 3 }}>PAST DUE — Complete immediately</span>}
                   {reminders[`${activePhase}-${i}`] && (
                     <span style={{ display: 'block', fontSize: 10, color: '#0D3B66', fontWeight: 700, marginTop: 3 }}>
                       ⏰ Reminder: {new Date(reminders[`${activePhase}-${i}`]).toLocaleString()}
@@ -2333,7 +2336,7 @@ function SchoolsTab({ theme, profile }) {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8, fontSize: 11 }}>
                 <div style={{ color: '#666' }}>Ages: <strong style={{ color: '#0D1821' }}>{dc.ages}</strong></div>
                 <div style={{ color: '#666' }}>Phone: <strong style={{ color: '#0D1821' }}>{dc.phone}</strong></div>
-                <div style={{ color: '#666' }}>Waitlist: <strong style={{ color: dc.waitlist.includes('None') ? '#2E7D32' : '#E65100' }}>{dc.waitlist}</strong></div>
+                <div style={{ color: '#666' }}>Waitlist: <strong style={{ color: dc.waitlist.includes('None') ? '#2E7D32' : '#C44400' }}>{dc.waitlist}</strong></div>
               </div>
             </div>
           ))}
@@ -4779,7 +4782,7 @@ function HomeLegalBanners({ theme }) {
       <div style={{ background: UI_PALETTE.surface, borderRadius: 12, padding: 14, border: `1px solid ${UI_PALETTE.line}`, borderLeft: `4px solid ${theme.primary}`, color: UI_PALETTE.text }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <span style={{ fontSize: 14 }}>🔒</span>
-          <div style={{ fontSize: 10, fontWeight: 900, color: theme.accent, letterSpacing: '.14em' }}>YOUR DATA STAYS ON YOUR PHONE</div>
+          <div style={{ fontSize: 10, fontWeight: 900, color: (theme.accentInk || theme.accent), letterSpacing: '.14em' }}>YOUR DATA STAYS ON YOUR PHONE</div>
         </div>
         <div style={{ fontSize: 12, lineHeight: 1.6, color: '#1F2937', fontWeight: 600, marginBottom: 8 }}>
           Everything you type is scrambled with strong encryption (AES-256) and saved only on this device. Even if someone steals your phone, they can’t read it. We never see your data — there’s no PCS Express server that stores anything.
@@ -5446,7 +5449,7 @@ function App() {
                   fontFamily: DISPLAY_FONT, opacity: 0.85,
                 }}>
                   {theme.motto}
-                  {theme.tagline && <span style={{ opacity: 0.55, marginLeft: 8, fontWeight: 500, fontStyle: 'italic', letterSpacing: '.02em', textTransform: 'none' }}>{theme.tagline}</span>}
+                  {theme.tagline && <span style={{ opacity: 1, marginLeft: 8, fontWeight: 500, fontStyle: 'italic', letterSpacing: '.02em', textTransform: 'none' }}>{theme.tagline}</span>}
                 </div>
               )}
             </div>
@@ -5482,7 +5485,7 @@ function App() {
                 </button>
               ))}
             </div>
-            <button onClick={() => { setShowResetWarning(true); setNavOpen(false); }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.1)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,100,100,0.85)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>{t('reset')}</button>
+            <button onClick={() => { setShowResetWarning(true); setNavOpen(false); }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.1)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', color: '#FFB3B3', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>{t('reset')}</button>
           </div>
         )}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -5619,7 +5622,7 @@ function App() {
             <span aria-hidden="true" style={{ fontSize: 14 }}>🔒</span>
             Security &amp; data handling
           </button>
-          <button onClick={() => setShowResetWarning(true)} style={{ width: '100%', padding: '9px', background: 'rgba(255,0,0,0.08)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,100,100,0.85)', fontSize: 10, cursor: 'pointer', fontWeight: 700 }}>{t('reset')}</button>
+          <button onClick={() => setShowResetWarning(true)} style={{ width: '100%', padding: '9px', background: 'rgba(255,0,0,0.08)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.07)', color: '#FFB3B3', fontSize: 10, cursor: 'pointer', fontWeight: 700 }}>{t('reset')}</button>
         </aside>
       )}
       <main id="pcs-main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -5752,7 +5755,7 @@ function App() {
               </button>
             ))}
           </div>
-          <button onClick={() => { setShowResetWarning(true); setNavOpen(false); }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.15)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,100,100,0.9)', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
+          <button onClick={() => { setShowResetWarning(true); setNavOpen(false); }} style={{ width: '100%', padding: '10px', background: 'rgba(255,0,0,0.15)', border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', color: '#FFB3B3', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
             Reset / Re-onboard
           </button>
         </div>
@@ -5778,7 +5781,7 @@ function App() {
             <button type="button" key={i} onClick={() => { goTo('checklist'); }} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: '1px solid #F8F8F8', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: alert.overdue ? '#FFF5F5' : '#FFFDE7' }}>
               <span style={{ fontSize: 20, flexShrink: 0 }}>{alert.overdue ? '⚠️' : '📋'}</span>
               <span style={{ flex: 1 }}>
-                <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: alert.overdue ? '#C62828' : '#E65100' }}>
+                <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: alert.overdue ? '#C62828' : '#C44400' }}>
                   {alert.overdue ? 'Overdue Action' : 'Due Now'}{': '}{alert.phase}
                 </span>
                 <span style={{ display: 'block', fontSize: 11, color: '#56697C', marginTop: 1 }}>
@@ -6142,7 +6145,7 @@ function App() {
               ))}
             </div>
             <div style={{ padding: '10px 12px 4px' }}>
-              <button onClick={() => { setShowResetWarning(true); setMoreOpen(false); }} style={{ width: '100%', padding: '12px', background: 'rgba(255,60,60,0.12)', border: '1px solid rgba(255,60,60,0.2)', borderRadius: 12, color: 'rgba(255,100,100,0.9)', fontSize: 13, cursor: 'pointer', fontWeight: 700 }}>
+              <button onClick={() => { setShowResetWarning(true); setMoreOpen(false); }} style={{ width: '100%', padding: '12px', background: 'rgba(255,60,60,0.12)', border: '1px solid rgba(255,60,60,0.2)', borderRadius: 12, color: '#FFB3B3', fontSize: 13, cursor: 'pointer', fontWeight: 700 }}>
                 Reset / Re-onboard
               </button>
             </div>

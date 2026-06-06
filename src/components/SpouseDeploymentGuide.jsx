@@ -433,7 +433,7 @@ function SpouseDeploymentGuide({ theme, profile: _profile }) {
                       borderRadius: 6,
                       padding: '4px 10px',
                       fontSize: 10,
-                      color: item.critical ? '#C62828' : '#E65100',
+                      color: item.critical ? '#C62828' : '#C44400',
                       fontWeight: 800,
                       letterSpacing: '.05em',
                       marginBottom: item.links && item.links.length > 0 ? 10 : 0,

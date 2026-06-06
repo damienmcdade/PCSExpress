@@ -575,7 +575,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
         )}
 
         {currentDocs.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9CA3AF', fontSize: 13 }}>No records in this category.</div>
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#6B7280', fontSize: 13 }}>No records in this category.</div>
         ) : currentDocs.map((doc) => {
           const st = states[doc.id] || {};
           const obtained = !!st.obtained;
