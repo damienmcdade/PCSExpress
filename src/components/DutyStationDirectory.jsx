@@ -1220,7 +1220,7 @@ function militaryInstallationsSlug(name) {
 // are .mil / .gov only — MilitaryINSTALLATIONS (DoD installation
 // directory), TRICARE.mil (medical), DoDEA (overseas schools),
 // home.army.mil / cnic.navy.mil / marines.mil / af.mil / spaceforce.mil
-// / uscg.mil (branch portals), defensetravel.mil (BAH/OHA), and
+// / uscg.mil (branch portals), travel.dod.mil (BAH/OHA), and
 // installations.militaryonesource.mil for the family-readiness side.
 function officialInstallationLinks(name, branch, isOconus, zip) {
   const slug = militaryInstallationsSlug(name);
@@ -1435,7 +1435,7 @@ function BasicInstallationCard({ name, theme }) {
           </div>
         )}
         <div style={{ fontSize: 12, color: '#56697C', lineHeight: 1.6, marginBottom: 12 }}>
-          Full directory data for this installation is coming soon. Use the official resources below for housing wait times, TRICARE enrollment, school liaison contacts, and base office numbers.
+          A detailed in-app profile isn't available for this installation yet. Use the official resources below for housing wait times, TRICARE enrollment, school liaison contacts, and base office numbers.
         </div>
         <div style={{ display: 'grid', gap: 8 }}>
           <a href="https://installations.militaryonesource.mil/" target="_blank" rel="noopener noreferrer"

@@ -232,10 +232,15 @@ app.use((req, res, next) => {
     if (allowedOrigins.includes(origin)) return next()
     return res.status(403).json({ error: 'origin not allowed for write methods' })
   }
-  // No Origin header on a write — only permit it from our mobile shells
-  // (Capacitor / iOS / Android UA), which sometimes elide the header.
-  const ua = String(req.headers['user-agent'] || '')
-  if (/Capacitor|CapacitorWebView|PCSExpress/i.test(ua)) return next()
+  // No Origin header on a write. We intentionally do NOT trust the
+  // User-Agent string (fully attacker-spoofable) — a crafted "Capacitor"
+  // UA must not bypass the CSRF guard. The mobile shells send an
+  // allowlisted Origin (capacitor://localhost / https://localhost) and pass
+  // above; the only legitimate no-Origin write is a genuine same-origin
+  // fetch, which the browser marks with Sec-Fetch-Site (not forgeable from
+  // cross-site script). Everything else is rejected.
+  const sfs = String(req.headers['sec-fetch-site'] || '').toLowerCase()
+  if (sfs === 'same-origin' || sfs === 'same-site') return next()
   return res.status(403).json({ error: 'missing Origin on write method' })
 })
 // NOTE: JSON body parsing is attached PER ROUTE (with a route-specific size
@@ -2862,7 +2867,19 @@ app.use('/api', (req, res) => {
 })
 
 if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath))
+  app.use(express.static(distPath, {
+    setHeaders(res, filePath) {
+      // Everything Vite emits into /assets/ is content-hashed (filename
+      // changes when contents change), so it's safe to cache immutably and
+      // stop the Railway-served path revalidating every request. index.html
+      // and the service worker live outside /assets/ (served by the SPA
+      // fallback / their own routes) and stay revalidated, so this can never
+      // pin a stale app shell.
+      if (/[/\\]assets[/\\]/.test(filePath)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+      }
+    },
+  }))
 
   // SPA fallback: serve index.html for all non-API routes. Regex catch-all
   // (works in both Express 4 and 5 — Express 5 drops the bare '*' string).
