@@ -48,7 +48,10 @@ describe('parseAIActions', () => {
   it('strips a valid open_tab marker from visible text and exposes the action', () => {
     const { cleanText, actions } = parseAIActions('Open the calc.\n[action: open_tab bah-calculator]');
     expect(cleanText).toBe('Open the calc.');
-    expect(actions).toEqual([{ verb: 'open_tab', tab: 'bah-calculator', label: 'BAH / OHA Calculator' }]);
+    // Sub-tab ids resolve to their parent mission group + sub-tab so the
+    // deep-link opens "Movement & Logistics → BAH / OHA" (not a blank
+    // non-rendering top-level activeTab).
+    expect(actions).toEqual([{ verb: 'open_tab', tab: 'home-relocation', sub: 'bah-calculator', label: 'Movement & Logistics → BAH / OHA' }]);
   });
 
   it('strips ask_followup markers and exposes the question (truncated to 200 chars)', () => {
@@ -80,7 +83,7 @@ describe('parseAIActions', () => {
     const { actions } = parseAIActions('hi\n[action: run_shell rm -rf /]\n[action: open_tab home]');
     // run_shell isn't a recognized verb so the regex doesn't even
     // match it. Only the valid open_tab survives.
-    expect(actions).toEqual([{ verb: 'open_tab', tab: 'home', label: 'Command Center' }]);
+    expect(actions).toEqual([{ verb: 'open_tab', tab: 'home', sub: null, label: 'Command Center' }]);
   });
 
   it('treats HTML / script tags in marker args as inert text (no markup leakage)', () => {
@@ -116,9 +119,21 @@ describe('parseAIActions', () => {
     // Verb match uses /i; tab_ids must match the allowlist exactly to
     // avoid accepting "HOME" or "Home" as deep-link targets.
     const { actions } = parseAIActions('hi\n[ACTION: OPEN_TAB home]');
-    expect(actions).toEqual([{ verb: 'open_tab', tab: 'home', label: 'Command Center' }]);
+    expect(actions).toEqual([{ verb: 'open_tab', tab: 'home', sub: null, label: 'Command Center' }]);
     const { actions: a2 } = parseAIActions('hi\n[action: open_tab HOME]');
     expect(a2).toEqual([]); // uppercase tab_id is not on the allowlist
+  });
+
+  it('routes the Transition tab and its sub-tabs to the correct group + sub-tab', () => {
+    // Regression: the Transition tab id used to be missing from the route
+    // map, so the AI "Open Transition" button silently dropped.
+    const { actions } = parseAIActions('See your separation timeline.\n[action: open_tab transition]');
+    expect(actions).toEqual([{ verb: 'open_tab', tab: 'transition', sub: null, label: 'Transition' }]);
+    const { actions: comm } = parseAIActions('Find local veteran groups.\n[action: open_tab transition-community]');
+    expect(comm).toEqual([{ verb: 'open_tab', tab: 'transition', sub: 'community', label: 'Transition → Community' }]);
+    // The group/sub slash form resolves via the last segment too.
+    const { actions: slash } = parseAIActions('x\n[action: open_tab transition/outreach]');
+    expect(slash[0]).toMatchObject({ verb: 'open_tab', tab: 'transition', sub: 'outreach' });
   });
 
   it('returns original text when no markers are present', () => {
