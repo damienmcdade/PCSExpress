@@ -1900,17 +1900,35 @@ const SCHOOL_KEY_ALIASES = {
   'MCB Hawaii Kaneohe Bay': ['MCAS Kaneohe Bay'],
   'USAG Japan (Camp Zama)': ['Camp Zama'],
   'Naval Station Rota': ['NS Rota'],
+  // Renamed Army posts: both the legacy and current name are selectable, and
+  // each name carries a complementary partial school list (e.g. Fort Liberty's
+  // off-post Title I schools vs Fort Bragg's on-post DoDEA schools). Cross-link
+  // them so a user sees the SAME merged list under either name.
+  'Fort Liberty': ['Fort Bragg'],
+  'Fort Bragg': ['Fort Liberty'],
+  'Fort Cavazos': ['Fort Hood'],
+  'Fort Hood': ['Fort Cavazos'],
+  'Fort Moore': ['Fort Benning'],
+  'Fort Benning': ['Fort Moore'],
 };
 
 function resolveInstallationSchools(instName) {
-  const direct = HEAVY.INSTALLATION_SCHOOLS[instName];
-  if (direct && direct.length) return direct;
-  const aliasKeys = SCHOOL_KEY_ALIASES[instName];
-  if (aliasKeys) {
-    const merged = aliasKeys.flatMap(k => HEAVY.INSTALLATION_SCHOOLS[k] || []);
-    if (merged.length) return merged;
+  const direct = HEAVY.INSTALLATION_SCHOOLS[instName] || [];
+  const aliasLists = (SCHOOL_KEY_ALIASES[instName] || [])
+    .flatMap(k => HEAVY.INSTALLATION_SCHOOLS[k] || []);
+  if (!aliasLists.length) return direct;
+  // Merge the direct list with every aliased list, deduped by school name, so
+  // renamed bases (Fort Bragg/Fort Liberty, Hood/Cavazos, Benning/Moore) show
+  // one combined list under either name instead of two divergent partial ones.
+  const seen = new Set();
+  const merged = [];
+  for (const s of [...direct, ...aliasLists]) {
+    const key = String(s?.name || '').toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    merged.push(s);
   }
-  return direct || [];
+  return merged;
 }
 
 // Pure helpers hoisted to module scope so they have stable identity and
