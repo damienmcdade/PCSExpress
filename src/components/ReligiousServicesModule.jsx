@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { apiUrl } from '../config/apiConfig'
+import { apiUrl, fetchWithTimeout } from '../config/apiConfig'
 import CopyableText from './CopyableText'
 import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import TabBar from './TabBar'
@@ -332,7 +332,7 @@ function ReligiousServicesModule({ theme, profile }) {
     setLiveServices(s => ({ ...s, status: 'loading' }))
     const params = new URLSearchParams({ address: inst, radiusMiles: '25' })
     if (profile?.language) params.set('lang', profile.language)
-    fetch(apiUrl(`/api/religious-services?${params.toString()}`), { headers: { Accept: 'application/json' } })
+    fetchWithTimeout(apiUrl(`/api/religious-services?${params.toString()}`), { headers: { Accept: 'application/json' } })
       .then(r => r.ok ? r.json() : { services: [], fallback: true })
       .then(data => {
         if (cancelled) return

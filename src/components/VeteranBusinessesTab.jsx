@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import TabBar from './TabBar';
-import { apiUrl } from '../config/apiConfig';
+import { apiUrl, fetchWithTimeout } from '../config/apiConfig';
 import { resolveMarket } from '../data/installationMarkets';
 import { getInstallationSearchLocation, veteranBusinessBubbleLinks, veteranBusinessDiscoveryCards } from '../lib/installationSources';
 
@@ -45,7 +45,7 @@ function VeteranBusinessesTab({ theme, profile }) {
     if (liveMarket.city) params.set('city', liveMarket.city);
     if (liveMarket.state) params.set('state', liveMarket.state);
     if (liveMarket.zip) params.set('zip', liveMarket.zip);
-    fetch(apiUrl(`/api/vet-businesses?${params.toString()}`), { headers: { Accept: 'application/json' } })
+    fetchWithTimeout(apiUrl(`/api/vet-businesses?${params.toString()}`), { headers: { Accept: 'application/json' } })
       .then(r => r.ok ? r.json() : { businesses: [], fallback: true, reason: `http-${r.status}` })
       .then(data => {
         if (cancelled) return;

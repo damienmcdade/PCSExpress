@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react'
-import { apiUrl } from '../config/apiConfig'
+import { apiUrl, fetchWithTimeout } from '../config/apiConfig'
 import { secureLocalStore } from '../security/SecurityExtensions'
 import TabBar from './TabBar'
 import LocationAutocomplete from './LocationAutocomplete'
@@ -657,7 +657,7 @@ function EmploymentModule({ theme, profile, audience = 'spouse' }) {
     if (remoteJobs) params.set('remote', 'true')
     // Debounce keyword changes so we do not fire on every keystroke.
     const t = setTimeout(() => {
-      fetch(apiUrl(`/api/job-listings?${params.toString()}`), { headers: { Accept: 'application/json' } })
+      fetchWithTimeout(apiUrl(`/api/job-listings?${params.toString()}`), { headers: { Accept: 'application/json' } })
         .then(r => r.ok ? r.json() : { listings: [], fallback: true })
         .then(data => {
           if (cancelled) return

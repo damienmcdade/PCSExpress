@@ -6,7 +6,7 @@ import { useEffect, useState, useRef } from 'react'
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 import BaseMapModule from './BaseMapModule'
 import { secureLocalStore, readLegacyJson } from '../security/SecurityExtensions'
-import { apiUrl } from '../config/apiConfig'
+import { apiUrl, fetchWithTimeout } from '../config/apiConfig'
 import TabBar from './TabBar'
 
 function NavigationModule({ theme, profile }) {
@@ -43,7 +43,7 @@ function NavigationModule({ theme, profile }) {
   // Geocode via the server proxy (cached, rate-limited, properly identified to
   // OSM) instead of calling Nominatim directly from the browser.
   const geocode = async (address) => {
-    const r = await fetch(apiUrl(`/api/geocode?q=${encodeURIComponent(address)}`), {
+    const r = await fetchWithTimeout(apiUrl(`/api/geocode?q=${encodeURIComponent(address)}`), {
       headers: { Accept: 'application/json' }
     });
     const d = await r.json();
@@ -84,7 +84,7 @@ function NavigationModule({ theme, profile }) {
     try {
       const from = await geocode(freeFormFrom);
       const to = await geocode(freeFormTo);
-      const r = await fetch(
+      const r = await fetchWithTimeout(
         `https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?steps=true&geometries=geojson&overview=false`
       );
       const data = await r.json();

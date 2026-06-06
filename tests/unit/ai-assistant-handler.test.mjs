@@ -657,7 +657,9 @@ test('happy path: well-formed request → 200 with answer + source', async () =>
       const res = makeRes();
       await handler(makeReq({ body: { q: 'What is BAH?', language: 'en' } }), res);
       assert.equal(res.statusCode, 200);
-      assert.equal(res.body.source, 'anthropic');
+      // Source mirrors the Railway handler's `anthropic / <model>` format so
+      // UI attribution is identical regardless of which handler served it.
+      assert.match(res.body.source, /^anthropic \/ /);
       assert.equal(typeof res.body.answer, 'string');
       assert.ok(res.body.answer.length > 0);
     });
