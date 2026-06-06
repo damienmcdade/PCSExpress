@@ -5423,7 +5423,7 @@ function App() {
               </div>
               <div style={{
                 fontSize: 9, fontWeight: 700, color: theme.primary, letterSpacing: '.10em',
-                fontFamily: DISPLAY_FONT, opacity: 0.78,
+                fontFamily: DISPLAY_FONT,
               }}>
                 {insignia}
               </div>
