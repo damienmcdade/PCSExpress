@@ -149,6 +149,12 @@ export default function MoveStrategyModule({ theme, profile }) {
     ? state.overrides.withDependents
     : !!profile?.hasDependents;
   const distanceMiles = state.overrides.distanceMiles || '1000';
+  // DoD civilians get the flat 18,000 lb FTR §302-7 allowance, not the
+  // rank-tied JTR table the E-5 fallback would otherwise impose. Mirror
+  // PPMFinancialEstimator so the gauge, excess bill, and PPM comparison all
+  // use the correct civilian cap instead of silently understating it.
+  const isCivilian = profile?.component === 'DoD Civilian';
+  const civilianWeightOverride = isCivilian ? 18000 : undefined;
 
   // ── (A) Weight estimate ───────────────────────────────────────────────
   const estimatedWeightLbs = useMemo(() => (
@@ -158,7 +164,7 @@ export default function MoveStrategyModule({ theme, profile }) {
   ), [state.mode, state.roomCounts, state.selections]);
 
   // ── (B) Allowance ─────────────────────────────────────────────────────
-  const authorizedWeightLbs = getAuthorizedWeightAllowance(rank, withDependents);
+  const authorizedWeightLbs = isCivilian ? 18000 : getAuthorizedWeightAllowance(rank, withDependents);
   const excess = excessWeight(estimatedWeightLbs, authorizedWeightLbs);
   const isOver = excess > 0;
   const gaugePct = Math.min(100, authorizedWeightLbs > 0 ? Math.round((estimatedWeightLbs / authorizedWeightLbs) * 100) : 0);
@@ -175,15 +181,18 @@ export default function MoveStrategyModule({ theme, profile }) {
 
   const fullPpm = useMemo(() => calculatePPMEstimate({
     rank, withDependents, distanceMiles, estimatedWeightLbs,
-  }), [rank, withDependents, distanceMiles, estimatedWeightLbs]);
+    authorizedWeightLbsOverride: civilianWeightOverride,
+  }), [rank, withDependents, distanceMiles, estimatedWeightLbs, civilianWeightOverride]);
 
   const partialPpm = useMemo(() => calculatePPMEstimate({
     rank, withDependents, distanceMiles, estimatedWeightLbs: partialWeight,
-  }), [rank, withDependents, distanceMiles, partialWeight]);
+    authorizedWeightLbsOverride: civilianWeightOverride,
+  }), [rank, withDependents, distanceMiles, partialWeight, civilianWeightOverride]);
 
-  const breakEven = useMemo(() => findPpmBreakEvenWeight(calculatePPMEstimate, {
-    rank, withDependents, distanceMiles,
-  }), [rank, withDependents, distanceMiles]);
+  const breakEven = useMemo(() => findPpmBreakEvenWeight(
+    (args) => calculatePPMEstimate({ ...args, authorizedWeightLbsOverride: civilianWeightOverride }),
+    { rank, withDependents, distanceMiles },
+  ), [rank, withDependents, distanceMiles, civilianWeightOverride]);
 
   const scenarios = [
     { id: 'hhg', name: 'Full Government HHG', additionalCash: 0, sub: 'Government moves 100% of your goods', tone: '#455A64' },

@@ -39,6 +39,21 @@ estimates (flagged in `ESTIMATED_MHA_KEYS`):
 - `San Juan, PR` (Fort Buchanan) — Puerto Rico isn't in the CONUS table.
 - `Bowie County, TX` (Red River Army Depot / Texarkana) — no matching DTMO MHA.
 
+### 2026-06-06 — Fort Hamilton (NYC) reconciled + renamed-base BAH fix
+
+- `New York City, NY` (**NY219 NEW YORK CITY**) was added to `MHA_RATES` from the
+  same official 2026 mirror, and `Fort Hamilton` now maps to it. It previously
+  aliased to Arlington, VA (a different city), then fell through to "Rate Table
+  Not Found". Two NY219 cases were added to `bahReferenceValues.test.mjs`
+  (E-5 w/dep $5,070, O-3 no-dep $5,112) and pass.
+- `Fort Rucker` (legacy name of Fort Novosel) was returning "rate not found"
+  while Fort Novosel resolved — added `'Fort Rucker' → 'Dale County, AL'` so both
+  names of the renamed post give the same authoritative rate.
+- Confirmed **no standalone Fort Greely MHA** exists in the official table (the
+  AK MHAs are Ketchikan/Sitka/Juneau/Kodiak/Anchorage/Fairbanks only), so Fort
+  Greely keeps its honest "Rate Table Not Found" + DTMO ZIP-lookup fallback
+  rather than a fabricated row.
+
 Known residual: a few app MHA keys group multiple installations that actually
 sit in different MHAs (e.g. Eglin/Hurlburt grouped under Pensacola, MCAS Cherry
 Point under Camp Lejeune). The namesake installation is correct; splitting the

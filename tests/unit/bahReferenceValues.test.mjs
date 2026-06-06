@@ -53,6 +53,20 @@ const CASES = [
     withDeps: false,
     expected: 1689, // DTMO 2026 official table (verified 2026-05-31)
   },
+  {
+    name: 'Fort Hamilton (NYC / NY219), E-5, with dependents',
+    installation: 'Fort Hamilton',
+    payGrade: 'E-5',
+    withDeps: true,
+    expected: 5070, // DTMO 2026 official table, NY219 NEW YORK CITY (verified 2026-06-06)
+  },
+  {
+    name: 'Fort Hamilton (NYC / NY219), O-3, no dependents',
+    installation: 'Fort Hamilton',
+    payGrade: 'O-3',
+    withDeps: false,
+    expected: 5112, // DTMO 2026 official table, NY219 NEW YORK CITY (verified 2026-06-06)
+  },
 ];
 
 for (const c of CASES) {

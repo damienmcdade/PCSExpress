@@ -108,6 +108,10 @@ const MHA_RATES = {
   'Johnson County, MO': [[1449,1110],[1449,1110],[1449,1110],[1449,1110],[1611,1215],[1929,1446],[2043,1533],[2166,1680],[2322,1767],[1950,1464],[2094,1677],[2247,1782],[2349,1953],[2478,2070],[1656,1281],[1926,1560],[2244,1812],[2517,2046],[2715,2112],[2736,2226],[2751,2262],[2751,2262],[2751,2262],[2751,2262]],
   'Cumberland County, PA': [[1902,1431],[1902,1431],[1902,1431],[1902,1431],[2076,1617],[2376,1779],[2442,1908],[2514,2142],[2643,2223],[2394,1854],[2469,2139],[2562,2235],[2673,2385],[2811,2457],[2121,1725],[2373,2022],[2559,2265],[2853,2439],[3069,2475],[3093,2538],[3114,2580],[3114,2580],[3114,2580],[3114,2580]],
   'Monroe County, PA': [[1677,1272],[1677,1272],[1677,1272],[1677,1272],[1740,1488],[1887,1614],[1956,1674],[2034,1776],[2181,1806],[1902,1668],[1986,1773],[2088,1815],[2214,1893],[2376,1971],[1767,1611],[1884,1722],[2085,1827],[2427,1953],[2676,2007],[2697,2064],[2712,2097],[2712,2097],[2712,2097],[2712,2097]],
+  // NY219 NEW YORK CITY — official DTMO 2026 full-rate table (covers Fort
+  // Hamilton, Brooklyn). Verified from the DTMO 2026 mirror; replaces the
+  // prior honest "rate not found" fallback for Fort Hamilton.
+  'New York City, NY': [[5067,4833],[5067,4833],[5067,4833],[5067,4833],[5070,4980],[5097,5070],[5238,5088],[5418,5100],[5790,5106],[5100,5085],[5313,5097],[5535,5109],[5883,5118],[6306,5280],[5073,5067],[5094,5091],[5529,5112],[6459,5247],[7128,5346],[7194,5514],[7254,5616],[7254,5616],[7254,5616],[7254,5616]],
   'San Juan, PR': [[1530,1167],[1530,1167],[1530,1167],[1881,1428],[2208,1734],[2454,1989],[2649,2280],[2832,2580],[2985,2733],[2208,1734],[2520,2025],[2766,2265],[2976,2475],[3132,2622],[2349,1923],[2706,2265],[3045,2541],[3279,2853],[3525,3093],[3903,3561],[3903,3561],[3903,3561],[3903,3561],[3903,3561],],
   'Charleston County, SC': [[2220,1755],[2220,1755],[2220,1755],[2220,1755],[2385,1941],[2616,2064],[2652,2223],[2694,2439],[2769,2496],[2634,2172],[2667,2436],[2724,2508],[2790,2619],[2880,2661],[2421,2049],[2613,2334],[2721,2529],[2904,2646],[3039,2664],[3060,2697],[3081,2742],[3081,2742],[3081,2742],[3081,2742]],
   'Beaufort County, SC': [[2319,1875],[2319,1875],[2319,1875],[2319,1875],[2403,2103],[2811,2235],[2835,2319],[2844,2490],[2949,2607],[2832,2304],[2841,2487],[2859,2622],[2982,2808],[3141,2829],[2457,2232],[2808,2379],[2856,2661],[3192,2817],[3438,2832],[3465,2835],[3489,2883],[3489,2883],[3489,2883],[3489,2883]],
@@ -196,19 +200,21 @@ export const INSTALLATION_MHA_MAP = {
   'Fort Leonard Wood':            'Pulaski County, MO',
   'Aberdeen Proving Ground':      'Harford County, MD',
   'Fort Myer (JBM-HH)':          'Arlington, VA',
-  // 'Fort Hamilton' (Brooklyn — NYC MHA) intentionally has NO mapping. It
-  // previously aliased to 'Arlington, VA', which presented a materially
-  // different city's BAH as if it were Fort Hamilton's authoritative rate.
-  // Until the real NYC MHA row is reconciled from the DTMO table, Fort
-  // Hamilton falls through to the honest "Rate Table Not Found" panel (with
-  // the official DTMO ZIP lookup link) rather than show a wrong number.
-  // Do NOT re-add an out-of-area proxy — fix it by adding the real NYC row.
+  // Fort Hamilton (Brooklyn) → the real NY219 NEW YORK CITY MHA, reconciled
+  // from the DTMO 2026 full-rate table. (It previously aliased to Arlington,
+  // VA — a materially different city — then fell through to "Rate Table Not
+  // Found"; now it shows Fort Hamilton's actual authoritative NYC BAH.)
+  'Fort Hamilton':                'New York City, NY',
   'Marine Corps Base Quantico':   'Prince William County, VA',
 
   // ── Added 2026: full picker coverage. Maps every installation in the BAH picker to an MHA. ──
   // Army
   'Anniston Army Depot':          'Anniston, AL',
   'Fort Novosel':                 'Dale County, AL',
+  // Fort Rucker = the former name of Fort Novosel; the picker still offers
+  // both, so map the legacy name to the same MHA (was returning "rate not
+  // found" while Fort Novosel resolved — a renamed-base inconsistency).
+  'Fort Rucker':                  'Dale County, AL',
   'Redstone Arsenal':             'Madison County, AL',
   'Fort Huachuca':                'Cochise County, AZ',
   'Yuma Proving Ground':          'Yuma, AZ',
