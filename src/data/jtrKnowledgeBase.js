@@ -201,7 +201,7 @@ TLA (Temporary Lodging Allowance) covers up to 60 days OCONUS (extensible to 100
   {
     id: 'feie-civilian',
     q: 'Can OCONUS DoD civilians claim the Foreign Earned Income Exclusion (FEIE)?',
-    a: `Potentially. IRS Form 2555 lets U.S. citizens working abroad exclude up to roughly $120,000 of foreign earned income if they meet the bona fide residence or physical presence test. The interaction with LQA, the Foreign Tax Credit, and the bona fide residence requirement is non-trivial — consult the installation Tax Center or VITA volunteer. LQA itself is not taxable. Wages may or may not qualify depending on whether you're paid as a U.S. government employee.`,
+    a: `Potentially. IRS Form 2555 lets U.S. citizens working abroad exclude up to the annual foreign-earned-income cap (inflation-adjusted yearly — about $130,000 for 2025 and $132,900 for 2026; check the current IRS Form 2555 instructions) if they meet the bona fide residence or physical presence test. The interaction with LQA, the Foreign Tax Credit, and the bona fide residence requirement is non-trivial — consult the installation Tax Center or VITA volunteer. LQA itself is not taxable. Wages may or may not qualify depending on whether you're paid as a U.S. government employee.`,
     tags: ['feie','foreign earned income','form 2555','civilian','oconus','tax'],
     citation: 'IRS Pub 54 / IRS Form 2555 / 26 USC §911',
   },
@@ -222,7 +222,7 @@ TLA (Temporary Lodging Allowance) covers up to 60 days OCONUS (extensible to 100
   {
     id: 'claim-window',
     q: 'How long do I have to file a damage claim against the TSP?',
-    a: `Report loss or damage in DPS within 180 days of delivery (the notice/dispatch window). File the itemized claim within 9 months of delivery for full Best Replacement Value (FRV) — filing later, up to the 2-year statutory limit, yields only Depreciated Replacement Value. Annotate damage on the DD 1840R at delivery, then submit via DPS within the window.`,
+    a: `Report loss or damage in DPS within 180 days of delivery (the notice/dispatch window). File the itemized claim within 9 months of delivery — 12 months for shipments picked up on/after 15 May 2026 — for full Best Replacement Value (FRV); filing later, up to the 2-year statutory limit, yields only Depreciated Replacement Value. Annotate damage on the DD 1840R at delivery, then submit via DPS within the window.`,
     tags: ['claim','damage','dps','tsp','dd 1840','frv','window','broken'],
     citation: 'JTR §054305 / DTR Part IV Chapter 401',
   },

@@ -77,7 +77,7 @@ export const DOD_CIVILIAN_CHECKLIST = {
   "In-Processing": [
     "Report to the gaining DoD activity HR Service Center on the date specified by your Travel Authorization",
     "Complete SF-50 personnel action paperwork for transfer-in",
-    "Submit DD Form 1351-2 (Travel Voucher) within 5 working days of arrival per FTR §301-52.7",
+    "Submit DD Form 1351-2 (Travel Voucher) within 5 working days of arrival per FTR §301-52",
     "Provide all lodging receipts, mileage logs, weight tickets, and pre/post move records to the voucher office",
     "If OCONUS: complete SF-1190 (LQA, Post Allowance, Education Allowance application) at the servicing HR office",
     "Enroll family in FEHB at gaining duty station if Qualifying Life Event window applies",
