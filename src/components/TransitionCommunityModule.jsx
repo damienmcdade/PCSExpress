@@ -14,12 +14,9 @@
  * Third-party dependencies: React only.
  */
 
-import { useEffect, useState } from 'react';
-import { secureLocalStore } from '../security/SecurityExtensions';
+import { useState } from 'react';
 import TabBar from './TabBar';
-import LocationAutocomplete from './LocationAutocomplete';
-
-const STORAGE_KEY = 'pcs_community_location';
+import { useTransitionLocation } from './transitionLocation';
 
 const enc = (s) => encodeURIComponent(String(s || '').trim());
 // Build a "topic near location" query; falls back to just the topic when no
@@ -94,31 +91,13 @@ const CATEGORIES = [
   },
 ];
 
-export default function TransitionCommunityModule({ theme, profile }) {
-  // Seed the location from the gaining installation's city when available so
-  // the user gets relevant results immediately; they can override it.
-  const seed = String(profile?.gainingInstallation || '').trim();
-  const [location, setLocation] = useState('');
+export default function TransitionCommunityModule({ theme }) {
+  // Shared Transition location (entered once in the top bar) tailors the cards.
+  const { location } = useTransitionLocation();
   const [cat, setCat] = useState(CATEGORIES[0].id);
 
-  useEffect(() => {
-    let mounted = true;
-    secureLocalStore.get(STORAGE_KEY, null).then(v => {
-      if (!mounted) return;
-      if (typeof v === 'string' && v) setLocation(v);
-      else if (seed) setLocation(seed);
-    });
-    return () => { mounted = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const loc = location.trim();
+  const loc = String(location || '').trim();
   const active = CATEGORIES.find(c => c.id === cat) || CATEGORIES[0];
-
-  const onLocationChange = (v) => {
-    setLocation(v);
-    secureLocalStore.set(STORAGE_KEY, v);
-  };
 
   return (
     <div className="pet-page">
@@ -126,39 +105,9 @@ export default function TransitionCommunityModule({ theme, profile }) {
         <div>
           <div className="assistance-kicker">Community</div>
           <h2>Find Your People</h2>
-          <p>Social groups, clubs, and veteran circles where you're relocating. Enter your destination and the links below tailor to that area — pulled from VA / VSO sources and public community platforms.</p>
+          <p>{loc ? `Social groups, clubs, and veteran circles in and around ${loc} — from VA / VSO sources and public community platforms.` : 'Social groups, clubs, and veteran circles where you’re relocating. Set your destination in the bar above and these tailor to that area.'}</p>
         </div>
       </div>
-
-      {/* Location search bar — tailors every link below. */}
-      <section aria-label="Relocation location" style={{ background: '#F4F7FB', border: '1px solid #DCE4EE', borderRadius: 14, padding: 14, marginBottom: 16 }}>
-        <label htmlFor="community-location" style={{ display: 'block', fontSize: 10, fontWeight: 900, color: theme.primary, letterSpacing: '.1em', marginBottom: 6 }}>
-          WHERE ARE YOU MOVING?
-        </label>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <LocationAutocomplete
-            id="community-location"
-            value={location}
-            onChange={(v) => onLocationChange(v)}
-            placeholder="City, ST (e.g. Austin, TX)"
-            ariaLabel="Destination city and state"
-            theme={theme}
-          />
-          {loc && (
-            <button
-              type="button"
-              onClick={() => onLocationChange('')}
-              aria-label="Clear destination"
-              style={{ border: '1px solid #D4DCE8', borderRadius: 999, background: '#FFF', color: '#43526B', fontSize: 12, fontWeight: 700, padding: '9px 14px', cursor: 'pointer' }}
-            >
-              Clear
-            </button>
-          )}
-        </div>
-        <div style={{ fontSize: 11, color: loc ? '#176B6B' : '#56697C', fontWeight: loc ? 700 : 400, marginTop: 6 }}>
-          {loc ? `✓ Tailoring groups to ${loc}` : 'Enter a location to tailor the search links to your destination.'}
-        </div>
-      </section>
 
       {/* Category sub-tabs — bubble pills matching the rest of the app. */}
       <TabBar ariaLabel="Community categories">
