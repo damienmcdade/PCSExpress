@@ -20,6 +20,7 @@ import PlatformBanners from './components/PlatformBanners'
 import AIAssistantTrigger from './components/AIAssistantTrigger'
 import AIAssistantFAB from './components/AIAssistantFAB'
 import TabBar from './components/TabBar'
+import NotificationModeSelector from './components/NotificationModeSelector'
 import { useFocusTrap } from './hooks/useFocusTrap'
 import DynamicTimeline from './components/DynamicTimeline'
 import PrivacyShield from './components/PrivacyShield'
@@ -67,6 +68,9 @@ const EducationBenefitsTab = lazy(() => import('./components/EducationBenefitsTa
 // VeteranBusinesses + Resources tabs also lazy-loaded (perf Tier 1b PR-C).
 const VeteranBusinessesTab = lazy(() => import('./components/VeteranBusinessesTab'))
 const TransitionChecklistModule = lazy(() => import('./components/TransitionChecklistModule'))
+const TransitionDocumentsModule = lazy(() => import('./components/TransitionDocumentsModule'))
+const TransitionOutreachModule = lazy(() => import('./components/TransitionOutreachModule'))
+const PriorityAlertsCard = lazy(() => import('./components/PriorityAlertsCard'))
 const ResourcesTab = lazy(() => import('./components/ResourcesTab'))
 import { AuditLogger, secureLocalStore, readLegacyJson, closeCryptoStoreDB } from './security/SecurityExtensions'
 import { resolveMarket } from './data/installationMarkets'
@@ -1644,6 +1648,19 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
   const done = allTasks.filter(k => checklistItems[k]).length;
   const pct = allTasks.length ? Math.round((done / allTasks.length) * 100) : 0;
 
+  // Outstanding (unchecked) tasks feed the device-notification + Command
+  // Center priority feed. Priority is tailored by phase position — the
+  // earliest phases (nearest action) are High, the latest are Low.
+  const checklistPhaseKeys = Object.keys(branchChecklist);
+  const outstandingAlerts = checklistPhaseKeys.flatMap((phase, pi) => {
+    const pr = pi < Math.ceil(checklistPhaseKeys.length / 3) ? 'High'
+      : pi < Math.ceil((2 * checklistPhaseKeys.length) / 3) ? 'Medium' : 'Low';
+    return (branchChecklist[phase] || [])
+      .map((task, i) => ({ key: `${phase}-${i}`, task }))
+      .filter(t => !checklistItems[t.key] && typeof t.task === 'string')
+      .map(t => ({ id: t.key, title: t.task, priority: pr }));
+  });
+
   const phaseIsOverdue = daysUntil !== null && PHASE_WINDOWS[activePhase] && daysUntil < PHASE_WINDOWS[activePhase].overdueAt;
 
   // Guard the lazy-load window: until a phase is known, several render
@@ -1665,6 +1682,8 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
         </div>
       </div>
       <DynamicTimeline theme={theme} profile={profile} />
+
+      <NotificationModeSelector theme={theme} checklistId="pcs-checklist" checklistLabel="PCS Checklist" alerts={outstandingAlerts} />
 
       {/* Overdue warning banner */}
       {phaseIsOverdue && (
@@ -4114,6 +4133,27 @@ function PCSOperationsTab({ theme, profile, checklistItems, setChecklistItems })
   );
 }
 
+// Transition & Separation group — mirrors PCS Operations' sub-tab shell
+// (Checklist + a separate Documentation roster + the Career Center reused
+// verbatim from Family Readiness + an Outreach resource directory).
+function TransitionTab({ theme, profile }) {
+  const tabs = [
+    { id: 'checklist',     label: 'Checklist' },
+    { id: 'documentation', label: 'Documentation' },
+    { id: 'career',        label: 'Career Center' },
+    { id: 'outreach',      label: 'Outreach' },
+  ];
+  const [tab, setTab] = useState(() => consumePendingSubTab('checklist', tabs.map(t => t.id)));
+  return (
+    <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
+      {tab === 'checklist'     && <TransitionChecklistModule theme={theme} profile={profile} />}
+      {tab === 'documentation' && <TransitionDocumentsModule theme={theme} profile={profile} />}
+      {tab === 'career'        && <EmploymentModule theme={theme} profile={profile} />}
+      {tab === 'outreach'      && <TransitionOutreachModule theme={theme} profile={profile} />}
+    </CategoryTabShell>
+  );
+}
+
 function FamilyReadinessGroupTab({ theme, profile }) {
   const tabs = [
     { id: 'family',      label: 'Family' },
@@ -5693,6 +5733,11 @@ function App() {
             {/* T-Minus dashboard — derived from Report-NLT date per redesign brief */}
             <TMinusDashboard theme={theme} profile={profile} />
 
+            {/* Priority Alerts — red, priority-tiered feed of outstanding items
+                from every checklist with notification mode enabled. Renders
+                nothing until the user turns notifications on somewhere. */}
+            <Suspense fallback={null}><PriorityAlertsCard onJumpTo={goTo} /></Suspense>
+
             {/* Quick Actions — one-tap entry points for the most-common
                 "I just opened the app, what now?" tasks. */}
             <QuickActionsRow theme={theme} onJumpTo={goTo} onOpenAI={() => setShowAIAssistant(true)} onOpenCompliance={() => setShowCompliance(true)} />
@@ -5772,7 +5817,7 @@ function App() {
         {activeTab === 'pcs-operations'    && renderCategoryFrame('pcs-operations',    <PCSOperationsTab    theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />)}
         {activeTab === 'family-readiness'  && renderCategoryFrame('family-readiness',  <FamilyReadinessGroupTab theme={theme} profile={profile} />)}
         {activeTab === 'mission-resources' && renderCategoryFrame('mission-resources', <MissionResourcesTab theme={theme} profile={profile} />)}
-        {activeTab === 'transition'        && renderCategoryFrame('transition',        <TransitionChecklistModule theme={theme} profile={profile} />)}
+        {activeTab === 'transition'        && renderCategoryFrame('transition',        <TransitionTab theme={theme} profile={profile} />)}
         {activeTab === 'home-relocation'   && renderCategoryFrame('home-relocation',   <HomeRelocationUnifiedTab theme={theme} profile={profile} />)}
         {activeTab === 'medical-readiness' && renderCategoryFrame('medical-readiness', <MedicalReadinessTab theme={theme} profile={profile} />)}
 
