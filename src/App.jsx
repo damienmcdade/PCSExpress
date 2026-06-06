@@ -5,7 +5,7 @@
 
 import { Suspense, lazy, useState, useEffect, useRef, useReducer, useMemo, memo } from 'react'
 import './App.css'
-import { apiUrl } from './config/apiConfig'
+import { apiUrl, fetchWithTimeout } from './config/apiConfig'
 import { enablePushNotifications, disablePushNotifications } from './pushNotifications'
 import { INDEPENDENCE_DISCLAIMER } from './config/disclaimer'
 import AppErrorBoundary from './components/AppErrorBoundary'
@@ -1999,7 +1999,7 @@ function SchoolsTab({ theme, profile }) {
     }
     params.set('radiusMiles', '25');
     if (profile?.language) params.set('lang', profile.language);
-    fetch(apiUrl(`/api/schools-nearby?${params.toString()}`), { headers: { Accept: 'application/json' } })
+    fetchWithTimeout(apiUrl(`/api/schools-nearby?${params.toString()}`), { headers: { Accept: 'application/json' } })
       .then(r => r.ok ? r.json() : { schools: [], fallback: true })
       .then(data => {
         if (cancelled) return;
@@ -4309,7 +4309,7 @@ function FamilyFunTab({ theme, profile }) {
     }
     params.set('radiusMiles', '50');
     if (profile?.language) params.set('lang', profile.language);
-    fetch(apiUrl(`/api/family-activities?${params.toString()}`), { headers: { Accept: 'application/json' } })
+    fetchWithTimeout(apiUrl(`/api/family-activities?${params.toString()}`), { headers: { Accept: 'application/json' } })
       .then(r => r.ok ? r.json() : { categories: [], activities: [], fallback: true, reason: `http-${r.status}` })
       .then(data => {
         if (cancelled) return;
