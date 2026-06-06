@@ -9,6 +9,7 @@ import { secureLocalStore } from '../security/SecurityExtensions'
 import TabBar from './TabBar'
 import LocationAutocomplete from './LocationAutocomplete'
 import SkillBridgeSection from './SkillBridgeSection'
+import { useTransitionLocation } from './transitionLocation'
 
 const BASE_CITY = {
   'Fort Liberty': 'Fayetteville, NC',
@@ -599,7 +600,11 @@ function EmploymentModule({ theme, profile, audience = 'spouse' }) {
     })
     return () => { mounted = false }
   }, [])
-  const overrideCity = locationOverride.trim()
+  // Veteran mode (Transition tab) uses the ONE shared Transition location;
+  // spouse mode keeps its own per-module override. Either way `overrideCity`
+  // wins over the gaining-installation city.
+  const sharedLoc = useTransitionLocation()
+  const overrideCity = (isVet ? String(sharedLoc.location || '') : locationOverride).trim()
   const searchCity = overrideCity || cityFor(profile)
   const oconus = overrideCity ? false : isOconusProfile(profile)
 
@@ -738,37 +743,41 @@ function EmploymentModule({ theme, profile, audience = 'spouse' }) {
             city so all job searches + listings tailor to where they're
             actually moving (useful for transition/separation when the next
             stop isn't a duty station). */}
-        <div style={{ marginTop: 10 }}>
-          <label htmlFor="career-location-override" style={{ display: 'block', fontSize: 10, fontWeight: 900, color: '#334155', letterSpacing: '.06em', marginBottom: 4 }}>
-            RELOCATING SOMEWHERE ELSE? TAILOR TO A CITY &amp; STATE
-          </label>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <LocationAutocomplete
-              id="career-location-override"
-              value={locationOverride}
-              onChange={(v) => { setLocationOverride(v); secureLocalStore.set('pcs_career_location_override', v); }}
-              placeholder="City, ST (e.g. Austin, TX)"
-              ariaLabel="Relocation city and state"
-              theme={theme}
-              inputStyle={{ borderRadius: 8, padding: '8px 10px' }}
-            />
+        {/* Veteran mode uses the shared Transition location bar at the top of
+            the tab, so the per-module override is hidden there. */}
+        {!isVet && (
+          <div style={{ marginTop: 10 }}>
+            <label htmlFor="career-location-override" style={{ display: 'block', fontSize: 10, fontWeight: 900, color: '#334155', letterSpacing: '.06em', marginBottom: 4 }}>
+              RELOCATING SOMEWHERE ELSE? TAILOR TO A CITY &amp; STATE
+            </label>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <LocationAutocomplete
+                id="career-location-override"
+                value={locationOverride}
+                onChange={(v) => { setLocationOverride(v); secureLocalStore.set('pcs_career_location_override', v); }}
+                placeholder="City, ST (e.g. Austin, TX)"
+                ariaLabel="Relocation city and state"
+                theme={theme}
+                inputStyle={{ borderRadius: 8, padding: '8px 10px' }}
+              />
+              {overrideCity && (
+                <button
+                  type="button"
+                  onClick={() => { setLocationOverride(''); secureLocalStore.set('pcs_career_location_override', ''); }}
+                  aria-label="Clear relocation override and use the gaining installation"
+                  style={{ border: '1px solid #D4DCE8', borderRadius: 8, background: '#FFF', color: '#43526B', fontSize: 12, fontWeight: 700, padding: '8px 12px', cursor: 'pointer' }}
+                >
+                  Use {installation}
+                </button>
+              )}
+            </div>
             {overrideCity && (
-              <button
-                type="button"
-                onClick={() => { setLocationOverride(''); secureLocalStore.set('pcs_career_location_override', ''); }}
-                aria-label="Clear relocation override and use the gaining installation"
-                style={{ border: '1px solid #D4DCE8', borderRadius: 8, background: '#FFF', color: '#43526B', fontSize: 12, fontWeight: 700, padding: '8px 12px', cursor: 'pointer' }}
-              >
-                Use {installation}
-              </button>
+              <div style={{ fontSize: 11, color: '#176B6B', fontWeight: 700, marginTop: 5 }}>
+                ✓ Tailoring jobs &amp; resources to {overrideCity}
+              </div>
             )}
           </div>
-          {overrideCity && (
-            <div style={{ fontSize: 11, color: '#176B6B', fontWeight: 700, marginTop: 5 }}>
-              ✓ Tailoring jobs &amp; resources to {overrideCity}
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       <TabBar ariaLabel="Employment sections" className="pcs-tabbar--flush">

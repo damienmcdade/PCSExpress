@@ -21,6 +21,7 @@ import AIAssistantTrigger from './components/AIAssistantTrigger'
 import AIAssistantFAB from './components/AIAssistantFAB'
 import TabBar from './components/TabBar'
 import NotificationModeSelector from './components/NotificationModeSelector'
+import { TransitionLocationProvider, TransitionLocationBar } from './components/transitionLocation'
 import { useFocusTrap } from './hooks/useFocusTrap'
 import DynamicTimeline from './components/DynamicTimeline'
 import PrivacyShield from './components/PrivacyShield'
@@ -4219,13 +4220,18 @@ function TransitionTab({ theme, profile }) {
   ];
   const [tab, setTab] = useState(() => consumePendingSubTab('checklist', tabs.map(t => t.id)));
   return (
-    <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab} variant="bubble">
-      {tab === 'checklist'     && <TransitionChecklistModule theme={theme} profile={profile} />}
-      {tab === 'documentation' && <TransitionDocumentsModule theme={theme} profile={profile} />}
-      {tab === 'career'        && <EmploymentModule theme={theme} profile={profile} audience="veteran" />}
-      {tab === 'community'     && <TransitionCommunityModule theme={theme} profile={profile} />}
-      {tab === 'outreach'      && <TransitionOutreachModule theme={theme} profile={profile} />}
-    </CategoryTabShell>
+    <TransitionLocationProvider seed={String(profile?.gainingInstallation || '')}>
+      <div style={{ padding: '16px 16px 0' }}>
+        <TransitionLocationBar theme={theme} />
+      </div>
+      <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab} variant="bubble">
+        {tab === 'checklist'     && <TransitionChecklistModule theme={theme} profile={profile} />}
+        {tab === 'documentation' && <TransitionDocumentsModule theme={theme} profile={profile} />}
+        {tab === 'career'        && <EmploymentModule theme={theme} profile={profile} audience="veteran" />}
+        {tab === 'community'     && <TransitionCommunityModule theme={theme} profile={profile} />}
+        {tab === 'outreach'      && <TransitionOutreachModule theme={theme} profile={profile} />}
+      </CategoryTabShell>
+    </TransitionLocationProvider>
   );
 }
 

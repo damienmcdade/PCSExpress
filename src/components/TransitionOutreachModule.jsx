@@ -11,6 +11,33 @@
 
 import { useState } from 'react';
 import TabBar from './TabBar';
+import { useTransitionLocation } from './transitionLocation';
+
+const enc = (s) => encodeURIComponent(String(s || '').trim());
+
+// Location-tailored "dynamic" cards prepended to each category when the user
+// has set a destination — they point at official locators/searches scoped to
+// that area so the resources match where the member is moving. No fabricated
+// listings; each links to an official locator or a scoped search.
+function dynamicCards(catId, loc) {
+  if (!loc) return [];
+  const va = (type) => `https://www.va.gov/find-locations/?location=${enc(loc)}${type ? `&facilityType=${type}` : ''}`;
+  const search = (q) => `https://www.google.com/search?q=${enc(`${q} ${loc}`)}`;
+  const byCat = {
+    housing: [
+      { name: `VA & housing resources near ${loc}`, desc: `VA offices and housing help serving ${loc}.`, url: va('') },
+      { name: `Veteran housing search — ${loc}`, desc: `HUD-VASH, transitional, and veteran-friendly housing in ${loc}.`, url: search('veteran housing assistance') },
+    ],
+    legal: [{ name: `Free veteran legal aid near ${loc}`, desc: `Pro bono and low-cost legal help for veterans in ${loc}.`, url: search('veteran legal aid pro bono') }],
+    healthcare: [{ name: `VA health facilities near ${loc}`, desc: `VA medical centers, clinics, and Vet Centers serving ${loc}.`, url: va('health') }],
+    financial: [{ name: `Free tax & financial help near ${loc}`, desc: `VITA / MilTax sites and veteran financial counseling in ${loc}.`, url: search('VITA free tax help veterans') }],
+    education: [{ name: `GI Bill schools near ${loc}`, desc: `Compare GI Bill-approved schools and programs in ${loc}.`, url: `https://www.va.gov/education/gi-bill-comparison-tool/` }],
+    employment: [{ name: `American Job Center near ${loc}`, desc: `Local DOL job center (veterans get priority of service) serving ${loc}.`, url: `https://www.careeronestop.org/LocalHelp/AmericanJobCenters/american-job-centers.aspx?location=${enc(loc)}` }],
+    benefits: [{ name: `VA benefits office near ${loc}`, desc: `File and get help with VA claims in ${loc}.`, url: va('benefits') }],
+    crisis: [{ name: `Vet Center near ${loc}`, desc: `Free, confidential readjustment counseling in ${loc} — separate from your VA medical record.`, url: va('vet_center') }],
+  };
+  return (byCat[catId] || []).map(c => ({ ...c, dynamic: true }));
+}
 
 // Crisis line is pinned above every category — surfaced first, always.
 const CRISIS = {
@@ -106,6 +133,9 @@ const CATEGORIES = [
 export default function TransitionOutreachModule({ theme }) {
   const [cat, setCat] = useState(CATEGORIES[0].id);
   const active = CATEGORIES.find(c => c.id === cat) || CATEGORIES[0];
+  const { location } = useTransitionLocation();
+  const loc = String(location || '').trim();
+  const cards = [...dynamicCards(active.id, loc), ...active.links];
 
   return (
     <div className="pet-page">
@@ -113,7 +143,7 @@ export default function TransitionOutreachModule({ theme }) {
         <div>
           <div className="assistance-kicker">Outreach</div>
           <h2>Veteran &amp; Transition Assistance</h2>
-          <p>Official and operational resources for life after service — organized by category. Every link is a .gov / .mil source or a chartered Veterans Service Organization.</p>
+          <p>{loc ? `Official resources for life after service, tailored to ${loc} — organized by category.` : 'Official and operational resources for life after service — organized by category. Set your destination above to tailor them to your area.'}</p>
         </div>
       </div>
 
@@ -162,16 +192,19 @@ export default function TransitionOutreachModule({ theme }) {
       <div role="tabpanel" id={`outreach-panel-${active.id}`} aria-labelledby={`outreach-tab-${active.id}`} style={{ marginTop: 12 }}>
         <p style={{ fontSize: 12, color: '#43526B', margin: '0 0 12px' }}>{active.blurb}</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {active.links.map(link => (
+          {cards.map(link => (
             <a
               key={link.name}
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`${link.name} (opens in a new tab)`}
-              style={{ display: 'block', textDecoration: 'none', background: '#FFFFFF', border: '1px solid #E2E8F1', borderRadius: 12, padding: 13 }}
+              style={{ display: 'block', textDecoration: 'none', background: link.dynamic ? '#F1F8F2' : '#FFFFFF', border: `1px solid ${link.dynamic ? '#A5D6A7' : '#E2E8F1'}`, borderRadius: 12, padding: 13 }}
             >
-              <div style={{ fontSize: 13.5, fontWeight: 800, color: theme.primary, marginBottom: 3 }}>{link.name} →</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 3 }}>
+                <span style={{ fontSize: 13.5, fontWeight: 800, color: theme.primary }}>{link.name} →</span>
+                {link.dynamic && <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: '.06em', color: '#1B5E20', background: '#E8F5E9', border: '1px solid #A5D6A7', borderRadius: 5, padding: '1px 6px' }}>NEAR YOU</span>}
+              </div>
               <div style={{ fontSize: 12, color: '#43526B', lineHeight: 1.5 }}>{link.desc}</div>
             </a>
           ))}
