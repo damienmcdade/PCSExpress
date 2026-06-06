@@ -20,6 +20,7 @@
 import { useEffect, useState } from 'react';
 import { secureLocalStore } from '../security/SecurityExtensions';
 import TabBar from './TabBar';
+import LocationAutocomplete from './LocationAutocomplete';
 
 const LOCATION_KEY = 'pcs_career_location_override'; // shared with the Career override
 
@@ -296,13 +297,13 @@ export default function TransitionCareerModule({ theme, profile }) {
               WHERE ARE YOU HEADED?
             </label>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <input
+              <LocationAutocomplete
                 id="career-location"
                 value={location}
-                onChange={(e) => onLoc(e.target.value)}
-                placeholder="City, ST or ZIP (e.g. Austin, TX)"
-                aria-label="Destination city and state"
-                style={{ flex: 1, minWidth: 200, border: '1px solid #D7E0EA', borderRadius: 999, padding: '9px 16px', fontSize: 13, color: '#0D1821', background: '#FFFFFF' }}
+                onChange={(v) => onLoc(v)}
+                placeholder="City, ST (e.g. Austin, TX)"
+                ariaLabel="Destination city and state"
+                theme={theme}
               />
               {loc && (
                 <button type="button" onClick={() => onLoc('')} aria-label="Clear location" style={{ border: '1px solid #D4DCE8', borderRadius: 999, background: '#FFF', color: '#43526B', fontSize: 12, fontWeight: 700, padding: '9px 14px', cursor: 'pointer' }}>Clear</button>

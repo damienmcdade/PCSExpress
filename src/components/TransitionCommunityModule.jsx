@@ -17,6 +17,7 @@
 import { useEffect, useState } from 'react';
 import { secureLocalStore } from '../security/SecurityExtensions';
 import TabBar from './TabBar';
+import LocationAutocomplete from './LocationAutocomplete';
 
 const STORAGE_KEY = 'pcs_community_location';
 
@@ -135,13 +136,13 @@ export default function TransitionCommunityModule({ theme, profile }) {
           WHERE ARE YOU MOVING?
         </label>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <input
+          <LocationAutocomplete
             id="community-location"
             value={location}
-            onChange={(e) => onLocationChange(e.target.value)}
-            placeholder="City, ST or ZIP (e.g. Austin, TX)"
-            aria-label="Destination city and state"
-            style={{ flex: 1, minWidth: 200, border: '1px solid #D7E0EA', borderRadius: 999, padding: '9px 16px', fontSize: 13, color: '#0D1821', background: '#FFFFFF' }}
+            onChange={(v) => onLocationChange(v)}
+            placeholder="City, ST (e.g. Austin, TX)"
+            ariaLabel="Destination city and state"
+            theme={theme}
           />
           {loc && (
             <button
