@@ -30,6 +30,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { apiUrl } from '../config/apiConfig';
+import { JTR_KB } from '../data/jtrKnowledgeBase';
 import { AuditLogger } from '../security/SecurityExtensions';
 import { escapeHtml } from '../lib/escapeHtml';
 import { useFocusTrap } from '../hooks/useFocusTrap';
@@ -39,45 +40,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 // provider being configured. When this list grows, refactor both
 // callers to import a shared module.
 const CURATED_KB = [
-  { tags: ['ppm','dity','max','payout','reimbursement','weight','hhg'], citation: 'JTR §050302 / DTMO PPM Worksheet / IRS Form 3903',
-    q: 'How do I maximize my PPM (Personally Procured Move) payout?',
-    a: 'PPM reimburses 100% of the Best Value Cost the government would have paid for the same shipment, up to your weight allowance, when you move yourself. To maximize:\n1) Weigh empty, then fully loaded — keep both certified weight tickets.\n2) Stay at or below your authorized weight allowance.\n3) Track every direct moving expense (rental truck, fuel, packing materials, tolls, hired labor).\n4) Submit through DPS within 45 days of arrival.' },
-  { tags: ['tle','tla','temporary lodging','per diem','m&ie','allowance'], citation: 'JTR §050501 (TLE) / §050502 (TLA)',
-    q: 'How many days of TLE / TLA am I entitled to?',
-    a: 'TLE covers up to 14 days for CONUS PCS combined between losing and gaining duty stations. TLA covers up to 60 days OCONUS (extensible to 100). Both reimburse lodging cost up to the locality per-diem ceiling plus a percentage of M&IE based on family size.' },
-  { tags: ['dla','dislocation','allowance','reimbursement','miscellaneous'], citation: 'JTR §050601',
-    q: 'What is Dislocation Allowance (DLA) and how much will I get?',
-    a: 'DLA is a one-time payment that partially reimburses miscellaneous PCS expenses. Paid automatically on PCS. The amount is grade-based — roughly two months of housing allowance at your rank, using the with-dependents or without-dependents rate to match your status. DTMO publishes the exact figures by grade each year.' },
-  { tags: ['pov','vehicle','ship','vpc','dd 788','oconus'], citation: 'JTR §053201 / 32 CFR 102.2',
-    q: 'When can I ship my POV at government expense?',
-    a: 'One POV may be shipped at government expense on OCONUS PCS (Korea, Japan, Germany, etc.). CONUS-to-CONUS PCS does NOT authorize POV shipment. Use DD Form 788 and the Vehicle Processing Center (VPC) network at vpcus.com.' },
-  { tags: ['bah','oha','miha','lqa','overseas','oconus','housing'], citation: 'JTR §100301 (OHA) / DSSR §130 (LQA)',
-    q: 'Do I get BAH overseas?',
-    a: 'No — BAH does not apply OCONUS. Service members receive Overseas Housing Allowance (OHA), Utility/Recurring Maintenance Allowance, and a one-time Move-In Housing Allowance (MIHA). DoD civilians get Living Quarters Allowance (LQA) under DSSR §130. Look up OHA at travel.dod.mil.' },
-  { tags: ['pet','animal','shipment','allowance','reimbursement','quarantine'], citation: 'JTR §050107 / DTMO Pet Transportation Allowance',
-    q: 'Is there a pet shipment allowance?',
-    a: 'Yes, for one cat or dog. Reimbursement up to $550 for a CONUS PCS and up to $2,000 for an OCONUS PCS; OCONUS moves to a high-risk-for-rabies country where contracted/commercial pet transport is unavailable can be reimbursed up to $4,000 (requires Secretarial-process approval). The cap is a single amount per move (not per pet) and covers boarding, transit, quarantine, microchipping, vaccinations, rabies titers, and required health certificates. Submit via the travel voucher (DD 1351-2).' },
-  { tags: ['hht','house hunting','civilian','ftr','conus'], citation: 'FTR §302-5',
-    q: 'Can I take a House Hunting Trip (HHT) before PCS?',
-    a: 'Civilian-only entitlement under FTR §302-5. HHT is CONUS-only — a round trip for employee and one accompanying family member, up to 10 days. Military members do NOT get HHT; they use DLA + TLE. OCONUS DoD civilians do not get HHT.' },
-  { tags: ['real estate','civilian','reimbursement','closing','broker','ftr'], citation: 'FTR §302-11',
-    q: 'Is selling / buying a home reimbursable on a civilian PCS?',
-    a: 'Yes — DoD civilians may claim the Real Estate Expense Allowance under FTR §302-11 for selling the losing primary residence and buying at the gaining locality. Reimbursable: broker commissions, closing costs, title insurance, attorney fees. Caps apply. Military do NOT have a comparable benefit.' },
-  { tags: ['czte','combat zone','tax','exclusion','irc 112','irs'], citation: 'IRC §112 / IRS Pub 3 / 26 USC §112',
-    q: 'How does the Combat Zone Tax Exclusion work?',
-    a: 'Active-duty pay earned in a designated Combat Zone is excluded from federal income tax under IRC §112. Enlisted members exclude all pay; officers exclude up to the maximum enlisted pay + Imminent Danger Pay. Automatic on the W-2 (Box 12 code Q).' },
-  { tags: ['feie','foreign earned income','form 2555','civilian','oconus','tax'], citation: 'IRS Pub 54 / IRS Form 2555 / 26 USC §911',
-    q: 'Can OCONUS DoD civilians claim the Foreign Earned Income Exclusion (FEIE)?',
-    a: 'Potentially. IRS Form 2555 lets U.S. citizens working abroad exclude up to ~$120,000 of foreign earned income if they meet the bona fide residence or physical presence test. Interaction with LQA is non-trivial — consult the installation Tax Center or VITA volunteer.' },
-  { tags: ['weight','allowance','hhg','rank','dependents','pro-gear'], citation: 'JTR Table 5-37 / FTR §302-7',
-    q: 'How is my HHG weight allowance calculated?',
-    a: 'Set by rank and dependency status per JTR Table 5-37. E-5 with deps = 9,000 lbs; E-9 with deps = 15,000; O-1 with deps = 12,000; O-6 with deps = 18,000. Civilians get a flat 18,000 lbs under FTR §302-7. Pro-gear (books, instruments, tools of trade) exempt up to 2,000 lbs sponsor + 500 spouse.' },
-  { tags: ['malt','mileage','pov','reimbursement','dtod','travel'], citation: 'JTR §020205 / DTMO mileage page',
-    q: 'What is the POV mileage rate (MALT) for PCS travel?',
-    a: 'MALT reimburses POV travel at the published JTR rate per authorized mile. Set annually by DTMO. Significantly lower than IRS business rate. Distance is from the Defense Table of Official Distances (DTOD), not your odometer.' },
-  { tags: ['claim','damage','dps','tsp','dd 1840','frv','window'], citation: 'JTR §054305 / DTR Part IV Chapter 401',
-    q: 'How long do I have to file a damage claim against the TSP?',
-    a: 'Soft target: 75 days from delivery to file via DPS for full Best Replacement Value (FRV) coverage. Hard deadline: 9 months from delivery (TSP only owes Depreciated Replacement Value after that). Annotate damage on DD 1840R at delivery, supplement via DPS within the window.' },
+  ...JTR_KB,
   // ── App-feature entries — answer "where do I find X in the app"
   // style questions. Citations point to the in-app surface, not
   // to a regulation. Keeps the AI Assistant useful for product
@@ -290,28 +253,52 @@ const INAPP_SUBTAB_MAP = {
 // Returns { cleanText, actions }. Actions are stripped from the
 // visible text so the markers don't leak into the chat UI when the
 // model decides to include them.
-const TAB_LABELS = {
-  'home':              'Command Center',
-  'pcs-operations':    'PCS Operations',
-  'home-relocation':   'Movement & Logistics',
-  'family-readiness':  'Family Readiness',
-  'medical-readiness': 'Holistic Health',
-  'mission-resources': 'Mission Resources',
-  'checklist':         'Checklist',
-  'documents':         'Paperwork',
-  'education':         'Education',
-  'translation':       'Translation',
-  'religion':          'Faith & Chaplains',
-  'base-intelligence': 'Base Insights',
-  'nav':               'Maps',
-  'resources':         'Help Hub',
-  'jtr-assistant':     'JTR Assistant',
-  'bah-calculator':    'BAH / OHA Calculator',
-  'ppm-estimator':     'PPM Estimator',
-  'budget-tracker':    'Budget Tracker',
-  'shipment-tracker':  'Shipment Tracker',
-  'inventory-claims':  'Inventory & Claims',
-  'home-locator':      'Home Locator',
+// Every AI-routable tab id resolves to a top-level mission GROUP plus an
+// optional sub-tab. The pcs-navigate handler in App.jsx stashes `sub` in the
+// one-shot _SUBTAB_STORE and switches the group, so a sub-tab id like
+// 'bah-calculator' correctly opens "Movement & Logistics → BAH/OHA" instead
+// of setting a non-rendering top-level activeTab (which used to blank the
+// screen). Keep these ids in sync with the system prompt's valid tab_ids.
+const TAB_ROUTES = {
+  // Mission groups
+  'home':              { tab: 'home',              label: 'Command Center' },
+  'pcs-operations':    { tab: 'pcs-operations',    label: 'PCS Operations' },
+  'home-relocation':   { tab: 'home-relocation',   label: 'Movement & Logistics' },
+  'family-readiness':  { tab: 'family-readiness',  label: 'Family Readiness' },
+  'medical-readiness': { tab: 'medical-readiness', label: 'Holistic Health' },
+  'mission-resources': { tab: 'mission-resources', label: 'Mission Resources' },
+  'transition':        { tab: 'transition',        label: 'Transition' },
+  // PCS Operations sub-tabs
+  'checklist':         { tab: 'pcs-operations', sub: 'checklist', label: 'PCS Operations → Checklist' },
+  'documents':         { tab: 'pcs-operations', sub: 'documents',  label: 'PCS Operations → Paperwork' },
+  'timeline':          { tab: 'pcs-operations', sub: 'timeline',   label: 'PCS Operations → Timeline' },
+  // Movement & Logistics sub-tabs
+  'home-locator':      { tab: 'home-relocation', sub: 'home-locator',     label: 'Movement & Logistics → Home Locator' },
+  'bah-calculator':    { tab: 'home-relocation', sub: 'bah-calculator',   label: 'Movement & Logistics → BAH / OHA' },
+  'ppm-estimator':     { tab: 'home-relocation', sub: 'ppm-estimator',    label: 'Movement & Logistics → PPM Estimator' },
+  'move-strategy':     { tab: 'home-relocation', sub: 'move-strategy',    label: 'Movement & Logistics → Move Strategy' },
+  'budget-tracker':    { tab: 'home-relocation', sub: 'budget-tracker',   label: 'Movement & Logistics → Budget Tracker' },
+  'shipment-tracker':  { tab: 'home-relocation', sub: 'shipment-tracker', label: 'Movement & Logistics → Shipment Tracker' },
+  'inventory-claims':  { tab: 'home-relocation', sub: 'inventory-claims', label: 'Movement & Logistics → Inventory & Claims' },
+  'jtr-assistant':     { tab: 'home-relocation', sub: 'jtr-assistant',    label: 'Movement & Logistics → JTR Assistant' },
+  'move-aid':          { tab: 'home-relocation', sub: 'move-aid',         label: 'Movement & Logistics → Move Aid' },
+  'va-loan':           { tab: 'home-relocation', sub: 'va-loan',          label: 'Movement & Logistics → VA Loan' },
+  // Family Readiness sub-tabs
+  'family':            { tab: 'family-readiness', sub: 'family',      label: 'Family Readiness → Family' },
+  'education':         { tab: 'family-readiness', sub: 'education',   label: 'Family Readiness → Education' },
+  'translation':       { tab: 'family-readiness', sub: 'translation', label: 'Family Readiness → Translation' },
+  'religion':          { tab: 'family-readiness', sub: 'faith',       label: 'Family Readiness → Faith & Chaplains' },
+  // Mission Resources sub-tabs
+  'base-intelligence': { tab: 'mission-resources', sub: 'base-insights', label: 'Mission Resources → Base Insights' },
+  'nav':               { tab: 'mission-resources', sub: 'maps',         label: 'Mission Resources → Maps' },
+  'resources':         { tab: 'mission-resources', sub: 'help-hub',     label: 'Mission Resources → Help Hub' },
+  'veterans':          { tab: 'mission-resources', sub: 'veteran',      label: 'Mission Resources → Veteran Support' },
+  // Transition sub-tabs
+  'transition-checklist':     { tab: 'transition', sub: 'checklist',     label: 'Transition → Checklist' },
+  'transition-documentation': { tab: 'transition', sub: 'documentation', label: 'Transition → Documentation' },
+  'transition-career':        { tab: 'transition', sub: 'career',        label: 'Transition → Career Center' },
+  'transition-community':     { tab: 'transition', sub: 'community',      label: 'Transition → Community' },
+  'transition-outreach':      { tab: 'transition', sub: 'outreach',      label: 'Transition → Outreach' },
 };
 // The system prompt instructs the model to emit at most 3 markers.
 // We enforce the cap here too so a jailbroken or runaway model can't
@@ -326,7 +313,14 @@ export function parseAIActions(text) {
       const args = String(argsRaw).trim();
       if (actions.length >= MAX_AI_ACTIONS) return '';
       if (verb.toLowerCase() === 'open_tab') {
-        if (TAB_LABELS[args]) actions.push({ verb: 'open_tab', tab: args, label: TAB_LABELS[args] });
+        // Accept a bare id ("transition", "bah-calculator") or a group/sub
+        // slash form ("transition/community", "home-relocation/bah-calculator").
+        // Resolve via the exact id, the hyphen-joined form, then the last
+        // segment — all against the TAB_ROUTES allowlist.
+        const joined = args.replace(/\//g, '-');
+        const last = args.includes('/') ? args.split('/').pop().trim() : args;
+        const r = TAB_ROUTES[args] || TAB_ROUTES[joined] || TAB_ROUTES[last];
+        if (r) actions.push({ verb: 'open_tab', tab: r.tab, sub: r.sub || null, label: r.label });
       } else if (verb.toLowerCase() === 'ask_followup') {
         // Truncate questions so a runaway model can't generate a
         // 2,000-char follow-up button. Keep first 200 chars.
@@ -841,7 +835,7 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
                             <button
                               key={ai}
                               onClick={() => {
-                                window.dispatchEvent(new CustomEvent('pcs-navigate', { detail: { tab: a.tab } }));
+                                window.dispatchEvent(new CustomEvent('pcs-navigate', { detail: { tab: a.tab, sub: a.sub || null } }));
                                 onClose();
                               }}
                               aria-label={`Open ${a.label}`}

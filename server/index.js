@@ -2643,10 +2643,13 @@ Rules:
      [action: open_tab <tab_id>]
      [action: ask_followup <short question text>]
    Valid tab_ids: home, pcs-operations, home-relocation, family-readiness,
-   medical-readiness, mission-resources, checklist, documents, education,
-   translation, religion, base-intelligence, nav, resources, jtr-assistant,
-   bah-calculator, ppm-estimator, budget-tracker, shipment-tracker,
-   inventory-claims, home-locator.
+   medical-readiness, mission-resources, transition, checklist, documents,
+   timeline, education, translation, religion, family, base-intelligence,
+   nav, resources, veterans, jtr-assistant, bah-calculator, ppm-estimator,
+   move-strategy, budget-tracker, shipment-tracker, inventory-claims,
+   home-locator, move-aid, va-loan, transition-checklist,
+   transition-documentation, transition-career, transition-community,
+   transition-outreach.
    The client strips these markers from the visible text and renders
    tap-to-execute buttons. Only include them when truly useful.`;
 

@@ -18,130 +18,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { apiUrl } from '../config/apiConfig';
+// Curated JTR/FTR/DSSR/IRS knowledge base + search live in a shared,
+// React-free module so both this tab and the AI chip use one source of
+// truth (and so the KB + search can be unit-tested directly).
+import { JTR_KB as KB, searchJtrKb } from '../data/jtrKnowledgeBase';
 
-const KB = [
-  {
-    id: 'ppm-max',
-    q: 'How do I maximize my PPM (Personally Procured Move) payout?',
-    a: `PPM (formerly DITY) reimburses 100 % of the Best Value Cost the government would have paid for the same shipment, up to your weight allowance, when you move yourself. To maximize the payout:
-1) Weigh empty, then weigh fully loaded — keep both certified weight tickets. Without them you do not get paid.
-2) Stay at or below your authorized weight allowance for your grade and dependency status — overweight pounds are not reimbursed.
-3) Track every direct moving expense (rental truck, fuel, packing materials, tolls, hired labor, tow dolly). These reduce your taxable income on the PPM payment via IRS Form 3903.
-4) Submit through DPS within 45 days of arrival.`,
-    tags: ['ppm','dity','max','payout','reimbursement','weight','hhg'],
-    citation: 'JTR §050302 / DTMO PPM Worksheet / IRS Form 3903',
-  },
-  {
-    id: 'tle-cap',
-    q: 'How many days of TLE / TLA am I entitled to?',
-    a: `Temporary Lodging Expense (TLE) covers up to 14 days for CONUS PCS — combined between losing and gaining duty stations.
-TLA (Temporary Lodging Allowance) covers up to 60 days OCONUS (extensible to 100). Both reimburse the lodging cost up to the locality per-diem ceiling plus a percentage of M&IE based on family size.`,
-    tags: ['tle','tla','temporary lodging','per diem','m&ie','allowance'],
-    citation: 'JTR §050501 (TLE) / §050502 (TLA)',
-  },
-  {
-    id: 'dla',
-    q: 'What is Dislocation Allowance (DLA) and how much will I get?',
-    a: `DLA is a one-time payment that partially reimburses miscellaneous PCS expenses (utility deposits, cleaning, supplies). It is paid automatically on PCS to/from any duty station. The amount is set by grade and dependency status — roughly two months of the With-Dependents BAH at the sponsor's rank (or the without-dependents amount for unaccompanied moves). CY2026 DLA rates rose about 3.8% over CY2025 (the BLS Employment Cost Index adjustment). DTMO publishes the exact dollar table each year — confirm your grade's figure there.`,
-    // CY2026 DLA +3.8% vs CY2025. Source: DTMO/PDTATAC MAP 72-25(I), CY2026 DLA Rates (eff. 2026-01-01). As of 2026-05.
-    tags: ['dla','dislocation','allowance','reimbursement','miscellaneous'],
-    citation: 'JTR §050601 / DTMO MAP 72-25(I) (CY2026)',
-  },
-  {
-    id: 'pov-ship',
-    q: 'When can I ship my POV at government expense?',
-    a: `One POV may be shipped at government expense on OCONUS PCS (e.g., Korea, Japan, Germany). CONUS-to-CONUS PCS does not authorize POV shipment — you drive or pay yourself. Use DD Form 788 and the Vehicle Processing Center (VPC) network at vpcus.com to schedule the drop. Second-POV shipment may be authorized at specific overseas locations with prior approval.`,
-    tags: ['pov','vehicle','ship','vpc','dd 788','oconus'],
-    citation: 'JTR §053201 / 32 CFR 102.2',
-  },
-  {
-    id: 'oconus-bah',
-    q: 'Do I get BAH overseas?',
-    a: `No — BAH does not apply OCONUS. Service members assigned overseas receive Overseas Housing Allowance (OHA) at the locality rent ceiling, plus the Utility/Recurring Maintenance Allowance and a one-time Move-In Housing Allowance (MIHA-Rent / MIHA-Security / MIHA-Miscellaneous). DoD civilians receive Living Quarters Allowance (LQA) under DSSR §130. Look up the OHA rate at travel.dod.mil.`,
-    tags: ['bah','oha','miha','lqa','overseas','oconus','housing'],
-    citation: 'JTR §100301 (OHA) / DSSR §130 (LQA)',
-  },
-  {
-    id: 'pet-allowance',
-    q: 'Is there a pet shipment allowance?',
-    a: `Yes — for one cat or dog. The JTR authorizes reimbursement up to $550 for a CONUS PCS and up to $2,000 for an OCONUS PCS; OCONUS moves to a high-risk-for-rabies country where contracted/commercial pet transport is unavailable can be reimbursed up to $4,000 (requires Secretarial-process approval). Reimbursement is a single cap per move (not per pet) and covers qualifying costs — microchipping, vaccinations, rabies titers, quarantine, boarding, and required health certificates. Submit through your travel voucher (DD 1351-2).`,
-    // Pet caps: $550 CONUS / $2,000 OCONUS / $4,000 high-risk OCONUS (orders on/after 25 Nov 2024).
-    // Source: JTR par. 050107 / DTMO Pet Transportation Allowance FAQ. As of 2026-05.
-    tags: ['pet','animal','shipment','allowance','reimbursement','quarantine'],
-    citation: 'JTR §050107 / DTMO Pet Transportation Allowance',
-  },
-  {
-    id: 'hht-civilian',
-    q: 'Can I take a House Hunting Trip (HHT) before PCS?',
-    a: `Civilian-only entitlement under the Federal Travel Regulation §302-5. HHT is a CONUS-only round trip for the employee and one accompanying family member to search for housing at the gaining locality, up to 10 days. Military service members do NOT get HHT — they use the regular DLA + TLE package instead. OCONUS DoD civilians do not get HHT; coordinate with the gaining Housing Office (HOMES.mil) for off-base reconnaissance.`,
-    tags: ['hht','house hunting','civilian','ftr','conus'],
-    citation: 'FTR §302-5',
-  },
-  {
-    id: 'real-estate-allowance',
-    q: 'Is selling / buying a home reimbursable on a civilian PCS?',
-    a: `Yes — DoD civilians may claim the Real Estate Expense Allowance under FTR §302-11 for selling a primary residence at the losing locality and buying at the gaining locality. Reimbursable: broker commissions, closing costs, title insurance, attorney fees. Caps and percentages apply. Service members do NOT have a comparable benefit; military RE costs are out-of-pocket.`,
-    tags: ['real estate','civilian','reimbursement','closing','broker','ftr'],
-    citation: 'FTR §302-11',
-  },
-  {
-    id: 'czte',
-    q: 'How does the Combat Zone Tax Exclusion work?',
-    a: `Active-duty pay earned while serving in a designated Combat Zone is excluded from federal income tax under IRC §112. Enlisted members exclude all pay; officers exclude up to the maximum enlisted pay + Imminent Danger Pay. The exclusion is automatic on the W-2 (Box 12 code Q) and extends to bonuses, leave, and re-enlistment payments earned in-zone. State income tax treatment varies; verify with the installation Tax Center.`,
-    tags: ['czte','combat zone','tax','exclusion','irc 112','irs'],
-    citation: 'IRC §112 / IRS Pub 3 / 26 USC §112',
-  },
-  {
-    id: 'feie-civilian',
-    q: 'Can OCONUS DoD civilians claim the Foreign Earned Income Exclusion (FEIE)?',
-    a: `Potentially. IRS Form 2555 lets U.S. citizens working abroad exclude up to ~$120,000 of foreign earned income if they meet the bona fide residence or physical presence test. The interaction with LQA, the Foreign Tax Credit, and the bona fide residence requirement is non-trivial — consult the installation Tax Center or VITA volunteer. LQA itself is not taxable. Wages may or may not qualify depending on whether you’re paid as a U.S. employee.`,
-    tags: ['feie','foreign earned income','form 2555','civilian','oconus','tax'],
-    citation: 'IRS Pub 54 / IRS Form 2555 / 26 USC §911',
-  },
-  {
-    id: 'weight-allowance',
-    q: 'How is my HHG weight allowance calculated?',
-    a: `Weight allowance is set by rank and dependency status, per JTR Table 5-37. Examples: E-5 with dependents = 9,000 lbs; E-9 with dependents = 15,000 lbs; O-1 with dependents = 12,000 lbs; O-6 with dependents = 18,000 lbs. DoD civilians get a flat 18,000 lbs regardless of grade under FTR §302-7. Pro-gear (books, instruments, tools of trade) is exempt up to 2,000 lbs sponsor + 500 lbs spouse and does NOT count against the allowance.`,
-    tags: ['weight','allowance','hhg','rank','dependents','pro-gear'],
-    citation: 'JTR Table 5-37 / FTR §302-7',
-  },
-  {
-    id: 'malt-mileage',
-    q: 'What is the POV mileage rate (MALT) for PCS travel?',
-    a: `MALT (Monetary Allowance in Lieu of Transportation) reimburses POV travel during a PCS at the published JTR rate per authorized mile. The CY2026 MALT rate is $0.205/mile (unchanged from CY2025), set annually by DTMO and significantly lower than the IRS business rate — always confirm the current figure on the DTMO mileage page before filing. Distance is calculated on the Defense Table of Official Distances (DTOD), not your odometer.`,
-    // CY2026 MALT = $0.205/mi. Source: DTMO/PDTATAC MAP 73-25(I) (eff. 2026-01-01). As of 2026-05.
-    tags: ['malt','mileage','pov','reimbursement','dtod','travel'],
-    citation: 'JTR §020205 / DTMO MAP 73-25(I) (CY2026)',
-  },
-  {
-    id: 'tle-vs-tla',
-    q: 'TLE vs TLA — what is the difference?',
-    a: `TLE = Temporary Lodging Expense (CONUS). Up to 14 days combined across losing and gaining. Lodging up to per-diem + percentage of M&IE based on family. TLA = Temporary Lodging Allowance (OCONUS). Up to 60 days at the gaining station (extensible to 100). Same flavor, different scope.`,
-    tags: ['tle','tla','difference','temporary lodging','conus','oconus'],
-    citation: 'JTR §050501 (TLE) / §050502 (TLA)',
-  },
-  {
-    id: 'claim-window',
-    q: 'How long do I have to file a damage claim against the TSP?',
-    a: `Soft target: 75 days from delivery to file an itemized claim via DPS for full Best Replacement Value (FRV) coverage. Hard deadline: 9 months from delivery, after which the TSP only owes Depreciated Replacement Value. Annotate damage on the DD 1840R at delivery, then supplement via DPS within the window.`,
-    tags: ['claim','damage','dps','tsp','dd 1840','frv','window'],
-    citation: 'JTR §054305 / DTR Part IV Chapter 401',
-  },
-];
-
-function tokenize(s) {
-  return String(s || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
-}
-
-function scoreItem(item, qTokens) {
-  const haystack = `${item.q} ${item.a} ${item.tags.join(' ')} ${item.citation}`.toLowerCase();
-  let s = 0;
-  for (const t of qTokens) {
-    if (haystack.includes(t)) s += 2;
-    if (item.tags.includes(t)) s += 3;
-  }
-  return s;
-}
 
 export default function JTRAssistantModule({ theme }) {
   const [query, setQuery] = useState('');
@@ -149,14 +30,7 @@ export default function JTRAssistantModule({ theme }) {
   const [askState, setAskState] = useState({ status: 'idle', answer: '', source: '' });
   const askAbort = useRef(null);
 
-  const results = useMemo(() => {
-    const qTokens = tokenize(query);
-    if (!qTokens.length) return KB;
-    return KB
-      .map(it => ({ ...it, _score: scoreItem(it, qTokens) }))
-      .filter(it => it._score > 0)
-      .sort((a, b) => b._score - a._score);
-  }, [query]);
+  const results = useMemo(() => searchJtrKb(query, KB), [query]);
 
   useEffect(() => () => { try { askAbort.current?.abort(); } catch {} }, []);
 
