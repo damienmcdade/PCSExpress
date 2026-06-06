@@ -24,7 +24,7 @@ const ENTITLEMENT_CATEGORIES = [
   { id: 'mileage', label: 'POV Mileage (TLE/MALT)', hint: '$0.205/mi per DoD MALT rate for authorized POVs (CY2026).', defaultPct: 100 },
   { id: 'perDiem', label: 'TLE / Per Diem', hint: 'Temporary lodging and daily per diem during travel.', defaultPct: 100 },
   { id: 'hhgCost', label: 'HHG Government Move Cost', hint: 'What it cost the Gov to move your household goods.', defaultPct: 100 },
-  { id: 'ppm', label: 'PPM Incentive (if applicable)', hint: '95% of GCC if you did a personally procured move.', defaultPct: 0 },
+  { id: 'ppm', label: 'PPM Incentive (if applicable)', hint: '100% of the Government Constructive Cost (GCC) if you did a personally procured move.', defaultPct: 0 },
 ];
 
 const EXPENSE_CATEGORIES_BASE = [
@@ -69,7 +69,7 @@ function buildExpenseCategories(profile) {
 // move costs at current prices. Sources should always be verified
 // against the official GSA / DTMO / BLS publications before filing.
 const INFLATION_2026 = {
-  fuelGalUsd:        4.10,  // BLS national avg gas, Q1 2026 forecast
+  fuelGalUsd:        4.48,  // EIA national avg regular gasoline, week ending 2026-05-25 (matches ppmCalculator)
   // NOTE: these are real-world PLANNING ranges (typical actual hotel/meal
   // spend on a move), deliberately set ABOVE the GSA reimbursement floor.
   // For reference, the GSA FY2026 standard CONUS per diem is $178/day =

@@ -66,6 +66,7 @@ const NavigationModule = lazy(() => import('./components/NavigationModule'))
 const EducationBenefitsTab = lazy(() => import('./components/EducationBenefitsTab'))
 // VeteranBusinesses + Resources tabs also lazy-loaded (perf Tier 1b PR-C).
 const VeteranBusinessesTab = lazy(() => import('./components/VeteranBusinessesTab'))
+const TransitionChecklistModule = lazy(() => import('./components/TransitionChecklistModule'))
 const ResourcesTab = lazy(() => import('./components/ResourcesTab'))
 import { AuditLogger, secureLocalStore, readLegacyJson, closeCryptoStoreDB } from './security/SecurityExtensions'
 import { resolveMarket } from './data/installationMarkets'
@@ -614,8 +615,12 @@ function TMinusDashboard({ theme, profile }) {
   today.setHours(0, 0, 0, 0);
   const daysUntil = Math.round((targetDate - today) / 86400000);
 
+  // tMinus = days from TODAY until this milestone. A milestone sits at
+  // (report date + m.days), so its distance from now is daysUntil + m.days.
+  // (Previously this was negated, which inverted passed/upcoming and the
+  // sort — future tasks rendered struck-through as "passed".)
   const upcoming = TMINUS_MILESTONES
-    .map(m => ({ ...m, dueDate: new Date(targetDate.getTime() + m.days * 86400000), tMinus: -m.days - daysUntil }))
+    .map(m => ({ ...m, dueDate: new Date(targetDate.getTime() + m.days * 86400000), tMinus: daysUntil + m.days }))
     .filter(m => m.tMinus <= 14 && m.tMinus >= -14)
     .sort((a, b) => a.tMinus - b.tMinus);
 
@@ -2477,6 +2482,7 @@ const APP_TRANSLATIONS = {
       'family-readiness': 'Family Readiness',
       'medical-readiness': 'Holistic Health',
       'mission-resources': 'Mission Resources',
+      transition: 'Transition',
       // Legacy keys kept for deep-link compatibility — these tabs are
       // no longer in the bottom nav but old routes still resolve.
       'base-intelligence': 'Base Insights',
@@ -2494,6 +2500,7 @@ const APP_TRANSLATIONS = {
     desc: {
       'pcs-operations': 'Everything PCS planning needs in one operations cell: phased task checklist, paperwork roster with binder export, and the 180-day OCONUS / 90-day CONUS timeline backward-planned from your report-no-later-than date.',
       'mission-resources': 'Field references for the gaining installation: Base Insights (verified family reviews), Maps, Help Hub (consolidated DoD/VA/family/financial resource directory), and Veteran Support.',
+      transition: 'For service members and DoD civilians leaving service: a tailored T-minus separation/retirement timeline (TAP, VA disability/BDD, DD-214, TRICARE/FEHB, SGLI→VGLI, final-pay) with priority badges and official .gov/.mil links — forked by your branch, component, separation type, and benefits track.',
       'family-readiness': 'Family-side mission readiness: deployment, EFMP, spouse employment, family activities, permanent residency, pets, K-12 schools — plus Education benefits, Translation, and Faith & Chaplains.',
       'base-intelligence': 'Reviews from real military families on housing, schools, and childcare at your gaining installation. Reviews from .mil emails get a "Military Family Verified" badge.',
       checklist: 'A full PCS task list, organized by phase (Orders Received through In-Processing). Toggle reminders on key milestones. Nothing here asks for documents — just check items off as you finish them.',
@@ -5152,6 +5159,7 @@ function App() {
     { tab: 'family-readiness',    title: 'Family Readiness',             body: 'Family-side mission planning. Family (deployment, EFMP, spouse employment, activities, permanent residency, pets, schools) plus Education benefits, Translation with a component-tailored Free Resources tab, and Faith & Chaplains for the gaining installation.' },
     { tab: 'medical-readiness',   title: 'Holistic Health',              body: 'Total well-being in four pillars: Medical Care (ER, hospital, urgent care, specialty, dental, vision, pharmacy, preventive / PHA), Behavioral Health & Counseling, Spiritual Care, and Fitness (gyms, workouts during PCS, diet and meal tips for traveling).' },
     { tab: 'mission-resources',   title: 'Mission Resources',            body: 'Field references for the gaining installation: Base Insights (verified family reviews), Maps, Help Hub (consolidated DoD / VA / family / financial directory), and Veteran Support.' },
+    { tab: 'transition',          title: 'Transition',                   body: 'Separating or retiring? Built for service members AND DoD civilians leaving service. Answer two questions (how you\'re leaving + career vs VA-disability track) and a T-minus timeline tailors itself to your branch and component: TAP, VA disability / BDD, DD-214, TRICARE / FEHB bridge, SGLI→VGLI, final pay — each step priority-tagged with official .gov / .mil links, checked off and saved on your device.' },
     { tab: 'home',                title: 'AI Assistant',                 body: 'Tap the 🤖 button (sidebar footer on desktop, home-page footer on mobile) for live PCS / JTR / FTR / DSSR Q&A. Falls back to a curated knowledge base when the live AI is unavailable. The crisis line (988 then 1) and Military OneSource stay pinned at the top of every conversation.' },
     { tab: 'home',                title: 'Security & data handling',     body: 'Tap the 🔒 button at the bottom of Command Center to see exactly how PCS Express keeps your information safe — everything stays AES-256 encrypted on your phone. No accounts, no uploads, no PCS Express server holding your data.' },
     { tab: 'home',                title: 'Thank you for your service.',  body: 'That\'s the full architecture. Close this card and start working through the mission groups in order — your data stays on your device.' },
@@ -5169,6 +5177,7 @@ function App() {
     { id: 'family-readiness',    label: 'Family Readiness',     icon: 'FAM', iosIcon: '🛡️', color: '#5B2A86' },
     { id: 'medical-readiness',   label: 'Holistic Health',      icon: 'HLH', iosIcon: '🌿', color: '#2E7D32' },
     { id: 'mission-resources',   label: 'Mission Resources',    icon: 'MSR', iosIcon: '🗺️', color: '#26351F' },
+    { id: 'transition',          label: 'Transition',           icon: 'TRN', iosIcon: '🎖️', color: '#0F766E' },
   ];
   const LOCALIZED_BOTTOM_NAV = localizeNavItems(BOTTOM_NAV, appLanguage);
   const _HOME_CATEGORIES = LOCALIZED_BOTTOM_NAV.filter(item => item.id !== 'home');
@@ -5195,6 +5204,7 @@ function App() {
     resources: t('desc.resources'),
     religion: t('desc.religion'),
     translation: t('desc.translation'),
+    transition: t('desc.transition'),
     veterans: t('desc.veterans'),
   };
 
@@ -5762,6 +5772,7 @@ function App() {
         {activeTab === 'pcs-operations'    && renderCategoryFrame('pcs-operations',    <PCSOperationsTab    theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />)}
         {activeTab === 'family-readiness'  && renderCategoryFrame('family-readiness',  <FamilyReadinessGroupTab theme={theme} profile={profile} />)}
         {activeTab === 'mission-resources' && renderCategoryFrame('mission-resources', <MissionResourcesTab theme={theme} profile={profile} />)}
+        {activeTab === 'transition'        && renderCategoryFrame('transition',        <TransitionChecklistModule theme={theme} profile={profile} />)}
         {activeTab === 'home-relocation'   && renderCategoryFrame('home-relocation',   <HomeRelocationUnifiedTab theme={theme} profile={profile} />)}
         {activeTab === 'medical-readiness' && renderCategoryFrame('medical-readiness', <MedicalReadinessTab theme={theme} profile={profile} />)}
 

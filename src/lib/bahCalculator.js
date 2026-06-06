@@ -196,7 +196,13 @@ export const INSTALLATION_MHA_MAP = {
   'Fort Leonard Wood':            'Pulaski County, MO',
   'Aberdeen Proving Ground':      'Harford County, MD',
   'Fort Myer (JBM-HH)':          'Arlington, VA',
-  'Fort Hamilton':                'Arlington, VA', // NYC-area, using Arlington proxy
+  // 'Fort Hamilton' (Brooklyn — NYC MHA) intentionally has NO mapping. It
+  // previously aliased to 'Arlington, VA', which presented a materially
+  // different city's BAH as if it were Fort Hamilton's authoritative rate.
+  // Until the real NYC MHA row is reconciled from the DTMO table, Fort
+  // Hamilton falls through to the honest "Rate Table Not Found" panel (with
+  // the official DTMO ZIP lookup link) rather than show a wrong number.
+  // Do NOT re-add an out-of-area proxy — fix it by adding the real NYC row.
   'Marine Corps Base Quantico':   'Prince William County, VA',
 
   // ── Added 2026: full picker coverage. Maps every installation in the BAH picker to an MHA. ──
@@ -352,7 +358,13 @@ export function isOCONUS(installationName) {
     // Greece
     'Greece','Souda',
     // Netherlands
-    'Netherlands','Brunssum'];
+    'Netherlands','Brunssum',
+    // Puerto Rico — a non-foreign OCONUS territory. Like Guam, PR members
+    // receive OHA (not BAH); the 50 states + D.C. are the only BAH areas.
+    // These installation tokens are unambiguous (no CONUS base collides).
+    // Keeps this BAH-tab detector consistent with the data-driven
+    // isOCONUSInstallation in App.jsx (PR entries carry country:'Puerto Rico').
+    'Puerto Rico','Buchanan','San Juan','Borinquen'];
   return oconusKeywords.some(kw => installationName.includes(kw));
 }
 
