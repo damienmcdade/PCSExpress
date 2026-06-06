@@ -29,7 +29,7 @@ export const DOD_CIVILIAN_CHECKLIST = {
     "Research schools for dependent children near the gaining locality and contact district enrollment offices",
     "Identify childcare options — civilians may use installation CDCs if space available (CDC priority is dual-military first)",
     "Submit DPS (Defense Personal Property System) self-counseling session and keep printable receipts",
-    "Decide HHG vs PPM — civilian PPM is reimbursed at 95% of constructed government cost (different from military rates)",
+    "Decide HHG vs PPM — civilian PPM is reimbursed at 100% of the constructed government cost (verify the exact basis with your servicing transportation office)",
     "Calculate Temporary Quarters Subsistence Expense (TQSE) entitlement under FTR §302-6 — up to 60 days CONUS, 90 days OCONUS",
     "Request a House Hunting Trip authorization (CONUS only, FTR §302-5) — round-trip travel for self and spouse",
     "OCONUS housing reconnaissance: contact the gaining installation Housing Office (HOMES.mil) before HHG pack-out and pre-screen off-base rentals via AHRN.com or MilitaryByOwner — civilians overseas typically do not receive a House Hunting Trip authorization.",

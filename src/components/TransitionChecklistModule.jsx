@@ -58,7 +58,7 @@ const PHASE_ORDER = [
 
 const PRIORITY_STYLE = {
   High:   { bg: '#C62828', label: 'High' },
-  Medium: { bg: '#E65100', label: 'Medium' },
+  Medium: { bg: '#C2410C', label: 'Medium' }, // darkened for WCAG AA on white chip text
   Low:    { bg: '#455A64', label: 'Low' },
 };
 
@@ -248,6 +248,46 @@ const MILESTONES = [
     desc: () => 'Use your federal hiring preference where it applies, post your resume, and tap veteran employment programs (DOL VETS, Hiring Our Heroes, USAJOBS for federal roles). Translate your experience into civilian terms.',
     url: () => 'https://www.dol.gov/agencies/vets/veterans', urlLabel: 'DOL — Veterans’ employment',
     applies: (c) => c.careerTrack || c.isCivilian },
+
+  // ---- Medical separation (IDES / MEB / PEB) — only when separation type
+  //      is Medical. Sourced from the DoD IDES program + VA disability. ----
+  { id: 'med-ides-peblo', phase: '12+ Months Out', priority: 'High',
+    title: 'Meet your PEBLO and learn the IDES process',
+    desc: () => 'A medical separation runs through the Integrated Disability Evaluation System (IDES): MEB → PEB → VA rating, all from one set of exams. Your Physical Evaluation Board Liaison Officer (PEBLO) is your case manager — get their contact and the projected timeline early.',
+    url: () => 'https://www.health.mil/Military-Health-Topics/Conditions-and-Treatments/Physical-Disability-Board-of-Review', urlLabel: 'DoD — Disability evaluation',
+    applies: (c) => c.isMedical },
+  { id: 'med-meb-narsum', phase: '12+ Months Out', priority: 'High',
+    title: 'Make sure the MEB narrative captures EVERY condition',
+    desc: () => 'The Medical Evaluation Board (MEB) narrative summary (NARSUM) lists the conditions referred to the board. Review it with your provider — anything left off is far harder to claim later. Request copies of all supporting records.',
+    applies: (c) => c.isMedical },
+  { id: 'med-cp-exams', phase: '180 Days Out', priority: 'High',
+    title: 'Complete your single set of VA C&P exams',
+    desc: () => 'Under IDES you do ONE set of VA Compensation & Pension (C&P) exams that feed both the PEB fitness decision and your VA disability rating. Attend every exam — a missed C&P exam stalls the whole case.',
+    url: () => 'https://www.va.gov/disability/va-claim-exam/', urlLabel: 'VA — Claim exam (C&P)',
+    applies: (c) => c.isMedical },
+  { id: 'med-ratings', phase: '90 Days Out', priority: 'High',
+    title: 'Understand your DoD fitness finding vs your VA rating',
+    desc: () => 'The PEB decides only whether each condition makes you unfit for duty (and assigns a DoD disability % for the unfitting ones); the VA rates ALL service-connected conditions. A combined DoD rating of 30%+ on the unfitting conditions generally means medical RETIREMENT; below 30% is usually separation with severance.',
+    url: () => 'https://www.va.gov/disability/about-disability-ratings/', urlLabel: 'VA — About disability ratings',
+    applies: (c) => c.isMedical },
+  { id: 'med-appeal', phase: '90 Days Out', priority: 'High',
+    title: 'Decide whether to accept or appeal the PEB findings',
+    desc: () => 'You can accept the PEB findings, submit a rebuttal, or request a formal board hearing. Talk to your service’s military disability counsel BEFORE signing — they’re free and represent you, not the command.',
+    applies: (c) => c.isMedical },
+  { id: 'med-tdrl', phase: '60 Days Out', priority: 'Medium',
+    title: 'Know TDRL vs PDRL (if medically retired)',
+    desc: () => 'Some conditions place you on the Temporary Disability Retired List (TDRL) with periodic re-exams before a final decision; stable conditions go to the Permanent Disability Retired List (PDRL). Confirm which applies and your re-exam schedule.',
+    applies: (c) => c.isMedical },
+  { id: 'med-crdp-crsc', phase: 'After Separation', priority: 'High',
+    title: 'Apply for CRSC / confirm CRDP if medically retired',
+    desc: () => 'Medically retired veterans may have retired pay offset by VA compensation. Combat-Related Special Compensation (CRSC) and Concurrent Retirement & Disability Pay (CRDP) can restore some or all of it — CRSC requires an application through your branch.',
+    url: () => 'https://www.dfas.mil/RetiredMilitary/disability/crsc/', urlLabel: 'DFAS — CRSC / CRDP',
+    applies: (c) => c.isMedical },
+  { id: 'med-pay-start', phase: 'After Separation', priority: 'High',
+    title: 'Confirm disability severance / retired pay and VA start date',
+    desc: () => 'Verify with DFAS whether you received disability severance pay or medical retired pay, and confirm when VA compensation begins (severance pay may be recouped from VA pay for the same condition). Keep every disposition document.',
+    url: () => 'https://www.dfas.mil/retiredmilitary/', urlLabel: 'DFAS — Retired military pay',
+    applies: (c) => c.isMedical },
 ];
 
 // Always-relevant official anchors, shown under the timeline.
@@ -382,9 +422,13 @@ export default function TransitionChecklistModule({ theme, profile }) {
                   aria-pressed={active}
                   className="pcs-tab"
                   style={{
-                    borderColor: active ? theme.primary : '#D4DCE8',
+                    borderRadius: 999,
+                    padding: '8px 15px',
+                    border: `1.5px solid ${active ? theme.primary : '#D4DCE8'}`,
                     background: active ? theme.primary : '#FFF',
                     color: active ? '#FFF' : '#43526B',
+                    fontSize: 12,
+                    fontWeight: 700,
                   }}
                 >
                   {opt.label}

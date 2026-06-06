@@ -144,9 +144,13 @@ export default function TransitionOutreachModule({ theme }) {
               onClick={() => setCat(c.id)}
               className={`pcs-tab ${isActive ? 'is-active' : ''}`}
               style={{
-                borderColor: isActive ? theme.primary : '#E0E6EE',
+                borderRadius: 999,
+                padding: '8px 15px',
+                border: `1.5px solid ${isActive ? theme.primary : '#D4DCE8'}`,
                 background: isActive ? theme.primary : '#FFF',
-                color: isActive ? '#FFF' : '#56697C',
+                color: isActive ? '#FFF' : '#43526B',
+                fontSize: 12,
+                fontWeight: 700,
               }}
             >
               {c.label}

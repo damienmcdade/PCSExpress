@@ -1537,14 +1537,21 @@ app.get('/api/housing-listings', housingRateLimit, async (req, res) => {
   })()
 
   // Hard wall-clock cap — synthetic cards alone are always actionable.
+  // Track the timer so we can clear it when RapidAPI wins the race;
+  // otherwise it fires later and logs a spurious "budget exceeded" on a
+  // successful request.
+  let budgetTimer
   const rapidApiResults = await Promise.race([
     rapidApiPromise,
-    new Promise(resolve => setTimeout(() => {
-      // Expected fallback path, not an error — see note above.
-      console.warn('[housing-listings] rapidapi budget exceeded; returning synthetic-only')
-      resolve([])
-    }, RAPIDAPI_BUDGET_MS)),
+    new Promise(resolve => {
+      budgetTimer = setTimeout(() => {
+        // Expected fallback path, not an error — see note above.
+        console.warn('[housing-listings] rapidapi budget exceeded; returning synthetic-only')
+        resolve([])
+      }, RAPIDAPI_BUDGET_MS)
+    }),
   ])
+  clearTimeout(budgetTimer)
   // Result ordering, top to bottom:
   //   1. RapidAPI priced rentals — real addresses with bed/bath/sqft
   //      (only when RAPIDAPI_KEY is configured).
@@ -2599,8 +2606,17 @@ Scope you answer:
   Move Aid · VA Loan), Family Readiness (Family · Education ·
   Translation · Faith & Chaplains), Holistic Health (Medical Care ·
   Behavioral Health · Spiritual Care · Fitness), and Mission Resources
-  (Base Insights · Maps · Help Hub · Veteran Support). Compliance
-  opens from the 🔒 button at the bottom of Command Center.
+  (Base Insights · Maps · Help Hub · Veteran Support), and Transition
+  (for members AND DoD civilians LEAVING the service: Checklist —
+  tailored separation/retirement timeline that forks on how you're
+  leaving, incl. a full IDES/MEB/PEB/C&P/CRSC track for MEDICAL
+  separations · Documentation — separation paperwork incl. DD-214 and
+  IDES docs · Career Center — job search with a City/ST relocation
+  override · Community — veteran social groups/clubs by location ·
+  Outreach — official veteran resources by category). Any checklist
+  has a notification mode that pushes priority alerts to the device and
+  shows them in red on Command Center. Compliance opens from the 🔒
+  button at the bottom of Command Center.
 
 Rules:
 1. Cite a JTR/FTR/DSSR/IRS section for every regulation answer.
