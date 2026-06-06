@@ -753,7 +753,7 @@ function QuickActionsRow({ theme, onJumpTo, onOpenAI, onOpenCompliance }) {
     { id: 'security',   icon: '🔒', label: 'Security & data',    onClick: onOpenCompliance },
   ];
   return (
-    <TabBar ariaLabel="Quick actions" className="pcs-tabbar--flush">
+    <TabBar ariaLabel="Quick actions" role="toolbar" className="pcs-tabbar--flush">
       {actions.map(a => (
         <button
           key={a.id}
@@ -3923,7 +3923,7 @@ function Onboarding({ onComplete }) {
               ) : p.component === 'DoD Civilian' ? (
                 <div style={{ marginBottom: 12 }}>
                   <label htmlFor="profile-paygrade" style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
-                    CIVILIAN GRADE <span style={{ fontWeight: 400, opacity: 0.5, fontSize: 10 }}>(optional)</span>
+                    CIVILIAN GRADE <span style={{ fontWeight: 400, opacity: 0.85, fontSize: 10 }}>(optional)</span>
                   </label>
                   <select id="profile-paygrade" name="paygrade" value={p.paygrade} onChange={e => upd('paygrade', e.target.value)} style={inputSt}>
                     <option value="N/A">N/A — Not Applicable</option>
@@ -3935,7 +3935,7 @@ function Onboarding({ onComplete }) {
               ) : (
                 <div style={{ marginBottom: 12 }}>
                   <label htmlFor="profile-paygrade" style={{ fontSize: 11, fontWeight: 700, color: theme.accent, display: 'block', marginBottom: 6 }}>
-                    {ot('payGradeRank')} <span style={{ fontWeight: 400, opacity: 0.5, fontSize: 10 }}>(optional)</span>
+                    {ot('payGradeRank')} <span style={{ fontWeight: 400, opacity: 0.85, fontSize: 10 }}>(optional)</span>
                   </label>
                   <select id="profile-paygrade" name="paygrade" value={p.paygrade} onChange={e => upd('paygrade', e.target.value)} style={inputSt}>
                     <option value="N/A">N/A — Not Applicable</option>
@@ -3983,7 +3983,7 @@ function Onboarding({ onComplete }) {
                 <div id="profile-language-help" style={{ marginTop: 5, fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>{ot('languageHelp')}</div>
               </div>
 
-              <button onClick={() => setStep(-1)} style={{ width: '100%', padding: '10px', marginBottom: 10, borderRadius: 10, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: UI_PALETTE.muted, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={() => setStep(-1)} style={{ width: '100%', padding: '10px', marginBottom: 10, borderRadius: 10, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.82)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                 {ot('seeDemoFirst')} →
               </button>
               <button onClick={() => setStep(1)} disabled={!canGo1} style={{ width: '100%', padding: '13px', borderRadius: 12, background: canGo1 ? theme.accent : 'rgba(255,255,255,0.1)', color: canGo1 ? theme.secondary : 'rgba(255,255,255,0.3)', border: 'none', fontWeight: 900, cursor: canGo1 ? 'pointer' : 'not-allowed', fontSize: 14 }}>

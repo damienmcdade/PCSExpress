@@ -10,7 +10,7 @@ import { useEffect, useRef } from 'react';
  * Replaces the inline `display: flex; overflow-x: auto; flex-wrap: wrap`
  * boilerplate that was duplicated across ~14 modules.
  */
-export default function TabBar({ ariaLabel, children, className = '', style }) {
+export default function TabBar({ ariaLabel, children, className = '', style, role = 'tablist' }) {
   const scrollerRef = useRef(null);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export default function TabBar({ ariaLabel, children, className = '', style }) {
     <div className={`pcs-tabbar ${className}`} style={style}>
       <div
         ref={scrollerRef}
-        role="tablist"
+        role={role}
         aria-label={ariaLabel}
         className="pcs-tabbar-scroller"
         onKeyDown={handleKeyDown}
