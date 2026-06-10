@@ -2942,6 +2942,11 @@ const server = app.listen(PORT, HOST, () => {
 // Set timeout for keeping alive
 server.keepAliveTimeout = 65000
 server.headersTimeout = 66000
+// Bound slow-body (slowloris) connections: Node's default requestTimeout is
+// 300s, long enough for a trickle client to tie up a socket. Per-route body
+// parsers are small (4–64 KB), so a legitimate request completes in well under
+// 30s; cap it there.
+server.requestTimeout = 30000
 
 // === GRACEFUL SHUTDOWN ===
 function gracefulShutdown(signal) {
