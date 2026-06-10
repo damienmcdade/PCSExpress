@@ -37,7 +37,7 @@ export function containsLikelyPii(value) {
   }
   if (!text) return false;
   // Email (case-insensitive).
-  if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(text)) return true;
+  if (/[A-Z0-9._%+-]{1,64}@[A-Z0-9.-]{1,255}\.[A-Z]{2,}/i.test(text)) return true;
   // 10 raw digits in a row (works for "5551234567").
   if (/\b\d{10}\b/.test(text)) return true;
   // SSN shape NNN-NN-NNNN.

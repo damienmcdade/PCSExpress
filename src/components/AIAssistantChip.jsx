@@ -795,7 +795,7 @@ export function AIAssistantModal({ open, onClose, isDesktop, language = 'en', us
           AI answers are a planning aid and can be wrong or out of date — verify any dollar amounts, dates, and eligibility against the official DTMO / GSA / IRS source before acting. Not financial, tax, or legal advice.
         </div>
 
-        <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: 14, background: '#F8FAFC' }}>
+        <div ref={scrollRef} role="log" aria-live="polite" aria-label="AI assistant conversation" style={{ flex: 1, overflowY: 'auto', padding: 14, background: '#F8FAFC' }}>
           {messages.length === 0 && (
             <div style={{ color: '#56697C', fontSize: 12, lineHeight: 1.6 }}>
               <p style={{ marginTop: 0 }}>Ask anything about PCS Express — every mission group, every tool, and the travel regulations behind them (JTR / FTR / DSSR). Every answer cites where it came from.</p>

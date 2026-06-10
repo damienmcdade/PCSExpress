@@ -54,7 +54,7 @@ function containsLikelyPii(value) {
   try { text = JSON.stringify(value == null ? {} : value); }
   catch { text = String(value); }
   if (!text) return false;
-  if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(text)) return true;
+  if (/[A-Z0-9._%+-]{1,64}@[A-Z0-9.-]{1,255}\.[A-Z]{2,}/i.test(text)) return true;
   if (/\b\d{10}\b/.test(text)) return true;
   if (/\b\d{3}-\d{2}-\d{4}\b/.test(text)) return true;
   if (/(?<!\d)(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}(?!\d)/.test(text)) return true;
@@ -87,12 +87,20 @@ function rateLimited(req) {
 const GLOBAL_CAP = Number(process.env.AI_GLOBAL_HOURLY_CAP) || 1000;
 const GLOBAL_WINDOW_MS = 3_600_000;
 let _global = { windowStart: 0, count: 0 };
-function globalCapExceeded() {
+// Read-only: is the hourly budget already spent? Mirrors server/index.js's
+// aiGlobalCapReached — checking WITHOUT incrementing so malformed / blocked /
+// PII-gated requests that never reach Anthropic can't burn the budget (a
+// zero-cost DoS). The counter is only advanced by globalCapConsume()
+// immediately before the billed upstream call.
+function globalCapReached() {
   const now = Date.now();
   if (now - _global.windowStart > GLOBAL_WINDOW_MS) _global = { windowStart: now, count: 0 };
-  if (_global.count >= GLOBAL_CAP) return true;
+  return _global.count >= GLOBAL_CAP;
+}
+function globalCapConsume() {
+  const now = Date.now();
+  if (now - _global.windowStart > GLOBAL_WINDOW_MS) _global = { windowStart: now, count: 0 };
   _global.count += 1;
-  return false;
 }
 
 export default async function handler(req, res) {
@@ -133,11 +141,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'API key not configured' });
   }
 
-  if (globalCapExceeded()) {
+  if (globalCapReached()) {
     return res.status(429).json({ error: 'The assistant is at capacity right now. Please try again shortly.' });
   }
 
   try {
+    // Count this request against the hourly budget only now, immediately
+    // before the billed upstream call (after all validation/PII gates).
+    globalCapConsume();
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {

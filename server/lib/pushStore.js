@@ -34,21 +34,23 @@ function needsSsl(url) {
   } catch { return false; }
 }
 
-// TLS config for the pg pool. Internal/local hosts use no TLS. For external
-// (public-proxy) hosts, verify the server certificate when the operator
-// provides a CA bundle (PGSSL_CA / DATABASE_CA_CERT) or opts in via
-// PGSSL_REJECT_UNAUTHORIZED=true — preventing a MITM on the DB connection.
-// Defaults to the prior non-verifying behavior so deployments without a
-// configured CA keep working (the Railway proxy presents a cert whose chain
-// isn't in the system store), but full verification is now one env var away.
+// TLS config for the pg pool. Internal/local hosts use no TLS (this only
+// affects external public-proxy connections). For external hosts we now
+// VERIFY the server certificate by default — preventing a MITM on the DB
+// connection. Escape hatches, in priority order:
+//   - PGSSL_CA / DATABASE_CA_CERT: supply a CA bundle (e.g. the Railway
+//     proxy chain) so verification succeeds against a known root.
+//   - PGSSL_REJECT_UNAUTHORIZED=false: explicit opt-out for operators who
+//     cannot supply a CA and accept the unverified-TLS tradeoff.
 function pgSslConfig(url) {
   if (!needsSsl(url)) return false;
   const ca = process.env.PGSSL_CA || process.env.DATABASE_CA_CERT || '';
   if (ca) return { rejectUnauthorized: true, ca };
-  if (String(process.env.PGSSL_REJECT_UNAUTHORIZED).toLowerCase() === 'true') {
-    return { rejectUnauthorized: true };
+  // Default to verifying; only an explicit "false" opts out.
+  if (String(process.env.PGSSL_REJECT_UNAUTHORIZED).toLowerCase() === 'false') {
+    return { rejectUnauthorized: false };
   }
-  return { rejectUnauthorized: false };
+  return { rejectUnauthorized: true };
 }
 
 class MemoryBackend {

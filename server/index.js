@@ -259,10 +259,19 @@ app.get('/health', (req, res) => {
 app.get('/api/health', (req, res) => {
   const body = { ok: 1, service: 'express-api', port: PORT }
   // ?deep=1 surfaces enough to catch a "green deploy, broken AI" — a missing
-  // ANTHROPIC_API_KEY is the most common silent prod misconfig.
+  // ANTHROPIC_API_KEY is the most common silent prod misconfig. These
+  // operational details (aiConfigured, uptimeSec) are an info leak to anonymous
+  // callers, so gate them behind the same PUSH_DISPATCH_KEY bearer the
+  // operator/cron endpoints use. Without a valid key, deep just returns the
+  // public { ok } — no error, so liveness probes still pass.
   if (req.query.deep) {
-    body.aiConfigured = !!process.env.ANTHROPIC_API_KEY
-    body.uptimeSec = Math.round(process.uptime())
+    const auth = req.headers.authorization || ''
+    const bearer = auth.startsWith('Bearer ') ? auth.slice(7) : ''
+    const provided = bearer || String(req.headers['x-push-dispatch-key'] || '')
+    if (PUSH_DISPATCH_KEY && secretsMatch(provided, PUSH_DISPATCH_KEY)) {
+      body.aiConfigured = !!process.env.ANTHROPIC_API_KEY
+      body.uptimeSec = Math.round(process.uptime())
+    }
   }
   res.status(200).json(body)
 })

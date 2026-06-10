@@ -20,6 +20,13 @@ RUN npm run build
 # Prune dev dependencies (production only)
 RUN npm prune --production
 
+# Run as an unprivileged user (Alpine/busybox adduser syntax). Created
+# after the build/prune (which need root to write /app), then we hand
+# ownership of the app tree to it so the runtime process is non-root.
+RUN addgroup -S app && adduser -S app -G app \
+    && chown -R app:app /app
+USER app
+
 # === PORT 3001 ===
 # Express backend server runs on port 3001 (inside container)
 EXPOSE 3001

@@ -25,6 +25,7 @@ import { TransitionLocationProvider, TransitionLocationBar } from './components/
 import { useFocusTrap } from './hooks/useFocusTrap'
 import DynamicTimeline from './components/DynamicTimeline'
 import PrivacyShield from './components/PrivacyShield'
+import PromptModal from './components/PromptModal'
 
 // Tabs lazy-loaded so the initial bundle ships only the shell + the
 // pieces a typical first-visit user actually touches (Home, Mission
@@ -969,6 +970,9 @@ function resolveCurrentPhase(daysUntil) {
 
 function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
   const [snoozes, setSnoozes] = useState({});  // { 'phase-idx': 'YYYY-MM-DD' }
+  // In-app prompt modal state (window.prompt is unsupported in the
+  // Capacitor native WebView). { title, defaultValue, onSubmit } | null
+  const [snoozePrompt, setSnoozePrompt] = useState(null);
   useEffect(() => {
     let mounted = true;
     secureLocalStore.get('pcs_mission_lane_snoozes', {}).then(saved => {
@@ -1054,6 +1058,18 @@ function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
     : `T+${Math.abs(daysUntil)} · ${currentPhase || 'In-Processing'} phase`;
 
   return (
+   <>
+    {snoozePrompt && (
+      <PromptModal
+        variant="date"
+        title={snoozePrompt.title}
+        defaultValue={snoozePrompt.defaultValue}
+        accent={theme.primary}
+        confirmLabel="Snooze"
+        onSubmit={snoozePrompt.onSubmit}
+        onClose={() => setSnoozePrompt(null)}
+      />
+    )}
     <div role="region" aria-label="Mission lanes" aria-live="polite" style={{ background: UI_PALETTE.surface, border: `1px solid ${UI_PALETTE.line}`, borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: '0 12px 28px rgba(38,53,31,0.10)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
         <h2 style={{ margin: 0, fontSize: 11, fontWeight: 950, color: theme.primary, letterSpacing: '.12em' }}>MISSION LANES</h2>
@@ -1108,17 +1124,22 @@ function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
                     onClick={(e) => {
                       e.stopPropagation();
                       // Default snooze: 3 days from today. Quick-pick;
-                      // the user can choose another date via a prompt.
+                      // the user can choose another date via an in-app
+                      // modal (window.prompt is dead on native WebView).
                       const def = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
-                       
-                      const picked = window.prompt('Snooze this task until (YYYY-MM-DD):', def);
-                      if (picked && /^\d{4}-\d{2}-\d{2}$/.test(picked)) {
-                        snoozeUntil(item.key, picked);
-                      }
+                      setSnoozePrompt({
+                        title: 'Snooze this task until',
+                        defaultValue: def,
+                        onSubmit: (picked) => {
+                          if (picked && /^\d{4}-\d{2}-\d{2}$/.test(picked)) {
+                            snoozeUntil(item.key, picked);
+                          }
+                        },
+                      });
                     }}
                     aria-label={`Snooze task: ${item.label}`}
                     title="Snooze until a chosen date"
-                    style={{ background: 'rgba(255,255,255,0.5)', border: `1px solid ${UI_PALETTE.line}`, borderRadius: 6, color: UI_PALETTE.muted, fontSize: 11, fontWeight: 700, cursor: 'pointer', padding: '3px 7px', whiteSpace: 'nowrap', flexShrink: 0, marginTop: 1 }}
+                    style={{ background: 'rgba(255,255,255,0.5)', border: `1px solid ${UI_PALETTE.line}`, borderRadius: 6, color: UI_PALETTE.muted, fontSize: 11, fontWeight: 700, cursor: 'pointer', padding: '3px 7px', whiteSpace: 'nowrap', flexShrink: 0, marginTop: 1, minHeight: 44, minWidth: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                   >
                     💤
                   </button>
@@ -1129,6 +1150,7 @@ function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
         </section>
       ))}
     </div>
+   </>
   );
 }
 
@@ -1629,6 +1651,9 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
   }, [firstPhase, activePhase]);
   // Reminders: { 'phase-idx': 'YYYY-MM-DDTHH:MM' }
   const [reminders, setReminders] = useState({});
+  // In-app prompt/confirm modal state (window.prompt / window.confirm are
+  // unsupported in the Capacitor native WebView). { variant, ... } | null
+  const [reminderPrompt, setReminderPrompt] = useState(null);
   useEffect(() => {
     let mounted = true;
     secureLocalStore.get('pcs_checklist_reminders', {}).then(saved => {
@@ -1736,6 +1761,18 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
 
   return (
     <div style={{ padding: 16 }}>
+      {reminderPrompt && (
+        <PromptModal
+          variant={reminderPrompt.variant}
+          title={reminderPrompt.title}
+          message={reminderPrompt.message}
+          defaultValue={reminderPrompt.defaultValue}
+          confirmLabel={reminderPrompt.confirmLabel}
+          accent={reminderPrompt.accent || theme.primary}
+          onSubmit={reminderPrompt.onSubmit}
+          onClose={() => setReminderPrompt(null)}
+        />
+      )}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div style={{ fontSize: 16, fontWeight: 900, color: '#0D1821' }}>PCS Checklist</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1873,7 +1910,14 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
                   e.stopPropagation();
                   const key = `${activePhase}-${i}`;
                   if (reminders[key]) {
-                    if (window.confirm('Clear this reminder?')) clearReminder(key);
+                    setReminderPrompt({
+                      variant: 'confirm',
+                      title: 'Clear this reminder?',
+                      message: 'The scheduled reminder for this task will be removed.',
+                      confirmLabel: 'Clear reminder',
+                      accent: '#C62828',
+                      onSubmit: () => clearReminder(key),
+                    });
                     return;
                   }
                   // Default to tomorrow at 09:00 local time.
@@ -1881,15 +1925,21 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
                   def.setHours(9, 0, 0, 0);
                   const pad = (n) => String(n).padStart(2, '0');
                   const defStr = `${def.getFullYear()}-${pad(def.getMonth() + 1)}-${pad(def.getDate())}T${pad(def.getHours())}:${pad(def.getMinutes())}`;
-
-                  const picked = window.prompt('Remind me on (YYYY-MM-DDTHH:MM, 24-hour):', defStr);
-                  if (picked && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(picked)) {
-                    setReminder(key, picked);
-                  }
+                  setReminderPrompt({
+                    variant: 'datetime-local',
+                    title: 'Remind me on',
+                    defaultValue: defStr,
+                    confirmLabel: 'Set reminder',
+                    onSubmit: (picked) => {
+                      if (picked && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(picked)) {
+                        setReminder(key, picked);
+                      }
+                    },
+                  });
                 }}
                 aria-label={reminders[`${activePhase}-${i}`] ? 'Clear reminder' : 'Set reminder for this task'}
                 title={reminders[`${activePhase}-${i}`] ? 'Clear reminder' : 'Set reminder'}
-                style={{ background: 'transparent', border: 'none', color: reminders[`${activePhase}-${i}`] ? '#0D3B66' : 'rgba(0,0,0,0.35)', fontSize: 16, cursor: 'pointer', padding: 4, flexShrink: 0, marginTop: 1 }}
+                style={{ background: 'transparent', border: 'none', color: reminders[`${activePhase}-${i}`] ? '#0D3B66' : 'rgba(0,0,0,0.35)', fontSize: 16, cursor: 'pointer', padding: 4, flexShrink: 0, marginTop: 1, minHeight: 44, minWidth: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 ⏰
               </button>
@@ -3728,7 +3778,6 @@ const DEMO_PROFILE = {
   isOverseas: true,
   hasDependents: true, hasChildren: true, childAges: [14, 11, 8],
   hasPets: true, moveType: 'PPM',
-  bedrooms: '4',
   language: 'en', religiousPreference: 'Protestant / Christian',
 };
 
@@ -3738,8 +3787,8 @@ function Onboarding({ onComplete }) {
   const [gainingSearch, setGainingSearch] = useState('');
   const [p, setP] = useState({
     firstName: '', lastName: '', branch: 'Army', component: 'Active Duty', paygrade: 'E-5',
-    losingInstallation: '', gainingInstallation: '', departingDate: '', unit: '',
-    isOverseas: false, hasDependents: false, hasChildren: false, childAges: [], bedrooms: '3',
+    losingInstallation: '', gainingInstallation: '', departingDate: '',
+    isOverseas: false, hasDependents: false, hasChildren: false, childAges: [],
     language: 'en', religiousPreference: 'No Preference',
   });
 
@@ -5504,12 +5553,12 @@ function App() {
             {IOS_TAB_BAR.map(item => (
               <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-bottom-tab ${activeTab === item.id ? 'is-active' : ''}`} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
                 <span className="pcs-bottom-tab__glyph" style={{ fontSize: 22, lineHeight: 1 }}>{item.iosIcon}</span>
-                <span style={{ fontSize: 10, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1.15, textAlign: 'center', maxWidth: '100%', overflowWrap: 'anywhere', hyphens: 'auto' }}>{item.label}</span>
+                <span style={{ fontSize: 10, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.7)', letterSpacing: '.02em', lineHeight: 1.15, textAlign: 'center', maxWidth: '100%', overflowWrap: 'anywhere', hyphens: 'auto' }}>{item.label}</span>
               </button>
             ))}
             <button onClick={() => setMoreOpen(o => !o)} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
               <span style={{ fontSize: 22, lineHeight: 1, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.55)', fontWeight: 900, letterSpacing: '-2px' }}>•••</span>
-              <span style={{ fontSize: 10, fontWeight: moreOpen ? 800 : 600, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>{t('more')}</span>
+              <span style={{ fontSize: 10, fontWeight: moreOpen ? 800 : 600, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.7)', letterSpacing: '.02em', lineHeight: 1 }}>{t('more')}</span>
             </button>
           </div>
         )}
@@ -5612,7 +5661,7 @@ function App() {
               <button key={item.id} onClick={() => goTo(item.id)} className={`pcs-side-link ${activeTab === item.id ? 'is-active' : ''}`} style={{ width: '100%', padding: '11px 16px', background: activeTab === item.id ? `${theme.accent}22` : 'transparent', border: 'none', borderLeft: `3px solid ${activeTab === item.id ? theme.accent : 'transparent'}`, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.78)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, fontWeight: activeTab === item.id ? 800 : 600, textAlign: 'left', '--side-accent': theme.accent }} aria-current={activeTab === item.id ? 'page' : undefined}>
                 <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }} aria-hidden="true">{item.iosIcon}</span>
                 <span style={{ flex: 1 }}>{item.label}</span>
-                <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.06em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.4)', flexShrink: 0 }}>{item.icon}</span>
+                <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.06em', color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.7)', flexShrink: 0 }}>{item.icon}</span>
               </button>
             ))}
           </nav>
@@ -5663,7 +5712,7 @@ function App() {
                 aria-label={overdueCount > 0 ? `Notifications, ${overdueCount} overdue` : `Notifications, ${alertCount} alert${alertCount === 1 ? '' : 's'}`}
                 aria-expanded={showNotifs}
                 aria-haspopup="dialog"
-                style={{ position: 'relative', background: showNotifs ? `${theme.accent}30` : overdueCount > 0 ? 'rgba(229,57,53,0.2)' : 'none', border: `1px solid ${overdueCount > 0 ? 'rgba(229,57,53,0.5)' : 'rgba(255,255,255,0.25)'}`, color: '#fff', fontSize: 15, cursor: 'pointer', padding: '6px 10px', borderRadius: 8, lineHeight: 1 }}>
+                style={{ position: 'relative', background: showNotifs ? `${theme.accent}30` : overdueCount > 0 ? 'rgba(229,57,53,0.2)' : 'none', border: `1px solid ${overdueCount > 0 ? 'rgba(229,57,53,0.5)' : 'rgba(255,255,255,0.25)'}`, color: '#fff', fontSize: 15, cursor: 'pointer', padding: '6px 10px', borderRadius: 8, lineHeight: 1, minHeight: 44, minWidth: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span aria-hidden="true">🔔</span>
                 <span style={{ position: 'absolute', top: -5, right: -5, background: overdueCount > 0 ? '#E53935' : theme.accent, color: overdueCount > 0 ? '#FFF' : theme.secondary, fontSize: 9, fontWeight: 900, borderRadius: '50%', width: 17, height: 17, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
                   {overdueCount > 0 ? overdueCount : alertCount}
@@ -5676,7 +5725,7 @@ function App() {
                 aria-label={navOpen ? 'Close navigation menu' : 'Open navigation menu'}
                 aria-expanded={navOpen}
                 aria-controls="pcs-nav-drawer"
-                style={{ background: navOpen ? `${theme.accent}30` : 'none', border: `1px solid rgba(255,255,255,0.25)`, color: '#fff', fontSize: 16, cursor: 'pointer', padding: '6px 11px', borderRadius: 8, lineHeight: 1, fontWeight: 700 }}>
+                style={{ background: navOpen ? `${theme.accent}30` : 'none', border: `1px solid rgba(255,255,255,0.25)`, color: '#fff', fontSize: 16, cursor: 'pointer', padding: '6px 11px', borderRadius: 8, lineHeight: 1, fontWeight: 700, minHeight: 44, minWidth: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span aria-hidden="true">{navOpen ? '✕' : '☰'}</span>
               </button>
             )}
@@ -5779,7 +5828,7 @@ function App() {
             </div>
           )}
           {pendingAlerts.map((alert, i) => (
-            <button type="button" key={i} onClick={() => { goTo('checklist'); }} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: '1px solid #F8F8F8', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: alert.overdue ? '#FFF5F5' : '#FFFDE7' }}>
+            <button type="button" key={i} onClick={() => { goTo('pcs-operations'); }} style={{ width: '100%', textAlign: 'left', padding: '12px 16px', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: '1px solid #F8F8F8', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: alert.overdue ? '#FFF5F5' : '#FFFDE7' }}>
               <span style={{ fontSize: 20, flexShrink: 0 }}>{alert.overdue ? '⚠️' : '📋'}</span>
               <span style={{ flex: 1 }}>
                 <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: alert.overdue ? '#C62828' : '#C44400' }}>
@@ -5789,7 +5838,7 @@ function App() {
                   {alert.count}{' '}{alert.count !== 1 ? 'tasks remaining' : 'task remaining'}{' · '}{alert.daysUntil < 0 ? `${Math.abs(alert.daysUntil)}d past departure` : `${alert.daysUntil}d until departure`}
                 </span>
               </span>
-              <span style={{ fontSize: 11, color: '#AAA' }}>→</span>
+              <span style={{ fontSize: 11, color: '#6B7280' }}>→</span>
             </button>
           ))}
           {/* Push-reminders toggle. Hidden only when the browser can't do
@@ -5804,7 +5853,7 @@ function App() {
                 </span>
               </span>
               {pushState === null ? (
-                <span style={{ fontSize: 11, color: '#AAA' }}>Checking…</span>
+                <span style={{ fontSize: 11, color: '#6B7280' }}>Checking…</span>
               ) : (
                 <button type="button" onClick={handleTogglePush} disabled={pushBusy} aria-pressed={pushState === true}
                   style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, padding: '7px 12px', borderRadius: 8, cursor: pushBusy ? 'default' : 'pointer', border: `1px solid ${theme.accent}`, background: pushState === true ? '#FFFFFF' : theme.accent, color: pushState === true ? theme.accent : '#fff', opacity: pushBusy ? 0.6 : 1 }}>
@@ -6119,13 +6168,13 @@ function App() {
           {IOS_TAB_BAR.map(item => (
             <button key={item.id} onClick={() => { goTo(item.id); setMoreOpen(false); }} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
               <span style={{ fontSize: 22, lineHeight: 1 }}>{item.iosIcon}</span>
-              <span style={{ fontSize: 10, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1.15, textAlign: 'center', maxWidth: '100%', overflowWrap: 'anywhere', hyphens: 'auto' }}>{item.label}</span>
+              <span style={{ fontSize: 10, fontWeight: activeTab === item.id ? 800 : 600, color: activeTab === item.id ? theme.accent : 'rgba(255,255,255,0.7)', letterSpacing: '.02em', lineHeight: 1.15, textAlign: 'center', maxWidth: '100%', overflowWrap: 'anywhere', hyphens: 'auto' }}>{item.label}</span>
               {activeTab === item.id && <div style={{ position: 'absolute', bottom: 'calc(env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', width: 4, height: 4, borderRadius: '50%', background: theme.accent }} />}
             </button>
           ))}
           <button onClick={() => setMoreOpen(o => !o)} style={{ flex: 1, minHeight: 49, padding: '6px 2px 4px', background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer' }}>
             <span style={{ fontSize: 22, lineHeight: 1, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.55)', fontWeight: 900, letterSpacing: '-2px' }}>•••</span>
-            <span style={{ fontSize: 10, fontWeight: moreOpen ? 800 : 600, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.5)', letterSpacing: '.02em', lineHeight: 1 }}>{t('more')}</span>
+            <span style={{ fontSize: 10, fontWeight: moreOpen ? 800 : 600, color: moreOpen ? theme.accent : 'rgba(255,255,255,0.7)', letterSpacing: '.02em', lineHeight: 1 }}>{t('more')}</span>
           </button>
         </div>
       )}

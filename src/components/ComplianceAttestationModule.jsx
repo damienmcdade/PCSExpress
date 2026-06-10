@@ -18,6 +18,7 @@ import { useEffect, useState, useRef } from 'react';
 // module-level `let` in cryptoStore under specific minifier paths.
 import { encryptionAvailable, secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
 import { INDEPENDENCE_DISCLAIMER } from '../config/disclaimer';
+import PromptModal from './PromptModal';
 
 // Personal data export. Builds a JSON blob of every secureLocalStore
 // key the user has touched and offers it as a download. The user can
@@ -204,9 +205,33 @@ export default function ComplianceAttestationModule({ theme, profile }) {
   const [cryptoOk, setCryptoOk] = useState(null);
   const importInputRef = useRef(null);
   const [importMsg, setImportMsg] = useState(null);
+  // Pending restore file, awaiting in-app confirmation. window.confirm is
+  // unsupported in the Capacitor native WebView, so we stage the file and
+  // confirm via PromptModal before overwriting on-device data.
+  const [pendingRestore, setPendingRestore] = useState(null);
   useEffect(() => { setCryptoOk(encryptionAvailable()); }, []);
+  const runRestore = async (file) => {
+    try {
+      const n = await importPersonalDataFromFile(file);
+      setImportMsg({ ok: true, text: `Restored ${n} item${n === 1 ? '' : 's'}. Reloading…` });
+      setTimeout(() => { try { window.location.reload(); } catch { /* ignore */ } }, 1200);
+    } catch (err) {
+      setImportMsg({ ok: false, text: err.message || 'Could not restore that file.' });
+    }
+  };
   return (
     <div style={{ padding: 16 }}>
+      {pendingRestore && (
+        <PromptModal
+          variant="confirm"
+          title="Restore from this backup?"
+          message="It will overwrite the PCS data currently on this device. This cannot be undone."
+          confirmLabel="Restore &amp; overwrite"
+          accent="#C62828"
+          onSubmit={() => { const f = pendingRestore; setPendingRestore(null); runRestore(f); }}
+          onClose={() => setPendingRestore(null)}
+        />
+      )}
       <div style={{ background: theme.secondary, borderRadius: 18, padding: 16, marginBottom: 14, color: '#FFF', border: `1px solid ${theme.accent}55` }}>
         <div style={{ fontSize: 10, fontWeight: 950, color: theme.accent, letterSpacing: '.16em', marginBottom: 6 }}>COMPLIANCE ATTESTATION</div>
         <div style={{ fontSize: 17, fontWeight: 950, marginBottom: 6 }}>Security posture & data-handling commitments</div>
@@ -260,18 +285,12 @@ export default function ComplianceAttestationModule({ theme, profile }) {
           type="file"
           accept="application/json,.json"
           style={{ display: 'none' }}
-          onChange={async (e) => {
+          onChange={(e) => {
             const file = e.target.files && e.target.files[0];
             e.target.value = '';
             if (!file) return;
-            if (!window.confirm('Restore from this backup? It will overwrite the PCS data currently on this device.')) return;
-            try {
-              const n = await importPersonalDataFromFile(file);
-              setImportMsg({ ok: true, text: `Restored ${n} item${n === 1 ? '' : 's'}. Reloading…` });
-              setTimeout(() => { try { window.location.reload(); } catch { /* ignore */ } }, 1200);
-            } catch (err) {
-              setImportMsg({ ok: false, text: err.message || 'Could not restore that file.' });
-            }
+            // Stage the file; the in-app confirm modal triggers the restore.
+            setPendingRestore(file);
           }}
         />
         <button

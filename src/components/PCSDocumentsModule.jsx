@@ -595,7 +595,7 @@ export default function PCSDocumentsModule({ theme, profile }) {
                         {obtained ? '✓ REQUIRED' : 'REQUIRED'}
                       </span>
                     )}
-                    {!doc.required && <span style={{ fontSize: 9, color: '#9CA3AF', fontWeight: 600 }}>optional</span>}
+                    {!doc.required && <span style={{ fontSize: 9, color: '#6B7280', fontWeight: 600 }}>optional</span>}
                   </div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: cat?.color, marginBottom: 4 }}>{doc.form}</div>
                   <div style={{ fontSize: 11, color: '#56697C', lineHeight: 1.5 }}>{doc.desc}</div>
