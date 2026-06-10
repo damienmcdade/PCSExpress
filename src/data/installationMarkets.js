@@ -5,35 +5,41 @@
  *   - VeteranBusinessesTab (city/state for SAM.gov entity search)
  *
  * Entries without an alias are the current canonical name. Entries with an
- * alias forward to a renamed installation (Fort Bragg -> Fort Liberty, etc.).
+ * alias forward to the canonical installation. The 2025 SECDEF restoration
+ * reverted nine Army posts to their ORIGINAL names, so the original is now
+ * canonical and the 2023 Naming Commission name is the historical alias
+ * (Fort Liberty -> Fort Bragg, etc.). Both names remain resolvable.
  * No coordinates are stored; Google Maps geocodes from the city/state/zip
  * label and we control the zoom level via the embed URL.
  */
 
 export const INSTALLATION_MARKETS = {
-  'Fort Liberty': { city: 'Fayetteville', state: 'NC', zip: '28310' },
-  'Fort Bragg': { city: 'Fayetteville', state: 'NC', zip: '28310', alias: 'Fort Liberty' },
-  'Fort Cavazos': { city: 'Killeen', state: 'TX', zip: '76544' },
-  'Fort Hood': { city: 'Killeen', state: 'TX', zip: '76544', alias: 'Fort Cavazos' },
+  // 2025 SECDEF restoration: original names are canonical; 2023 names alias back.
+  'Fort Bragg': { city: 'Fayetteville', state: 'NC', zip: '28310' },
+  'Fort Liberty': { city: 'Fayetteville', state: 'NC', zip: '28310', alias: 'Fort Bragg' },
+  'Fort Hood': { city: 'Killeen', state: 'TX', zip: '76544' },
+  'Fort Cavazos': { city: 'Killeen', state: 'TX', zip: '76544', alias: 'Fort Hood' },
   'Fort Campbell': { city: 'Clarksville', state: 'TN', zip: '37042' },
   'Fort Carson': { city: 'Colorado Springs', state: 'CO', zip: '80913' },
   'Fort Drum': { city: 'Watertown', state: 'NY', zip: '13602' },
-  'Fort Eisenhower': { city: 'Augusta', state: 'GA', zip: '30905' },
-  'Fort Gordon': { city: 'Augusta', state: 'GA', zip: '30905', alias: 'Fort Eisenhower' },
-  'Fort Gregg-Adams': { city: 'Petersburg', state: 'VA', zip: '23801' },
-  'Fort Lee': { city: 'Petersburg', state: 'VA', zip: '23801', alias: 'Fort Gregg-Adams' },
-  // 2023 Naming Commission renames - old names alias to new entries.
-  'Fort Polk': { city: 'Leesville', state: 'LA', zip: '71459', alias: 'Fort Johnson' },
-  'Fort Benning': { city: 'Columbus', state: 'GA', zip: '31905', alias: 'Fort Moore' },
-  'Fort Rucker': { city: 'Daleville', state: 'AL', zip: '36362', alias: 'Fort Novosel' },
-  // Fort Pickett -> Fort Barfoot (2023); Fort A.P. Hill -> Fort Walker (2023).
-  'Fort Pickett': { city: 'Blackstone', state: 'VA', zip: '23824', alias: 'Fort Barfoot' },
-  'Fort Barfoot': { city: 'Blackstone', state: 'VA', zip: '23824' },
-  'Fort A.P. Hill': { city: 'Bowling Green', state: 'VA', zip: '22427', alias: 'Fort Walker' },
-  'Fort Walker': { city: 'Bowling Green', state: 'VA', zip: '22427' },
+  'Fort Gordon': { city: 'Augusta', state: 'GA', zip: '30905' },
+  'Fort Eisenhower': { city: 'Augusta', state: 'GA', zip: '30905', alias: 'Fort Gordon' },
+  'Fort Lee': { city: 'Petersburg', state: 'VA', zip: '23801' },
+  'Fort Gregg-Adams': { city: 'Petersburg', state: 'VA', zip: '23801', alias: 'Fort Lee' },
+  // 2025 restoration - the 2023 Naming Commission names now alias to the originals.
+  'Fort Polk': { city: 'Leesville', state: 'LA', zip: '71459' },
+  'Fort Johnson': { city: 'Leesville', state: 'LA', zip: '71459', alias: 'Fort Polk' },
+  'Fort Benning': { city: 'Columbus', state: 'GA', zip: '31905' },
+  'Fort Moore': { city: 'Columbus', state: 'GA', zip: '31905', alias: 'Fort Benning' },
+  'Fort Rucker': { city: 'Daleville', state: 'AL', zip: '36362' },
+  'Fort Novosel': { city: 'Daleville', state: 'AL', zip: '36362', alias: 'Fort Rucker' },
+  // Fort Barfoot -> Fort Pickett (restored 2025); Fort Walker -> Fort A.P. Hill (restored 2025).
+  'Fort Barfoot': { city: 'Blackstone', state: 'VA', zip: '23824', alias: 'Fort Pickett' },
+  'Fort Pickett': { city: 'Blackstone', state: 'VA', zip: '23824' },
+  'Fort Walker': { city: 'Bowling Green', state: 'VA', zip: '22427', alias: 'Fort A.P. Hill' },
+  'Fort A.P. Hill': { city: 'Bowling Green', state: 'VA', zip: '22427' },
   'Fort Jackson': { city: 'Columbia', state: 'SC', zip: '29207' },
   'Fort Leonard Wood': { city: 'Waynesville', state: 'MO', zip: '65583' },
-  'Fort Moore': { city: 'Columbus', state: 'GA', zip: '31905' },
   'Fort Riley': { city: 'Junction City', state: 'KS', zip: '66442' },
   'Fort Stewart': { city: 'Hinesville', state: 'GA', zip: '31314' },
   'Joint Base Lewis-McChord': { city: 'Tacoma', state: 'WA', zip: '98433' },
@@ -62,7 +68,6 @@ export const INSTALLATION_MARKETS = {
   'Ramstein AB': { city: 'Ramstein-Miesenbach', state: 'Germany', zip: '66877' },
   'Yokota AB': { city: 'Fussa', state: 'Japan', zip: '197-0001' },
   'Kadena AB': { city: 'Okinawa', state: 'Japan', zip: '' },
-  'Fort Novosel': { city: 'Daleville', state: 'AL', zip: '36362' },
   'Redstone Arsenal': { city: 'Huntsville', state: 'AL', zip: '35898' },
   'Maxwell AFB': { city: 'Montgomery', state: 'AL', zip: '36112' },
   'Fort Huachuca': { city: 'Sierra Vista', state: 'AZ', zip: '85613' },
@@ -89,7 +94,6 @@ export const INSTALLATION_MARKETS = {
   'Coast Guard Air Station Barbers Point': { city: 'Kapolei', state: 'HI', zip: '96707' },
   'Mountain Home AFB': { city: 'Mountain Home', state: 'ID', zip: '83648' },
   'Fort Knox': { city: 'Radcliff', state: 'KY', zip: '40121' },
-  'Fort Johnson': { city: 'Leesville', state: 'LA', zip: '71459' },
   'Aberdeen Proving Ground': { city: 'Aberdeen', state: 'MD', zip: '21005' },
   'Fort Detrick': { city: 'Frederick', state: 'MD', zip: '21702' },
   'Fort Meade': { city: 'Odenton', state: 'MD', zip: '20755' },

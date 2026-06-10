@@ -9,13 +9,15 @@ import TabBar from './TabBar';
 
 // Full data for major installations
 const INSTALLATION_DIRECTORY = {
-  'Fort Liberty': {
+  // 2025 SECDEF restoration: keyed under the original (now canonical) name;
+  // the 2023 Naming Commission name resolves here via CANONICAL_ALIASES.
+  'Fort Bragg': {
     state: 'NC', branch: 'Army', city: 'Fayetteville',
     housing: { waitTime: '3–6 months', onPostUnits: 'Corvias Military Living', offPostNotes: 'Fayetteville has strong off-post rental market; Spring Lake and Hope Mills popular with families.' },
     tricare: { region: 'East', mtf: 'Womack Army Medical Center', phone: '(910) 907-6000', primeAvailable: true, selectAvailable: true },
     schools: { district: 'Cumberland County Schools', rating: 4.2, dodea: false, liaison: '(910) 396-1533' },
     contacts: { housing: '(910) 396-0264', transportation: '(910) 396-3781', finance: '(910) 396-1082', acs: '(910) 396-1584', legal: '(910) 396-8801' },
-    website: 'https://home.army.mil/liberty',
+    website: 'https://home.army.mil/bragg',
   },
   'Fort Carson': {
     state: 'CO', branch: 'Army', city: 'Colorado Springs',
@@ -25,13 +27,13 @@ const INSTALLATION_DIRECTORY = {
     contacts: { housing: '(719) 526-4464', transportation: '(719) 526-5454', finance: '(719) 526-0330', acs: '(719) 526-4590', legal: '(719) 526-4316' },
     website: 'https://home.army.mil/carson',
   },
-  'Fort Cavazos': {
+  'Fort Hood': {
     state: 'TX', branch: 'Army', city: 'Killeen',
     housing: { waitTime: '2–5 months', onPostUnits: 'Lend Lease Communities', offPostNotes: 'Harker Heights and Copperas Cove are popular off-post options with shorter commutes.' },
     tricare: { region: 'West', mtf: 'Carl R. Darnall Army Medical Center', phone: '(254) 288-8000', primeAvailable: true, selectAvailable: true },
     schools: { district: 'Killeen ISD / Copperas Cove ISD', rating: 4.0, dodea: false, liaison: '(254) 287-1589' },
     contacts: { housing: '(254) 287-7036', transportation: '(254) 287-2195', finance: '(254) 288-3560', acs: '(254) 287-3477', legal: '(254) 287-3091' },
-    website: 'https://home.army.mil/cavazos',
+    website: 'https://home.army.mil/hood',
   },
   'Fort Bliss': {
     state: 'TX', branch: 'Army', city: 'El Paso',
@@ -81,21 +83,22 @@ const INSTALLATION_DIRECTORY = {
     contacts: { housing: '(912) 767-5146', transportation: '(912) 767-1234', finance: '(912) 767-6361', acs: '(912) 767-5058', legal: '(912) 767-2264' },
     website: 'https://home.army.mil/stewart',
   },
-  'Fort Moore': {
+  'Fort Benning': {
     state: 'GA', branch: 'Army', city: 'Columbus',
     housing: { waitTime: '2–4 months', onPostUnits: 'Corvias Military Living', offPostNotes: 'Columbus and Phenix City (AL across the river) are the main off-post options. Midland area is popular.' },
     tricare: { region: 'East', mtf: 'Martin Army Community Hospital', phone: '(706) 544-2516', primeAvailable: true, selectAvailable: true },
     schools: { district: 'Muscogee County SD / Phenix City SD (AL)', rating: 4.0, dodea: false, liaison: '(706) 545-2958' },
     contacts: { housing: '(706) 545-7461', transportation: '(706) 545-1234', finance: '(706) 545-6044', acs: '(706) 545-6363', legal: '(706) 544-5165' },
-    website: 'https://home.army.mil/moore',
+    website: 'https://home.army.mil/benning',
   },
-  'Fort Eisenhower': {
+  'Fort Gordon': {
     state: 'GA', branch: 'Army', city: 'Augusta',
     housing: { waitTime: '1–3 months', onPostUnits: 'Corvias Military Living (Augusta)', offPostNotes: 'Evans, Grovetown, and Martinez are popular off-post communities. Aiken (SC) is also accessible.' },
+    // The medical center retains its Eisenhower namesake; only the post name reverted.
     tricare: { region: 'East', mtf: 'Dwight David Eisenhower Army Medical Center', phone: '(706) 787-5811', primeAvailable: true, selectAvailable: true },
     schools: { district: 'Columbia County Schools (GA)', rating: 4.6, dodea: false, liaison: '(706) 791-3369' },
     contacts: { housing: '(706) 791-6116', transportation: '(706) 791-1234', finance: '(706) 791-2215', acs: '(706) 791-3579', legal: '(706) 791-7770' },
-    website: 'https://home.army.mil/eisenhower',
+    website: 'https://home.army.mil/gordon',
   },
   'Fort Drum': {
     state: 'NY', branch: 'Army', city: 'Watertown',
@@ -161,13 +164,13 @@ const INSTALLATION_DIRECTORY = {
     contacts: { housing: '(301) 677-5590', transportation: '(301) 677-4516', finance: '(301) 677-6261', acs: '(301) 677-7023', legal: '(301) 677-3765' },
     website: 'https://home.army.mil/meade',
   },
-  'Fort Gregg-Adams': {
+  'Fort Lee': {
     state: 'VA', branch: 'Army', city: 'Hopewell',
     housing: { waitTime: '1–3 months', onPostUnits: 'Corvias Military Living', offPostNotes: 'Colonial Heights, Hopewell, and Prince George County are the main off-post areas. Richmond is 30 minutes north.' },
-    tricare: { region: 'East', mtf: 'Fort Gregg-Adams Health Center', phone: '(804) 734-9000', primeAvailable: true, selectAvailable: true },
+    tricare: { region: 'East', mtf: 'Fort Lee Health Center', phone: '(804) 734-9000', primeAvailable: true, selectAvailable: true },
     schools: { district: 'Prince George County Schools', rating: 4.1, dodea: false, liaison: '(804) 734-7000' },
     contacts: { housing: '(804) 734-6000', transportation: '(804) 734-7000', finance: '(804) 734-7000', acs: '(804) 734-7000', legal: '(804) 734-7000' },
-    website: 'https://home.army.mil/gregg-adams',
+    website: 'https://home.army.mil/lee',
   },
   'Fort Leonard Wood': {
     state: 'MO', branch: 'Army', city: 'Waynesville / St. Robert',
@@ -305,13 +308,13 @@ const INSTALLATION_DIRECTORY = {
     contacts: { housing: '(907) 384-0000', transportation: '(907) 384-0000', finance: '(907) 384-0000', acs: '(907) 384-0000' },
     website: 'https://home.army.mil/alaska',
   },
-  'Fort Novosel': {
+  'Fort Rucker': {
     state: 'AL', branch: 'Army', city: 'Enterprise / Daleville',
     housing: { waitTime: '1–2 months', onPostUnits: 'Corvias Military Living', offPostNotes: 'Enterprise and Daleville are the main off-post towns. Very affordable cost of living. Dothan (~30 min) has more shopping and dining.' },
     tricare: { region: 'East', mtf: 'Lyster Army Health Clinic', phone: '(334) 255-7000', primeAvailable: true, selectAvailable: true },
     schools: { district: 'Coffee County / Dale County Schools', rating: 4.0, dodea: false, liaison: '(334) 255-2919' },
     contacts: { housing: '(334) 255-2919', transportation: '(334) 255-2919', finance: '(334) 255-7000', acs: '(334) 255-3735', legal: '(334) 255-9736' },
-    website: 'https://home.army.mil/novosel',
+    website: 'https://home.army.mil/rucker',
   },
   'Redstone Arsenal': {
     state: 'AL', branch: 'Army', city: 'Huntsville',
@@ -353,13 +356,13 @@ const INSTALLATION_DIRECTORY = {
     contacts: { housing: '(309) 782-6000', transportation: '(309) 782-6000', finance: '(309) 782-6000', acs: '(309) 782-0339', legal: '(309) 782-6303' },
     website: 'https://www.arsenalcoc.com',
   },
-  'Fort Johnson': {
+  'Fort Polk': {
     state: 'LA', branch: 'Army', city: 'Leesville',
     housing: { waitTime: '1–3 months', onPostUnits: 'Lend Lease Communities', offPostNotes: 'Leesville and DeRidder are the primary off-post options. Very affordable cost of living. New Llano and Rosepine also popular.' },
     tricare: { region: 'East', mtf: 'Bayne-Jones Army Community Hospital', phone: '(337) 531-3000', primeAvailable: true, selectAvailable: true },
     schools: { district: 'Vernon Parish School Board', rating: 3.9, dodea: false, liaison: '(337) 531-1437' },
     contacts: { housing: '(337) 531-1437', transportation: '(337) 531-1437', finance: '(337) 531-3000', acs: '(337) 531-2382', legal: '(337) 531-3373' },
-    website: 'https://home.army.mil/johnson',
+    website: 'https://home.army.mil/polk',
   },
   'Fort Detrick': {
     state: 'MD', branch: 'Army', city: 'Frederick',

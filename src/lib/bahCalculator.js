@@ -214,11 +214,11 @@ export const INSTALLATION_MHA_MAP = {
   // ── Added 2026: full picker coverage. Maps every installation in the BAH picker to an MHA. ──
   // Army
   'Anniston Army Depot':          'Anniston, AL',
-  'Fort Novosel':                 'Dale County, AL',
-  // Fort Rucker = the former name of Fort Novosel; the picker still offers
-  // both, so map the legacy name to the same MHA (was returning "rate not
-  // found" while Fort Novosel resolved — a renamed-base inconsistency).
+  // Fort Rucker is the current (2025-restored) name; Fort Novosel was the
+  // 2023 Naming Commission name. The picker still offers both, so both map to
+  // the same MHA (a renamed-base consistency guard).
   'Fort Rucker':                  'Dale County, AL',
+  'Fort Novosel':                 'Dale County, AL',
   'Redstone Arsenal':             'Madison County, AL',
   'Fort Huachuca':                'Cochise County, AZ',
   'Yuma Proving Ground':          'Yuma, AZ',
@@ -403,12 +403,15 @@ export function isEstimatedMHA(mhaKey) {
 
 // Aliases: profile name variants → canonical key (handles renames, abbreviations, USAG vs Camp, etc.)
 const CANONICAL_ALIASES = {
-  // Installation renames
-  'fort bragg':                     'Fort Liberty',
-  'fort gordon':                    'Fort Eisenhower',
-  'fort lee':                       'Fort Gregg-Adams',
-  'fort polk':                      'Fort Johnson',
-  'fort benning':                   'Fort Moore',
+  // Installation renames — 2025 SECDEF restoration reverted these nine Army
+  // posts to their ORIGINAL names, so the original is canonical and the 2023
+  // Naming Commission name aliases back to it. Both names stay resolvable.
+  'fort liberty':                   'Fort Bragg',
+  'fort cavazos':                   'Fort Hood',
+  'fort eisenhower':                'Fort Gordon',
+  'fort gregg-adams':               'Fort Lee',
+  'fort johnson':                   'Fort Polk',
+  'fort moore':                     'Fort Benning',
   // USAG / Camp variants
   'camp humphreys':                 'USAG Humphreys',
   'usag humphreys':                 'USAG Humphreys',
@@ -446,9 +449,9 @@ const CANONICAL_ALIASES = {
   'fort shafter hi':                'Fort Shafter',
   'fort richardson ak':             'Fort Richardson',
   'fort wainwright ak':             'Fort Wainwright',
-  // Army renames / common names
-  'fort rucker':                    'Fort Novosel',
-  'fort rucker al':                 'Fort Novosel',
+  // Army renames / common names (2025 restoration: Novosel -> Rucker)
+  'fort novosel':                   'Fort Rucker',
+  'fort novosel al':                'Fort Rucker',
   'presidio of monterey':           'Presidio of Monterey (DLI)',
   'dli monterey':                   'Presidio of Monterey (DLI)',
   'defense language institute':     'Presidio of Monterey (DLI)',

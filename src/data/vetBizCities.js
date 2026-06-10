@@ -12,7 +12,10 @@ export const VET_BIZ_CITY = {
   'Fort Meade':'Odenton MD','Fort George G. Meade':'Odenton MD',
   'Fort Leavenworth':'Leavenworth KS','Fort Riley':'Junction City KS',
   'Fort Sam Houston':'San Antonio TX','Fort Wainwright':'Fairbanks AK',
-  'Fort Gregg-Adams':'Petersburg VA','Fort Leonard Wood':'Waynesville MO',
+  // 2025 SECDEF restoration: original (canonical) name + 2023 name both resolve.
+  'Fort Lee':'Petersburg VA','Fort Gregg-Adams':'Petersburg VA',
+  'Fort Gordon':'Augusta GA','Fort Benning':'Columbus GA','Fort Polk':'Leesville LA','Fort Rucker':'Daleville AL',
+  'Fort Leonard Wood':'Waynesville MO',
   'Schofield Barracks':'Honolulu HI','Fort Shafter':'Honolulu HI',
   'Naval Station Norfolk':'Norfolk VA','Naval Base San Diego':'San Diego CA',
   'Naval Air Station Jacksonville':'Jacksonville FL','Naval Station Mayport':'Jacksonville FL',

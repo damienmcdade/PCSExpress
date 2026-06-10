@@ -21,12 +21,17 @@ const ALL_BASES = [];
 export function getInstallationSearchLocation(installation) {
   const base = (installation || '').split(',')[0].trim();
   if (!base) return 'military installation';
+  // 2025 SECDEF restoration: original names are canonical. The 2023 Naming
+  // Commission names alias back to the original so either name still resolves
+  // to a vet-biz city (both keys exist in VET_BIZ_CITY).
   const alias = {
-    'Fort Bragg': 'Fort Liberty',
-    'Fort Hood': 'Fort Cavazos',
-    'Fort Gordon': 'Fort Eisenhower',
-    'Fort Lee': 'Fort Gregg-Adams',
-    'Fort Rucker': 'Fort Novosel',
+    'Fort Liberty': 'Fort Bragg',
+    'Fort Cavazos': 'Fort Hood',
+    'Fort Eisenhower': 'Fort Gordon',
+    'Fort Moore': 'Fort Benning',
+    'Fort Johnson': 'Fort Polk',
+    'Fort Gregg-Adams': 'Fort Lee',
+    'Fort Novosel': 'Fort Rucker',
     'Camp Lejeune': 'Marine Corps Base Camp Lejeune',
     'Marine Corps Base Quantico': 'MCB Quantico',
   }[base] || base;
