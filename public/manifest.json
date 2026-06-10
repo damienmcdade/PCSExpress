@@ -4,8 +4,8 @@
   "description": "PCS Express helps service members and military families simplify PCS moves through guided workflows, centralized relocation tools, and military-specific resources. Built for all DoD branches, components, and military families.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0A1628",
-  "theme_color": "#0A1628",
+  "background_color": "#09351B",
+  "theme_color": "#09351B",
   "scope": "/",
   "icons": [
     {
