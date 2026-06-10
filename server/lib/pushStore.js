@@ -74,9 +74,32 @@ class PgBackend {
   constructor(pool) { this.kind = 'postgres'; this.pool = pool; }
 
   static async create(url) {
+    // Try verified TLS first (the secure default). If the server presents a
+    // cert that can't be validated against the system trust store (a public
+    // proxy with a private chain and no PGSSL_CA supplied), DON'T silently
+    // degrade durable Postgres to ephemeral in-memory — retry once with
+    // unverified TLS and a loud warning. This keeps push subscriptions durable
+    // in every deployment topology while still preferring verification where
+    // it works (internal network, or a publicly-trusted cert e.g. Neon).
+    try {
+      return await PgBackend.connect(url, pgSslConfig(url));
+    } catch (err) {
+      const ssl = pgSslConfig(url);
+      const isVerify = ssl && typeof ssl === 'object' && ssl.rejectUnauthorized === true && !ssl.ca;
+      const certIssue = /self.signed|self_signed|unable to (verify|get).*cert|certificate|SSL|altnames|depth zero/i.test(err.message || '');
+      if (isVerify && certIssue) {
+        console.warn(`[push-store] verified TLS failed (${err.message}); retrying with unverified TLS. ` +
+          `Set PGSSL_CA to a CA bundle to restore verification, or PGSSL_REJECT_UNAUTHORIZED=false to silence this.`);
+        return await PgBackend.connect(url, { rejectUnauthorized: false });
+      }
+      throw err;
+    }
+  }
+
+  static async connect(url, ssl) {
     const pool = new pg.Pool({
       connectionString: url,
-      ssl: pgSslConfig(url),
+      ssl,
       max: 4,
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 10_000,
