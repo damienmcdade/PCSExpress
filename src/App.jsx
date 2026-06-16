@@ -5207,8 +5207,12 @@ function App() {
     return (p?.demoMode || (p?.firstName === 'Marcus' && p?.lastName === 'Thompson')) ? 0 : -1;
   });
   const [screenW, setScreenW] = useState(() => typeof window !== 'undefined' ? Math.max(window.innerWidth, document.documentElement?.clientWidth || 0) : 1024);
+  const [screenH, setScreenH] = useState(() => typeof window !== 'undefined' ? Math.max(window.innerHeight, document.documentElement?.clientHeight || 0) : 768);
   useEffect(() => {
-    const handler = () => setScreenW(Math.max(window.innerWidth, document.documentElement?.clientWidth || 0));
+    const handler = () => {
+      setScreenW(Math.max(window.innerWidth, document.documentElement?.clientWidth || 0));
+      setScreenH(Math.max(window.innerHeight, document.documentElement?.clientHeight || 0));
+    };
     handler();
     window.addEventListener('resize', handler);
     window.addEventListener('orientationchange', handler);
@@ -5236,11 +5240,15 @@ function App() {
   const isNative = typeof window !== 'undefined' && !!window.Capacitor?.isNativePlatform?.();
   // Desktop = pointer-fine (mouse/trackpad) device at >=768px, OR any web viewport >=900px.
   // The pointer-fine clause catches laptops at typical zoom levels; the 900px clause is the
-  // legacy threshold kept for backward compatibility. We force mobile layout inside the
-  // Capacitor shell since those builds ship to phones/tablets, never desktops.
+  // legacy threshold kept for backward compatibility.
   const hasFinePointer = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
     && window.matchMedia('(pointer: fine)').matches;
-  const isDesktop = !isNative && ((hasFinePointer && screenW >= 768) || screenW >= 900);
+  // Tablets (iPad and up — native or web) also get the wide sidebar layout so the
+  // larger display is actually used. Detected by the SHORTER viewport edge: every
+  // iPad is >=744pt on its short side, while no iPhone (even in landscape, where the
+  // short side is its <=430pt height) reaches 600 — so phones never trip this.
+  const isTablet = Math.min(screenW, screenH) >= 600;
+  const isDesktop = isTablet || (!isNative && ((hasFinePointer && screenW >= 768) || screenW >= 900));
 
   // Kick off the dynamic load of the heavy data tables on first
   // mount and trigger a re-render once they're ready. Consumers
@@ -5521,7 +5529,7 @@ function App() {
         <ResetWarningModal theme={theme} onConfirm={confirmReset} onCancel={() => setShowResetWarning(false)} />
       )}
         {isDesktop && (
-          <div style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', minHeight: '100dvh', borderRight: `2px solid ${theme.accent}30`, flexShrink: 0 }}>
+          <div style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', minHeight: '100dvh', borderRight: `2px solid ${theme.accent}30`, flexShrink: 0, paddingTop: isNative ? 'env(safe-area-inset-top)' : 0, paddingBottom: isNative ? 'env(safe-area-inset-bottom)' : 0 }}>
             <div style={{ padding: '20px 16px 12px', borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
               <div style={{ fontSize: 9, letterSpacing: '.18em', color: theme.accent, fontWeight: 900, marginBottom: 2 }}>PCS EXPRESS</div>
               <div style={{ fontSize: 16, fontWeight: 900, color: theme.accent, letterSpacing: '-1px', lineHeight: 1 }}>{theme.insignia || theme.abbr}</div>
@@ -5630,7 +5638,7 @@ function App() {
           with the 🔒 Security button pinned at the bottom. Replaces
           the burger menu on screens ≥ 900px. */}
       {isDesktop && (
-        <aside style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', minHeight: '100dvh', borderRight: `2px solid ${theme.accent}30`, flexShrink: 0, position: 'sticky', top: 0, alignSelf: 'flex-start' }}>
+        <aside style={{ width: 230, background: theme.secondary, display: 'flex', flexDirection: 'column', minHeight: '100dvh', borderRight: `2px solid ${theme.accent}30`, flexShrink: 0, position: 'sticky', top: 0, alignSelf: 'flex-start', paddingTop: isNative ? 'env(safe-area-inset-top)' : 0, paddingBottom: isNative ? 'env(safe-area-inset-bottom)' : 0 }}>
           {/* Branch-tailored backdrop. Renders the abstract pattern
               for the user's branch (hex grid / orbital rings / wave
               forms / etc.) behind the sidebar header so the chrome
