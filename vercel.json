@@ -45,6 +45,9 @@
   ],
   "rewrites": [
     { "source": "/api/((?!jtr-assistant|ai$).*)", "destination": "https://pcsexpress-production.up.railway.app/api/$1" },
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/terms", "destination": "/terms.html" },
+    { "source": "/accessibility", "destination": "/accessibility.html" },
     { "source": "/((?!assets/|api/).*)", "destination": "/index.html" }
   ]
 }
