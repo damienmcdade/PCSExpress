@@ -1,6 +1,7 @@
 import UIKit
 import Capacitor
 import WebKit
+import StoreKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -9,7 +10,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         clearBundledWebAssetCache()
+        maybeRequestReview()
         return true
+    }
+
+    /// Ask for a rating only from engaged users: 3rd+ launch, 45s in
+    /// (deep enough into a session to be past the dashboard), once per
+    /// app version. The system additionally caps delivery at 3 prompts
+    /// per 365 days.
+    private func maybeRequestReview() {
+        let defaults = UserDefaults.standard
+        let count = defaults.integer(forKey: "reviewPromptLaunchCount") + 1
+        defaults.set(count, forKey: "reviewPromptLaunchCount")
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        guard count >= 3, defaults.string(forKey: "reviewPromptLastVersion") != version else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 45) {
+            guard UIApplication.shared.applicationState == .active,
+                  let scene = UIApplication.shared.connectedScenes
+                      .compactMap({ $0 as? UIWindowScene })
+                      .first(where: { $0.activationState == .foregroundActive }) else { return }
+            defaults.set(version, forKey: "reviewPromptLastVersion")
+            SKStoreReviewController.requestReview(in: scene)
+        }
     }
 
     private func clearBundledWebAssetCache() {
