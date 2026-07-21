@@ -30,6 +30,7 @@
 		F2398EE7A08E83181479595F /* JTREntitlements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754A9938EA44449EC32619CE /* JTREntitlements.swift */; };
 		C7B10001A2C4E6081DEF0001 /* PCSPro.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B10002A2C4E6081DEF0002 /* PCSPro.swift */; };
 		C7B10003A2C4E6081DEF0003 /* PCSProPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B10004A2C4E6081DEF0004 /* PCSProPlugin.swift */; };
+		C7B10005A2C4E6081DEF0005 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C7B10006A2C4E6081DEF0006 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -58,6 +59,7 @@
 		D508FCE724398E0BD448BB56 /* OfflineCacheManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OfflineCacheManager.swift; sourceTree = "<group>"; };
 		C7B10002A2C4E6081DEF0002 /* PCSPro.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCSPro.swift; sourceTree = "<group>"; };
 		C7B10004A2C4E6081DEF0004 /* PCSProPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCSProPlugin.swift; sourceTree = "<group>"; };
+		C7B10006A2C4E6081DEF0006 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +117,7 @@
 				C77A329D2FA962B4009FAAF3 /* HousingClaimsView.swift */,
 				C7B10002A2C4E6081DEF0002 /* PCSPro.swift */,
 				C7B10004A2C4E6081DEF0004 /* PCSProPlugin.swift */,
+				C7B10006A2C4E6081DEF0006 /* PrivacyInfo.xcprivacy */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -190,6 +193,7 @@
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
+				C7B10005A2C4E6081DEF0005 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
