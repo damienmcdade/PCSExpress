@@ -1032,6 +1032,21 @@ export default function LandingPage({ onStartPlan, onClose }) {
               <button type="button" aria-label="Start your PCS plan — begin onboarding" onClick={startPlan} style={{ background: 'none', border: 'none', color: PALETTE.gold, fontWeight: 800, cursor: 'pointer', padding: 0, fontSize: 11 }}>Start Your PCS Plan →</button>
             </div>
           </div>
+          {/* Cross-promotion strip (playbook §14) — the rest of the CyberWave fleet; own link omitted. */}
+          <div style={{ marginTop: 14, fontSize: 12, color: 'rgba(255,255,255,0.55)', display: 'flex', flexWrap: 'wrap', columnGap: 10, rowGap: 4, alignItems: 'center' }}>
+            <span>More from CyberWave Technologies:</span>
+            <a href="https://kinsaga.app" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Kin Saga</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://storymade.dev" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>StoryMade</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://communitysafe.app" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>CommunitySafe</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://codecanic.app" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Codecanic</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://marketscale-ai.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>MarketScale AI</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://apps.apple.com/us/app/id6782158794" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Byte Guardians</a>
+          </div>
         </div>
       </footer>
 
