@@ -28,6 +28,8 @@
 		C77A329E2FA962B4009FAAF3 /* HousingClaimsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C77A329D2FA962B4009FAAF3 /* HousingClaimsView.swift */; };
 		D9EFDDF0176CB1EC83E67EF3 /* OfflineCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D508FCE724398E0BD448BB56 /* OfflineCacheManager.swift */; };
 		F2398EE7A08E83181479595F /* JTREntitlements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754A9938EA44449EC32619CE /* JTREntitlements.swift */; };
+		C7B10001A2C4E6081DEF0001 /* PCSPro.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B10002A2C4E6081DEF0002 /* PCSPro.swift */; };
+		C7B10003A2C4E6081DEF0003 /* PCSProPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B10004A2C4E6081DEF0004 /* PCSProPlugin.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,6 +56,8 @@
 		C77A329B2FA962B3009FAAF3 /* EFMPView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EFMPView.swift; sourceTree = "<group>"; };
 		C77A329D2FA962B4009FAAF3 /* HousingClaimsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HousingClaimsView.swift; sourceTree = "<group>"; };
 		D508FCE724398E0BD448BB56 /* OfflineCacheManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OfflineCacheManager.swift; sourceTree = "<group>"; };
+		C7B10002A2C4E6081DEF0002 /* PCSPro.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCSPro.swift; sourceTree = "<group>"; };
+		C7B10004A2C4E6081DEF0004 /* PCSProPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCSProPlugin.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +113,8 @@
 				C77A32992FA962B3009FAAF3 /* PetRelocationView.swift */,
 				C77A329B2FA962B3009FAAF3 /* EFMPView.swift */,
 				C77A329D2FA962B4009FAAF3 /* HousingClaimsView.swift */,
+				C7B10002A2C4E6081DEF0002 /* PCSPro.swift */,
+				C7B10004A2C4E6081DEF0004 /* PCSProPlugin.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -210,6 +216,8 @@
 				158ADE9D158BB4272DFAD053 /* SecurityManager.swift in Sources */,
 				9BA3C4C0AF1D9595F6C4EA4F /* JTRPlugin.swift in Sources */,
 				5343BCD917DA95A08AFEFFAF /* DD1351_2_ExportExtension.swift in Sources */,
+				C7B10001A2C4E6081DEF0001 /* PCSPro.swift in Sources */,
+				C7B10003A2C4E6081DEF0003 /* PCSProPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

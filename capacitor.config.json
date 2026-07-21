@@ -13,5 +13,9 @@
     "SplashScreen": {
       "launchShowDuration": 0
     }
-  }
+  },
+  "packageClassList": [
+    "HapticsPlugin",
+    "PCSProPlugin"
+  ]
 }

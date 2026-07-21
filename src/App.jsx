@@ -26,6 +26,7 @@ import { useFocusTrap } from './hooks/useFocusTrap'
 import DynamicTimeline from './components/DynamicTimeline'
 import PrivacyShield from './components/PrivacyShield'
 import PromptModal from './components/PromptModal'
+import ProGate from './components/ProGate'
 
 // Tabs lazy-loaded so the initial bundle ships only the shell + the
 // pieces a typical first-visit user actually touches (Home, Mission
@@ -4302,7 +4303,7 @@ function PCSOperationsTab({ theme, profile, checklistItems, setChecklistItems })
   return (
     <CategoryTabShell theme={theme} tabs={tabs} activeTab={tab} onChange={setTab}>
       {tab === 'checklist' && <ChecklistTabMemo theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />}
-      {tab === 'documents' && <PCSDocumentsModule theme={theme} profile={profile} />}
+      {tab === 'documents' && <ProGate feature="documents" theme={theme}><PCSDocumentsModule theme={theme} profile={profile} /></ProGate>}
       {tab === 'timeline'  && <DynamicTimeline theme={theme} profile={profile} />}
     </CategoryTabShell>
   );
@@ -4721,10 +4722,10 @@ function HomeRelocationUnifiedTab({ theme, profile }) {
           : <BAHCalculatorTab theme={theme} profile={profile} />
       )}
       {tab === 'ppm-estimator' && <PPMFinancialEstimator theme={theme} profile={profile} />}
-      {tab === 'move-strategy' && <MoveStrategyModule theme={theme} profile={profile} />}
+      {tab === 'move-strategy' && <ProGate feature="move-strategy" theme={theme}><MoveStrategyModule theme={theme} profile={profile} /></ProGate>}
       {tab === 'budget-tracker' && <MoveBudgetTracker theme={theme} profile={profile} />}
       {tab === 'shipment-tracker' && <ShipmentTrackerModule theme={theme} profile={profile} />}
-      {tab === 'inventory-claims' && <InventoryVaultModule theme={theme} profile={profile} />}
+      {tab === 'inventory-claims' && <ProGate feature="inventory-claims" theme={theme}><InventoryVaultModule theme={theme} profile={profile} /></ProGate>}
       {tab === 'jtr-assistant' && <JTRAssistantModule theme={theme} profile={profile} />}
       {tab === 'move-aid' && <MovingFinancialAssistanceTab theme={theme} profile={profile} />}
       {tab === 'va-loan' && <VAHomeLoanPanel theme={theme} profile={profile} />}
@@ -6031,7 +6032,7 @@ function App() {
             but kept here so older deep links still resolve. */}
         {activeTab === 'base-intelligence' && renderCategoryFrame('base-intelligence', <BaseIntelligenceUnifiedTab theme={theme} profile={profile} />)}
         {activeTab === 'checklist'  && renderCategoryFrame('checklist',  <ChecklistTabMemo theme={theme} profile={profile} checklistItems={checklistItems} setChecklistItems={setChecklistItems} />)}
-        {activeTab === 'documents'  && renderCategoryFrame('documents',  <PCSDocumentsModule theme={theme} profile={profile} />)}
+        {activeTab === 'documents'  && renderCategoryFrame('documents',  <ProGate feature="documents" theme={theme}><PCSDocumentsModule theme={theme} profile={profile} /></ProGate>)}
         {activeTab === 'education'  && renderCategoryFrame('education',  <EducationBenefitsTab theme={theme} profile={profile} />)}
         {activeTab === 'family'     && renderCategoryFrame('family',     <FamilyCategoryTab theme={theme} profile={profile} />)}
         {activeTab === 'nav'        && renderCategoryFrame('nav',        <NavigationModule theme={theme} profile={profile} />)}

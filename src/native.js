@@ -113,6 +113,106 @@ export async function tryBiometricUnlock() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// PCS Pro subscription (native-only). The web app stays 100% free — every
+// helper here degrades to "not Pro / no-op" on web or when the native
+// PCSProPlugin isn't present. The plugin is a first-party Capacitor plugin
+// registered via packageClassList (see ios/App/App/PCSProPlugin.swift).
+// ---------------------------------------------------------------------------
+
+const PRO_CACHE_KEY = 'pcs_pro_active';
+
+function proPlugin() {
+  if (typeof window === 'undefined') return null;
+  return window.Capacitor?.Plugins?.PCSProPlugin || null;
+}
+
+// Last-known Pro status, persisted so gated modules render instantly on the
+// next launch instead of flashing the upsell while the plugin resolves.
+// UX cache only — the native StoreKit entitlement is the source of truth.
+export function cachedProStatus() {
+  try { return localStorage.getItem(PRO_CACHE_KEY) === '1'; } catch { return false; }
+}
+
+function rememberProStatus(active) {
+  try { localStorage.setItem(PRO_CACHE_KEY, active ? '1' : '0'); } catch {}
+}
+
+const proStatusListeners = new Set();
+
+function emitProStatus(active) {
+  rememberProStatus(active);
+  proStatusListeners.forEach((cb) => { try { cb(active); } catch {} });
+}
+
+// Subscribe to Pro status changes (purchase, restore, renewal, revocation).
+// Returns an unsubscribe function.
+export function onProStatusChange(cb) {
+  proStatusListeners.add(cb);
+  return () => proStatusListeners.delete(cb);
+}
+
+let proEventsWired = false;
+function wireProEvents() {
+  if (proEventsWired) return;
+  const plugin = proPlugin();
+  if (!plugin?.addListener) return;
+  proEventsWired = true;
+  try {
+    // Native fires "prostatus" whenever the StoreKit entitlement flips.
+    plugin.addListener('prostatus', (e) => emitProStatus(!!e?.active));
+  } catch {
+    proEventsWired = false;
+  }
+}
+
+// Current Pro entitlement. Always false on web / non-native — the three
+// gated modules stay free outside the iOS app.
+export async function getProStatus() {
+  if (!isNative()) return false;
+  const plugin = proPlugin();
+  if (!plugin) return cachedProStatus();
+  try {
+    const res = await plugin.getStatus();
+    const active = !!res?.active;
+    emitProStatus(active);
+    return active;
+  } catch {
+    return cachedProStatus();
+  }
+}
+
+// Present the native PCS Pro paywall. Resolves { active } after the sheet
+// is dismissed (purchase, restore, or close).
+export async function showProPaywall() {
+  if (!isNative()) return { active: false };
+  const plugin = proPlugin();
+  if (!plugin) return { active: cachedProStatus() };
+  try {
+    const res = await plugin.showPaywall();
+    const active = !!res?.active;
+    emitProStatus(active);
+    return { active };
+  } catch {
+    return { active: cachedProStatus() };
+  }
+}
+
+// Restore purchases without opening the paywall.
+export async function restoreProPurchases() {
+  if (!isNative()) return { active: false };
+  const plugin = proPlugin();
+  if (!plugin) return { active: cachedProStatus() };
+  try {
+    const res = await plugin.restore();
+    const active = !!res?.active;
+    emitProStatus(active);
+    return { active };
+  } catch {
+    return { active: cachedProStatus() };
+  }
+}
+
 // Cold-start native bootstrap. Called once from main.jsx (or App.jsx)
 // when the app loads. No-ops on web. Safe to invoke before any other
 // imports complete because every plugin call is dynamic and guarded.
@@ -125,5 +225,9 @@ export async function bootstrapNative({ requireBiometric = false } = {}) {
   // Don't wait on push — it's not user-visible and shouldn't delay
   // first paint.
   tryRegisterNativePush().catch(() => {});
+  // Refresh the cached Pro status from the live StoreKit entitlement and
+  // start listening for changes. Fire-and-forget for the same reason.
+  wireProEvents();
+  getProStatus().catch(() => {});
   return { native: true, biometric };
 }
