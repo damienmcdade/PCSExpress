@@ -23,6 +23,33 @@
 const AI_MAX_LEN = 4000;
 const MAX_BODY_BYTES = 64 * 1024;
 
+/**
+ * Secondary provider, used ONLY when Anthropic cannot serve at all (see the
+ * failover branch below). Same contract: one short, non-streaming completion.
+ * Inherits the caller's 15s budget so a hung fallback cannot outlive the
+ * original request.
+ */
+async function translateViaOpenAI(apiKey, system, user) {
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: process.env.FALLBACK_TEXT_MODEL || 'gpt-4.1-mini',
+      max_completion_tokens: 256,
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: user },
+      ],
+    }),
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) throw new Error(`openai ${res.status}`);
+  const data = await res.json();
+  const text = data?.choices?.[0]?.message?.content;
+  if (!text) throw new Error('openai empty response');
+  return text;
+}
+
 const ALWAYS_ALLOWED_ORIGINS = new Set([
   'capacitor://localhost',
   'https://localhost',
@@ -171,6 +198,24 @@ export default async function handler(req, res) {
         .replace(/"(message|hint|error_type|type|param)"\s*:\s*"[^"]*"/gi, '"$1":"<redacted>"')
         .slice(0, 50);
       console.error(`[ai] anthropic ${upstream.status} ${safeDetail}`);
+
+      // Cross-provider failover. On 2026-08-31 the Anthropic balance hit zero
+      // and Translation went dead in production (502) for every user. Anthropic
+      // reports credit exhaustion as a 400, so match on the raw body BEFORE it
+      // is redacted above. 429 is excluded: that is transient throttling, and
+      // the caller already surfaces a capacity message for it.
+      const outOfCredit = upstream.status === 400 && /credit|billing|balance|quota/i.test(String(detail || ''));
+      const upstreamDown = upstream.status === 529 || upstream.status >= 500;
+      const fallbackKey = process.env.OPENAI_API_KEY;
+      if ((outOfCredit || upstreamDown) && fallbackKey) {
+        try {
+          const text = await translateViaOpenAI(fallbackKey, system, user);
+          console.warn('[ai] anthropic unavailable — served via fallback provider');
+          return res.status(200).json({ text });
+        } catch (fallbackErr) {
+          console.error('[ai] fallback failed', fallbackErr?.message || fallbackErr);
+        }
+      }
       return res.status(502).json({ error: 'Anthropic API error' });
     }
     const data = await upstream.json();

@@ -1,0 +1,73 @@
+{
+  "identifier" : "F3A1B2C4-0000-4000-8000-000000000001",
+  "nonRenewingSubscriptions" : [ ],
+  "products" : [ ],
+  "settings" : {
+
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "22252227",
+      "localizations" : [ ],
+      "name" : "PCS Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [ ],
+          "codeOffers" : [ ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6793000381",
+          "introductoryOffer" : {
+            "internalID" : "0F30D8D9-1111-4111-8111-000000000001",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
+          "localizations" : [
+            {
+              "description" : "Move Strategy, documents & vault",
+              "displayName" : "PCS Pro (Monthly)",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "app.pcsexpress.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "PCS Pro Monthly",
+          "subscriptionGroupID" : "22252227",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [ ]
+        },
+        {
+          "adHocOffers" : [ ],
+          "codeOffers" : [ ],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6793000785",
+          "introductoryOffer" : {
+            "internalID" : "0F30D8D9-2222-4222-8222-000000000002",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
+          "localizations" : [
+            {
+              "description" : "A full PCS season of Pro tools",
+              "displayName" : "PCS Pro (Annual)",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "app.pcsexpress.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "PCS Pro Yearly",
+          "subscriptionGroupID" : "22252227",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [ ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
