@@ -53,7 +53,17 @@ export default function AppShellFooter() {
         <a href="/privacy.html" style={{ color: '#324050', textDecoration: 'underline', fontWeight: 600 }}>Privacy</a>
         <a href="/terms.html" style={{ color: '#324050', textDecoration: 'underline', fontWeight: 600 }}>Terms</a>
         <a href="/accessibility.html" style={{ color: '#324050', textDecoration: 'underline', fontWeight: 600 }}>Accessibility</a>
-        <a href="/.well-known/security.txt" style={{ color: '#324050', textDecoration: 'underline', fontWeight: 600 }}>Security</a>
+        {/* Opens in Safari, not in place. The other three links render HTML
+            pages the app can navigate back from; security.txt is plain text
+            with no navigation, and Capacitor keeps same-origin hrefs inside the
+            WebView — which has no back gesture and no chrome, so tapping this
+            trapped the user until they force-quit the app. */}
+        <a
+          href="/.well-known/security.txt"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#324050', textDecoration: 'underline', fontWeight: 600 }}
+        >Security</a>
       </nav>
       <div
         title="Deployment version"

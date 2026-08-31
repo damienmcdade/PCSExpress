@@ -7,7 +7,8 @@
   },
   "ios": {
     "contentInsetAdjustmentBehavior": "never",
-    "scrollEnabled": true
+    "scrollEnabled": true,
+    "zoomEnabled": true
   },
   "plugins": {
     "SplashScreen": {
@@ -17,5 +18,8 @@
   "packageClassList": [
     "HapticsPlugin",
     "PCSProPlugin"
-  ]
+  ],
+  "android": {
+    "zoomEnabled": true
+  }
 }
