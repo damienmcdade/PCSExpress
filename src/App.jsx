@@ -105,6 +105,12 @@ const TransitionCommunityModule = lazyRetry(() => import('./components/Transitio
 const PriorityAlertsCard = lazyRetry(() => import('./components/PriorityAlertsCard'))
 const ResourcesTab = lazyRetry(() => import('./components/ResourcesTab'))
 import { AuditLogger, secureLocalStore, readLegacyJson, closeCryptoStoreDB } from './security/SecurityExtensions'
+import {
+  checklistTaskKey,
+  buildChecklistKeyIndex,
+  migrateChecklistKeyMap,
+  CHECKLIST_KEY_MIGRATION_FLAG,
+} from './lib/checklistKeys'
 import { resolveMarket } from './data/installationMarkets'
 // Three largest data tables (~172 KB raw / ~30 KB gzip) live in a
 // dynamically-imported chunk so the React shell can mount before they
@@ -973,7 +979,7 @@ function resolveCurrentPhase(daysUntil) {
 }
 
 function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
-  const [snoozes, setSnoozes] = useState({});  // { 'phase-idx': 'YYYY-MM-DD' }
+  const [snoozes, setSnoozes] = useState({});  // { checklistTaskKey(phase, task): 'YYYY-MM-DD' }
   // In-app prompt modal state (window.prompt is unsupported in the
   // Capacitor native WebView). { title, defaultValue, onSubmit } | null
   const [snoozePrompt, setSnoozePrompt] = useState(null);
@@ -1032,7 +1038,7 @@ function MissionLanes({ theme, profile, checklistItems, onJumpToOps }) {
     const list = tailored[phase] || [];
     const open = [];
     for (let i = 0; i < list.length; i += 1) {
-      const key = `${phase}-${i}`;
+      const key = checklistTaskKey(phase, list[i]);
       if ((checklistItems || {})[key]) continue;
       if (isSnoozedNow(key)) continue;
       open.push({ phase, idx: i, label: list[i], key });
@@ -1653,7 +1659,10 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
   useEffect(() => {
     if (!activePhase && firstPhase) setActivePhase(firstPhase);
   }, [firstPhase, activePhase]);
-  // Reminders: { 'phase-idx': 'YYYY-MM-DDTHH:MM' }
+  // key -> { phase, task } over the tailored list, so a stored reminder key
+  // can be resolved back to its label without parsing the key.
+  const taskKeyIndex = useMemo(() => buildChecklistKeyIndex(branchChecklist), [branchChecklist]);
+  // Reminders: { checklistTaskKey(phase, task): 'YYYY-MM-DDTHH:MM' }
   const [reminders, setReminders] = useState({});
   // In-app prompt/confirm modal state (window.prompt / window.confirm are
   // unsupported in the Capacitor native WebView). { variant, ... } | null
@@ -1661,9 +1670,15 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
   useEffect(() => {
     let mounted = true;
     secureLocalStore.get('pcs_checklist_reminders', {}).then(saved => {
-      if (mounted) setReminders(saved && typeof saved === 'object' ? saved : {});
+      // Also key-migrate in memory: App's one-time persisted migration and
+      // this mount can race on a cold start, and reading a legacy map here
+      // would otherwise write it straight back on the next setReminder.
+      // migrateChecklistKeyMap is idempotent, so running it twice is safe.
+      const raw = saved && typeof saved === 'object' ? saved : {};
+      if (mounted) setReminders(migrateChecklistKeyMap(raw, branchChecklist).next);
     });
-  }, []);
+    return () => { mounted = false; };
+  }, [branchChecklist]);
   // Fired-already tracker so a 60-second poll doesn't re-fire.
   const firedRef = useRef({});
   useEffect(() => {
@@ -1678,13 +1693,10 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
         if (t <= now && now - t < 24 * 3600 * 1000) {
           // Don't fire if already checked off.
           if (checklistItems[key]) continue;
-          // Split on the LAST hyphen: phase names contain hyphens
-          // ("In-Processing"), so a naive split('-') mis-parses the key and
-          // drops the real task label to the generic fallback.
-          const sep = key.lastIndexOf('-');
-          const phase = key.slice(0, sep);
-          const idx = key.slice(sep + 1);
-          const label = (branchChecklist[phase] || [])[parseInt(idx, 10)] || 'PCS task';
+          // Keys are text-derived, not positional, so the label is recovered
+          // by lookup rather than by parsing the key. A reminder whose task no
+          // longer exists in the tailored list falls back to the generic body.
+          const label = taskKeyIndex.get(key)?.task || 'PCS task';
           try {
             const n = new Notification('PCS Express reminder', {
               body: label,
@@ -1700,7 +1712,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
     tick();                          // check on mount
     const id = setInterval(tick, 60_000);
     return () => clearInterval(id);
-  }, [reminders, checklistItems, branchChecklist]);
+  }, [reminders, checklistItems, taskKeyIndex]);
 
   const setReminder = (key, iso) => {
     setReminders(prev => {
@@ -1727,17 +1739,17 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
 
   const daysUntil = getDaysUntilDeparture(profile?.departingDate);
 
-  const toggleCheckItem = (phase, idx) => {
-    const key = `${phase}-${idx}`;
+  const toggleCheckItem = (phase, task) => {
+    const key = checklistTaskKey(phase, task);
     setChecklistItems(prev => {
       const next = { ...prev, [key]: !prev[key] };
       secureLocalStore.set('pcs_checklist_checks', next);
-      AuditLogger.record('pcs_milestone_status_change', { phase, index: idx, complete: !!next[key] });
+      AuditLogger.record('pcs_milestone_status_change', { phase, task: key, complete: !!next[key] });
       return next;
     });
   };
 
-  const allTasks = Object.entries(branchChecklist).flatMap(([phase, tasks]) => tasks.map((_, i) => `${phase}-${i}`));
+  const allTasks = Object.entries(branchChecklist).flatMap(([phase, tasks]) => tasks.map(task => checklistTaskKey(phase, task)));
   const done = allTasks.filter(k => checklistItems[k]).length;
   const pct = allTasks.length ? Math.round((done / allTasks.length) * 100) : 0;
 
@@ -1749,7 +1761,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
     const pr = pi < Math.ceil(checklistPhaseKeys.length / 3) ? 'High'
       : pi < Math.ceil((2 * checklistPhaseKeys.length) / 3) ? 'Medium' : 'Low';
     return (branchChecklist[phase] || [])
-      .map((task, i) => ({ key: `${phase}-${i}`, task }))
+      .map(task => ({ key: checklistTaskKey(phase, task), task }))
       .filter(t => !checklistItems[t.key] && typeof t.task === 'string')
       .map(t => ({ id: t.key, title: t.task, priority: pr }));
   });
@@ -1842,7 +1854,7 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
       {/* Phase tabs */}
       <TabBar ariaLabel="PCS phase" className="pcs-tabbar--flush">
         {Object.keys(branchChecklist).map(phase => {
-          const phaseTasks = branchChecklist[phase].map((_, i) => `${phase}-${i}`);
+          const phaseTasks = branchChecklist[phase].map(task => checklistTaskKey(phase, task));
           const phaseDone = phaseTasks.filter(k => checklistItems[k]).length;
           const phaseOverdue = daysUntil !== null && PHASE_WINDOWS[phase] && daysUntil < PHASE_WINDOWS[phase].overdueAt && phaseDone < phaseTasks.length;
           const isActive = activePhase === phase;
@@ -1890,21 +1902,22 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
 
       {/* Tasks */}
       <div role="tabpanel" id={`phase-panel-${activePhase.replace(/\s+/g, '-')}`} aria-labelledby={`phase-tab-${activePhase.replace(/\s+/g, '-')}`}>
-        {(branchChecklist[activePhase] || []).map((task, i) => {
-          const checked = !!checklistItems[`${activePhase}-${i}`];
+        {(branchChecklist[activePhase] || []).map((task) => {
+          const taskKey = checklistTaskKey(activePhase, task);
+          const checked = !!checklistItems[taskKey];
           const taskOverdue = phaseIsOverdue && !checked;
           return (
-            <div key={i} className={`pcs-check-item ${checked ? 'is-checked' : ''} ${taskOverdue ? 'is-overdue' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 14px', borderRadius: 8, background: checked ? '#E8F5E9' : taskOverdue ? '#FFF5F5' : '#FFFFFF', border: `1px solid ${checked ? '#A5D6A7' : taskOverdue ? '#FFCDD2' : 'rgba(0,0,0,0.08)'}`, marginBottom: 8, '--check-accent': theme.accent }}>
-              <button type="button" role="checkbox" aria-checked={checked} onClick={() => toggleCheckItem(activePhase, i)} style={{ flex: 1, display: 'flex', alignItems: 'flex-start', gap: 12, background: 'transparent', border: 'none', padding: 0, margin: 0, textAlign: 'left', font: 'inherit', color: 'inherit', cursor: 'pointer' }}>
+            <div key={taskKey} className={`pcs-check-item ${checked ? 'is-checked' : ''} ${taskOverdue ? 'is-overdue' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 14px', borderRadius: 8, background: checked ? '#E8F5E9' : taskOverdue ? '#FFF5F5' : '#FFFFFF', border: `1px solid ${checked ? '#A5D6A7' : taskOverdue ? '#FFCDD2' : 'rgba(0,0,0,0.08)'}`, marginBottom: 8, '--check-accent': theme.accent }}>
+              <button type="button" role="checkbox" aria-checked={checked} onClick={() => toggleCheckItem(activePhase, task)} style={{ flex: 1, display: 'flex', alignItems: 'flex-start', gap: 12, background: 'transparent', border: 'none', padding: 0, margin: 0, textAlign: 'left', font: 'inherit', color: 'inherit', cursor: 'pointer' }}>
                 <span className="pcs-check-item__box" aria-hidden="true" style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${checked ? '#2E7D32' : taskOverdue ? '#E57373' : theme.accent}`, background: checked ? '#2E7D32' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
                   {checked && <span style={{ color: '#fff', fontSize: 14, fontWeight: 900 }}>✓</span>}
                 </span>
                 <span style={{ flex: 1 }}>
                   <span style={{ fontSize: 13, color: checked ? '#888' : taskOverdue ? '#C62828' : theme.primary, textDecoration: checked ? 'line-through' : 'none', fontWeight: checked ? 400 : 600, lineHeight: 1.4 }}>{task}</span>
                   {taskOverdue && <span style={{ display: 'block', fontSize: 10, color: '#C62828', fontWeight: 800, marginTop: 3 }}>PAST DUE — Complete immediately</span>}
-                  {reminders[`${activePhase}-${i}`] && (
+                  {reminders[taskKey] && (
                     <span style={{ display: 'block', fontSize: 10, color: '#0D3B66', fontWeight: 700, marginTop: 3 }}>
-                      ⏰ Reminder: {new Date(reminders[`${activePhase}-${i}`]).toLocaleString()}
+                      ⏰ Reminder: {new Date(reminders[taskKey]).toLocaleString()}
                     </span>
                   )}
                 </span>
@@ -1912,15 +1925,14 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  const key = `${activePhase}-${i}`;
-                  if (reminders[key]) {
+                  if (reminders[taskKey]) {
                     setReminderPrompt({
                       variant: 'confirm',
                       title: 'Clear this reminder?',
                       message: 'The scheduled reminder for this task will be removed.',
                       confirmLabel: 'Clear reminder',
                       accent: '#C62828',
-                      onSubmit: () => clearReminder(key),
+                      onSubmit: () => clearReminder(taskKey),
                     });
                     return;
                   }
@@ -1936,14 +1948,14 @@ function ChecklistTab({ theme, profile, checklistItems, setChecklistItems }) {
                     confirmLabel: 'Set reminder',
                     onSubmit: (picked) => {
                       if (picked && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(picked)) {
-                        setReminder(key, picked);
+                        setReminder(taskKey, picked);
                       }
                     },
                   });
                 }}
-                aria-label={reminders[`${activePhase}-${i}`] ? 'Clear reminder' : 'Set reminder for this task'}
-                title={reminders[`${activePhase}-${i}`] ? 'Clear reminder' : 'Set reminder'}
-                style={{ background: 'transparent', border: 'none', color: reminders[`${activePhase}-${i}`] ? '#0D3B66' : 'rgba(0,0,0,0.35)', fontSize: 16, cursor: 'pointer', padding: 4, flexShrink: 0, marginTop: 1, minHeight: 44, minWidth: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                aria-label={reminders[taskKey] ? 'Clear reminder' : 'Set reminder for this task'}
+                title={reminders[taskKey] ? 'Clear reminder' : 'Set reminder'}
+                style={{ background: 'transparent', border: 'none', color: reminders[taskKey] ? '#0D3B66' : 'rgba(0,0,0,0.35)', fontSize: 16, cursor: 'pointer', padding: 4, flexShrink: 0, marginTop: 1, minHeight: 44, minWidth: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 ⏰
               </button>
@@ -4867,6 +4879,55 @@ const SchoolsTabMemo = memo(SchoolsTab);
 const ChecklistTabMemo = memo(ChecklistTab);
 const VeteranBusinessesTabMemo = memo(VeteranBusinessesTab);
 
+// Neutral first paint while the encrypted profile is being read. Deliberately
+// says nothing about having or not having a profile — the whole point is that
+// the answer isn't known yet, and guessing "no profile" is what put returning
+// users into Onboarding.
+function ProfileHydrationSplash() {
+  return (
+    <div role="status" aria-live="polite" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, background: '#0D1821', color: '#FFFFFF', padding: 24, textAlign: 'center' }}>
+      <img src="/apple-touch-icon.png" alt="" width="72" height="72" style={{ borderRadius: 16 }} />
+      <div style={{ fontSize: 15, fontWeight: 900, letterSpacing: '.04em' }}>PCS Express</div>
+      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.72)' }}>Unlocking your saved plan…</div>
+    </div>
+  );
+}
+
+// A profile EXISTS on this device but could not be decrypted. Recovery, not
+// onboarding: reloading fixes the common causes (a non-secure context, an
+// IndexedDB key that hadn't opened yet, private browsing), and the destructive
+// "start over" path is explicit rather than a side effect of finishing a form.
+function ProfileRecoveryScreen({ reason, onRetry, onStartOver }) {
+  const detail = reason === 'crypto-unavailable'
+    ? 'This browser could not open the secure store. That usually means the page is not running over HTTPS, or private browsing has blocked it.'
+    : 'Your saved plan is on this device but could not be unlocked in this session.';
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0D1821', padding: 24 }}>
+      <div style={{ background: '#FFFFFF', borderRadius: 18, padding: '24px 22px', maxWidth: 460, width: '100%', boxShadow: '0 10px 40px rgba(0,0,0,0.35)' }}>
+        <div style={{ fontSize: 17, fontWeight: 900, color: '#0D1821', marginBottom: 8 }}>Couldn’t unlock your saved plan</div>
+        <div style={{ fontSize: 13, color: '#3B4A59', lineHeight: 1.6, marginBottom: 10 }}>{detail}</div>
+        <div style={{ fontSize: 13, color: '#3B4A59', lineHeight: 1.6, marginBottom: 18 }}>
+          Nothing has been deleted. Try reloading first — if you are in a private window or on an insecure connection, reopen PCS Express normally and your plan should come back.
+        </div>
+        <button
+          type="button"
+          onClick={onRetry}
+          style={{ width: '100%', background: '#0D3B66', color: '#FFF', border: 'none', borderRadius: 10, padding: '12px 16px', fontSize: 14, fontWeight: 800, cursor: 'pointer', marginBottom: 10 }}
+        >
+          Reload and try again
+        </button>
+        <button
+          type="button"
+          onClick={onStartOver}
+          style={{ width: '100%', background: 'transparent', color: '#C62828', border: '1px solid #EF9A9A', borderRadius: 10, padding: '11px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+        >
+          Start over with a new profile (replaces the saved one)
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
 
   // APP_WIDE_LINK_SECURITY_AUDIT: prevents blank, relative, same-app, stale, or
@@ -4979,6 +5040,14 @@ function App() {
 
 
 
+  // `undefined` means "not read yet", distinct from `null`/no-profile. store.get
+  // routes through readLegacyJson, which returns the fallback for ANY secure
+  // envelope — and profiles are always written encrypted — so this initializer
+  // resolves synchronously only for a session demo profile or a pre-encryption
+  // legacy profile. For everyone else the real answer arrives from the async
+  // read below, and until then the app must render a neutral splash rather
+  // than Onboarding. (`SplashScreen.launchShowDuration: 0` means nothing else
+  // covers that first paint.)
   const [profile, setProfile] = useState(() => {
     const p = normalizeProfile(getSessionDemoProfile() || store.get('pcs_profile'));
     // Bootstrap language from the separate fast-path key so it's available
@@ -4987,8 +5056,17 @@ function App() {
       const fastLang = (() => { try { return localStorage.getItem('pcs_user_language'); } catch { return null; } })();
       if (fastLang) p.language = fastLang;
     }
-    return p;
+    return p || undefined;
   });
+  const [profileHydrated, setProfileHydrated] = useState(false);
+  // 'decrypt-failed' | 'crypto-unavailable' | null — a stored profile EXISTS
+  // but could not be unlocked. Never treat this as "no profile": doing so
+  // strands the user in Onboarding and overwrites their real profile on
+  // completion.
+  const [profileLoadError, setProfileLoadError] = useState(null);
+  // Set only when the user explicitly chooses "start over" on the recovery
+  // screen. Gates the one write that would replace an unreadable profile.
+  const [profileResetAcknowledged, setProfileResetAcknowledged] = useState(false);
 
   // Landing-page gate. Default: show landing once for a brand-new
   // visitor; subsequent visits skip straight to the onboarding /
@@ -5104,6 +5182,10 @@ function App() {
   const [checklistItems, setChecklistItems] = useState(() => {
     return readLegacyJson('pcs_checklist_checks', {});
   });
+  // Gate for the one-time key migration below: it must not run against the
+  // pre-hydration placeholder map, or it would persist an empty result and
+  // burn the migration flag.
+  const [checksHydrated, setChecksHydrated] = useState(false);
 
   // Allow any component to open the AI Assistant by dispatching
   // `open-ai-assistant` (optionally with detail.question). The modal
@@ -5175,7 +5257,7 @@ function App() {
       isOverseas: !!profile?.isOverseas,
     });
     const items = tailored[currentPhase] || [];
-    const open = items.filter((_, i) => !(checklistItems || {})[`${currentPhase}-${i}`]);
+    const open = items.filter(task => !(checklistItems || {})[checklistTaskKey(currentPhase, task)]);
     const win = PHASE_WINDOWS[currentPhase];
     const isOverdue = win && daysUntil < win.overdueAt;
     if (open.length === 0 || !isOverdue) return;
@@ -5226,6 +5308,20 @@ function App() {
     };
   }, []);
   useEffect(() => {
+    // Registered BEFORE the reads below on purpose: secureLocalStore.get()
+    // dispatches `pcs-local-storage-error` SYNCHRONOUSLY, inside the call,
+    // when a stored envelope can't be decrypted (rotated key, non-secure
+    // context, private browsing). Missing that event is what previously left
+    // a returning user stranded in Onboarding — with their real profile still
+    // sitting on disk — and let completing Onboarding overwrite it.
+    const onStoreError = (e) => {
+      const detail = e?.detail || {};
+      if (detail.key !== 'pcs_profile') return;
+      if (detail.reason === 'decrypt-failed' || detail.reason === 'crypto-unavailable') {
+        setProfileLoadError(detail.reason);
+      }
+    };
+    window.addEventListener('pcs-local-storage-error', onStoreError);
     secureLocalStore.get('pcs_profile', null).then(saved => {
       const normalized = normalizeProfile(saved);
       if (normalized?.branch) {
@@ -5235,11 +5331,65 @@ function App() {
           try { localStorage.setItem('pcs_user_language', normalized.language); } catch {}
         }
       }
-    });
+    }).finally(() => setProfileHydrated(true));
     secureLocalStore.get('pcs_checklist_checks', null).then(saved => {
       if (saved) setChecklistItems(saved);
-    });
+    }).finally(() => setChecksHydrated(true));
+    return () => window.removeEventListener('pcs-local-storage-error', onStoreError);
   }, []);
+
+  // One-time migration of the persisted checklist maps from the old
+  // positional `${phase}-${index}` keys to text-stable ones (see
+  // src/lib/checklistKeys.js). Each stored index is resolved against the SAME
+  // tailored list the member is looking at right now, so their current
+  // on-screen progress is preserved exactly — and stops shifting from here on.
+  // Runs once per device, only after the profile, the lazily-loaded checklist
+  // tables, and the persisted checks are all available.
+  const checklistMigrationDone = useRef(false);
+  const heavyChecklistsReady = Object.keys(HEAVY.BRANCH_PCS_CHECKLISTS || {}).length > 0;
+  useEffect(() => {
+    if (checklistMigrationDone.current) return;
+    if (!checksHydrated || !profile?.branch) return;
+    // DoD Civilian uses a statically-imported checklist; every other component
+    // needs the lazy BRANCH_PCS_CHECKLISTS chunk before indices can resolve.
+    if (profile.component !== 'DoD Civilian' && !heavyChecklistsReady) return;
+    try {
+      if (localStorage.getItem(CHECKLIST_KEY_MIGRATION_FLAG) === '1') {
+        checklistMigrationDone.current = true;
+        return;
+      }
+    } catch { /* private mode — fall through and migrate in memory */ }
+    checklistMigrationDone.current = true;
+    const tailored = getTailoredChecklist(profile.branch || 'Army', {
+      component:     profile.component || 'Active Duty',
+      ordersType:    profile.ordersType || '',
+      hasDependents: !!profile.hasDependents,
+      hasChildren:   !!profile.hasChildren,
+      hasPets:       !!profile.hasPets,
+      moveType:      profile.moveType || 'HHG',
+      isOverseas:    !!profile.isOverseas,
+    });
+    const checks = migrateChecklistKeyMap(checklistItems, tailored);
+    if (checks.migrated > 0) {
+      setChecklistItems(checks.next);
+      secureLocalStore.set('pcs_checklist_checks', checks.next);
+      AuditLogger.record('pcs_checklist_key_migration', { migrated: checks.migrated, unresolved: checks.unresolved });
+    }
+    // Reminders and Mission-Lane snoozes are keyed the same way and corrupt
+    // identically, so they migrate on the same pass.
+    for (const storeKey of ['pcs_checklist_reminders', 'pcs_mission_lane_snoozes']) {
+      secureLocalStore.get(storeKey, null).then(saved => {
+        if (!saved || typeof saved !== 'object') return;
+        const result = migrateChecklistKeyMap(saved, tailored);
+        if (result.migrated > 0) secureLocalStore.set(storeKey, result.next);
+      });
+    }
+    try { localStorage.setItem(CHECKLIST_KEY_MIGRATION_FLAG, '1'); } catch {}
+    // checklistItems is read, not tracked: the ref above makes this a
+    // run-once effect, so re-running it on every checkbox toggle would be
+    // pure waste.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checksHydrated, profile, heavyChecklistsReady]);
   // isNative is true only inside the Capacitor iOS/Android shell — never in a web browser
   const isNative = typeof window !== 'undefined' && !!window.Capacitor?.isNativePlatform?.();
   // Desktop = pointer-fine (mouse/trackpad) device at >=768px, OR any web viewport >=900px.
@@ -5299,13 +5449,13 @@ function App() {
       .filter(([phase, win]) => {
         if (daysUntilDeparture > win.activeAt) return false;
         const tasks = tailored[phase] || [];
-        return tasks.some((_, i) => !checklistItems[`${phase}-${i}`]);
+        return tasks.some(task => !checklistItems[checklistTaskKey(phase, task)]);
       })
       .map(([phase, win]) => ({
         phase,
         overdue: daysUntilDeparture < win.overdueAt,
         daysUntil: daysUntilDeparture,
-        count: (tailored[phase] || []).filter((_, i) => !checklistItems[`${phase}-${i}`]).length,
+        count: (tailored[phase] || []).filter(task => !checklistItems[checklistTaskKey(phase, task)]).length,
       }));
   }, [profile, daysUntilDeparture, checklistItems]);
   const overdueCount = pendingAlerts.filter(a => a.overdue).length;
@@ -5334,6 +5484,26 @@ function App() {
       window.dispatchEvent(new CustomEvent('pcs-language-refresh'))
     );
   };
+
+  // Hydration gate. Runs BEFORE the landing and Onboarding gates below,
+  // because both of those test `!profile?.branch` — which is true for every
+  // returning user until the async decrypt resolves. Rendering either one
+  // here is the bug: Onboarding then overwrites a perfectly good profile.
+  if (!profileHydrated && !profile?.branch) {
+    return <ProfileHydrationSplash />;
+  }
+
+  // A profile exists but couldn't be decrypted. Offer recovery instead of
+  // silently falling through to Onboarding.
+  if (profileLoadError && !profileResetAcknowledged && !profile?.branch) {
+    return (
+      <ProfileRecoveryScreen
+        reason={profileLoadError}
+        onRetry={() => { try { window.location.reload(); } catch { /* noop */ } }}
+        onStartOver={() => setProfileResetAcknowledged(true)}
+      />
+    );
+  }
 
   // Landing-page gate. Shown once to first-time visitors and on demand
   // via ?landing=1 (used when showing the platform to government /
@@ -5387,7 +5557,14 @@ function App() {
         setDemoTip(0);
       } else {
         clearSessionDemoProfile();
-        store.set('pcs_profile', normalized);
+        // Never overwrite a stored profile that merely failed to decrypt.
+        // The only way past this gate is the explicit "start over" button on
+        // ProfileRecoveryScreen; otherwise the new profile stays in memory for
+        // this session and the encrypted one on disk is left intact for a
+        // later, successful unlock.
+        if (!profileLoadError || profileResetAcknowledged) {
+          store.set('pcs_profile', normalized);
+        }
         // Persist language separately for fast startup reads
         if (normalized?.language) {
           try { localStorage.setItem('pcs_user_language', normalized.language); } catch {}
@@ -6090,7 +6267,7 @@ function App() {
             isOverseas: !!profile.isOverseas,
           }) : {};
           const items = (tailored[currentPhase] || []);
-          const open = items.filter((_, i) => !(checklistItems || {})[`${currentPhase}-${i}`]);
+          const open = items.filter(task => !(checklistItems || {})[checklistTaskKey(currentPhase, task)]);
           return {
             branch: profile.branch,
             rank: profile.rank,

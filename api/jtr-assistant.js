@@ -48,6 +48,10 @@
 // Apple 5.1.2(i) consent gate. Shared with the Railway twin of this route and
 // with the React client so the header name/version cannot drift.
 import { hasAiConsent, aiConsentRequiredBody, AI_CONSENT_STATUS, isLegacyNativeClient, LEGACY_CLIENT_MESSAGE } from '../shared/aiConsent.js';
+// Grounding for entitlement figures. Shared with the Railway twin of this
+// route so both surfaces quote the app's own verified tables — see
+// shared/jtrFacts.js for the production failure that made this necessary.
+import { VERIFIED_FIGURES_PROMPT_BLOCK, resolveVerifiedFigureAnswer } from '../shared/jtrFacts.js';
 
 // Match the curated system prompt language used by server/index.js.
 // Kept verbatim so the assistant behaves identically across whichever
@@ -310,6 +314,16 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Input appears to contain PII (email / phone / SSN-like patterns). PCS Express will not forward this to the AI provider.' });
   }
 
+  // Figure-shaped questions are answered from the app's own verified tables
+  // and never leave the server. Placed AFTER every gate above (origin, rate
+  // limit, consent, body cap, PII) so the security posture is unchanged, and
+  // BEFORE globalCapExceeded() so a locally-answered question doesn't burn the
+  // AI budget.
+  const verified = resolveVerifiedFigureAnswer(q);
+  if (verified) {
+    return res.status(200).json(verified);
+  }
+
   const messages = rawHistory
     .slice(-10)
     .map(m => ({
@@ -328,6 +342,10 @@ export default async function handler(req, res) {
   const ctxLine = userContext
     ? `\n\nThe user's current PCS context (non-PII, drawn from their on-device profile): ${userContext}. Use this to tailor answers ("you have N open tasks in the X phase") and cite the relevant tab in PCS Express when appropriate.`
     : '';
+  // Grounded prompt: the app's verified tables sit between the base rules and
+  // the per-request lines, so anything the intercept above didn't catch is
+  // still answered from the app's own numbers rather than the model's recall.
+  const systemPrompt = AI_ASSISTANT_SYSTEM_PROMPT + VERIFIED_FIGURES_PROMPT_BLOCK + langLine + ctxLine;
 
   if (globalCapExceeded()) {
     return res.status(429).json({
@@ -348,7 +366,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
         max_tokens: 800,
-        system: AI_ASSISTANT_SYSTEM_PROMPT + langLine + ctxLine,
+        system: systemPrompt,
         messages,
       }),
       signal: AbortSignal.timeout(30_000),
@@ -376,7 +394,7 @@ export default async function handler(req, res) {
         try {
           const text = await askViaOpenAI(
             fallbackKey,
-            AI_ASSISTANT_SYSTEM_PROMPT + langLine + ctxLine,
+            systemPrompt,
             messages,
           );
           console.warn('[jtr-assistant] anthropic unavailable — served via fallback provider');

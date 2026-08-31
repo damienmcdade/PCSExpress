@@ -32,6 +32,10 @@ import {
   isLegacyNativeClient,
   LEGACY_CLIENT_MESSAGE,
 } from '../shared/aiConsent.js'
+// Grounding for entitlement figures, shared with the api/jtr-assistant.js
+// twin. Same reasoning as the consent gate above: the shipped App Store build
+// reaches THIS route, so a fix applied only on Vercel never ships.
+import { VERIFIED_FIGURES_PROMPT_BLOCK, resolveVerifiedFigureAnswer } from '../shared/jtrFacts.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -789,8 +793,10 @@ const AI_MAX_LEN = 4_000;
 /**
  * Secondary AI provider, used ONLY when Anthropic cannot serve at all.
  * Accepts an Anthropic-shaped request body and maps it onto OpenAI's chat
- * format (system prompt becomes the first message). Non-streaming only —
- * the SSE branches still require Anthropic.
+ * format (system prompt becomes the first message). Always returns a single
+ * completion: the streaming branches call this too and serve the result as one
+ * non-streaming JSON response, so `stream: true` on the Anthropic-shaped body
+ * is intentionally ignored here.
  */
 async function aiViaOpenAI(apiKey, anthropicBody) {
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -903,7 +909,28 @@ app.post('/api/ai', aiRateLimit, express.json({ limit: '64kb' }), async (req, re
       }).catch((e) => { throw e })
       if (!upstream.ok || !upstream.body) {
         req.off('close', onClose)
+        const detail = await upstream.text().catch(() => '')
         console.error(`[API] Anthropic stream error: ${upstream.status}`)
+
+        // Cross-provider failover, same predicate as the non-streaming branch
+        // below. EVERY client asks for stream:true (TranslationModule.jsx),
+        // so without this the failover was in a branch the app never takes and
+        // an Anthropic outage still returned a bare 502 to every user. The
+        // OpenAI answer is served as a single non-streaming JSON response —
+        // no SSE headers have been sent yet, and the client content-type-
+        // detects and reads `text` from JSON.
+        const outOfCredit = upstream.status === 400 && /credit|billing|balance|quota/i.test(String(detail || ''))
+        const upstreamDown = upstream.status === 529 || upstream.status >= 500
+        const fallbackKey = process.env.OPENAI_API_KEY
+        if ((outOfCredit || upstreamDown) && fallbackKey) {
+          try {
+            const text = await aiViaOpenAI(fallbackKey, anthropicBody)
+            console.warn('[API] anthropic stream unavailable — served via fallback provider')
+            return res.status(200).json({ text })
+          } catch (fallbackErr) {
+            console.error(`[API] stream fallback failed: ${fallbackErr.message}`)
+          }
+        }
         return res.status(502).json({ error: 'Anthropic API error' })
       }
       res.status(200)
@@ -2812,6 +2839,17 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, express.json({ limit: '64k
     })
   }
 
+  // Figure-shaped questions are answered from the app's own verified tables
+  // and never leave the server. Placed AFTER every gate above (origin, rate
+  // limit, consent, body cap, PII) so the security posture is unchanged, and
+  // before aiGlobalConsume() so a locally-answered question doesn't burn the
+  // AI budget. Returns JSON even when the client asked to stream — all three
+  // clients content-type-detect and fall back to the JSON reader.
+  const verified = resolveVerifiedFigureAnswer(q)
+  if (verified) {
+    return res.status(200).json(verified)
+  }
+
   // ANTHROPIC branch — claude-haiku is the default model; operators
   // can override via ANTHROPIC_MODEL. History is capped at the last
   // 10 turns, with content trimmed to 1500 chars per message so we
@@ -2859,7 +2897,10 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, express.json({ limit: '64k
       const anthropicBody = {
         model: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
         max_tokens: 800,
-        system: AI_ASSISTANT_SYSTEM_PROMPT + langLine + ctxLine,
+        // Grounded prompt: the app's verified tables sit between the base
+        // rules and the per-request lines, so anything the intercept above
+        // didn't catch is still answered from the app's own numbers.
+        system: AI_ASSISTANT_SYSTEM_PROMPT + VERIFIED_FIGURES_PROMPT_BLOCK + langLine + ctxLine,
         messages,
         ...(wantStream ? { stream: true } : {}),
       };
@@ -2886,6 +2927,26 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, express.json({ limit: '64k
           req.off('close', onClose);
           const detail = await upstream.text().catch(() => '');
           console.error(`[jtr-assistant] anthropic stream ${upstream.status} ${redactUpstreamError(detail)}`);
+
+          // Cross-provider failover, same predicate as the non-streaming
+          // branch below. All three clients request stream:true
+          // (JTRAssistantModule.jsx, AIAssistantChip.jsx), so without this the
+          // failover sat in a branch the app never takes and an Anthropic
+          // outage still returned a bare 502 on native. Served as a single
+          // non-streaming JSON response — no SSE headers have been sent yet,
+          // and both clients content-type-detect and read `answer` from JSON.
+          const outOfCredit = upstream.status === 400 && /credit|billing|balance|quota/i.test(String(detail || ''));
+          const upstreamDown = upstream.status === 529 || upstream.status >= 500;
+          const fallbackKey = process.env.OPENAI_API_KEY;
+          if ((outOfCredit || upstreamDown) && fallbackKey) {
+            try {
+              const text = await aiViaOpenAI(fallbackKey, anthropicBody);
+              console.warn('[jtr-assistant] anthropic stream unavailable — served via fallback provider');
+              return res.status(200).json({ answer: text, source: 'ai' });
+            } catch (fallbackErr) {
+              console.error(`[jtr-assistant] stream fallback failed: ${fallbackErr.message}`);
+            }
+          }
           return res.status(502).json({ error: 'upstream', source: 'anthropic' });
         }
         res.status(200);

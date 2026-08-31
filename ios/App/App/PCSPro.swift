@@ -16,6 +16,25 @@ import UIKit
 // here either (PCS Express has no widget or sibling app to share
 // entitlement state with).
 
+// Verification policy: anything that GRANTS Pro (the currentEntitlements
+// sweep, the purchase success branch) requires a `.verified` payload — a
+// forged JWS must never unlock the Pro modules. `.finish()` bookkeeping stays
+// permissive: Apple already charged for those, and refusing to finish one just
+// makes StoreKit redeliver it forever.
+
+/// Sandbox receipts fail device verification for genuine transactions during
+/// App Review, so accept unverified there — never in production.
+private var allowsUnverifiedTransactions: Bool {
+    #if DEBUG
+    return true
+    #else
+    // `appStoreReceiptURL` is a deprecated StoreKit 1 API, but it still returns
+    // the correct path on iOS 16+/Catalyst and is the only SYNCHRONOUS sandbox
+    // signal available — expect a deprecation warning here.
+    return Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+    #endif
+}
+
 extension Notification.Name {
     /// Posted (on the main queue, from the main actor) whenever the Pro
     /// entitlement flips. userInfo: ["active": Bool].
@@ -137,11 +156,22 @@ final class PCSProManager: ObservableObject {
     func refreshEntitlement() async {
         var active = false
         for await result in Transaction.currentEntitlements {
-            // StoreKit 2 device verification can fail spuriously for genuine,
-            // Apple-processed transactions (notably in the App Store sandbox,
-            // which App Review uses). The entitlement is still real, so accept
-            // it rather than locking out a paying customer.
-            let tx = result.unsafePayloadValue
+            // Entitlement-GRANTING read: an unsigned payload here would unlock
+            // the Pro modules for free, so it must verify. StoreKit 2 device
+            // verification can still fail spuriously for genuine,
+            // Apple-processed transactions in the App Store sandbox (which App
+            // Review uses) — accept unverified THERE only, never in production.
+            let tx: StoreKit.Transaction
+            switch result {
+            case .verified(let t):
+                tx = t
+            case .unverified(let t, let error):
+                guard allowsUnverifiedTransactions else {
+                    print("[PCSPro] Ignoring unverified entitlement for \(t.productID): \(error)")
+                    continue
+                }
+                tx = t
+            }
             if (tx.productID == Self.monthlyProductID || tx.productID == Self.yearlyProductID),
                tx.revocationDate == nil {
                 active = true
@@ -162,13 +192,27 @@ final class PCSProManager: ObservableObject {
             switch result {
             case .success(let verification):
                 // Apple has processed the payment at this point — never
-                // surface an error for a successful charge. `.unverified`
-                // occurs spuriously in the App Store sandbox, and the
-                // transaction it carries is still a real paid transaction.
-                await verification.unsafePayloadValue.finish()
-                // Unlock immediately; re-reading currentEntitlements can lag
-                // the purchase and would strand the buyer on the paywall.
-                isPro = true
+                // surface an error for a successful charge, and ALWAYS finish
+                // (an unfinished transaction redelivers forever). Pro itself is
+                // GRANTED only from a signed payload, so a forged purchase
+                // result can't unlock the modules; when it doesn't verify we
+                // re-read currentEntitlements rather than stranding a buyer who
+                // has just been charged.
+                switch verification {
+                case .verified(let tx):
+                    await tx.finish()
+                    // Unlock immediately; re-reading currentEntitlements can lag
+                    // the purchase and would strand the buyer on the paywall.
+                    isPro = true
+                case .unverified(let tx, let error):
+                    await tx.finish()
+                    if allowsUnverifiedTransactions {
+                        isPro = true
+                    } else {
+                        print("[PCSPro] Unverified purchase payload: \(error)")
+                        await refreshEntitlement()
+                    }
+                }
             case .userCancelled:
                 break
             case .pending:

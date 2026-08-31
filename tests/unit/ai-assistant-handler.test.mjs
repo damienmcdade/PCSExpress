@@ -669,6 +669,69 @@ test('happy path: well-formed request → 200 with answer + source', async () =>
   });
 });
 
+// ── Verified-figure grounding (shared/jtrFacts.js) ──────────────────
+//
+// The measured production failure: the same E-5-with-dependents weight
+// question returned 12,000 / 8,000 / 8,000 lbs on three runs, each citing a
+// different invented JTR table. Correct is 9,000 — the figure the app's own
+// PPM Estimator already uses.
+
+test('verified figures: E-5 with dependents returns 9,000 lbs without calling a provider', async () => {
+  await withApiKey('sk-test', async () => {
+    await withMockFetch({}, async (rec) => {
+      const res = makeRes();
+      await handler(makeReq({ body: { q: 'I am an E-5 with a spouse and two kids. What is my HHG weight allowance in pounds?' } }), res);
+      assert.equal(res.statusCode, 200);
+      assert.match(res.body.answer, /9,000 lbs/);
+      assert.equal(res.body.source, 'pcs-express-verified');
+      assert.equal(rec.calls, 0, 'a figure the app has verified must not be left to the model');
+    });
+  });
+});
+
+test('verified figures: the answer never cites an invented numbered JTR table', async () => {
+  await withApiKey('sk-test', async () => {
+    await withMockFetch({}, async () => {
+      const res = makeRes();
+      await handler(makeReq({ body: { q: 'E-5 with dependents, what is my HHG weight allowance?' } }), res);
+      assert.doesNotMatch(res.body.answer, /table\s*\d+-\d+/i);
+    });
+  });
+});
+
+test('verified figures: the intercept runs AFTER the consent gate (nothing bypasses 5.1.2(i))', async () => {
+  await withApiKey('sk-test', async () => {
+    const res = makeRes();
+    await handler({
+      method: 'POST',
+      body: { q: 'I am an E-5 with a spouse and two kids. What is my HHG weight allowance?' },
+      headers: { origin: 'https://pcsexpress.app', 'x-forwarded-for': 'verified-no-consent' },
+    }, res);
+    assert.equal(res.statusCode, 451);
+  });
+});
+
+test('verified figures: PII-bearing questions are still refused before any answer', async () => {
+  await withApiKey('sk-test', async () => {
+    const res = makeRes();
+    await handler(makeReq({ body: { q: 'I am an E-5 with dependents at 555-123-4567, what is my weight allowance?' } }), res);
+    assert.equal(res.statusCode, 400);
+  });
+});
+
+test('grounding: questions that fall through carry the verified figures into the system prompt', async () => {
+  await withApiKey('sk-test', async () => {
+    await withMockFetch({}, async (rec) => {
+      const res = makeRes();
+      await handler(makeReq({ body: { q: 'How do I maximize my PPM payout?' } }), res);
+      assert.equal(res.statusCode, 200);
+      assert.equal(rec.calls, 1, 'a strategy question should still reach the model');
+      assert.match(rec.body.system, /E-5: 9,000 with dependents \/ 7,000 without/);
+      assert.match(rec.body.system, /NEVER cite a numbered JTR table/);
+    });
+  });
+});
+
 // ── Origin gate + rate limit (added with the security hardening) ─────
 
 test('origin gate: no Origin and no Referer is rejected 403', async () => {
