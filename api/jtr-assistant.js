@@ -124,6 +124,36 @@ function containsLikelyPii(value) {
 // re-trimmed downstream — defense-in-depth.
 const MAX_BODY_BYTES = 64 * 1024;
 
+/**
+ * Secondary provider, used ONLY when Anthropic cannot serve at all (see the
+ * failover branch in the handler). Anthropic-shaped `messages` map 1:1 onto
+ * OpenAI's chat format; the system prompt moves into the first message.
+ * Inherits the same 30s budget as the primary call.
+ */
+async function askViaOpenAI(apiKey, system, messages) {
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: process.env.FALLBACK_TEXT_MODEL || 'gpt-4.1-mini',
+      max_completion_tokens: 800,
+      messages: [
+        { role: 'system', content: system },
+        ...(Array.isArray(messages) ? messages : []).map(m => ({
+          role: m.role === 'assistant' ? 'assistant' : 'user',
+          content: String(m.content ?? ''),
+        })),
+      ],
+    }),
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!res.ok) throw new Error(`openai ${res.status}`);
+  const data = await res.json();
+  const text = data?.choices?.[0]?.message?.content;
+  if (!text) throw new Error('openai empty response');
+  return String(text).trim();
+}
+
 // Origin gate — parity with server/index.js. Without this the function is
 // an unauthenticated Anthropic-billing endpoint (a bare `curl -X POST`
 // reaches Anthropic on our key). Web app calls carry Origin/Referer for
@@ -316,6 +346,28 @@ export default async function handler(req, res) {
         .replace(/"(message|hint|error_type|type|param)"\s*:\s*"[^"]*"/gi, '"$1":"<redacted>"')
         .slice(0, 50);
       console.error(`[jtr-assistant] anthropic ${upstream.status} ${safeDetail}`);
+
+      // Cross-provider failover — same reason as /api/ai. A zero Anthropic
+      // balance took this endpoint down in production. Credit exhaustion is
+      // reported as a 400, so match the RAW body before it is redacted above.
+      // 429 stays out: the rate-limited branch above already handles it.
+      const outOfCredit = upstream.status === 400 && /credit|billing|balance|quota/i.test(String(detail || ''));
+      const upstreamDown = upstream.status === 529 || upstream.status >= 500;
+      const fallbackKey = process.env.OPENAI_API_KEY;
+      if ((outOfCredit || upstreamDown) && fallbackKey) {
+        try {
+          const text = await askViaOpenAI(
+            fallbackKey,
+            AI_ASSISTANT_SYSTEM_PROMPT + langLine + ctxLine,
+            messages,
+          );
+          console.warn('[jtr-assistant] anthropic unavailable — served via fallback provider');
+          return res.status(200).json({ answer: text, source: 'ai' });
+        } catch (fallbackErr) {
+          console.error('[jtr-assistant] fallback failed', fallbackErr?.message || fallbackErr);
+        }
+      }
+
       return res.status(502).json({
         error: 'upstream-error',
         answer: `The live AI provider returned an error (HTTP ${upstream.status}). Try the JTR Assistant tab inside Movement & Logistics for a curated answer, or check Mission Resources → Help Hub for the official source.`,
