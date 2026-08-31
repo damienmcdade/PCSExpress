@@ -22,7 +22,7 @@
 
 // Apple 5.1.2(i) consent gate. Shared with the Railway twin of this route and
 // with the React client so the header name/version cannot drift.
-import { hasAiConsent, aiConsentRequiredBody, AI_CONSENT_STATUS } from '../shared/aiConsent.js';
+import { hasAiConsent, aiConsentRequiredBody, AI_CONSENT_STATUS, isLegacyNativeClient, LEGACY_CLIENT_MESSAGE } from '../shared/aiConsent.js';
 
 const AI_MAX_LEN = 4000;
 const MAX_BODY_BYTES = 64 * 1024;
@@ -150,6 +150,12 @@ export default async function handler(req, res) {
   // rate limit (so an unconsented flood is still throttled first) and before
   // every provider call below.
   if (!hasAiConsent(req)) {
+    // A shipped binary that predates the consent client cannot ask for consent,
+    // so a bare refusal is an unbreakable loop. Refuse to transmit either way,
+    // but answer in the shape its UI can render.
+    if (isLegacyNativeClient(req)) {
+      return res.status(200).json({ text: LEGACY_CLIENT_MESSAGE });
+    }
     return res.status(AI_CONSENT_STATUS).json(aiConsentRequiredBody());
   }
 

@@ -47,7 +47,7 @@
 
 // Apple 5.1.2(i) consent gate. Shared with the Railway twin of this route and
 // with the React client so the header name/version cannot drift.
-import { hasAiConsent, aiConsentRequiredBody, AI_CONSENT_STATUS } from '../shared/aiConsent.js';
+import { hasAiConsent, aiConsentRequiredBody, AI_CONSENT_STATUS, isLegacyNativeClient, LEGACY_CLIENT_MESSAGE } from '../shared/aiConsent.js';
 
 // Match the curated system prompt language used by server/index.js.
 // Kept verbatim so the assistant behaves identically across whichever
@@ -263,6 +263,13 @@ export default async function handler(req, res) {
   // move context to Anthropic/OpenAI before explicit consent is recorded.
   // After the origin gate and rate limit, before every provider call below.
   if (!hasAiConsent(req)) {
+    // A shipped binary that predates the consent client cannot ask for
+    // consent, so a bare refusal is an unbreakable loop for every existing
+    // user. Still refuse to transmit — just answer in the shape its UI can
+    // render, so it can tell the user to update.
+    if (isLegacyNativeClient(req)) {
+      return res.status(200).json({ answer: LEGACY_CLIENT_MESSAGE, source: 'app-update-required' });
+    }
     return res.status(AI_CONSENT_STATUS).json(aiConsentRequiredBody());
   }
 

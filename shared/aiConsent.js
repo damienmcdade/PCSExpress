@@ -115,3 +115,38 @@ export function aiConsentRequiredBody() {
 
 /** HTTP status for the refusal. Exported so all four handlers agree. */
 export const AI_CONSENT_STATUS = 451
+
+/**
+ * Native shell origins. The Capacitor WebView runs on these, never on the
+ * app's public domain.
+ */
+const NATIVE_ORIGINS = new Set(['capacitor://localhost', 'https://localhost'])
+
+/**
+ * Is this a SHIPPED binary that predates the consent client?
+ *
+ * PCS Express bundles its `dist` into the binary (no `server.url`), so the
+ * JavaScript inside App Store build 1.5.0 (13) is frozen at 2026-07-28 and has
+ * no knowledge of the consent header — while the server it talks to deploys
+ * independently and now requires one.
+ *
+ * The consequence of not special-casing this: every existing user's Translation
+ * and AI Assistant returns a bare failure, and because the consent sheet also
+ * lives in the un-shippable bundle, there is NO action the user can take to
+ * grant consent. An unbreakable loop that no server deploy can clear.
+ *
+ * This does NOT weaken the guideline. A legacy client is still refused — no
+ * text is transmitted to any provider. It only changes the SHAPE of the refusal
+ * so the old UI can render an explanation ("update the app") instead of
+ * "API error", because 5.1.2(i) is about not transmitting, not about which
+ * status code the refusal carries.
+ */
+export function isLegacyNativeClient(req) {
+  if (hasAiConsent(req)) return false
+  const origin = req?.headers?.origin
+  return typeof origin === 'string' && NATIVE_ORIGINS.has(origin)
+}
+
+/** What to tell a user whose installed build cannot ask for consent. */
+export const LEGACY_CLIENT_MESSAGE =
+  "Update PCS Express from the App Store to use the AI assistants. This version can't ask your permission to send your question to our AI providers, so it hasn't been sent. Everything else in the app works as normal."
