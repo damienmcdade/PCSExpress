@@ -2880,6 +2880,25 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, express.json({ limit: '64k
       if (!r.ok) {
         const detail = await r.text().catch(() => '')
         console.error(`[jtr-assistant] anthropic ${r.status} ${redactUpstreamError(detail)}`)
+
+        // Cross-provider failover. The SHIPPED iOS/Android app sends every /api
+        // call straight here (src/config/apiConfig.js routes Capacitor builds to
+        // the Railway origin, bypassing Vercel), so without this the store app's
+        // JTR Assistant stays dead on a zero Anthropic balance even after the
+        // Vercel twin is fixed. Credit exhaustion arrives as a 400 — match the
+        // raw body, before redaction. 429 is excluded (transient throttling).
+        const outOfCredit = r.status === 400 && /credit|billing|balance|quota/i.test(String(detail || ''))
+        const upstreamDown = r.status === 529 || r.status >= 500
+        const fallbackKey = process.env.OPENAI_API_KEY
+        if ((outOfCredit || upstreamDown) && fallbackKey) {
+          try {
+            const text = await aiViaOpenAI(fallbackKey, anthropicBody)
+            console.warn('[jtr-assistant] anthropic unavailable — served via fallback provider')
+            return res.status(200).json({ answer: text, source: 'ai' })
+          } catch (fallbackErr) {
+            console.error(`[jtr-assistant] fallback failed: ${fallbackErr.message}`)
+          }
+        }
         return res.status(502).json({ error: 'upstream', source: 'anthropic' })
       }
       const data = await r.json()
