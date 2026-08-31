@@ -20,6 +20,10 @@
  *     ANTHROPIC_API_KEY server-side only. No request body logged.
  */
 
+// Apple 5.1.2(i) consent gate. Shared with the Railway twin of this route and
+// with the React client so the header name/version cannot drift.
+import { hasAiConsent, aiConsentRequiredBody, AI_CONSENT_STATUS } from '../shared/aiConsent.js';
+
 const AI_MAX_LEN = 4000;
 const MAX_BODY_BYTES = 64 * 1024;
 
@@ -140,6 +144,13 @@ export default async function handler(req, res) {
   }
   if (rateLimited(req)) {
     return res.status(429).json({ error: 'Rate limit exceeded. Try again in a minute.' });
+  }
+  // Apple 5.1.2(i): refuse to transmit the user's text to Anthropic/OpenAI
+  // before explicit consent is recorded. Placed after the origin gate and
+  // rate limit (so an unconsented flood is still throttled first) and before
+  // every provider call below.
+  if (!hasAiConsent(req)) {
+    return res.status(AI_CONSENT_STATUS).json(aiConsentRequiredBody());
   }
 
   const contentLength = Number(req.headers?.['content-length'] || 0);

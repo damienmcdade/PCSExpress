@@ -150,7 +150,8 @@
         <tr><th>Feature</th><th>What is sent</th><th>Where</th><th>Why</th></tr>
       </thead>
       <tbody>
-        <tr><td>AI Assistant</td><td>Your typed question + a non-PII context blob (branch, phase, open-task count)</td><td>Anthropic, Inc. (<code>api.anthropic.com</code>) via our server</td><td>Contextual answers</td></tr>
+        <tr><td>AI Assistant (consent required)</td><td>Your typed question, the recent messages in that conversation, your app language, and a non-PII context blob (branch, rank, component, orders type, move type, CONUS/OCONUS, whether you have dependents / children / pets, days to your report date, current phase, open-task count)</td><td>Anthropic, PBC (<code>api.anthropic.com</code>) via our server — or OpenAI, L.L.C. (<code>api.openai.com</code>) when Anthropic is unavailable</td><td>Contextual answers. Nothing is sent until you explicitly agree; you can withdraw consent at any time under Security &amp; data handling.</td></tr>
+        <tr><td>Translation tab, free text (consent required)</td><td>The English text you type in the Translate tab and the language you chose. The Common Phrases tab is not included — those translations run on your device.</td><td>Anthropic, PBC (<code>api.anthropic.com</code>) via our server — or OpenAI, L.L.C. (<code>api.openai.com</code>) when Anthropic is unavailable</td><td>Machine translation. Nothing is sent until you explicitly agree; you can withdraw consent at any time under Security &amp; data handling.</td></tr>
         <tr><td>Translation widget (opt-in)</td><td>Page content as you read it</td><td>Google LLC (Google Translate)</td><td>Only when you turn translation on</td></tr>
         <tr><td>Navigation tab</td><td>Addresses you type, origin/destination pairs</td><td>OpenStreetMap (<code>nominatim.openstreetmap.org</code>, <code>router.project-osrm.org</code>)</td><td>Geocoding + routing</td></tr>
         <tr><td>Local resource lookups (business directory, jobs, housing rates, market stats, schools, family activities)</td><td>Your gaining installation's city / state / ZIP, and any address you type</td><td>Public APIs via our server: SAM.gov, USASpending.gov, USAJOBS (OPM), FRED, HUD User, TheMuse, RemoteOK, OpenStreetMap</td><td>Fetch local results for the gaining area</td></tr>
@@ -158,12 +159,13 @@
         <tr><td>Push notifications (opt-in)</td><td>Browser push subscription endpoint</td><td>PCS Express server</td><td>Send reminders you requested</td></tr>
       </tbody>
     </table>
-    <p>We do not retain server-side copies of AI Assistant or Translation traffic. Anthropic and Google process their respective inputs under their own privacy terms.</p>
+    <p>We do not retain server-side copies of AI Assistant or Translation traffic — only anonymous rate-limit counters. Anthropic, OpenAI and Google process their respective inputs under their own privacy terms: <a href="https://www.anthropic.com/legal/privacy" rel="noopener noreferrer" target="_blank">Anthropic</a>, <a href="https://openai.com/policies/privacy-policy/" rel="noopener noreferrer" target="_blank">OpenAI</a>, <a href="https://policies.google.com/privacy" rel="noopener noreferrer" target="_blank">Google</a>.</p>
 
     <h2>6. Cookies and similar technologies</h2>
     <p>PCS Express does not set tracking, fingerprinting, or advertising cookies.</p>
     <ul>
       <li>A first-party cookie named <code>googtrans</code> is set <strong>only if you opt into Google Translate</strong>, to remember your language across page loads.</li>
+      <li>A first-party cookie named <code>pcs_ai_consent</code> is set <strong>only if you agree to the AI assistants</strong>, so our server knows it may forward your text. It holds a version number, nothing about you, and is cleared when you withdraw consent.</li>
       <li>Your browser stores AES-encrypted site data as IndexedDB / localStorage entries. These are not cookies and are not sent with HTTP requests.</li>
     </ul>
 
@@ -180,7 +182,7 @@
     <h2>10. Your rights</h2>
     <p>Depending on where you live, you may have the right to request a copy of your personal information, request correction or deletion, opt out of any sale or sharing (we don't do either), or withdraw consent for any opt-in feature.</p>
     <p>For California residents (CCPA/CPRA): the categories of personal information collected are listed in §5. We do not "sell" or "share" personal information as defined.</p>
-    <p>For EU / UK / EEA residents (GDPR Art. 13): the lawful basis for each off-device transfer in §5 is your consent (translation, push notifications, demo form) or our legitimate interest in providing the service you requested (AI Assistant, Navigation).</p>
+    <p>For EU / UK / EEA residents (GDPR Art. 13): the lawful basis for each off-device transfer in §5 is your consent (AI Assistant, free-text Translation, the Google Translate widget, push notifications, demo form) or our legitimate interest in providing the service you requested (Navigation, local resource lookups).</p>
     <p>To exercise these rights, email <a href="mailto:info@cyberwaveglobal.com">info@cyberwaveglobal.com</a>.</p>
 
     <h2>11. Security</h2>

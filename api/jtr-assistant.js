@@ -45,6 +45,10 @@
  *     does not persist q, history, or userContext.
  */
 
+// Apple 5.1.2(i) consent gate. Shared with the Railway twin of this route and
+// with the React client so the header name/version cannot drift.
+import { hasAiConsent, aiConsentRequiredBody, AI_CONSENT_STATUS } from '../shared/aiConsent.js';
+
 // Match the curated system prompt language used by server/index.js.
 // Kept verbatim so the assistant behaves identically across whichever
 // surface (Railway / Vercel) ends up handling the request.
@@ -253,6 +257,13 @@ export default async function handler(req, res) {
 
   if (rateLimited(req)) {
     return res.status(429).json({ error: 'rate-limited' });
+  }
+
+  // Apple 5.1.2(i): refuse to transmit the user's question, conversation, or
+  // move context to Anthropic/OpenAI before explicit consent is recorded.
+  // After the origin gate and rate limit, before every provider call below.
+  if (!hasAiConsent(req)) {
+    return res.status(AI_CONSENT_STATUS).json(aiConsentRequiredBody());
   }
 
   // Reject oversized payloads before doing any work. Content-Length is

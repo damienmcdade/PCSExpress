@@ -52,16 +52,18 @@ of it. There is no server-side backup.
 
 | Feature | What is sent | Where | Why |
 |---|---|---|---|
-| AI Assistant (in-app) | Your typed question + a non-PII context blob (branch, phase, open-task count) | Anthropic, Inc. (`api.anthropic.com`) via our server | To return a contextual answer |
+| AI Assistant (in-app, consent required) | Your typed question, the recent messages in that conversation, your app language, and a non-PII context blob (branch, rank, component, orders type, move type, CONUS/OCONUS, dependents / children / pets flags, days to report date, current phase, open-task count) | Anthropic, PBC (`api.anthropic.com`) via our server — or OpenAI, L.L.C. (`api.openai.com`) when Anthropic is unavailable | To return a contextual answer. Nothing is sent until you explicitly agree; consent is revocable under Security & data handling |
+| Translation tab, free text (consent required) | The English text you type there and the language you chose. Common Phrases translations run on-device and are not sent | Anthropic, PBC (`api.anthropic.com`) via our server — or OpenAI, L.L.C. (`api.openai.com`) when Anthropic is unavailable | To machine-translate the text. Nothing is sent until you explicitly agree; consent is revocable under Security & data handling |
 | Translation widget (opt-in only) | Page content as you read it | Google LLC (Google Translate) | Only when you turn translation on |
 | Navigation tab | Addresses you type, plus origin/destination pairs | OpenStreetMap Foundation (`nominatim.openstreetmap.org`, `router.project-osrm.org`) | To geocode and route |
 | Local resource lookups (business directory, jobs, housing rates, market stats, schools, family activities) | Your gaining installation's city / state / ZIP, and any address you type | Public government & third-party APIs via our server: SAM.gov, USASpending.gov, USAJOBS (OPM), FRED (St. Louis Fed), HUD User, TheMuse, RemoteOK, OpenStreetMap (Nominatim/Overpass) | To fetch local results for the gaining area |
 | Demo / partner contact form | Name, email, organization, role, message, your request IP | PCS Express server (ephemeral application logs only — no database) | To respond to your inquiry |
 | Push notifications (opt-in only) | Browser push subscription (an endpoint URL chosen by your browser vendor) | PCS Express server | To send reminders you've requested |
 
-We do not retain server-side copies of AI Assistant or Translation traffic.
-Anthropic and Google process their respective inputs under their own
-privacy terms — see their notices for details.
+We do not retain server-side copies of AI Assistant or Translation traffic
+— only anonymous rate-limit counters. Anthropic, OpenAI, and Google process
+their respective inputs under their own privacy terms — see their notices
+for details.
 
 ## 6. Cookies and similar technologies
 
@@ -71,6 +73,10 @@ advertising cookies.
 - A first-party cookie named `googtrans` is set **only if you opt into
   Google Translate**, to remember your selected language across page
   loads. It is removed if you switch back to English.
+- A first-party cookie named `pcs_ai_consent` is set **only if you agree
+  to the AI assistants**, so our server knows it may forward your text to
+  the providers named in §5. It holds a disclosure version number and
+  nothing about you, and is cleared when you withdraw consent.
 - Your browser stores PCS Express's site data (the AES-encrypted PCS
   profile described in §4) as IndexedDB / localStorage entries. These
   are not cookies and are not transmitted with HTTP requests.
@@ -129,9 +135,10 @@ in §5 above. We do not "sell" or "share" personal information as those
 terms are defined in the CCPA / CPRA.
 
 For EU / UK / EEA residents: under GDPR Art. 13, the lawful basis for
-each off-device transfer in §5 is your consent (translation, push
-notifications, demo form) or our legitimate interest in providing the
-service you requested (AI Assistant, Navigation). Anthropic, Google,
+each off-device transfer in §5 is your consent (AI Assistant, free-text
+Translation, the Google Translate widget, push notifications, demo form) or
+our legitimate interest in providing the service you requested (Navigation,
+local resource lookups). Anthropic, OpenAI, Google,
 Vercel, and Railway each maintain their own Standard Contractual Clauses
 or equivalent transfer mechanisms.
 

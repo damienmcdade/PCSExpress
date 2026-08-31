@@ -18,10 +18,16 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { apiUrl } from '../config/apiConfig';
+import { aiConsentHeaders, hasAiConsent, requestAiConsent } from '../config/aiConsent';
 // Curated JTR/FTR/DSSR/IRS knowledge base + search live in a shared,
 // React-free module so both this tab and the AI chip use one source of
 // truth (and so the KB + search can be unit-tested directly).
 import { JTR_KB as KB, searchJtrKb } from '../data/jtrKnowledgeBase';
+
+// Shown when the user declines to send their question to an AI provider. The
+// curated knowledge base above the Ask box is unaffected, so this points there
+// rather than reading as a failure.
+const AI_CONSENT_DECLINED_MESSAGE = 'Ask anything is switched off because your question has not been cleared to go to an AI provider. The curated JTR / FTR / DSSR knowledge base above still works and cites the exact section. To turn this on, ask again and choose “Agree and continue”, or open Security & data handling at the bottom of the Command Center.';
 
 
 export default function JTRAssistantModule({ theme }) {
@@ -34,6 +40,22 @@ export default function JTRAssistantModule({ theme }) {
 
   useEffect(() => () => { try { askAbort.current?.abort(); } catch {} }, []);
 
+  // One attempt. Extracted so the 451 (consent-required) path can replay the
+  // exact same request once the user has agreed.
+  const askOnce = (text) => {
+    askAbort.current = new AbortController();
+    const timer = setTimeout(() => askAbort.current?.abort(), 30000);
+    return fetch(apiUrl('/api/jtr-assistant'), {
+      method: 'POST',
+      // Request streaming so the answer renders progressively. Backend
+      // falls back to JSON if streaming is unavailable (curated-KB
+      // provider) and we handle both paths.
+      headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json', ...aiConsentHeaders() },
+      body: JSON.stringify({ q: text, stream: true }),
+      signal: askAbort.current.signal,
+    }).then(res => ({ res, timer }));
+  };
+
   const submitFreeText = async () => {
     const text = askText.trim();
     if (!text) return;
@@ -41,19 +63,30 @@ export default function JTRAssistantModule({ theme }) {
       setAskState({ status: 'error', answer: 'Question is too long. Keep it under 1000 characters and try again.', source: '' });
       return;
     }
+    // Apple 5.1.2(i): explicit consent before the question is transmitted.
+    if (!hasAiConsent()) {
+      const granted = await requestAiConsent();
+      if (!granted) {
+        setAskState({ status: 'declined', answer: AI_CONSENT_DECLINED_MESSAGE, source: '' });
+        return;
+      }
+    }
     setAskState({ status: 'loading', answer: '', source: '' });
     try {
-      askAbort.current = new AbortController();
-      const timer = setTimeout(() => askAbort.current?.abort(), 30000);
-      // Request streaming so the answer renders progressively. Backend
-      // falls back to JSON if streaming is unavailable (curated-KB
-      // provider) and we handle both paths.
-      const r = await fetch(apiUrl('/api/jtr-assistant'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
-        body: JSON.stringify({ q: text, stream: true }),
-        signal: askAbort.current.signal,
-      });
+      let { res: r, timer } = await askOnce(text);
+      // 451 — server refused to transmit because no consent is on record
+      // (shared/aiConsent.js). Ask, then replay this same question once. The
+      // timer is cleared first so the 30s request budget doesn't abort the
+      // retry while the user is reading the sheet.
+      if (r.status === 451) {
+        clearTimeout(timer);
+        const granted = await requestAiConsent();
+        if (!granted) {
+          setAskState({ status: 'declined', answer: AI_CONSENT_DECLINED_MESSAGE, source: '' });
+          return;
+        }
+        ({ res: r, timer } = await askOnce(text));
+      }
       clearTimeout(timer);
       if (r.status === 404 || r.status === 501) {
         setAskState({
@@ -170,12 +203,12 @@ export default function JTRAssistantModule({ theme }) {
         {askState.status !== 'idle' && askState.answer && (
           <div style={{ marginTop: 10, padding: 12, background: '#F4F7F7', borderRadius: 10, border: '1px solid #E0E6EE' }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: '#56697C', letterSpacing: '.06em', marginBottom: 6 }}>
-              {askState.status === 'fallback' ? 'NOT CONFIGURED' : askState.status === 'error' ? 'ERROR' : `ASSISTANT · ${askState.source || 'unknown source'}`}
+              {askState.status === 'fallback' ? 'NOT CONFIGURED' : askState.status === 'declined' ? 'AI ASSISTANTS OFF' : askState.status === 'error' ? 'ERROR' : `ASSISTANT · ${askState.source || 'unknown source'}`}
             </div>
             <div style={{ fontSize: 12, color: '#0D1821', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{askState.answer}</div>
             {(askState.status === 'streaming' || askState.status === 'ready') && (
               <div style={{ marginTop: 8, fontSize: 10.5, color: '#8A6D1A', background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 8, padding: '6px 8px', lineHeight: 1.5 }}>
-                AI-generated planning summary — it may be incomplete, out of date, or wrong. This is not legal, tax, or financial advice. Verify against the cited JTR / FTR / DSSR / IRS section and your finance office before acting on it.
+                AI-generated planning summary from Anthropic (Claude), or from OpenAI when Anthropic is unavailable — it may be incomplete, out of date, or wrong. This is not legal, tax, or financial advice. Verify against the cited JTR / FTR / DSSR / IRS section and your finance office before acting on it.
               </div>
             )}
           </div>

@@ -23,6 +23,10 @@ export default [
       'android/',
       'ios/',
       'build/',
+      // `vercel build` output — minified vendor bundles that produce ~60
+      // spurious errors (no-fallthrough, no-undef on __REACT_DEVTOOLS_GLOBAL_HOOK__)
+      // and drown out real findings in source.
+      '.vercel/',
       'coverage/',
       'test-results/',
       // Dated backup directories — kept as point-in-time snapshots while

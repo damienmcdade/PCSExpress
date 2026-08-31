@@ -19,6 +19,12 @@ import { useEffect, useState, useRef } from 'react';
 import { encryptionAvailable, secureLocalStore, AuditLogger } from '../security/SecurityExtensions';
 import { INDEPENDENCE_DISCLAIMER } from '../config/disclaimer';
 import PromptModal from './PromptModal';
+import {
+  AI_CONSENT_CHANGED_EVENT,
+  hasAiConsent,
+  recordAiConsent,
+  revokeAiConsent,
+} from '../config/aiConsent';
 
 // Personal data export. Builds a JSON blob of every secureLocalStore
 // key the user has touched and offers it as a download. The user can
@@ -132,7 +138,7 @@ const SECTIONS = [
     title: 'Access controls & rate limits',
     items: [
       { label: 'Per-IP API rate limit', value: '30 req / minute, burst 10. Applied to every /api/* route via in-memory map with 5-minute cleanup.', cite: 'server/index.js · registerRateLimitMap' },
-      { label: 'AI gateway rate limit', value: 'Separate limit on /api/ai — 10 req / minute, request body length-capped at 4 000 chars.',           cite: 'server/index.js' },
+      { label: 'AI gateway rate limit', value: 'Separate limits on the AI routes — /api/ai 20 req / minute / IP, /api/jtr-assistant 10 req / minute / IP, plus a 1 000-call hourly ceiling per instance. Request bodies capped at 64 KB and each text field at 4 000 chars (/api/ai) or 1 000 chars (/api/jtr-assistant).', cite: 'server/index.js' },
       { label: 'Authentication',         value: 'Client-only profile state; no user accounts, no auth tokens, no OAuth handoff. Profiles never leave the device.', cite: '' },
       { label: 'No SQL backend',          value: 'No relational or document database stores user state. Removes the entire SQL-injection / unauthenticated-read attack surface.', cite: '' },
     ],
@@ -142,7 +148,7 @@ const SECTIONS = [
     title: 'ITAR / export-control posture',
     items: [
       { label: 'Data ingested',        value: 'Public installation metadata, public DTMO/GSA reference data, user-entered PCS profile state (kept local). No classified, controlled-unclassified (CUI), or operationally sensitive data is ingested or transmitted.', cite: '' },
-      { label: 'AI/ML routing',         value: 'AI Assistant + Translation features forward user-typed text plus a non-PII context blob (branch / phase / open-task count) to Anthropic via /api/ai and /api/jtr-assistant with length caps, prompt-injection sanitization, and an OPSEC banner above each input. Nothing is persisted server-side beyond rate-limit counters.', cite: '' },
+      { label: 'AI/ML routing',         value: 'AI Assistant + Translation features forward user-typed text plus a non-PII context blob (branch / rank / component / phase / open-task count) to Anthropic (Claude) via /api/ai and /api/jtr-assistant — or to OpenAI when Anthropic cannot serve — with length caps, prompt-injection sanitization, a PII gate, and an OPSEC banner above each input. Gated by explicit, revocable user consent per Apple Guideline 5.1.2(i): all four handlers (Vercel + Railway) return HTTP 451 until consent is recorded. Nothing is persisted server-side beyond rate-limit counters.', cite: 'shared/aiConsent.js' },
       { label: 'Other off-device egress', value: 'Navigation: addresses you type are sent to OpenStreetMap (Nominatim + OSRM) for geocoding and routing. Local resource lookups: your gaining installation city/state/ZIP (and any address you type) are sent to public APIs (SAM.gov, USASpending.gov, USAJOBS, TheMuse, RemoteOK, FRED, HUD) to fetch business-directory, jobs, housing-rate, and market-stats results. Demo / partner contact form: name, email, org, role, message, plus request IP are POSTed to the server and written to ephemeral logs (no database). Translation widget (opt-in): page contents go to Google when enabled. Future advertising: ads.txt declares a Google AdSense publisher relationship; no ad code currently loads.', cite: '' },
       { label: 'Distribution control', value: 'Source is published on a public GitHub repo (no controlled algorithms or USML Cat XI/XV components). App contains no encryption beyond what is freely exportable under EAR §740.17 (TSU).',                                cite: '' },
       { label: 'Foreign access',       value: 'OCONUS service members (the app’s primary OCONUS audience) are U.S. government personnel; no foreign-national user provisioning.',                                                                                  cite: '' },
@@ -209,7 +215,15 @@ export default function ComplianceAttestationModule({ theme, profile }) {
   // unsupported in the Capacitor native WebView, so we stage the file and
   // confirm via PromptModal before overwriting on-device data.
   const [pendingRestore, setPendingRestore] = useState(null);
+  // Apple 5.1.2(i) requires consent to be revocable. Mirrors whatever the
+  // consent sheet or another open surface last recorded.
+  const [aiConsent, setAiConsent] = useState(() => hasAiConsent());
   useEffect(() => { setCryptoOk(encryptionAvailable()); }, []);
+  useEffect(() => {
+    const sync = () => setAiConsent(hasAiConsent());
+    window.addEventListener(AI_CONSENT_CHANGED_EVENT, sync);
+    return () => window.removeEventListener(AI_CONSENT_CHANGED_EVENT, sync);
+  }, []);
   const runRestore = async (file) => {
     try {
       const n = await importPersonalDataFromFile(file);
@@ -266,6 +280,50 @@ export default function ComplianceAttestationModule({ theme, profile }) {
           </div>
         </section>
       ))}
+
+      {/* AI consent — grant / withdraw. Apple Guideline 5.1.2(i) requires the
+          consent to be revocable after it is given, so it lives in a settings
+          surface the user can reach at any time, not only in the first-run
+          sheet. Withdrawing takes effect on the next request: the client stops
+          sending the consent header and all four server handlers answer 451. */}
+      <section style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 14, padding: 14, marginBottom: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821', marginBottom: 6, letterSpacing: '.03em' }}>AI assistants &amp; third-party processing</div>
+        <div style={{ fontSize: 12, color: '#56697C', lineHeight: 1.55, marginBottom: 10 }}>
+          The AI Assistant and the free-text Translate tab send what you type to <strong>Anthropic (Claude)</strong>, or to <strong>OpenAI</strong> when Anthropic is unavailable, which generates the reply and sends it back. The AI Assistant also includes a short summary of your move (branch, rank, component, orders and move type, CONUS/OCONUS, dependents / children / pets, days to your report date, current phase, open task count). Nothing is sent unless you have agreed, and PCS Express keeps no copy of your question or the answer on its servers.
+        </div>
+        <div
+          role="status"
+          style={{
+            fontSize: 12,
+            fontWeight: 800,
+            color: aiConsent ? '#1B5E20' : '#7A4A00',
+            background: aiConsent ? '#E8F5E9' : '#FFF8E1',
+            border: `1px solid ${aiConsent ? '#A5D6A7' : '#FFE082'}`,
+            borderRadius: 10,
+            padding: '8px 10px',
+            marginBottom: 10,
+          }}
+        >
+          {aiConsent
+            ? 'Agreed — the AI Assistant and free-text translation are available on this device.'
+            : 'Not agreed — the AI assistants are switched off on this device. Everything else still works.'}
+        </div>
+        <button
+          type="button"
+          onClick={() => (aiConsent ? revokeAiConsent() : recordAiConsent())}
+          className="card-cta card-cta--block"
+          style={{
+            '--cta-color': aiConsent ? '#C62828' : theme.primary,
+            background: aiConsent ? '#FFF' : theme.primary,
+            color: aiConsent ? '#C62828' : '#FFF',
+            border: aiConsent ? '1.5px solid #C62828' : 'none',
+            minHeight: 44,
+            cursor: 'pointer',
+          }}
+        >
+          {aiConsent ? 'Withdraw consent — turn the AI assistants off' : 'Agree — turn the AI assistants on'}
+        </button>
+      </section>
 
       <section style={{ background: '#FFFFFF', border: '1px solid #E0E6EE', borderRadius: 14, padding: 14, marginBottom: 12 }}>
         <div style={{ fontSize: 13, fontWeight: 900, color: '#0D1821', marginBottom: 6, letterSpacing: '.03em' }}>Back up &amp; restore your data</div>

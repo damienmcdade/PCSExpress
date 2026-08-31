@@ -25,6 +25,9 @@ import { TransitionLocationProvider, TransitionLocationBar } from './components/
 import { useFocusTrap } from './hooks/useFocusTrap'
 import DynamicTimeline from './components/DynamicTimeline'
 import PrivacyShield from './components/PrivacyShield'
+// Apple 5.1.2(i) consent sheet. Eager (not lazy) on purpose: it must be able
+// to block the FIRST AI call, and a chunk fetch could lose that race.
+import AIConsentSheet from './components/AIConsentSheet'
 import PromptModal from './components/PromptModal'
 import ProGate from './components/ProGate'
 
@@ -6170,6 +6173,11 @@ function App() {
           mobile launch into last tab, returning users with a saved
           profile). */}
       <IndependenceAck />
+
+      {/* AI consent sheet (Apple 5.1.2(i)). Self-gated: renders only when a
+          call site raises it via requestAiConsent() and consent isn't already
+          on record. */}
+      <AIConsentSheet />
 
       {/* ── iOS BOTTOM TAB BAR ── native only, invisible on web/Railway ── */}
       {isNative && !isDesktop && (

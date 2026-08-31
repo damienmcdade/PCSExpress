@@ -20,6 +20,16 @@ import {
   sanitizeQueryParam,
   safeHttpUrl,
 } from './lib/validators.js'
+// Apple 5.1.2(i) consent gate. THIS server is what the shipped iOS/Android
+// app talks to (src/config/apiConfig.js sends every Capacitor API call
+// straight to the Railway origin, bypassing Vercel), so guarding only the
+// api/*.js twins would leave the App Store build ungated.
+import {
+  AI_CONSENT_HEADER,
+  AI_CONSENT_STATUS,
+  aiConsentRequiredBody,
+  hasAiConsent,
+} from '../shared/aiConsent.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -208,7 +218,12 @@ app.use(cors({
     return cb(null, false)
   },
   methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  // AI_CONSENT_HEADER must be allow-listed here or the CORS preflight fails
+  // for the Capacitor shells (origin capacitor://localhost / https://localhost
+  // calling this cross-origin Railway host) and every native AI call breaks.
+  // Cookies cannot carry the signal on that path — credentials stays false —
+  // so the header is the only cross-origin carrier.
+  allowedHeaders: ['Content-Type', 'Authorization', AI_CONSENT_HEADER],
   credentials: false,
   maxAge: 86400,
 }))
@@ -815,6 +830,12 @@ app.post('/api/ai', aiRateLimit, express.json({ limit: '64kb' }), async (req, re
   // drive-by or script trying to burn our LLM budget.
   if (!req.headers.origin && !isSameOriginRequest(req)) {
     return res.status(403).json({ error: 'origin required for AI endpoints' })
+  }
+  // Apple 5.1.2(i): refuse to transmit the user's text to Anthropic/OpenAI
+  // before explicit consent is recorded. After the origin gate and the
+  // aiRateLimit middleware, before every provider call below.
+  if (!hasAiConsent(req)) {
+    return res.status(AI_CONSENT_STATUS).json(aiConsentRequiredBody())
   }
   try {
     const { system, user } = req.body || {}
@@ -2729,6 +2750,13 @@ app.post('/api/jtr-assistant', jtrAssistantRateLimit, express.json({ limit: '64k
   // or carries an allowlisted Sec-Fetch-Site signal.
   if (!req.headers.origin && !isSameOriginRequest(req)) {
     return res.status(403).json({ error: 'origin required for AI endpoints' })
+  }
+  // Apple 5.1.2(i): refuse to transmit the user's question, conversation, or
+  // move context to Anthropic/OpenAI before explicit consent is recorded.
+  // After the origin gate and the jtrAssistantRateLimit middleware, before
+  // every provider call below.
+  if (!hasAiConsent(req)) {
+    return res.status(AI_CONSENT_STATUS).json(aiConsentRequiredBody())
   }
   // Auto-detect provider. If ANTHROPIC_API_KEY is set we use
   // Anthropic; if OPENAI_API_KEY is set we use OpenAI. An explicit

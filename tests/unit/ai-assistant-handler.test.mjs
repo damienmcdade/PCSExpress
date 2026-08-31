@@ -21,7 +21,10 @@ import handler from '../../api/jtr-assistant.js';
 // Each request gets a UNIQUE source IP so the handler's in-memory
 // rate limiter (10 req/min/IP, keyed on x-forwarded-for) never trips
 // across the suite, and a default allowed Origin so the origin gate
-// passes. Tests that exercise the gate/limiter pass explicit headers.
+// passes. The default headers also carry x-ai-consent because the Apple
+// 5.1.2(i) gate refuses to reach a provider without it — every test that
+// asserts behaviour PAST that gate has to look like a consented client.
+// Tests that exercise the gate/limiter pass explicit headers.
 let _reqSeq = 0;
 function makeReq({ method = 'POST', body = {}, headers } = {}) {
   _reqSeq += 1;
@@ -30,7 +33,7 @@ function makeReq({ method = 'POST', body = {}, headers } = {}) {
     body,
     headers: headers !== undefined
       ? headers
-      : { origin: 'https://pcsexpress.app', 'x-forwarded-for': `test-ip-${_reqSeq}` },
+      : { origin: 'https://pcsexpress.app', 'x-ai-consent': '1', 'x-forwarded-for': `test-ip-${_reqSeq}` },
   };
 }
 
@@ -83,7 +86,7 @@ function withApiKey(key, fn) {
 test('body cap: Content-Length above 64KB returns 413 before parsing', async () => {
   await withApiKey('sk-test', async () => {
     const res = makeRes();
-    const req = { method: 'POST', body: { q: 'hi' }, headers: { origin: 'https://pcsexpress.app', 'x-forwarded-for': 'test-ip-bodycap', 'content-length': String(70 * 1024) } };
+    const req = { method: 'POST', body: { q: 'hi' }, headers: { origin: 'https://pcsexpress.app', 'x-ai-consent': '1', 'x-forwarded-for': 'test-ip-bodycap', 'content-length': String(70 * 1024) } };
     await handler(req, res);
     assert.equal(res.statusCode, 413);
     assert.equal(res.body.error, 'payload-too-large');
@@ -211,7 +214,7 @@ test('body: q with numeric type still returns 400 (coerced empty after sanitize?
 test('body: non-object body (string) is rejected as missing q', async () => {
   await withApiKey('sk-test', async () => {
     const res = makeRes();
-    await handler({ method: 'POST', body: 'oops', headers: { origin: 'https://pcsexpress.app', 'x-forwarded-for': 'test-ip-str' } }, res);
+    await handler({ method: 'POST', body: 'oops', headers: { origin: 'https://pcsexpress.app', 'x-ai-consent': '1', 'x-forwarded-for': 'test-ip-str' } }, res);
     assert.equal(res.statusCode, 400);
   });
 });
@@ -219,7 +222,7 @@ test('body: non-object body (string) is rejected as missing q', async () => {
 test('body: null body is rejected as missing q', async () => {
   await withApiKey('sk-test', async () => {
     const res = makeRes();
-    await handler({ method: 'POST', body: null, headers: { origin: 'https://pcsexpress.app', 'x-forwarded-for': 'test-ip-null' } }, res);
+    await handler({ method: 'POST', body: null, headers: { origin: 'https://pcsexpress.app', 'x-ai-consent': '1', 'x-forwarded-for': 'test-ip-null' } }, res);
     assert.equal(res.statusCode, 400);
   });
 });
@@ -227,7 +230,7 @@ test('body: null body is rejected as missing q', async () => {
 test('body: array body has no q (Array is typeof object but body.q is undefined)', async () => {
   await withApiKey('sk-test', async () => {
     const res = makeRes();
-    await handler({ method: 'POST', body: [1, 2, 3], headers: { origin: 'https://pcsexpress.app', 'x-forwarded-for': 'test-ip-arr' } }, res);
+    await handler({ method: 'POST', body: [1, 2, 3], headers: { origin: 'https://pcsexpress.app', 'x-ai-consent': '1', 'x-forwarded-for': 'test-ip-arr' } }, res);
     assert.equal(res.statusCode, 400);
   });
 });
@@ -688,7 +691,7 @@ test('origin gate: cross-origin Origin is rejected 403', async () => {
 test('origin gate: allowed Origin passes the gate (reaches body validation)', async () => {
   await withApiKey('sk-test', async () => {
     const res = makeRes();
-    await handler({ method: 'POST', body: {}, headers: { origin: 'https://pcsexpress.app', 'x-forwarded-for': 'gate-ip-3' } }, res);
+    await handler({ method: 'POST', body: {}, headers: { origin: 'https://pcsexpress.app', 'x-ai-consent': '1', 'x-forwarded-for': 'gate-ip-3' } }, res);
     assert.equal(res.statusCode, 400); // passed gate, failed on missing q
     assert.equal(res.body.error, 'q is required');
   });
@@ -697,14 +700,14 @@ test('origin gate: allowed Origin passes the gate (reaches body validation)', as
 test('origin gate: same-origin via Referer (no Origin header) passes', async () => {
   await withApiKey('sk-test', async () => {
     const res = makeRes();
-    await handler({ method: 'POST', body: {}, headers: { referer: 'https://pcsexpress.app/app', 'x-forwarded-for': 'gate-ip-4' } }, res);
+    await handler({ method: 'POST', body: {}, headers: { referer: 'https://pcsexpress.app/app', 'x-ai-consent': '1', 'x-forwarded-for': 'gate-ip-4' } }, res);
     assert.equal(res.statusCode, 400); // passed gate, failed on missing q
   });
 });
 
 test('rate limit: an 11th request from the same IP within the window returns 429', async () => {
   await withApiKey('sk-test', async () => {
-    const headers = { origin: 'https://pcsexpress.app', 'x-forwarded-for': 'flood-ip' };
+    const headers = { origin: 'https://pcsexpress.app', 'x-ai-consent': '1', 'x-forwarded-for': 'flood-ip' };
     let last;
     for (let i = 0; i < 11; i++) {
       last = makeRes();
