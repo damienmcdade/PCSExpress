@@ -57,16 +57,18 @@ export function hasAiConsent() {
 }
 
 export function recordAiConsent() {
+  sessionConsent = AI_CONSENT_VERSION
   try {
-    window.localStorage.setItem(STORAGE_KEY, AI_CONSENT_VERSION)
-  } catch { /* storage unavailable — the header below still carries this session */ }
+    window.localStorage?.setItem(STORAGE_KEY, AI_CONSENT_VERSION)
+  } catch { /* storage unavailable — sessionConsent carries this session */ }
   writeCookie(AI_CONSENT_VERSION)
   notifyChanged()
 }
 
 export function revokeAiConsent() {
+  sessionConsent = null
   try {
-    window.localStorage.removeItem(STORAGE_KEY)
+    window.localStorage?.removeItem(STORAGE_KEY)
   } catch { /* nothing stored to clear */ }
   writeCookie('')
   notifyChanged()

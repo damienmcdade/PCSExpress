@@ -23,13 +23,16 @@ import {
 } from '../../src/config/aiConsent';
 import { AI_CONSENT_HEADER } from '../../shared/aiConsent.js';
 
+// revokeAiConsent() is the public reset: it clears the stored value, the
+// cookie, AND the in-memory session fallback, so each test starts unconsented
+// regardless of whether this environment actually has localStorage.
 beforeEach(() => {
   cleanup();
-  try { window.localStorage.clear(); } catch { /* storage unavailable */ }
+  revokeAiConsent();
 });
 
 afterEach(() => {
-  try { window.localStorage.clear(); } catch { /* storage unavailable */ }
+  revokeAiConsent();
 });
 
 describe('AIConsentSheet', () => {
