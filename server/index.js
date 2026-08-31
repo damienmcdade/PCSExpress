@@ -769,6 +769,36 @@ function aiRateLimit(req, res, next) {
 // the existing containsLikelyPii helper).
 const AI_MAX_LEN = 4_000;
 
+/**
+ * Secondary AI provider, used ONLY when Anthropic cannot serve at all.
+ * Accepts an Anthropic-shaped request body and maps it onto OpenAI's chat
+ * format (system prompt becomes the first message). Non-streaming only —
+ * the SSE branches still require Anthropic.
+ */
+async function aiViaOpenAI(apiKey, anthropicBody) {
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: process.env.FALLBACK_TEXT_MODEL || 'gpt-4.1-mini',
+      max_completion_tokens: anthropicBody?.max_tokens || 256,
+      messages: [
+        ...(anthropicBody?.system ? [{ role: 'system', content: String(anthropicBody.system) }] : []),
+        ...(Array.isArray(anthropicBody?.messages) ? anthropicBody.messages : []).map(m => ({
+          role: m.role === 'assistant' ? 'assistant' : 'user',
+          content: String(m.content ?? ''),
+        })),
+      ],
+    }),
+    signal: AbortSignal.timeout(15_000),
+  })
+  if (!res.ok) throw new Error(`openai ${res.status}`)
+  const data = await res.json()
+  const text = data?.choices?.[0]?.message?.content
+  if (!text) throw new Error('openai empty response')
+  return String(text).trim()
+}
+
 // 64kb is well above the documented 4000-char input cap on this
 // endpoint and ~16x the realistic payload, while shutting down
 // cost-abuse where an attacker POSTs the global 1MB allowance worth
@@ -880,7 +910,24 @@ app.post('/api/ai', aiRateLimit, express.json({ limit: '64kb' }), async (req, re
     })
 
     if (!response.ok) {
+      const detail = await response.text().catch(() => '')
       console.error(`[API] Anthropic error: ${response.status}`)
+
+      // Cross-provider failover — mirrors api/ai.js. A zero Anthropic balance
+      // took this route down in production; credit exhaustion is reported as a
+      // 400, so match the raw body. 429 is excluded (transient throttling).
+      const outOfCredit = response.status === 400 && /credit|billing|balance|quota/i.test(String(detail || ''))
+      const upstreamDown = response.status === 529 || response.status >= 500
+      const fallbackKey = process.env.OPENAI_API_KEY
+      if ((outOfCredit || upstreamDown) && fallbackKey) {
+        try {
+          const text = await aiViaOpenAI(fallbackKey, anthropicBody)
+          console.warn('[API] anthropic unavailable — served via fallback provider')
+          return res.status(200).json({ text })
+        } catch (fallbackErr) {
+          console.error(`[API] fallback failed: ${fallbackErr.message}`)
+        }
+      }
       return res.status(502).json({ error: 'Anthropic API error' })
     }
 
